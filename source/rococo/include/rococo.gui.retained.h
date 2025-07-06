@@ -1808,6 +1808,7 @@ namespace Rococo::Gui
 		GRFontId CarouselButtonFontId = GRFontId::NONE;
 		GRFontId SliderFontId = GRFontId::NONE;
 		FN_RENDER_SLIDER SliderRenderFunction = Gui::RenderSlider_AsLeftToRightBulbs;
+		Vec2i EditorPadding{ 0,0 };
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled

@@ -67,7 +67,7 @@ namespace GRANON
 
 			GRAlignmentFlags alignment;
 			alignment.Add(EGRAlignment::HCentre);
-			editor->SetAlignment(alignment, {0,0});
+			editor->SetAlignment(alignment, config.EditorPadding);
 
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TOP_LEFT, EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);

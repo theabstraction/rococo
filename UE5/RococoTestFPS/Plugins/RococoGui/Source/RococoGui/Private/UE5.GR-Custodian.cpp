@@ -195,6 +195,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 	const FSlateFontInfo& GetFont(UE5_GR_Custodian& custodian, GRFontId fontId);
 	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FText& localizedText, Vec2i extraSpan);
+	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FString& text, Vec2i extraSpan, int startIndex, int endIndex);
 	const FText& MapAsciiToLocalizedText(UE5_GR_Custodian& custodian, cstr text);
 
 	GuiRect GetAlignedRect(GRAlignmentFlags alignment, const GuiRect& containerRect, Vec2i spacing, Vec2i innerRectSpan)
@@ -736,7 +737,7 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
-		void DrawEditableText(GRFontId fontId, const GuiRect& clipRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
+		void DrawEditableText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) override
 		{
 			if (!lastScissorRect.IsNormalized())
 			{
@@ -745,90 +746,74 @@ namespace Rococo::Gui::UE5::Implementation
 
 			auto drawEffects = rc.bEnabled ? ESlateDrawEffect::NoGamma : ESlateDrawEffect::DisabledEffect;
 
-			FPaintGeometry ue5Rect = ToUE5Rect(clipRect, rc.geometry);
-
-			FString localizedText(text);
-			const FSlateFontInfo& fontInfo = GetFont(custodian, fontId);
-			FSlateDrawElement::MakeText(rc.drawElements, (uint32) ++rc.layerId, ue5Rect, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
-
-			/*
-			rc->FlushLayer();
-			rc->SetScissorRect(lastScissorRect);
-
-			// If there is nothing to display, then render a space character, which will give the caret a rectangle to work with
-			fstring editText = text.length > 0 ? text : " "_fstring;
-
-			alignment.Remove(EGRAlignment::Right).Add(EGRAlignment::Left);
-			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
-
-			auto& metrics = rc->Resources().HQFontsResources().GetFontMetrics(To_ID_FONT(fontId));
-
-			struct : IEventCallback<GlyphContext>
+			GuiRect scissorRect;
+			if (TryGetScissorRect(OUT scissorRect))
 			{
-				int32 charPos = 0;
-				int32 caretPos = 0;
-				int32 caretWidth = 0;
-				Vec2i caretStart = { 0,0 };
-				Vec2i caretEnd = { 0,0 };
-				Vec2i lastBottomRight = { 0,0 };
-
-				void OnEvent(GlyphContext& glyph) override
+				if (!AreRectsOverlapped(scissorRect, targetRect))
 				{
-					if (charPos == caretPos)
-					{
-						caretStart = BottomLeft(glyph.outputRect);
-						caretEnd = BottomRight(glyph.outputRect);
-					}
-
-					lastBottomRight = BottomRight(glyph.outputRect);
-
-					charPos++;
+					return;
 				}
-			} glyphCallback;
-
-			glyphCallback.caretPos = caret.CaretPos;
-			glyphCallback.caretWidth = metrics.imgWidth;
-
-			RGBAb transparent(0, 0, 0, 0);
-
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, To_ID_FONT(fontId), editText, transparent, spacing, &glyphCallback);
-
-			int32 dxShift = 0;
-
-			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
-			{
-				glyphCallback.caretStart = glyphCallback.lastBottomRight;
-				glyphCallback.caretEnd = glyphCallback.caretStart + Vec2i{ metrics.imgWidth, 0 };
 			}
 
-			if (glyphCallback.caretEnd.x >= clipRect.right)
+			GuiRect clipRect = IntersectRectWithScissors(targetRect);
+
+			ClipContext clip(rc, clipRect);
+
+			const FText& localizedText = MapAsciiToLocalizedText(custodian, text);
+			const FSlateFontInfo& fontInfo = GetFont(custodian, fontId);
+
+			FString localizedString = localizedText.ToString();
+
+			Vec2i leftCaretPosSpan = EvaluateMinimalSpan(custodian, fontId, localizedString, Vec2i{ 0,0 }, 0, caret.CaretPos);
+			Vec2i rightCaretPosSpan = EvaluateMinimalSpan(custodian, fontId, localizedString, Vec2i{ 0,0 }, caret.CaretPos, localizedString.Len());
+
+			static const FText letterA = FText::FromString(TEXT("A"));
+
+			Vec2i leftCaretPosSpanPlus1 = 
+				caret.CaretPos >= localizedString.Len() ? 
+				leftCaretPosSpan + EvaluateMinimalSpan(custodian, fontId, letterA, Vec2i{0,0})
+				:
+				EvaluateMinimalSpan(custodian, fontId, localizedString, Vec2i{ 0, 0 }, 0, caret.CaretPos+1);
+
+			Vec2i textLocalSpan = { leftCaretPosSpan.x + rightCaretPosSpan.x, leftCaretPosSpan.y };
+			
+			FVector2f absSize = rc.geometry.GetAbsoluteSize();
+			FVector2f localSize = rc.geometry.GetLocalSize();
+
+			FVector2f ratio{ 1.0f, 1.0f };
+
+			if (localSize.X > 0)
 			{
-				dxShift = (clipRect.right - glyphCallback.caretEnd.x);
+				ratio.X = absSize.X / localSize.X;
 			}
 
-			glyphCallback.charPos = 0;
-			glyphCallback.caretStart = glyphCallback.caretEnd = { 0,0 };
-
-			Rococo::Graphics::RenderHQText(clipRect, iAlignment, *rc, To_ID_FONT(fontId), editText, colour, spacing, &glyphCallback, dxShift);
-
-			if (glyphCallback.caretEnd.x <= glyphCallback.caretStart.x)
+			if (localSize.Y > 0)
 			{
-				glyphCallback.caretStart = glyphCallback.lastBottomRight;
-				glyphCallback.caretEnd = glyphCallback.caretStart + Vec2i{ metrics.imgWidth, 0 };
+				ratio.Y = absSize.Y / localSize.Y;
 			}
 
-			auto ticks = Rococo::Time::TickCount();
-			auto dticks = ticks % Rococo::Time::TickHz();
+			Vec2i textPixelSpan{ textLocalSpan.x * ratio.X, textLocalSpan.y * ratio.Y };
+			Vec2i topLeft = ToVec2i(rc.geometry.LocalToAbsolute(ToFVector2f(TopLeft(targetRect))));
+			Vec2i bottomRight = ToVec2i(rc.geometry.LocalToAbsolute(ToFVector2f(BottomRight(targetRect))));
+			GuiRect pixelRect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+			GuiRect textRect = GetAlignedRect(alignment, pixelRect, spacing, textPixelSpan);
 
-			float dt = dticks / (float)Rococo::Time::TickHz();
+			FPaintGeometry textGeometryInPixelSpace(ToFVector2f(TopLeft(textRect)), ToFVector2f(Span(textRect)), 1.0f);
 
-			RGBAb blinkColour = dt > 0.5f ? caret.CaretColour1 : caret.CaretColour2;
-			Rococo::Graphics::DrawLine(*rc, 1, glyphCallback.caretStart, glyphCallback.caretEnd, blinkColour);
+			if (alignment.HasAllFlags(EGRAlignment::DrawAlignmentEdge))
+			{
+				auto edgeColour = ToLinearColor(alignmentEdgeColour);
+				FSlateColorBrush edgeBrush(ToLinearColor(RGBAb(255, 255, 255, 255)));
+				FSlateDrawElement::MakeBox(rc.drawElements, (uint32)++rc.layerId, textGeometryInPixelSpace, &edgeBrush, drawEffects, edgeColour);
+			}
 
-			rc->FlushLayer();
-			rc->ClearScissorRect();
-
-			*/
+			FSlateDrawElement::MakeText(rc.drawElements, (uint32)++rc.layerId, textGeometryInPixelSpace, localizedText, fontInfo, drawEffects, ToLinearColor(colour));
+			
+			pointBuilder.Empty();
+			pointBuilder.Add(FVector2D(ratio.X * (float) leftCaretPosSpan.x, ratio.Y * leftCaretPosSpan.y - 4));
+			pointBuilder.Add(FVector2D(ratio.X * (float) leftCaretPosSpanPlus1.x, ratio.Y * leftCaretPosSpan.y - 4));
+			FSlateDrawElement::MakeLines(rc.drawElements, ++rc.layerId, textGeometryInPixelSpace, pointBuilder, ESlateDrawEffect::None, ToLinearColor(colour));
+			pointBuilder.Empty();
 		}
 
 		TArray<FSlateVertex> triangleVertices;
@@ -1427,6 +1412,15 @@ namespace Rococo::Gui::UE5::Implementation
 			return ToVec2i(localSpaceSpan) + Vec2i{ 1,1 } + extraSpan;
 		}
 
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const FString& text, Vec2i extraSpan, int startIndex, int endIndex) const
+		{
+			auto& font = GetFont(fontId);
+			FVector2f pixelSpan = fontMeasureService->Measure(FStringView(text), startIndex, endIndex, font, 1.0f);
+			Vec2 r = PixelSpanToLocalSpaceSpanRatio();;
+			FVector2f localSpaceSpan(pixelSpan.X * r.x, pixelSpan.Y * r.y);
+			return ToVec2i(localSpaceSpan) + Vec2i{ 1,1 } + extraSpan;
+		}
+
 		mutable stringmap<FText> mapAsciiToLocalizedText;
 
 		const FText& MapAsciiToLocalizedText(cstr text) const
@@ -1446,6 +1440,12 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			FText localizedText = MapAsciiToLocalizedText(text);
 			return EvaluateMinimalSpan(fontId, localizedText, extraSpan);
+		}
+
+		Vec2i EvaluateMinimalSpan(GRFontId fontId, const fstring& text, Vec2i extraSpan, int startIndex, int endIndex) const
+		{
+			FText localizedText = MapAsciiToLocalizedText(text);
+			return EvaluateMinimalSpan(fontId, localizedText.ToString(), extraSpan, startIndex, endIndex);
 		}
 
 		void RecordWidget(IGRWidget& widget) override
@@ -1635,6 +1635,11 @@ namespace Rococo::Gui::UE5::Implementation
 	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FText& localizedText, Vec2i extraSpan)
 	{
 		return custodian.EvaluateMinimalSpan(fontId, localizedText, extraSpan);
+	}
+
+	Vec2i EvaluateMinimalSpan(UE5_GR_Custodian& custodian, GRFontId fontId, const FString& text, Vec2i extraSpan, int startIndex, int endIndex)
+	{
+		return custodian.EvaluateMinimalSpan(fontId, text, extraSpan, startIndex, endIndex);
 	}
 
 	const FText& MapAsciiToLocalizedText(UE5_GR_Custodian& custodian, cstr text)

@@ -73,6 +73,12 @@ namespace Rococo::GreatSex
 				config.CarouselButtonPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
 			}
 
+			auto* aEditorPadding = directive.FindAttributeByName("Editor.Padding");
+			if (aEditorPadding)
+			{
+				config.EditorPadding = AsVec2i(aEditorPadding->Value());
+			}
+
 			auto* aFont = directive.FindAttributeByName("Title.Font");
 			if (aFont)
 			{
