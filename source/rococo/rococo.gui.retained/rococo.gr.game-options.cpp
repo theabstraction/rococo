@@ -101,7 +101,7 @@ namespace GRANON
 			if (nChildren > 0)
 			{
 				auto* lastChild = panel.GetChild(nChildren - 1);
-				int domainHeight = lastChild->ParentOffset().y + lastChild->Span().y + panel.ChildPadding();
+				int domainHeight = lastChild->ParentOffset().y + lastChild->Span().y + panel.ChildPadding() + panel.Padding().bottom;
 
 				GRWidgetEvent updatedDomainHeight;
 				updatedDomainHeight.eventType = EGRWidgetEventType::UPDATED_CLIENTAREA_HEIGHT;
