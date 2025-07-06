@@ -1166,11 +1166,19 @@ namespace GRANON
 			return parentOffset;
 		}
 
+		int fcount = 0;
+
 		void RenderRecursive(IGRRenderContext& g, const GuiRect& clipRect, bool isRenderingFirstLayer, int64 focusId) override
 		{
 			if (!widget || isCollapsed)
 			{
 				return;
+			}
+
+			auto* carousel = Cast<IGRWidgetCarousel>(*widget);
+			if (carousel && !carousel->DropDown().Panel().IsCollapsed())
+			{
+				fcount++;
 			}
 
 			if (isRenderingFirstLayer && isRenderingLast)
@@ -1204,7 +1212,7 @@ namespace GRANON
 			for (auto* child : children)
 			{
 				GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
-				if (childClipRect.IsNormalized())
+				if (childClipRect.IsNormalized() || child->isRenderingLast)
 				{
 					child->RenderRecursive(g, childClipRect, isRenderingFirstLayer, focusId);
 				}

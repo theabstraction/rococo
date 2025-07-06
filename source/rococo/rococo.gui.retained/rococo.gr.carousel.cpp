@@ -150,6 +150,11 @@ namespace GRANON
 		{
 			dropDown->Panel().SetCollapsed(false);
 			dropDown->OnVisible();
+
+			// Ensure this carousel is fully visible in the container viewport
+			panel.Focus();
+
+			// Then focus the dropdown
 			auto* focusWidget = TrySetDeepFocus(dropDown->Panel());
 			UNUSED(focusWidget);
 			GRWidgetEvent we;
