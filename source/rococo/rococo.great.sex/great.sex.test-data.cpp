@@ -405,8 +405,8 @@ namespace Rococo::GreatSex::TestData
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, UIOptions, CursorResponsiveness)
-				ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
+			db.Build(builder);
 		}
 	};
 

@@ -34,6 +34,42 @@ namespace Rococo
 	{
 		return geometry.LocalToAbsolute(ToFVector2f(pos));
 	}
+
+	TMap<FName, uint16> mapJStickToVirtualCode;
+
+	void MapJoystickCode(const TCHAR* pName, uint16 keyboardCode)
+	{
+		FString sName(pName);
+		FName name(sName);
+		mapJStickToVirtualCode.Add(name, keyboardCode);
+	}
+
+	uint16 GetJoystickVKey(const FName& name)
+	{
+		auto* pVCode = mapJStickToVirtualCode.Find(name);
+		return pVCode ? *pVCode : 0;
+	}
+
+	void BindStandardXBOXControlsToVKeys()
+	{
+		using namespace Rococo::IO::VirtualKeys;
+
+		if (mapJStickToVirtualCode.Num() > 0)
+		{
+			return;
+		}
+
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Right"), VKCode_ESCAPE);
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Bottom"), VKCode_ENTER);
+		MapJoystickCode(TEXT("Gamepad_LeftShoulder"), VKCode_TAB);
+		MapJoystickCode(TEXT("Gamepad_RightShoulder"), VKCode_ANTITAB);
+		MapJoystickCode(TEXT("Gamepad_DPad_Up"), VKCode_UP);
+		MapJoystickCode(TEXT("Gamepad_DPad_Down"), VKCode_DOWN);
+		MapJoystickCode(TEXT("Gamepad_DPad_Left"), VKCode_LEFT);
+		MapJoystickCode(TEXT("Gamepad_DPad_Right"), VKCode_RIGHT);
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Left"), VKCode_PGDOWN);
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Top"), VKCode_PGUP);
+	}
 }
 
 namespace Rococo
@@ -250,6 +286,8 @@ namespace Rococo::Gui::UE5::Implementation
 			lastLocalSizeScreenDimensions.top = 0;
 			lastLocalSizeScreenDimensions.right = localSize.X;
 			lastLocalSizeScreenDimensions.bottom = localSize.Y;
+
+			BindStandardXBOXControlsToVKeys();
 		}
 
 		virtual ~UE5_GR_Renderer()

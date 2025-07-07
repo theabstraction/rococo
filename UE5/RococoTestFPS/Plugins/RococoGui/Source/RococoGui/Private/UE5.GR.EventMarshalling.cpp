@@ -2,6 +2,11 @@
 #include <Widgets/SWidget.h>
 #include "RococoGuiAPI.h"
 
+namespace Rococo
+{
+	uint16 GetJoystickVKey(const FName& name);
+}
+
 FEventReply RouteMouseButtonDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
 	using namespace Rococo;
@@ -148,6 +153,15 @@ Rococo::uint16 GetVirtualKey(const FKeyEvent& ev)
 {
 	using namespace Rococo::IO::VirtualKeys;
 
+	FName name = ev.GetKey().GetFName();
+
+	uint16 vkCode = Rococo::GetJoystickVKey(name);
+
+	if (vkCode != 0)
+	{
+		return vkCode;
+	}
+
 	static TMap<FName, uint16> keyNameToVCode;
 	if (keyNameToVCode.Num() == 0)
 	{
@@ -170,7 +184,7 @@ Rococo::uint16 GetVirtualKey(const FKeyEvent& ev)
 		keyNameToVCode.Add(FName("AntiTab"), VKCode_ANTITAB); // -> note that antitab is not defined by UE5 source, you have to synthesize your own anti tab event
 	}
 
-	auto* pVkCode = keyNameToVCode.Find(ev.GetKey().GetFName());
+	auto* pVkCode = keyNameToVCode.Find(name);
 	return pVkCode != nullptr ? *pVkCode : 0;
 }
 
