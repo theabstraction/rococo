@@ -196,7 +196,23 @@ FEventReply RouteKeyDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, con
 		FName name = ue5KeyEvent.GetKey().GetFName();
 		kex.scanCode = 0;
 		kex.Flags = 0;
-		kex.unicode = ue5KeyEvent.GetCharacter();
+		auto charCode = ue5KeyEvent.GetCharacter();
+
+		if (charCode < 'A' || charCode > 'Z')
+		{
+			kex.unicode = charCode;
+		}
+		else
+		{
+			bool shiftCaps = FSlateApplication::Get().GetModifierKeys().AreCapsLocked();
+			if (kex.isShiftHeld)
+			{
+				shiftCaps = !shiftCaps;
+			}
+
+			kex.unicode = shiftCaps ? charCode : tolower(charCode);
+		}
+
 		custodian->RouteKeyboardEvent(kex);
 	}
 	catch (IException& ex)
