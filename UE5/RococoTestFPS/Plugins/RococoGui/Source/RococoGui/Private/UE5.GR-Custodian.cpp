@@ -14,6 +14,7 @@
 #include <Fonts/FontMeasure.h>
 #include <Engine/Font.h>
 #include <rococo.os.h>
+#include <rococo.vkeys.h>
 #include "../Public/RococoFontSet.h"
 
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
@@ -52,23 +53,21 @@ namespace Rococo
 
 	void BindStandardXBOXControlsToVKeys()
 	{
-		using namespace Rococo::IO::VirtualKeys;
-
 		if (mapJStickToVirtualCode.Num() > 0)
 		{
 			return;
 		}
 
-		MapJoystickCode(TEXT("Gamepad_FaceButton_Right"), VKCode_ESCAPE);
-		MapJoystickCode(TEXT("Gamepad_FaceButton_Bottom"), VKCode_ENTER);
-		MapJoystickCode(TEXT("Gamepad_LeftShoulder"), VKCode_TAB);
-		MapJoystickCode(TEXT("Gamepad_RightShoulder"), VKCode_ANTITAB);
-		MapJoystickCode(TEXT("Gamepad_DPad_Up"), VKCode_UP);
-		MapJoystickCode(TEXT("Gamepad_DPad_Down"), VKCode_DOWN);
-		MapJoystickCode(TEXT("Gamepad_DPad_Left"), VKCode_LEFT);
-		MapJoystickCode(TEXT("Gamepad_DPad_Right"), VKCode_RIGHT);
-		MapJoystickCode(TEXT("Gamepad_FaceButton_Left"), VKCode_PGDOWN);
-		MapJoystickCode(TEXT("Gamepad_FaceButton_Top"), VKCode_PGUP);
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Right"), Rococo::IO::VirtualKeys::VKCode_ESCAPE);
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Bottom"), Rococo::IO::VirtualKeys::VKCode_ENTER);
+		MapJoystickCode(TEXT("Gamepad_LeftShoulder"), Rococo::IO::VirtualKeys::VKCode_TAB);
+		MapJoystickCode(TEXT("Gamepad_RightShoulder"), Rococo::IO::VirtualKeys::VKCode_ANTITAB);
+		MapJoystickCode(TEXT("Gamepad_DPad_Up"), Rococo::IO::VirtualKeys::VKCode_UP);
+		MapJoystickCode(TEXT("Gamepad_DPad_Down"), Rococo::IO::VirtualKeys::VKCode_DOWN);
+		MapJoystickCode(TEXT("Gamepad_DPad_Left"), Rococo::IO::VirtualKeys::VKCode_LEFT);
+		MapJoystickCode(TEXT("Gamepad_DPad_Right"), Rococo::IO::VirtualKeys::VKCode_RIGHT);
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Left"), Rococo::IO::VirtualKeys::VKCode_PGDOWN);
+		MapJoystickCode(TEXT("Gamepad_FaceButton_Top"), Rococo::IO::VirtualKeys::VKCode_PGUP);
 	}
 }
 

@@ -1491,7 +1491,7 @@ namespace Rococo::Gui
 		[[nodiscard]] virtual int64 GetFocusId() const = 0;
 
 		// Sets the keyboard focus to the id of a panel.
-		virtual void SetFocus(int64 id = -1);
+		virtual void SetFocus(int64 id = -1) = 0;
 
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& mouseEvent) = 0;
 		virtual EGREventRouting RouteCursorMoveEvent(GRCursorEvent& mouseEvent) = 0;

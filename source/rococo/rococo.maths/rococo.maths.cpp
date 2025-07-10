@@ -740,6 +740,11 @@ namespace Rococo
 		return tMatrix;
 	}
 
+#else
+	Matrix4x4 InvertMatrix(const Matrix4x4& matrix)
+	{
+		Throw(0, "InvertMatrix is not implemented on this platform");
+	}
 #endif
 
 	float Dot(const Vec4& a, const Vec4& b)
