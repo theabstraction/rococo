@@ -1,6 +1,6 @@
 #include <rococo.os.h>
 #include <sexy.types.h>
-#include <sexy.s-parser.h> // The S-Parser is used by the tabbed IDE to de-serialize the tree structure from a file
+#include <Sexy.S-Parser.h> // The S-Parser is used by the tabbed IDE to de-serialize the tree structure from a file
 #include <sexy.debug.types.h>
 #include <sexy.compiler.public.h>
 #include <sexy.script.h>

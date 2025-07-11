@@ -33,7 +33,7 @@
 
 #include "sexy.script.stdafx.h"
 #include "..\STC\stccore\sexy.compiler.helpers.h"
-#include "sexy.s-parser.h"
+#include "Sexy.S-Parser.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
 

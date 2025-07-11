@@ -1,6 +1,6 @@
 #include "sexy.script.stdafx.h"
 
-#include <sexy.s-parser.h>
+#include <Sexy.S-Parser.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.compiler.public.h>
 #include <sexy.debug.types.h>

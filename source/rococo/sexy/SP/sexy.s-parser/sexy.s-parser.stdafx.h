@@ -40,7 +40,7 @@
 #endif
 
 #include <sexy.types.h>
-#include <sexy.s-parser.h>
+#include <Sexy.S-Parser.h>
 #include <sexy.util.exports.h>
 
 #ifndef NULL

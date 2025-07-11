@@ -32,7 +32,7 @@
 */
 
 #include "sexy.s-parser.stdafx.h"
-#include "sexy.s-parser.h"
+#include "Sexy.S-Parser.h"
 
 #include <sexy.vector.h>
 #include <rococo.functional.h>
