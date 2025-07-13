@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef ROCOCO_ALLOCATORS_H
 #define ROCOCO_ALLOCATORS_H
 
@@ -5,8 +7,25 @@
 # define ROCOCO_API __declspec(dllimport)
 #endif
 
+// This is an onerous header, which generally should not be included by other headers, only source files
+
 #include <rococo.types.h>
 #include <vector>
+
+inline void* rococo_aligned_malloc(size_t alignment, size_t bufferLength)
+{
+	void* raw = malloc(bufferLength + alignment - 1 + sizeof(void*));
+	if (!raw) return NULL;
+
+	void** aligned = (void**)(((uintptr_t)raw + sizeof(void*) + alignment - 1) & ~(alignment - 1));
+	aligned[-1] = raw; // Store original pointer for freeing
+	return aligned;
+}
+
+inline void rococo_aligned_free(void* pData)
+{
+	free(((void**)pData)[-1]);
+}
 
 namespace Rococo::Memory
 {
@@ -57,7 +76,7 @@ namespace Rococo::Memory
 		{
 			for (auto i : activeAllocs)
 			{
-				_aligned_free(i);
+				rococo_aligned_free(i);
 			}
 		}
 
@@ -65,7 +84,7 @@ namespace Rococo::Memory
 		{
 			if (freeAllocs.empty())
 			{
-				void* buffer = _aligned_malloc(sizeof(T), 16);
+				void* buffer = rococo_aligned_malloc(sizeof(T), 16);
 				auto t = (T*)buffer;
 				activeAllocs.push_back(t);
 				return t;

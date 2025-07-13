@@ -1,3 +1,6 @@
+#pragma once
+// This is an onerous header file that generally should not be included by other header files
+
 #include <rococo.allocators.h>
 
 #define USE_ROCOCO_UTILS_FOR_MODULE_ALLOCATORS												\

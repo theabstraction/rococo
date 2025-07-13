@@ -1,1 +1,0 @@
-This is the directory where UE5 packages the containing project. gitignore is used to prevent its sharing in source control, as all files are generated and need not be archived.
