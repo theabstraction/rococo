@@ -69,12 +69,17 @@ namespace Rococo::Gui
 
 		virtual IGRFonts& Fonts() = 0;
 
+		virtual void OnFocusChanged(IGRPanel* srcPanel) = 0;
+
 		// Set the zoom level for the user-interface. The value is clamped between 1 and 100
 		virtual void SetUIZoom(float zoomLevel) = 0;
 		virtual float ZoomLevel() const = 0;
 
 		// Converts padding values according to the known render scales mapping pixel sizes to absolute co-ordinates.
 		virtual GRAnchorPadding Scale(GRAnchorPadding pixelPadding) = 0;
+
+		// Logs info to the custodian. The higher the log level the lower the priority
+		virtual void Log(const char* format, ...) = 0;
 
 	};
 

@@ -363,7 +363,7 @@ namespace GRANON
 			return Root().GR().GetFocusId() == Id();
 		}
 
-		IGRPanel& Focus() override
+		IGRPanel& FocusAndNotifyAncestors() override
 		{
 			Root().GR().SetFocus(Id());
 
@@ -1473,7 +1473,7 @@ namespace Rococo::Gui
 
 		if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
 		{
-			panel.Focus();
+			panel.FocusAndNotifyAncestors();
 			return &panel;
 		}
 
@@ -1481,7 +1481,7 @@ namespace Rococo::Gui
 		auto* targetPanel = panel.FindDescendantByDesc(nextTarget.desc);
 		if (targetPanel != nullptr)
 		{
-			targetPanel->Focus();
+			targetPanel->FocusAndNotifyAncestors();
 			return targetPanel;
 		}
 

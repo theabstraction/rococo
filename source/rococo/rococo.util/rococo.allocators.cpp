@@ -553,4 +553,19 @@ namespace Rococo::Memory
     {
         return logFlags;
     }
+
+    ROCOCO_API void* rococo_aligned_malloc(size_t alignment, size_t bufferLength)
+    {
+        void* raw = malloc(bufferLength + alignment - 1 + sizeof(void*));
+        if (!raw) return NULL;
+
+        void** aligned = (void**)(((uintptr_t)raw + sizeof(void*) + alignment - 1) & ~(alignment - 1));
+        aligned[-1] = raw; // Store original pointer for freeing
+        return aligned;
+    }
+
+    ROCOCO_API void rococo_aligned_free(void* pData)
+    {
+        free(((void**)pData)[-1]);
+    }
 } // Rococo::Memory

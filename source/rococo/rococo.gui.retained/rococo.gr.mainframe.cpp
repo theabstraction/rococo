@@ -661,7 +661,7 @@ namespace Rococo::Gui
 		{
 			if (ancestor->HasFlag(EGRPanelFlags::AcceptsFocus))
 			{
-				ancestor->Focus();
+				ancestor->FocusAndNotifyAncestors();
 				return EGREventRouting::Terminate;
 			}
 		}

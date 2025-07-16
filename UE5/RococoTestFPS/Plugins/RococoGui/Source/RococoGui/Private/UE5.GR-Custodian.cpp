@@ -16,6 +16,7 @@
 #include <rococo.os.h>
 #include <rococo.vkeys.h>
 #include "../Public/RococoFontSet.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
 
@@ -1151,11 +1152,14 @@ namespace Rococo::Gui::UE5::Implementation
 
 		IUE5_CustodianManager& custodianManager;
 
-		UE5_GR_Custodian(TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& _manager) :
+		TObjectPtr<UObject> worldObject;
+
+		UE5_GR_Custodian(UObject* _worldObject, TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& _manager) :
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture),
 			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/DA_RococoFonts") : font),
-			custodianManager(_manager)
+			custodianManager(_manager),
+			worldObject(_worldObject)
 		{
 			ue5os = IO::GetIOS();
 			installation = IO::CreateInstallation(TEXT("UE5-rococo-content-def.txt"), *ue5os);
@@ -1164,6 +1168,46 @@ namespace Rococo::Gui::UE5::Implementation
 		virtual ~UE5_GR_Custodian()
 		{
 
+		}
+
+		bool enableToScreen = false;
+		bool enableToLogFile = false;
+
+		void Log(const char* format, ...) override
+		{
+			if (!enableToLogFile && !enableToScreen)
+			{
+				return;
+			}
+
+			char asciiText[256];
+
+			va_list args;
+			va_start(args, format);
+			Rococo::Strings::SafeVFormat(asciiText, sizeof asciiText, format, args);
+			va_end(args);
+
+			static FName msgKey(TEXT("UE5_GR_Custodian.Log"));
+			UKismetSystemLibrary::PrintString(worldObject, FString::Printf(TEXT("%hs"), asciiText), enableToScreen, enableToLogFile, FLinearColor::White, 2.5f, msgKey);
+		}
+
+		void SetLogging(bool _enableToScreen, bool _enableToLogFile)
+		{
+			this->enableToScreen = _enableToScreen;
+			this->enableToLogFile = _enableToLogFile;
+		}
+
+		void OnFocusChanged(IGRPanel* panel) override
+		{
+			FString msg;
+			if (!panel)
+			{
+				Log("OnFocusChanged - no focus");
+			}
+			else
+			{
+				Log("OnFocusChanged: [%lld] %hs", panel->Id(), panel->Desc());
+			}
 		}
 
 		void Free() override
@@ -1702,8 +1746,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& manager)
+	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& manager)
 	{
-		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(mapPathToImageTexture, font, manager);
+		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(worldObject, mapPathToImageTexture, font, manager);
 	}
 }

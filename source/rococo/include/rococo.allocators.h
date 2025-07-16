@@ -12,26 +12,13 @@
 #include <rococo.types.h>
 #include <vector>
 
-inline void* rococo_aligned_malloc(size_t alignment, size_t bufferLength)
-{
-	void* raw = malloc(bufferLength + alignment - 1 + sizeof(void*));
-	if (!raw) return NULL;
-
-	void** aligned = (void**)(((uintptr_t)raw + sizeof(void*) + alignment - 1) & ~(alignment - 1));
-	aligned[-1] = raw; // Store original pointer for freeing
-	return aligned;
-}
-
-inline void rococo_aligned_free(void* pData)
-{
-	free(((void**)pData)[-1]);
-}
-
 namespace Rococo::Memory
 {
 	ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
 	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
 	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateTrackingAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
+	ROCOCO_API void* rococo_aligned_malloc(size_t alignment, size_t bufferLength);
+	ROCOCO_API void rococo_aligned_free(void* pData);
 	ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t));
 	ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*));
 

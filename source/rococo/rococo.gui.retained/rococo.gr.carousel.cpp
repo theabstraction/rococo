@@ -152,7 +152,7 @@ namespace GRANON
 			dropDown->OnVisible();
 
 			// Ensure this carousel is fully visible in the container viewport
-			panel.Focus();
+			panel.FocusAndNotifyAncestors();
 
 			// Then focus the dropdown
 			auto* focusWidget = TrySetDeepFocus(dropDown->Panel());
@@ -342,7 +342,7 @@ namespace GRANON
 					{
 					case IO::VirtualKeys::VKCode_ESCAPE:
 						CollapseDropDownAndNotify(Centre(panel.AbsRect()));
-						panel.Parent()->Focus();
+						panel.Parent()->FocusAndNotifyAncestors();
 						return EGREventRouting::Terminate;
 					}
 				}

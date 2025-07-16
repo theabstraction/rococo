@@ -122,7 +122,7 @@ namespace GRANON
 				auto& dropDown = carousel->DropDown();
 				if (panel.Root().GR().GetFocusId() >= 0)
 				{
-					carousel->Panel().Parent()->Focus();
+					carousel->Panel().Parent()->FocusAndNotifyAncestors();
 				}
 				dropDown.Panel().Root().ReleaseCursor();
 				dropDown.Panel().SetRenderLast(false);
@@ -196,7 +196,7 @@ namespace GRANON
 				auto* dropDown = Cast<IGRWidgetScrollableMenu>(ancestor->Widget());
 				if (dropDown)
 				{
-					dropDown->Panel().Focus().CaptureCursor();
+					dropDown->Panel().FocusAndNotifyAncestors().CaptureCursor();
 					break;
 				}
 			}

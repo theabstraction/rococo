@@ -93,6 +93,7 @@ namespace GRANON
 
 			if (nTerminations > 0)
 			{
+				GetCustodian(panel).Log("GRButton::FireEvent(): subscriber terminated. [%lld] %s", panel.Id(), panel.Desc());
 				return;
 			}
 
@@ -101,6 +102,7 @@ namespace GRANON
 				// We cannot copy the meta data string, because it may be invalidated by the time the consumer comes to read it
 				GRWidgetEvent asyncWidgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, "", clickPosition, isEventHandlerCPPOnly };
 				RouteEventToHandler(panel, asyncWidgetEvent);
+				GetCustodian(panel).Log("GRButton::FireEvent(): PublicEvent routed async. [%lld] %s", panel.Id(), panel.Desc());
 			}
 			else if (eventPolicy == EGREventPolicy::NotifyAncestors)
 			{
@@ -111,7 +113,16 @@ namespace GRANON
 				{
 					// Nothing handled it
 					RouteEventToHandler(panel, widgetEvent);
+					GetCustodian(panel).Log("GRButton::FireEvent(): RouteEventToHandler handled. [%lld] %s", panel.Id(), panel.Desc());
 				}
+				else
+				{
+					GetCustodian(panel).Log("GRButton::FireEvent(): Ancestor handled. [%lld] %s", panel.Id(), panel.Desc());
+				}
+			}
+			else
+			{
+				GetCustodian(panel).Log("GRButton::FireEvent(): Nothing handled it. [%lld] %s", panel.Id(), panel.Desc());
 			}
 		}
 
@@ -119,7 +130,7 @@ namespace GRANON
 		{
 			if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
 			{
-				panel.Focus();
+				panel.FocusAndNotifyAncestors();
 			}
 
 			if (ce.click.LeftButtonDown)

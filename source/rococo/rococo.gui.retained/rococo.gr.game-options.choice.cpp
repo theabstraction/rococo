@@ -198,7 +198,7 @@ namespace GRANON
 				break;
 			case IO::VirtualKeys::VKCode_ENTER:
 				carousel->FlipDropDown();
-				panel.Focus();
+				panel.FocusAndNotifyAncestors();
 				MoveFocusIntoChildren(panel);
 				break;
 			default:

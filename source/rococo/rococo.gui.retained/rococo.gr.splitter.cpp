@@ -141,7 +141,7 @@ namespace GRANON
 				}
 				if (IsPointInRect(ce.position, draggerRect))
 				{
-					panel.Focus();
+					panel.FocusAndNotifyAncestors();
 					virtualDraggerStartPos = ce.position.x;
 					return EGREventRouting::Terminate;
 				}

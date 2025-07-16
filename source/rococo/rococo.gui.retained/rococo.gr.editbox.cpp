@@ -100,7 +100,7 @@ namespace GRANON
 				}
 				else
 				{
-					panel.Focus();
+					panel.FocusAndNotifyAncestors();
 
 					if (!isReadOnly)
 					{
@@ -307,7 +307,7 @@ namespace GRANON
 			{
 				if (candidate->HasFlag(EGRPanelFlags::AcceptsFocus))
 				{
-					candidate->Focus();
+					candidate->FocusAndNotifyAncestors();
 					return true;
 				}
 			}

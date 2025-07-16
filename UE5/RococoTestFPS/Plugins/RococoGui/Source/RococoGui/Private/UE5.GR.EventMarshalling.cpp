@@ -24,17 +24,21 @@ FEventReply RouteMouseButtonDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custod
 		if (mouseKey == EKeys::RightMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::RDown;
+			custodian->Log("MouseButtonDown-R");
 		}
 		else if (mouseKey == EKeys::MiddleMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::MDown;
+			custodian->Log("MouseButtonUp-M");
 		}
 		else if (mouseKey == EKeys::LeftMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::LDown;
+			custodian->Log("MouseButtonUp-L");
 		}
 		else
 		{
+			custodian->Log("MouseButtonUp-Unknown");
 			return FEventReply(false);
 		}
 
@@ -67,17 +71,21 @@ FEventReply RouteMouseButtonUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodia
 		if (mouseKey == EKeys::RightMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::RUp;
+			custodian->Log("MouseButtonUp-R");
 		}
 		else if (mouseKey == EKeys::MiddleMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::MUp;
+			custodian->Log("MouseButtonUp-M");
 		}
 		else if (mouseKey == EKeys::LeftMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::LUp;
+			custodian->Log("MouseButtonUp-L");
 		}
 		else
 		{
+			custodian->Log("MouseButtonUp-Unknown");
 			return FEventReply(false);
 		}
 

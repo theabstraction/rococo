@@ -124,7 +124,7 @@ namespace GRANON
 		{
 			if (ce.click.LeftButtonUp)
 			{
-				panel.Focus();
+				panel.FocusAndNotifyAncestors();
 				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;

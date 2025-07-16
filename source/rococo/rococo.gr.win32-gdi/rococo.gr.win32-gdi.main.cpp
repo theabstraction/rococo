@@ -1524,6 +1524,16 @@ namespace GRANON
 			defaultFont = knownFonts[0].handle;
 		}
 
+		void Log(const char* format, ...) override
+		{
+			UNUSED(format);
+		}
+
+		void OnFocusChanged(IGRPanel* panel) override
+		{
+			UNUSED(panel);
+		}
+
 		operator HWND() const override
 		{
 			return hOwnerWindow;

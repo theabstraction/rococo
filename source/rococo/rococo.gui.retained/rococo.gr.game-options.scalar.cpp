@@ -149,7 +149,7 @@ namespace GRANON
 				case EGRWidgetEventType::SCROLLER_RELEASED:
 					return EGREventRouting::Terminate;
 				case EGRWidgetEventType::SLIDER_HELD:
-					panel.Focus();
+					panel.FocusAndNotifyAncestors();
 					return EGREventRouting::Terminate;
 				}
 			}

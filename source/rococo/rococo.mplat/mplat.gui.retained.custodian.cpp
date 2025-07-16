@@ -602,6 +602,16 @@ namespace ANON
 
 		}
 
+		void Log(const char* format, ...) override
+		{
+			UNUSED(format);
+		}
+
+		void OnFocusChanged(IGRPanel* panel) override
+		{
+			UNUSED(panel);
+		}
+
 		Windows::IWindow& Owner()
 		{
 			return sysRenderer.CurrentWindow();

@@ -60,6 +60,12 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "RococoFontSet"), Category = "RococoGui")
 	FSoftObjectPath _FontAsset;
 
+	UPROPERTY(EditAnywhere, Category = "RococoGui")
+	bool _LogToScreen = false;
+
+	UPROPERTY(EditAnywhere, Category = "RococoGui")
+	bool _LogToFile = false;
+
 	// Defaults to true. If set to true will use Rococo::Gui::GetDefaultFocusRenderer to hilight the focused widget
 	// To implement your own, set false and override OnGRSystemConstructed(...) to call Rococo::Gui::IGRSystem::SetFocusOverlayRenderer
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")

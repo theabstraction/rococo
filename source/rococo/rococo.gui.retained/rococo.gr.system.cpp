@@ -672,6 +672,16 @@ namespace ANON
 		void SetFocus(int64 id = -1) override
 		{
 			focusId = id;
+
+			if (id == -1)
+			{
+				custodian.OnFocusChanged(nullptr);
+			}
+			else
+			{
+				auto* focusWidget = FindWidget(id);
+				custodian.OnFocusChanged(focusWidget ? &focusWidget->Panel() : nullptr);
+			}
 		}
 
 		IGREventHandler* eventHandler = nullptr;

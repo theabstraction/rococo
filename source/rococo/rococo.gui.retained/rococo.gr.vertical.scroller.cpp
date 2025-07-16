@@ -124,7 +124,7 @@ namespace ANON
 
 			if (ce.click.LeftButtonDown)
 			{
-				panel.Focus();
+				panel.FocusAndNotifyAncestors();
 				clickTarget = ClassifyTarget(ce.position);
 				if (clickTarget == EClick::Slider)
 				{

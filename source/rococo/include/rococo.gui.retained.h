@@ -741,7 +741,7 @@ namespace Rococo::Gui
 		// Returns true if any only it is either collapsed or it has a collapsed ancestor
 		virtual bool IsCollapsedOrAncestorCollasped() const = 0;
 
-		virtual IGRPanel& Focus() = 0;
+		virtual IGRPanel& FocusAndNotifyAncestors() = 0;
 		virtual bool HasFocus() const = 0;
 
 		virtual void SetClipChildren(bool enabled) = 0;
