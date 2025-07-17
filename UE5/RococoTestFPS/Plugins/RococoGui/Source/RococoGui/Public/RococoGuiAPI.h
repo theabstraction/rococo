@@ -31,12 +31,12 @@ namespace Rococo::Gui
 	};
 
 	// Allows implementation external to the custodian to control some of its logic
-	ROCOCO_INTERFACE IUE5_CustodianManager
+	ROCOCO_INTERFACE IUE5_GlobalFontMetrics
 	{
 		virtual int GetUE5PointSize(int rococoPointSize) = 0;
 	};
 
-	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& manager);
+	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& globalFontMetrics);
 
 	typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
 

@@ -17,13 +17,13 @@ void SRococoGRHostWidget::Construct(const FArguments& InArgs)
 
 }
 
-void SRococoGRHostWidget::SyncCustodian(UObject* worldObject, TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct, Rococo::Gui::IUE5_CustodianManager& manager)
+void SRococoGRHostWidget::SyncCustodian(UObject* worldObject, TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct, Rococo::Gui::IUE5_GlobalFontMetrics& fontMetrics)
 {
 	try
 	{
 		if (!custodian)
 		{
-			custodian = Rococo::Gui::Create_UE5_GRCustodian(worldObject, mapPathToTexture, font, manager);
+			custodian = Rococo::Gui::Create_UE5_GRCustodian(worldObject, mapPathToTexture, font, fontMetrics);
 			Rococo::Gui::GRConfig config;
 			grSystem = CreateGRSystem(config, *custodian);
 			custodian->Bind(*grSystem);

@@ -11,7 +11,7 @@
 
 // The basic Rococo Gui Retained host widget. Needs C++ to get anywhere. For a blueprint driven system use URococoGRHostWidgetBuilder
 UCLASS(BlueprintType, meta = (DisplayName = "RococoGRHostWidget (Object)"))
-class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_CustodianManager
+class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics
 {
 public:
 	GENERATED_BODY()
@@ -22,7 +22,7 @@ public:
 	// FString/TCHAR version of LoadFrame.
 	void LoadFrame(const FString& sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
 
-	// Tries to load a GreatSex seml file into the widget. OnPrepForLoading::OnEvent is called which allows the API consumer
+	// Tries to load a GreatSex sexml file into the host widget. The method invokes onPrepForLoading.OnEvent which allows the API consumer
 	// to add handlers for custom widgets and as well as bind game options for use by Rococo game option widgets.
 	void LoadFrame(const char* sexmlPingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
 
@@ -39,9 +39,9 @@ public:
 		this->_SlateEventHandler = slateEventHandler;
 	}
 
-	void SetCustodianManager(Rococo::Gui::IUE5_CustodianManager* custodianManager)
+	void SetCustodianManager(Rococo::Gui::IUE5_GlobalFontMetrics* metricsManager)
 	{
-		_CustodianManager = custodianManager;
+		_GlobalFontMetrics = metricsManager;
 	}
 protected:
 	TSharedPtr<SRococoGRHostWidget> _SlateHostWidget;
@@ -73,7 +73,7 @@ protected:
 
 	ISRococoGRHostWidgetEventHandler* _SlateEventHandler = nullptr;
 
-	Rococo::Gui::IUE5_CustodianManager* _CustodianManager = nullptr;
+	Rococo::Gui::IUE5_GlobalFontMetrics* _GlobalFontMetrics = nullptr;
 
 	int GetUE5PointSize(int rococoPointSize) override;
 };

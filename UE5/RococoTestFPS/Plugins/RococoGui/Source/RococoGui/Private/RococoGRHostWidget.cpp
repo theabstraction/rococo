@@ -36,7 +36,7 @@ TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 	_SlateHostWidget = SNew(SRococoGRHostWidget);
 
 	NullHandler doNothing;
-	_SlateHostWidget->SyncCustodian(this, _MapPathToTexture, _FontAsset, _UseDefaultFocusRenderer, _SlateEventHandler ? *_SlateEventHandler : doNothing, _CustodianManager ? *_CustodianManager : *this);
+	_SlateHostWidget->SyncCustodian(this, _MapPathToTexture, _FontAsset, _UseDefaultFocusRenderer, _SlateEventHandler ? *_SlateEventHandler : doNothing, _GlobalFontMetrics ? *_GlobalFontMetrics : *this);
 
 	auto* custodian = _SlateHostWidget->GetCustodian();
 	if (custodian)

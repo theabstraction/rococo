@@ -1150,15 +1150,15 @@ namespace Rococo::Gui::UE5::Implementation
 
 		TObjectPtr<URococoFontSet> fontSet;
 
-		IUE5_CustodianManager& custodianManager;
+		IUE5_GlobalFontMetrics& fontMetrics;
 
 		TObjectPtr<UObject> worldObject;
 
-		UE5_GR_Custodian(UObject* _worldObject, TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& _manager) :
+		UE5_GR_Custodian(UObject* _worldObject, TMap<FString, UTexture2D*>& _mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& _fontMetrics) :
 			fontMeasureService(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()),
 			mapPathToImageTexture(_mapPathToImageTexture),
 			fontAsset(font.ToString().Len() == 0 ? FSoftObjectPath("/Game/UI/Fonts/DA_RococoFonts") : font),
-			custodianManager(_manager),
+			fontMetrics(_fontMetrics),
 			worldObject(_worldObject)
 		{
 			ue5os = IO::GetIOS();
@@ -1366,7 +1366,7 @@ namespace Rococo::Gui::UE5::Implementation
 		GRFontId BindFontId(const FontSpec& rawSpec) override
 		{
 			FontSpec spec = rawSpec;
-			spec.CharHeight = custodianManager.GetUE5PointSize(rawSpec.CharHeight);
+			spec.CharHeight = fontMetrics.GetUE5PointSize(rawSpec.CharHeight);
 
 			for (const PersistentFontSpec& pspec : fontSpecs)
 			{
@@ -1746,8 +1746,8 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_CustodianManager& manager)
+	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& fontMetrics)
 	{
-		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(worldObject, mapPathToImageTexture, font, manager);
+		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(worldObject, mapPathToImageTexture, font, fontMetrics);
 	}
 }
