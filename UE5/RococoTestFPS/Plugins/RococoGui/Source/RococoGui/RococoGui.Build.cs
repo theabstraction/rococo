@@ -169,27 +169,16 @@ public class RococoGui : ModuleRules
     {
         get { return rococoHomeDirectory; }
     }
-    private void CreateBundles()
-    {
-    }
+
     public string GetUProjectPath()
     {
         // see https://forums.unrealengine.com/t/how-to-modify-build-file-to-copy-dlls-to-binaries/353587
         return Directory.GetParent(ModuleDirectory).Parent.Parent.Parent.ToString();
     }
 
-    private void CopyIfDoesNotExist(string src, string destFileName)
-    {
-        if (!File.Exists(destFileName))
-        {
-            File.Copy(src, destFileName);
-        }
-    }
-
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)
     {
         PrepRococoDirectories();
-        CreateBundles();
 
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 

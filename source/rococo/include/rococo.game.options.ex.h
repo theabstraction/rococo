@@ -225,13 +225,13 @@ namespace Rococo::Game::Options
 		{
 			for (auto& r : optionSelectedFunctions)
 			{
-				if (Eq(r.name, name) && r.type == EInquiryType::Choice)
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::Choice)
 				{
 					(owner.*r.functions.ChoiceSelectedFunction)(choice);
 					break;
 				}
 
-				if (Eq(r.name, name) && r.type == EInquiryType::String)
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::String)
 				{
 					(owner.*r.functions.StringSelectedFunction)(choice);
 					break;
@@ -243,7 +243,7 @@ namespace Rococo::Game::Options
 		{
 			for (auto& r : optionSelectedFunctions)
 			{
-				if (Eq(r.name, name) && r.type == EInquiryType::Boolean)
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::Boolean)
 				{
 					(owner.*r.functions.BoolSelectedFunction)(boolValue);
 					break;
@@ -255,7 +255,7 @@ namespace Rococo::Game::Options
 		{
 			for (auto& r : optionSelectedFunctions)
 			{
-				if (Eq(r.name, name) && r.type == EInquiryType::Scalar)
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::Scalar)
 				{
 					(owner.*r.functions.ScalarSelectedFunction)(scalarValue);
 					break;
