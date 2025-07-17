@@ -60,9 +60,11 @@ protected:
 	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "RococoFontSet"), Category = "RococoGui")
 	FSoftObjectPath _FontAsset;
 
+	// Set to true to enable logging of GUI events to the screen
 	UPROPERTY(EditAnywhere, Category = "RococoGui")
 	bool _LogToScreen = false;
 
+	// Set to true to enable logging of GUI events to the log
 	UPROPERTY(EditAnywhere, Category = "RococoGui")
 	bool _LogToFile = false;
 
@@ -93,11 +95,11 @@ public:
 	FString _SexmlPingPath = TEXT("!tests/greatsex.test.sexml");
 
 	// If set to true the builder will prep the GUI generator with a global function
-	// Your project must call 'void Rococo::Gui::SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator)' 
+	// Your project must call 'void Rococo::Gui::SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator) before ReloadFrame' 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	bool _UseGlobalOptions = true;
 
-	// Allows void PrepGlobalGenerator(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator) to be tuned according to this property
+	// Passed to void PrepGlobalGenerator(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator) as the first argument
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	FString _GlobalOptionsKey = TEXT("default");
 
@@ -124,6 +126,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteKeyUp(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
 
+	// Tells the RococoGUI widget tree to handle a mouse wheel spin
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 private:
