@@ -143,7 +143,7 @@ void URococoGRHostWidgetBuilder::ReloadFrame()
 
 #include <Modules/ModuleManager.h>
 
-void LoadGlobalOptions(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator)
+void LoadGlobalOptions(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator)
 {
 	if (!s_fnGlobalPrepGenerator)
 	{
@@ -152,7 +152,7 @@ void LoadGlobalOptions(const FString& key, Rococo::GreatSex::IGreatSexGenerator&
 	}
 	else
 	{	
-		s_fnGlobalPrepGenerator(key, generator);
+		s_fnGlobalPrepGenerator(context, generator);
 	}
 }
 
@@ -160,7 +160,7 @@ void URococoGRHostWidgetBuilder::OnPrepForLoading(Rococo::GreatSex::IGreatSexGen
 {
 	if (_UseGlobalOptions)
 	{
-		LoadGlobalOptions(_GlobalOptionsKey, generator);
+		LoadGlobalOptions(_GeneratorContext, generator);
 	}
 }
 

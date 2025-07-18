@@ -80,7 +80,7 @@ protected:
 	int GetUE5PointSize(int rococoPointSize) override;
 };
 
-typedef void (*FN_GlobalPrepGenerator)(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator);
+typedef void (*FN_GlobalPrepGenerator)(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
 
 // Rococo Gui retained host widget. Designed to be scripted in Blueprints 
 UCLASS(BlueprintType, Blueprintable, meta = (DisplayName = "RococoGRHostWidgetBuilder (Object)"))
@@ -99,9 +99,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	bool _UseGlobalOptions = true;
 
-	// Passed to void PrepGlobalGenerator(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator) as the first argument
+	// Passed to void PrepGlobalGenerator(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator) as the first argument
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
-	FString _GlobalOptionsKey = TEXT("default");
+	TArray<UObject*> _GeneratorContext;
 
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	void ReloadFrame();

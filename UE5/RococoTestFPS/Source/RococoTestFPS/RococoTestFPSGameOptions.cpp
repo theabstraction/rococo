@@ -1,8 +1,10 @@
 #include "RococoUE5.h"
+#include <CoreMinimal.h>
 #include <rococo.great.sex.h>
 #include <rococo.strings.h>
 #include <rococo.game.options.ex.h>
 #include <RococoGuiAPI.h>
+#include <GameOptionBuilder.h>
 
 using namespace Rococo;
 using namespace Rococo::GreatSex;
@@ -21,7 +23,7 @@ namespace RococoTestFPS::Implementation
 		double musicVolume = 0.25;
 		double fxVolume = 0.2;
 		double narrationVolume = 0.4;
-		HString speakerConfig = "2";
+		Rococo::Strings::HString speakerConfig = "2";
 
 		AudioOptions() : db(*this)
 		{
@@ -112,10 +114,10 @@ namespace RococoTestFPS::Implementation
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, AudioOptions, MusicVolume)
-				ADD_GAME_OPTIONS(db, AudioOptions, FXVolume)
-				ADD_GAME_OPTIONS(db, AudioOptions, NarrationVolume)
-				ADD_GAME_OPTIONS(db, AudioOptions, SpeakerConfiguration)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, AudioOptions, FXVolume)
+			ADD_GAME_OPTIONS(db, AudioOptions, NarrationVolume)
+			ADD_GAME_OPTIONS(db, AudioOptions, SpeakerConfiguration)
+			db.Build(builder);
 		}
 	};
 
@@ -148,14 +150,14 @@ namespace RococoTestFPS::Implementation
 			return true;
 		}
 
-		HString activeScreenMode = "Fullscreen";
-		HString shadowQuality = "2";
-		HString landscapeQuality = "1";
-		HString reflectionAlgorithm = "1";
-		HString monitor = "1";
-		HString resolution = "1920x1080";
-		HString textureQuality = "1";
-		HString waterQuality = "1";
+		Rococo::Strings::HString activeScreenMode = "Fullscreen";
+		Rococo::Strings::HString shadowQuality = "2";
+		Rococo::Strings::HString landscapeQuality = "1";
+		Rococo::Strings::HString reflectionAlgorithm = "1";
+		Rococo::Strings::HString monitor = "1";
+		Rococo::Strings::HString resolution = "1920x1080";
+		Rococo::Strings::HString textureQuality = "1";
+		Rococo::Strings::HString waterQuality = "1";
 		bool isFSAAEnabled = false;
 
 		GraphicsOptions() : db(*this)
@@ -417,9 +419,9 @@ namespace RococoTestFPS::Implementation
 	{
 		OptionDatabase<GameplayOptions> db;
 
-		HString startDifficulty = "Easy";
-		HString gameDifficulty = "Easy";
-		HString playerName = "Geoff";
+		Rococo::Strings::HString startDifficulty = "Easy";
+		Rococo::Strings::HString gameDifficulty = "Easy";
+		Rococo::Strings::HString playerName = "Geoff";
 
 		GameplayOptions() : db(*this)
 		{
@@ -614,7 +616,11 @@ namespace RococoTestFPS::Implementation
 
 namespace RococoTestFPS
 {
-	void PrepGenerator(const FString& key, Rococo::GreatSex::IGreatSexGenerator& generator)
+	void PrepGenerator(UObject& builder, Rococo::GreatSex::IGreatSexGenerator& generator)
+	{
+	}
+
+	void PrepGenerator(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator)
 	{
 		using namespace RococoTestFPS::Implementation;
 
@@ -623,6 +629,15 @@ namespace RococoTestFPS
 		generator.AddOptions(GetUIOptions(), "UIOptions");
 		generator.AddOptions(GetGameplayOptions(), "GameplayOptions");
 		generator.AddOptions(GetMultiplayerOptions(), "MultiplayerOptions");
+
+		for (auto* object : context)
+		{
+			IUE5GameOptionBuilder* builder = Cast<IUE5GameOptionBuilder>(object);
+			if (builder)
+			{
+				PrepGenerator(*object, generator);
+			}
+		}
 	}
 
 	void InitGlobalOptions()

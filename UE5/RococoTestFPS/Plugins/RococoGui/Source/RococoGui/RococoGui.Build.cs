@@ -196,6 +196,7 @@ public class RococoGui : ModuleRules
            }
            );
 
+        PublicSystemIncludePaths.Add(RococoIncludeDirectory);
 
         PrivateIncludePaths.AddRange(
 			new string[] {
