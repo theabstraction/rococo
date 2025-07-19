@@ -616,10 +616,8 @@ namespace RococoTestFPS::Implementation
 
 namespace RococoTestFPS
 {
-	void PrepGenerator(UObject& builder, Rococo::GreatSex::IGreatSexGenerator& generator)
-	{
-	}
-
+	ROCOCOGUI_API void ReflectIntoGenerator(UObject& builder, Rococo::GreatSex::IGreatSexGenerator& generator);
+	
 	void PrepGenerator(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator)
 	{
 		using namespace RococoTestFPS::Implementation;
@@ -635,7 +633,7 @@ namespace RococoTestFPS
 			IUE5GameOptionBuilder* builder = Cast<IUE5GameOptionBuilder>(object);
 			if (builder)
 			{
-				PrepGenerator(*object, generator);
+				ReflectIntoGenerator(*object, generator);
 			}
 		}
 	}
