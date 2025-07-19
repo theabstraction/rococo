@@ -13,6 +13,7 @@ namespace Rococo::GreatSex
 {
 	struct LoadFrameException;
 	DECLARE_ROCOCO_INTERFACE IGreatSexGenerator;
+	DECLARE_ROCOCO_INTERFACE IReflectedGameOptionsBuilder;
 }
 
 namespace Rococo::Gui
@@ -38,7 +39,7 @@ namespace Rococo::Gui
 
 	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& globalFontMetrics);
 
-	typedef void (*FN_GlobalPrepGenerator)(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
+	typedef void (*FN_GlobalPrepGenerator)(GreatSex::IReflectedGameOptionsBuilder& optionsBuilder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
 
 	ROCOCOGUI_API void SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator);
 }

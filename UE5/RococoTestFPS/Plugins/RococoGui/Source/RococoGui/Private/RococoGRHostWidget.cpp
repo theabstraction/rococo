@@ -3,6 +3,7 @@
 #include <rococo.great.sex.h>
 #include <rococo.gui.retained.h>
 #include <rococo.ui.h>
+#include "ReflectedGameOptionsBuilder.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoGUI, Error, All);
 DEFINE_LOG_CATEGORY(RococoGUI);
@@ -143,7 +144,7 @@ void URococoGRHostWidgetBuilder::ReloadFrame()
 
 #include <Modules/ModuleManager.h>
 
-void LoadGlobalOptions(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator)
+void LoadGlobalOptions(Rococo::GreatSex::IReflectedGameOptionsBuilder& builder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator)
 {
 	if (!s_fnGlobalPrepGenerator)
 	{
@@ -152,7 +153,20 @@ void LoadGlobalOptions(const TArray<UObject*>& context, Rococo::GreatSex::IGreat
 	}
 	else
 	{	
-		s_fnGlobalPrepGenerator(context, generator);
+		s_fnGlobalPrepGenerator(builder, context, generator);
+	}
+}
+
+URococoGRHostWidgetBuilder::URococoGRHostWidgetBuilder()
+{
+	optionsBuilder = Rococo::GreatSex::CreateReflectedGameOptionsBuilder();
+}
+
+URococoGRHostWidgetBuilder::~URococoGRHostWidgetBuilder()
+{
+	if (optionsBuilder)
+	{
+		optionsBuilder->Free();
 	}
 }
 
@@ -160,7 +174,7 @@ void URococoGRHostWidgetBuilder::OnPrepForLoading(Rococo::GreatSex::IGreatSexGen
 {
 	if (_UseGlobalOptions)
 	{
-		LoadGlobalOptions(_GeneratorContext, generator);
+		LoadGlobalOptions(*optionsBuilder, _GeneratorContext, generator);
 	}
 }
 

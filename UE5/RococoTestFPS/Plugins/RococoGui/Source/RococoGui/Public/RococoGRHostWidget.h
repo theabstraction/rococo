@@ -80,7 +80,7 @@ protected:
 	int GetUE5PointSize(int rococoPointSize) override;
 };
 
-typedef void (*FN_GlobalPrepGenerator)(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
+typedef void (*FN_GlobalPrepGenerator)(Rococo::GreatSex::IReflectedGameOptionsBuilder& builder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
 
 // Rococo Gui retained host widget. Designed to be scripted in Blueprints 
 UCLASS(BlueprintType, Blueprintable, meta = (DisplayName = "RococoGRHostWidgetBuilder (Object)"))
@@ -88,6 +88,9 @@ class ROCOCOGUI_API URococoGRHostWidgetBuilder : public URococoGRHostWidget
 {
 public:
 	GENERATED_BODY()
+
+	URococoGRHostWidgetBuilder();
+	~URococoGRHostWidgetBuilder();
 
 	// Specifies the sexml to load when the slate widget within is rebuilt
 	// As with all ping paths the ping (!) represents the rococo content directory
@@ -129,6 +132,9 @@ public:
 	// Tells the RococoGUI widget tree to handle a mouse wheel spin
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+
 private:
 	void OnPrepForLoading(Rococo::GreatSex::IGreatSexGenerator& generator);
+	
+	Rococo::GreatSex::IReflectedGameOptionsBuilder* optionsBuilder;
 };

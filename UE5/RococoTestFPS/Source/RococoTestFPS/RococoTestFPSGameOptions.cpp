@@ -5,6 +5,7 @@
 #include <rococo.game.options.ex.h>
 #include <RococoGuiAPI.h>
 #include <GameOptionBuilder.h>
+#include <ReflectedGameOptionsBuilder.h>
 
 using namespace Rococo;
 using namespace Rococo::GreatSex;
@@ -616,9 +617,7 @@ namespace RococoTestFPS::Implementation
 
 namespace RococoTestFPS
 {
-	ROCOCOGUI_API void ReflectIntoGenerator(UObject& builder, Rococo::GreatSex::IGreatSexGenerator& generator);
-	
-	void PrepGenerator(const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator)
+	void PrepGenerator(IReflectedGameOptionsBuilder& optionsBuilder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator)
 	{
 		using namespace RococoTestFPS::Implementation;
 
@@ -630,10 +629,9 @@ namespace RococoTestFPS
 
 		for (auto* object : context)
 		{
-			IUE5GameOptionBuilder* builder = Cast<IUE5GameOptionBuilder>(object);
-			if (builder)
+			if (object->Implements<URococoGameOptionBuilder>())
 			{
-				ReflectIntoGenerator(*object, generator);
+				optionsBuilder.ReflectIntoGenerator(*object, generator);
 			}
 		}
 	}
