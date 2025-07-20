@@ -48,5 +48,9 @@ class IRococoGameOptionBuilder
 {
 	GENERATED_BODY()
 
-	virtual TArray<FRococoGameOptionChoice> GetChoices();
+public:
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg);
+
+	virtual void RaiseError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg);
 };

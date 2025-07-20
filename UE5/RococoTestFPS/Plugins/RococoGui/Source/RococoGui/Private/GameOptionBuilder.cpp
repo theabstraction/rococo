@@ -1,7 +1,6 @@
 #include <GameOptionBuilder.h>
 
-TArray<FRococoGameOptionChoice> IRococoGameOptionBuilder::GetChoices()
+void IRococoGameOptionBuilder::RaiseError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg)
 {
-	TArray<FRococoGameOptionChoice> noChoices;
-	return noChoices;
+	OnError(methodMsg, propertyMsg, errMsg);
 }
