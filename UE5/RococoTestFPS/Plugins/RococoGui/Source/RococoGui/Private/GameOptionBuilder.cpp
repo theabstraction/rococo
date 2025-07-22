@@ -4,3 +4,8 @@ void IRococoGameOptionBuilder::RaiseError(const FString& methodMsg, const FStrin
 {
 	OnError(methodMsg, propertyMsg, errMsg);
 }
+
+FString IRococoGameOptionBuilder::RaiseGetOptionId()
+{
+	return TEXT("IRococoGameOptionBuilder: RaiseGetOptionId - default");
+}

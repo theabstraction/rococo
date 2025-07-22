@@ -11,7 +11,7 @@ namespace Rococo::GreatSex
 	{
 		virtual void AddMethods(UObject& object) = 0;
 		virtual void Free() = 0;
-		virtual void ReflectIntoGenerator(UObject& object, IGreatSexGenerator& generator) = 0;
+		virtual void ReflectIntoGenerator(UObject& object, const FString& optionCategory, IGreatSexGenerator& generator) = 0;
 	};
 
 	ROCOCOGUI_API IReflectedGameOptionsBuilder* CreateReflectedGameOptionsBuilder();

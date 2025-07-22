@@ -16,6 +16,28 @@ namespace Rococo::GreatSex
 		static const FString addChoicePrefix = FString(TEXT("AddChoice_"));
 		static const FString onChoicePrefix = FString(TEXT("OnChoice_"));
 
+		void ToAscii(char* buffer, size_t capacity, const FString& s)
+		{
+			if (buffer == nullptr || capacity == 0)
+			{
+				return;
+			}
+
+			if (s.Len() >= capacity)
+			{
+				snprintf(buffer, capacity, "<truncated!>");
+				return;
+			}
+
+			int i = 0;
+			for (; i < s.Len(); i++)
+			{
+				buffer[i] = (char)s[i];
+			}
+
+			buffer[i] = 0;
+		}
+
 		struct ReflectedGameOptions : IGameOptions, IOptionDatabase
 		{
 			TObjectPtr<UObject> optionObject;
@@ -121,28 +143,6 @@ namespace Rococo::GreatSex
 				{
 					AddChoiceMethodElseLogError(method);
 				}
-			}
-
-			void ToAscii(char* buffer, size_t capacity, const FString& s)
-			{
-				if (buffer == nullptr || capacity == 0)
-				{
-					return;
-				}
-
-				if (s.Len() >= capacity)
-				{
-					snprintf(buffer, capacity, "<truncated!>");
-					return;
-				}
-
-				int i = 0;
-				for (; i < s.Len(); i++)
-				{
-					buffer[i] = (char)s[i];
-				}
-
-				buffer[i] = 0;
 			}
 
 			const char* GetVolatileAsciiTrailingString(const FString& s, const FString& prefix)
@@ -267,7 +267,7 @@ namespace Rococo::GreatSex
 
 			}
 
-			void ReflectIntoGenerator(UObject& object, Rococo::GreatSex::IGreatSexGenerator& generator) override
+			void ReflectIntoGenerator(UObject& object, const FString& optionCategory, Rococo::GreatSex::IGreatSexGenerator& generator) override
 			{
 				UClass* objectClass = object.GetClass();
 
@@ -275,7 +275,11 @@ namespace Rococo::GreatSex
 
 				ReflectedGameOptions options(object);
 				auto& refOptions = mapObjectToOptions.Add(&object, options);
-				generator.AddOptions(refOptions, "didhum");;
+
+				char name[256];
+				ToAscii(name, sizeof name, optionCategory);
+
+				generator.AddOptions(refOptions, name);
 
 				for (TFieldIterator<UFunction> i(objectClass); i; ++i)
 				{

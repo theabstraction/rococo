@@ -4,8 +4,8 @@
 #include "UObject/Interface.h"
 #include "GameOptionBuilder.generated.h"
 
-UINTERFACE(MinimalAPI, Blueprintable)
-class URococoGameOptionBuilder : public UInterface
+UINTERFACE(Blueprintable)
+class ROCOCO_GUI_API URococoGameOptionBuilder : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -44,7 +44,7 @@ struct FRococoGameOptionChoice
 	TArray<FRococoGameOptionChoiceQuantum> Items;
 };
 
-class IRococoGameOptionBuilder
+class ROCOCO_GUI_API IRococoGameOptionBuilder
 {
 	GENERATED_BODY()
 
@@ -53,4 +53,9 @@ public:
 	void OnError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg);
 
 	virtual void RaiseError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	FString GetOptionId();
+
+	virtual FString RaiseGetOptionId();
 };

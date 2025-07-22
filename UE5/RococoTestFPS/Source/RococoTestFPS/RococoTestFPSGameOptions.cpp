@@ -631,7 +631,9 @@ namespace RococoTestFPS
 		{
 			if (object->Implements<URococoGameOptionBuilder>())
 			{
-				optionsBuilder.ReflectIntoGenerator(*object, generator);
+				auto builder = TScriptInterface<IRococoGameOptionBuilder>(object);
+				FString optionCategory = builder->Execute_GetOptionId(object);
+				optionsBuilder.ReflectIntoGenerator(*object, optionCategory, generator);
 			}
 		}
 	}
