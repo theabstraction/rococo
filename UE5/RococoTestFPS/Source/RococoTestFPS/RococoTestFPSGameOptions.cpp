@@ -334,15 +334,15 @@ namespace RococoTestFPS::Implementation
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, GraphicsOptions, ScreenMode)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, FSAA)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, ShadowQuality)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, LandscapeQuality)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, ReflectionAlgorithm)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, ActiveMonitor)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, FullscreenResolution)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, TextureQuality)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, WaterQuality)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, GraphicsOptions, FSAA)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, ShadowQuality)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, LandscapeQuality)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, ReflectionAlgorithm)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, ActiveMonitor)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, FullscreenResolution)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, TextureQuality)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, WaterQuality)
+			db.Build(builder);
 		}
 	};
 
@@ -411,8 +411,8 @@ namespace RococoTestFPS::Implementation
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, UIOptions, CursorResponsiveness)
-				ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
+			db.Build(builder);
 		}
 	};
 
@@ -509,10 +509,10 @@ namespace RococoTestFPS::Implementation
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, GameplayOptions, StartingDifficulty)
-				ADD_GAME_OPTIONS(db, GameplayOptions, GameDifficulty)
-				ADD_GAME_OPTIONS_STRING(db, GameplayOptions, PlayerName, 32)
+			ADD_GAME_OPTIONS(db, GameplayOptions, GameDifficulty)
+			ADD_GAME_OPTIONS_STRING(db, GameplayOptions, PlayerName, 32)
 
-				db.Build(builder);
+			db.Build(builder);
 		}
 	};
 
@@ -578,8 +578,8 @@ namespace RococoTestFPS::Implementation
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, MultiplayerOptions, HostGame)
-				ADD_GAME_OPTIONS(db, MultiplayerOptions, UseUDP)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, MultiplayerOptions, UseUDP)
+			db.Build(builder);
 		}
 	};
 
