@@ -15,6 +15,10 @@ namespace Rococo::GreatSex
 	{
 		static const FString addChoicePrefix = FString(TEXT("AddChoice_"));
 		static const FString onChoicePrefix = FString(TEXT("OnChoice_"));
+		static const FString addBoolPrefix = FString(TEXT("AddBool_"));
+		static const FString onBoolPrefix = FString(TEXT("OnBool_"));
+		static const FString addScalarPrefix = FString(TEXT("AddScalar_"));
+		static const FString onScalarPrefix = FString(TEXT("OnScalar_"));
 
 		void ToAscii(char* buffer, size_t capacity, const FString& s)
 		{
@@ -69,7 +73,7 @@ namespace Rococo::GreatSex
 				}
 			}
 
-			void AddChoiceMethodElseLogError(UFunction* method)
+			void AddAddChoiceMethodElseLogError(UFunction* method)
 			{
 				int index = 0;
 
@@ -123,6 +127,231 @@ namespace Rococo::GreatSex
 				addMethods.Add(method);
 			}
 
+			void AddAddBoolMethodElseLogError(UFunction* method)
+			{
+				int index = 0;
+
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				{
+					FProperty* property = *i;
+
+					if (!property->HasAnyPropertyFlags(CPF_Parm))
+					{
+						// Not a parameter, probably a local variable
+						continue;
+					}
+
+					if (!property->HasAnyPropertyFlags(CPF_OutParm))
+					{
+						OnError(method, property, TEXT("Expecting no inputs"));
+					}
+
+					if (index == 0)
+					{
+						auto* sp = CastField<FBoolProperty>(property);
+						if (!sp)
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type bool"));
+							return;
+						}
+					}
+					else if (index == 1)
+					{
+						auto* sp = CastField<FStructProperty>(property);
+						if (!sp)
+						{
+							OnError(method, property, TEXT("Expecting second method argument to be a struct of type FRococoGameOptionBool"));
+						}
+
+						if (sp->Struct != FRococoGameOptionChoice::StaticStruct())
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type FRococoGameOptionBool"));
+							return;
+						}
+					}
+					else
+					{
+						OnError(method, property, TEXT("Expecting only two method arguments"));
+						return;
+					}
+				}
+
+				addMethods.Add(method);
+			}
+
+			void AddAddScalarMethodElseLogError(UFunction* method)
+			{
+				int index = 0;
+
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				{
+					FProperty* property = *i;
+
+					if (!property->HasAnyPropertyFlags(CPF_Parm))
+					{
+						// Not a parameter, probably a local variable
+						continue;
+					}
+
+					if (!property->HasAnyPropertyFlags(CPF_OutParm))
+					{
+						OnError(method, property, TEXT("Expecting no inputs"));
+					}
+
+					if (index == 0)
+					{
+						auto* sp = CastField<FDoubleProperty>(property);
+						if (!sp)
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type double"));
+							return;
+						}
+					}
+					else if (index == 1)
+					{
+						auto* sp = CastField<FStructProperty>(property);
+						if (!sp)
+						{
+							OnError(method, property, TEXT("Expecting second method argument to be a struct of type FRococoGameOptionScalar"));
+						}
+
+						if (sp->Struct != FRococoGameOptionChoice::StaticStruct())
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type FRococoGameOptionScalar"));
+							return;
+						}
+					}
+					else
+					{
+						OnError(method, property, TEXT("Expecting only two method arguments"));
+						return;
+					}
+				}
+
+				addMethods.Add(method);
+			}
+
+			void AddOnChoiceMethodElseLogError(UFunction* method)
+			{
+				int index = 0;
+
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				{
+					FProperty* property = *i;
+
+					if (!property->HasAnyPropertyFlags(CPF_Parm))
+					{
+						// Not a parameter, probably a local variable
+						continue;
+					}
+
+					if (property->HasAnyPropertyFlags(CPF_OutParm))
+					{
+						OnError(method, property, TEXT("Expecting no outputs"));
+					}
+
+					if (index == 0)
+					{
+						auto* sp = CastField<FStrProperty>(property);
+						if (!sp)
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type FString"));
+							return;
+						}
+					}
+					else
+					{
+						OnError(method, property, TEXT("Expecting only one method argument"));
+						return;
+					}
+				}
+
+				handlerMethods.Add(method);
+			}
+
+			void AddOnBoolMethodElseLogError(UFunction* method)
+			{
+				int index = 0;
+
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				{
+					FProperty* property = *i;
+
+					if (!property->HasAnyPropertyFlags(CPF_Parm))
+					{
+						// Not a parameter, probably a local variable
+						continue;
+					}
+
+					if (property->HasAnyPropertyFlags(CPF_OutParm))
+					{
+						OnError(method, property, TEXT("Expecting no outputs"));
+					}
+
+					if (index == 0)
+					{
+						auto* sp = CastField<FBoolProperty>(property);
+						if (!sp)
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type bool"));
+							return;
+						}
+					}
+					else
+					{
+						OnError(method, property, TEXT("Expecting only one method argument"));
+						return;
+					}
+				}
+
+				handlerMethods.Add(method);
+			}
+
+			void AddOnScalarMethodElseLogError(UFunction* method)
+			{
+				int index = 0;
+
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				{
+					FProperty* property = *i;
+
+					if (!property->HasAnyPropertyFlags(CPF_Parm))
+					{
+						// Not a parameter, probably a local variable
+						continue;
+					}
+
+					if (property->HasAnyPropertyFlags(CPF_OutParm))
+					{
+						OnError(method, property, TEXT("Expecting no outputs"));
+					}
+
+					if (index == 0)
+					{
+						auto* sp = CastField<FDoubleProperty>(property);
+						if (!sp)
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type double"));
+							return;
+						}
+					}
+					else
+					{
+						OnError(method, property, TEXT("Expecting only one method argument"));
+						return;
+					}
+				}
+
+				handlerMethods.Add(method);
+			}
+
 			void AddMethod(UFunction* method)
 			{
 				if (method->HasAnyFunctionFlags(EFunctionFlags::FUNC_Static))
@@ -141,7 +370,32 @@ namespace Rococo::GreatSex
 
 				if (methodName.StartsWith(addChoicePrefix))
 				{
-					AddChoiceMethodElseLogError(method);
+					AddAddChoiceMethodElseLogError(method);
+				}
+
+				if (methodName.StartsWith(onChoicePrefix))
+				{
+					AddOnChoiceMethodElseLogError(method);
+				}
+
+				if (methodName.StartsWith(addBoolPrefix))
+				{
+					AddAddBoolMethodElseLogError(method);
+				}
+
+				if (methodName.StartsWith(onBoolPrefix))
+				{
+					AddOnBoolMethodElseLogError(method);
+				}
+
+				if (methodName.StartsWith(addScalarPrefix))
+				{
+					AddAddScalarMethodElseLogError(method);
+				}
+
+				if (methodName.StartsWith(onScalarPrefix))
+				{
+					AddOnScalarMethodElseLogError(method);
 				}
 			}
 
@@ -163,6 +417,103 @@ namespace Rococo::GreatSex
 				return asciiBuffer.GetData();
 			}
 
+			void AddChoiceOption(UFunction* method, const char* choiceId, IGameOptionsBuilder& builder)
+			{
+				struct FRococoGameOptionChoicePackage
+				{
+					FString currentChoice;
+					FRococoGameOptionChoice spec;
+				};
+
+				FRococoGameOptionChoicePackage args;
+
+				optionObject->ProcessEvent(method, &args);
+
+				auto& c = builder.AddChoice(choiceId);
+
+				for (auto& item : args.spec.Items)
+				{
+					char choiceName[256];
+					ToAscii(choiceName, sizeof choiceName, item.Id);
+
+					char choiceHint[256];
+					ToAscii(choiceHint, sizeof choiceHint, item.Hint);
+
+					char choiceText[128];
+					ToAscii(choiceText, sizeof choiceText, item.Text);
+
+					c.AddChoice(choiceName, choiceText, choiceHint);
+				}
+
+				char currentChoice[128];
+				ToAscii(currentChoice, sizeof currentChoice, args.currentChoice);
+
+				c.SetActiveChoice(currentChoice);
+
+				char choiceHint[256];
+				ToAscii(choiceHint, sizeof choiceHint, args.spec.Hint);
+				c.SetHint(choiceHint);
+
+				char choiceTitle[256];
+				ToAscii(choiceTitle, sizeof choiceTitle, args.spec.Title);
+
+				c.SetTitle(choiceTitle);
+			}
+
+			void AddBoolOption(UFunction* method, const char* boolId, IGameOptionsBuilder& builder)
+			{
+				struct FRococoGameOptionBoolPackage
+				{
+					uint32 currentBool;
+					FRococoGameOptionBool spec;
+				};
+
+				FRococoGameOptionBoolPackage args;
+
+				optionObject->ProcessEvent(method, &args);
+
+				auto& b = builder.AddBool(boolId);
+
+				b.SetActiveValue(args.currentBool == 0 ? false : true);
+
+				char hint[256];
+				ToAscii(hint, sizeof hint, args.spec.Hint);
+
+				b.SetHint(hint);
+
+				char title[256];
+				ToAscii(title, sizeof title, args.spec.Title);
+
+				b.SetTitle(title);
+			}
+
+			void AddScalarOption(UFunction* method, const char* scalarId, IGameOptionsBuilder& builder)
+			{
+				struct FRococoGameOptionBoolPackage
+				{
+					double currentScalar;
+					FRococoGameOptionBool spec;
+				};
+
+				FRococoGameOptionBoolPackage args;
+
+				optionObject->ProcessEvent(method, &args);
+
+				auto& s = builder.AddScalar(scalarId);
+
+				s.SetActiveValue(args.currentScalar);
+
+				char hint[256];
+				ToAscii(hint, sizeof hint, args.spec.Hint);
+
+				s.SetHint(hint);
+
+				char title[256];
+				ToAscii(title, sizeof title, args.spec.Title);
+
+				s.SetTitle(title);
+			}
+
 			void AddOptions(IGameOptionsBuilder& builder) override
 			{
 				// Enumerate methods and populate builder
@@ -173,45 +524,19 @@ namespace Rococo::GreatSex
 					const char* choiceId = GetVolatileAsciiTrailingString(methodName, addChoicePrefix);
 					if (choiceId)
 					{
-						struct FRococoGameOptionChoicePackage
-						{
-							FString currentChoice;
-							FRococoGameOptionChoice spec;
-						};
+						AddChoiceOption(method, choiceId, builder);
+					}
 
-						FRococoGameOptionChoicePackage args;
+					choiceId = GetVolatileAsciiTrailingString(methodName, addBoolPrefix);
+					if (choiceId)
+					{
+						AddBoolOption(method, choiceId, builder);
+					}
 
-						optionObject->ProcessEvent(method, &args);
-
-						auto& c = builder.AddChoice(choiceId);
-
-						for (auto& item : args.spec.Items)
-						{
-							char choiceName[256];
-							ToAscii(choiceName, sizeof choiceName, item.Id);
-
-							char choiceHint[256];
-							ToAscii(choiceHint, sizeof choiceHint, item.Hint);
-
-							char choiceText[128];
-							ToAscii(choiceText, sizeof choiceText, item.Text);
-
-							c.AddChoice(choiceName, choiceText, choiceHint);
-						}
-
-						char currentChoice[128];
-						ToAscii(currentChoice, sizeof currentChoice, args.currentChoice);
-
-						c.SetActiveChoice(currentChoice);
-
-						char choiceHint[256];
-						ToAscii(choiceHint, sizeof choiceHint, args.spec.Hint);
-						c.SetHint(choiceHint);
-
-						char choiceTitle[256];
-						ToAscii(choiceTitle, sizeof choiceTitle, args.spec.Title);
-
-						c.SetTitle(choiceTitle);
+					choiceId = GetVolatileAsciiTrailingString(methodName, addScalarPrefix);
+					if (choiceId)
+					{
+						AddScalarOption(method, choiceId, builder);
 					}
 				}
 			}
@@ -237,19 +562,59 @@ namespace Rococo::GreatSex
 				return false;
 			}
 
+			UFunction* GetInvokeMethod(FString fullname)
+			{
+				for (auto* method : handlerMethods)
+				{
+					FString methodName = method->GetFName().ToString();
+					if (methodName == fullname)
+					{
+						return method;
+					}
+				}
+
+				return nullptr;
+			}
+
 			void Invoke(cstr name, cstr choice) override
 			{
 				// invoke OnChoice on the object
+				FString invokeName = FString::Printf(TEXT("OnChoice_%hs"), name);
+				auto* method = GetInvokeMethod(invokeName);
+				if (!method)
+				{
+					OnError(method, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+				}
+
+				FString arg = FString::Printf(TEXT("%hs"), choice);
+				optionObject->ProcessEvent(method, &arg);
 			}
 
 			void Invoke(cstr name, bool boolValue) override
 			{
 				// Invoke OnBool on the object
+				FString invokeName = FString::Printf(TEXT("OnBool_%hs"), name);
+				auto* method = GetInvokeMethod(invokeName);
+				if (!method)
+				{
+					OnError(method, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+				}
+				
+				uint32 u32bool = boolValue == false ? 0 : 1;
+				optionObject->ProcessEvent(method, &boolValue);
 			}
 
 			void Invoke(cstr name, double scalarValue) override
 			{
 				// Invoke OnScalar on the object
+				FString invokeName = FString::Printf(TEXT("OnScalar_%hs"), name);
+				auto* method = GetInvokeMethod(invokeName);
+				if (!method)
+				{
+					OnError(method, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+				}
+
+				optionObject->ProcessEvent(method, &scalarValue);
 			}
 		};
 

@@ -44,6 +44,39 @@ struct FRococoGameOptionChoice
 	TArray<FRococoGameOptionChoiceQuantum> Items;
 };
 
+USTRUCT(BlueprintType)
+struct FRococoGameOptionBool
+{
+	GENERATED_BODY()
+
+	// Gives the sort order, or priority of the choice.
+	UPROPERTY(EditAnywhere)
+	int SortOrder = 0;
+
+	UPROPERTY(EditAnywhere)
+	FString Hint;
+
+	UPROPERTY(EditAnywhere)
+	FString Title;
+};
+
+USTRUCT(BlueprintType)
+struct FRococoGameOptionScalar
+{
+	GENERATED_BODY()
+
+	// Gives the sort order, or priority of the choice.
+	UPROPERTY(EditAnywhere)
+	int SortOrder = 0;
+
+	UPROPERTY(EditAnywhere)
+	FString Hint;
+
+	UPROPERTY(EditAnywhere)
+	FString Title;
+};
+
+
 class ROCOCO_GUI_API IRococoGameOptionBuilder
 {
 	GENERATED_BODY()
