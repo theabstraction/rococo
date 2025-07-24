@@ -189,7 +189,7 @@ namespace GRANON
 
 		void SetActiveValue(bool boolValue) override
 		{
-			UNUSED(boolValue);
+			button->SetPressedNoCallback(boolValue);
 		}
 
 		void SetHint(cstr text) override

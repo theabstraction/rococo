@@ -69,7 +69,7 @@ namespace Rococo::GreatSex
 				if (optionObject->Implements<URococoGameOptionBuilder>())
 				{
 					auto builder = TScriptInterface<IRococoGameOptionBuilder>(optionObject);
-					builder->Execute_OnError(optionObject, method->GetFName().ToString(), property ? property->GetFName().ToString() : TEXT(""), msg);
+					builder->Execute_OnError(optionObject, method ? method->GetFName().ToString() : TEXT("<no method>"), property ? property->GetFName().ToString() : TEXT(""), msg);
 				}
 			}
 
@@ -583,7 +583,8 @@ namespace Rococo::GreatSex
 				auto* method = GetInvokeMethod(invokeName);
 				if (!method)
 				{
-					OnError(method, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+					OnError(nullptr, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+					return;
 				}
 
 				FString arg = FString::Printf(TEXT("%hs"), choice);
@@ -597,7 +598,8 @@ namespace Rococo::GreatSex
 				auto* method = GetInvokeMethod(invokeName);
 				if (!method)
 				{
-					OnError(method, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+					OnError(nullptr, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+					return;
 				}
 				
 				uint32 u32bool = boolValue == false ? 0 : 1;
@@ -611,7 +613,8 @@ namespace Rococo::GreatSex
 				auto* method = GetInvokeMethod(invokeName);
 				if (!method)
 				{
-					OnError(method, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+					OnError(nullptr, nullptr, FString::Printf(TEXT("Cannot find method %s"), *invokeName));
+					return;
 				}
 
 				optionObject->ProcessEvent(method, &scalarValue);

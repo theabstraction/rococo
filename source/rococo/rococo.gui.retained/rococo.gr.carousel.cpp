@@ -303,6 +303,12 @@ namespace GRANON
 
 		}
 
+		void NotifyAncestorChange()
+		{
+			optionIndex = ModulateOptionIndexToArrayIndex(optionIndex);
+			dropDown->SignalButtonClick(optionIndex);
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& we, IGRWidget& source) override
 		{
 			if (source == leftButton->Widget())
@@ -310,6 +316,7 @@ namespace GRANON
 				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
 				{
 					optionIndex--;
+					NotifyAncestorChange();
 				}
 
 				return EGREventRouting::Terminate;
@@ -320,6 +327,7 @@ namespace GRANON
 				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
 				{
 					optionIndex++;
+					NotifyAncestorChange();
 				}
 
 				return EGREventRouting::Terminate;

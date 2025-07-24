@@ -1,3 +1,4 @@
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.great.sex.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
@@ -7,6 +8,7 @@
 #include <rococo.functional.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
+#include <rococo.game.options.h>
 #include <vector>
 
 #define MATCH(text, value, numericEquivalent) if (Strings::EqI(text,value)) return numericEquivalent;
@@ -41,6 +43,78 @@ namespace Rococo
 		}
 
 		return (*sb).buffer;
+	}
+}
+
+namespace Rococo::Game::Options
+{
+	namespace Implementation
+	{
+		struct MissingOptDatabase : IOptionDatabase
+		{
+			void Invoke(cstr, cstr) override {}
+			void Invoke(cstr, bool) override {}
+			void Invoke(cstr, double)  override {}
+		};
+
+		struct MissingOptions : IMissingOptions
+		{
+			MissingOptDatabase db;
+
+			struct Err
+			{
+				bool indicator;
+				HString msg;
+			};
+
+			std::vector<Err> errs;
+
+			MissingOptions(cstr msg)
+			{
+				errs.push_back({ false, msg });
+			}
+
+			void AddLine(bool indicator, cstr msg) override
+			{
+				errs.push_back({ indicator, msg });
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+
+			void AddOptions(IGameOptionsBuilder& builder)
+			{
+				char name[24];
+				int index = 0;
+				for (auto& err : errs)
+				{
+					SafeFormat(name, "err_%d", index++);
+					auto& b = builder.AddBool(name);
+					b.SetTitle(err.msg);
+					b.SetActiveValue(err.indicator);
+				}
+			}
+
+			IOptionDatabase& DB() { return db; }
+			void Accept() {}
+			void Revert() {}
+			bool IsModified() const { return false; }
+		};
+	}
+
+	IMissingOptions* CreateMissingOptions(const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		char msg[1024];
+		SafeVFormat(msg, sizeof msg, format, args);
+
+		va_end(args);
+
+		return new Implementation::MissingOptions(msg);
 	}
 }
 
@@ -144,9 +218,14 @@ namespace Rococo::GreatSex
 				}
 			}
 
+			std::vector<Game::Options::IMissingOptions*> missingOptions;
+
 			virtual ~GreatSexGenerator()
 			{
-
+				for (auto* opt : missingOptions)
+				{
+					opt->Free();
+				}
 			}
 
 			struct GRSexInsertCache
@@ -263,6 +342,8 @@ namespace Rococo::GreatSex
 
 			Game::Options::IGameOptions& GetOptions(cstr key, cr_sex src) override
 			{
+				UNUSED(src);
+
 				auto i = mapNameToOptions.find(key);
 				if (i != mapNameToOptions.end())
 				{
@@ -271,11 +352,28 @@ namespace Rococo::GreatSex
 
 				if (mapNameToOptions.empty())
 				{
-					Throw(src, "Could not find option '%s'. No known options. C++ developer should use IGreatSexGenerator::AddOptions(...)", key);
+					auto* options = Game::Options::CreateMissingOptions("%s? - No options", key);
+					options->AddLine(true, "C++ developer should use");
+					options->AddLine(true, "IGreatSexGenerator::AddOptions(...)");
+					missingOptions.push_back(options);
+					mapNameToOptions.insert(key, options);
+					return *options;
 				}
 
-				AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(256);
-				Throw(src, "Could not find option '%s'. Known options: %s", key, AppendKeys(mapNameToOptions, dsb->Builder()));
+				auto* options = Game::Options::CreateMissingOptions("Ayup! Unknown option '%s'", key);
+
+				char info[256];
+				SafeFormat(info, "great.sex.main.cpp #%d", __LINE__);
+				options->AddLine(false, info);
+
+				for (auto j : mapNameToOptions)
+				{
+					options->AddLine(true, j.first);
+				}
+
+				missingOptions.push_back(options);
+				mapNameToOptions.insert(key, options);
+				return *options;
 			}
 
 			struct FontDef

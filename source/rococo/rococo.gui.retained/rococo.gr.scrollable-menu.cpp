@@ -330,6 +330,19 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
+		void SignalButtonClick(int optionIndex) override
+		{
+			if (optionIndex < 0 || optionIndex >= (int)options.size())
+			{
+				return;
+			}
+
+			auto& button = *options[optionIndex].button;
+			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, button.Panel().Id(), 0, "SignalButtonClick", {0,0}, true };
+			auto result = panel.NotifyAncestors(widgetEvent, button.Widget());
+			UNUSED(result);
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;

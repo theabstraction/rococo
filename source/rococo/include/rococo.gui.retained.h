@@ -1091,6 +1091,7 @@ namespace Rococo::Gui
 		virtual void SetOptionFont(GRFontId fontId) = 0;
 		virtual void SetOptionPadding(const GRAnchorPadding& padding) = 0;
 		virtual Vec2i LastComputedButtonSpan() const = 0;
+		virtual void SignalButtonClick(int optionIndex) = 0;
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;		
 		[[nodiscard]] virtual IGRWidgetViewport& Viewport() = 0;

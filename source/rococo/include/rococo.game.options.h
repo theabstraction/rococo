@@ -68,4 +68,12 @@ namespace Rococo::Game::Options
 		virtual void Revert() = 0;
 		virtual bool IsModified() const = 0;
 	};
+
+	ROCOCO_INTERFACE IMissingOptions : IGameOptions
+	{
+		virtual void AddLine(bool indicator, cstr msg) = 0;
+		virtual void Free() = 0;
+	};
+
+	IMissingOptions* CreateMissingOptions(const char* format, ...);
 }
