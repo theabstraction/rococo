@@ -131,7 +131,7 @@ namespace Rococo::GreatSex
 			{
 				int index = 0;
 
-				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i)
 				{
 					FProperty* property = *i;
 
@@ -143,31 +143,34 @@ namespace Rococo::GreatSex
 
 					if (!property->HasAnyPropertyFlags(CPF_OutParm))
 					{
-						OnError(method, property, TEXT("Expecting no inputs"));
+						OnError(method, property, TEXT("Expecting no method input and two outputs, bool and FRococoGameOptionBool by value"));
+						return;
 					}
 
-					if (index == 0)
+					index++;
+
+					if (index == 1)
 					{
 						auto* sp = CastField<FBoolProperty>(property);
 						if (!sp)
 						{
 							// Signature mismatch
-							OnError(method, property, TEXT("Expecting first method argument to be of type bool"));
+							OnError(method, property, TEXT("Expecting first method output argument to be of type bool"));
 							return;
 						}
 					}
-					else if (index == 1)
+					else if (index == 2)
 					{
 						auto* sp = CastField<FStructProperty>(property);
 						if (!sp)
 						{
-							OnError(method, property, TEXT("Expecting second method argument to be a struct of type FRococoGameOptionBool"));
+							OnError(method, property, TEXT("Expecting second method output argument to be a struct of type FRococoGameOptionBool"));
 						}
 
-						if (sp->Struct != FRococoGameOptionChoice::StaticStruct())
+						if (sp->Struct != FRococoGameOptionBool::StaticStruct())
 						{
 							// Signature mismatch
-							OnError(method, property, TEXT("Expecting first method argument to be of type FRococoGameOptionBool"));
+							OnError(method, property, TEXT("Expecting second method argument to be of type FRococoGameOptionBool"));
 							return;
 						}
 					}
@@ -178,6 +181,12 @@ namespace Rococo::GreatSex
 					}
 				}
 
+				if (index != 2)
+				{
+					OnError(method, nullptr, TEXT("Expecting no method input and two outputs, bool and FRococoGameOptionBool by value"));
+					return;
+				}
+
 				addMethods.Add(method);
 			}
 
@@ -185,7 +194,7 @@ namespace Rococo::GreatSex
 			{
 				int index = 0;
 
-				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i)
 				{
 					FProperty* property = *i;
 
@@ -202,6 +211,8 @@ namespace Rococo::GreatSex
 
 					if (index == 0)
 					{
+						index++;
+
 						auto* sp = CastField<FDoubleProperty>(property);
 						if (!sp)
 						{
@@ -212,13 +223,15 @@ namespace Rococo::GreatSex
 					}
 					else if (index == 1)
 					{
+						index++;
+
 						auto* sp = CastField<FStructProperty>(property);
 						if (!sp)
 						{
 							OnError(method, property, TEXT("Expecting second method argument to be a struct of type FRococoGameOptionScalar"));
 						}
 
-						if (sp->Struct != FRococoGameOptionChoice::StaticStruct())
+						if (sp->Struct != FRococoGameOptionScalar::StaticStruct())
 						{
 							// Signature mismatch
 							OnError(method, property, TEXT("Expecting first method argument to be of type FRococoGameOptionScalar"));
@@ -232,6 +245,12 @@ namespace Rococo::GreatSex
 					}
 				}
 
+				if (index != 2)
+				{
+					OnError(method, nullptr, TEXT("Expecting no method input and two outputs, double and FRococoGameOptionScalar by value"));
+					return;
+				}
+
 				addMethods.Add(method);
 			}
 
@@ -239,7 +258,7 @@ namespace Rococo::GreatSex
 			{
 				int index = 0;
 
-				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i)
 				{
 					FProperty* property = *i;
 
@@ -251,10 +270,11 @@ namespace Rococo::GreatSex
 
 					if (property->HasAnyPropertyFlags(CPF_OutParm))
 					{
-						OnError(method, property, TEXT("Expecting no outputs"));
+						OnError(method, property, TEXT("Expecting no outputs. Input but be FString by value."));
+						return;
 					}
 
-					if (index == 0)
+					if (index++ == 0)
 					{
 						auto* sp = CastField<FStrProperty>(property);
 						if (!sp)
@@ -266,9 +286,15 @@ namespace Rococo::GreatSex
 					}
 					else
 					{
-						OnError(method, property, TEXT("Expecting only one method argument"));
+						OnError(method, property, TEXT("Expecting only one method argument. FString by value"));
 						return;
 					}
+				}
+
+				if (index != 1)
+				{
+					OnError(method, nullptr, TEXT("Expecting one input argument of type FString"));
+					return;
 				}
 
 				handlerMethods.Add(method);
@@ -278,7 +304,7 @@ namespace Rococo::GreatSex
 			{
 				int index = 0;
 
-				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i)
 				{
 					FProperty* property = *i;
 
@@ -291,9 +317,10 @@ namespace Rococo::GreatSex
 					if (property->HasAnyPropertyFlags(CPF_OutParm))
 					{
 						OnError(method, property, TEXT("Expecting no outputs"));
+						return;
 					}
 
-					if (index == 0)
+					if (index++ == 0)
 					{
 						auto* sp = CastField<FBoolProperty>(property);
 						if (!sp)
@@ -310,6 +337,12 @@ namespace Rococo::GreatSex
 					}
 				}
 
+				if (index != 1)
+				{
+					OnError(method, nullptr, TEXT("Expecting one input argument of type bool"));
+					return;
+				}
+
 				handlerMethods.Add(method);
 			}
 
@@ -317,7 +350,7 @@ namespace Rococo::GreatSex
 			{
 				int index = 0;
 
-				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i)
 				{
 					FProperty* property = *i;
 
@@ -330,9 +363,10 @@ namespace Rococo::GreatSex
 					if (property->HasAnyPropertyFlags(CPF_OutParm))
 					{
 						OnError(method, property, TEXT("Expecting no outputs"));
+						return;
 					}
 
-					if (index == 0)
+					if (index++ == 0)
 					{
 						auto* sp = CastField<FDoubleProperty>(property);
 						if (!sp)
@@ -347,6 +381,12 @@ namespace Rococo::GreatSex
 						OnError(method, property, TEXT("Expecting only one method argument"));
 						return;
 					}
+				}
+
+				if (index != 1)
+				{
+					OnError(method, nullptr, TEXT("Expecting one input argument of type double"));
+					return;
 				}
 
 				handlerMethods.Add(method);

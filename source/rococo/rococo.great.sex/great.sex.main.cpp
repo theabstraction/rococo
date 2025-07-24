@@ -74,6 +74,11 @@ namespace Rococo::Game::Options
 				errs.push_back({ false, msg });
 			}
 
+			virtual ~MissingOptions()
+			{
+
+			}
+
 			void AddLine(bool indicator, cstr msg) override
 			{
 				errs.push_back({ indicator, msg });
