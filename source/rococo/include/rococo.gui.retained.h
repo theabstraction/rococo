@@ -500,6 +500,7 @@ namespace Rococo::Gui
 		BUTTON_CLICK,
 		BUTTON_KEYPRESS_DOWN, // // A key was pressed while the button had focus, and the meta data contains the vkey code
 		BUTTON_KEYPRESS_UP, // A key was released while the button had focus, and the meta data contains the vkey code
+		BOOL_CHANGED, // A boolean valued control was changed. The meta data int is 0 for false and not zero for true
 		CHOICE_MADE, // A choice was selected, the meta data contains the key
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		DROP_DOWN_COLLAPSED, // The drop down control collapsed

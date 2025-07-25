@@ -205,6 +205,19 @@ namespace GRANON
 			return EGREventRouting::Terminate;
 		}
 
+		EGREventRouting OnBoolSelected(bool isTrue, IGRWidget& sourceWidget)
+		{
+			for (auto& i : mapNameToBoolControl)
+			{
+				if (sourceWidget == i.second->Widget())
+				{
+					options.DB().Invoke(i.first, isTrue);
+					return EGREventRouting::Terminate;
+				}
+			}
+			return EGREventRouting::NextHandler;
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
 			switch (widgetEvent.eventType)
@@ -217,6 +230,8 @@ namespace GRANON
 				return OnChoiceMade(widgetEvent, sourceWidget);
 			case EGRWidgetEventType::SCROLLER_RELEASED:
 				return OnScrollerReleased(widgetEvent, sourceWidget);
+			case EGRWidgetEventType::BOOL_CHANGED:
+				return OnBoolSelected(widgetEvent.iMetaData != 0, sourceWidget);
 			}
 
 			return EGREventRouting::NextHandler;
