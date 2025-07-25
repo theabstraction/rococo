@@ -203,19 +203,7 @@ namespace GRANON
 						panel.Root().ReleaseCursor();
 					}
 				}
-				else if (clickCriterion == EGRClickCriterion::OnDown)
-				{
-					if (!isToggler)
-					{
-						isRaised = true;
-						SyncMinimalSpan();
-					}
-					else
-					{
-						FireEvent(ce.position);
-					}
-				}
-
+				
 				return EGREventRouting::Terminate;
 			}
 
