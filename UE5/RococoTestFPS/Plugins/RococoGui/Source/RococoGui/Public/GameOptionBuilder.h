@@ -74,6 +74,16 @@ struct FRococoGameOptionScalar
 
 	UPROPERTY(EditAnywhere)
 	FString Title;
+
+	UPROPERTY(EditAnywhere)
+	double MinValue = 0.0;
+
+	UPROPERTY(EditAnywhere)
+	double MaxValue = 200.0;
+
+	// The smallest increment or decrement
+	UPROPERTY(EditAnywhere)
+	double QuantumDelta = 1.0;
 };
 
 

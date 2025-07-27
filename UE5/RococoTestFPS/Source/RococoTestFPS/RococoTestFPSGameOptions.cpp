@@ -59,7 +59,7 @@ namespace RococoTestFPS::Implementation
 		void GetMusicVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Music Volume");
-			inquiry.SetRange(0, 100.0);
+			inquiry.SetRange(0, 100.0, 0.5);
 			inquiry.SetActiveValue(musicVolume);
 			inquiry.SetHint("Set music volume. 0 is off, 100.0 is maximum");
 		}
@@ -72,7 +72,7 @@ namespace RococoTestFPS::Implementation
 		void GetFXVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("FX Volume");
-			inquiry.SetRange(0, 100.0);
+			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(fxVolume);
 			inquiry.SetHint("Set Special FX volume. 0 is off, 100.0 is maximum");
 		}
@@ -85,7 +85,7 @@ namespace RococoTestFPS::Implementation
 		void GetNarrationVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Narration Volume");
-			inquiry.SetRange(0, 100.0);
+			inquiry.SetRange(0, 100.0, 0.25);
 			inquiry.SetActiveValue(narrationVolume);
 			inquiry.SetHint("Set narrator's voice volume. 0 is off, 100.0 is maximum");
 		}
@@ -386,7 +386,7 @@ namespace RococoTestFPS::Implementation
 		void GetCursorResponsiveness(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Mouse Sensitivity");
-			inquiry.SetRange(1, 10);
+			inquiry.SetRange(1, 10, 1);
 			inquiry.SetActiveValue(cursorResponsiveness);
 			inquiry.SetHint("Set scaling of mouse movement to cursor movement");
 		}

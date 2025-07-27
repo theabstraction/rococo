@@ -251,9 +251,10 @@ namespace GRANON
 			return *this;
 		}
 
-		void SetRange(double minValue, double maxValue) override
+		void SetRange(double minValue, double maxValue, double quantumDelta) override
 		{
 			slider->SetRange(minValue, maxValue);
+			slider->SetQuantum(quantumDelta);
 		}
 
 		void SetActiveValue(double scalarValue) override

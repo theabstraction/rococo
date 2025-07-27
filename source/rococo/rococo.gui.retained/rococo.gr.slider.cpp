@@ -74,10 +74,13 @@ namespace GRANON
 			this->renderArgContext = context;
 		}
 
+		double positionBeforeClick = 0;
+
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonDown)
 			{
+				positionBeforeClick = position;
 				isRaised = false;
 				panel.CaptureCursor();
 				if (!isRaised) UpdateSliderPos(ce.position);
@@ -102,6 +105,17 @@ namespace GRANON
 				mouseUp.iMetaData = 0;
 				mouseUp.sMetaData = GetImplementationTypeName();
 				panel.NotifyAncestors(mouseUp, *this);
+
+				if (positionBeforeClick != position)
+				{
+					GRWidgetEvent posUpdated;
+					posUpdated.eventType = EGRWidgetEventType::SLIDER_NEW_POS;
+					posUpdated.isCppOnly = true;
+					posUpdated.iMetaData = 0;
+					posUpdated.sMetaData = GetImplementationTypeName();
+					panel.NotifyAncestors(posUpdated, *this);
+				}
+
 				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;
@@ -236,8 +250,19 @@ namespace GRANON
 		// Note that the true value is clamp of the supplied value using the range values
 		void SetPosition(double value) override
 		{
+			double oldPos = position;
 			position = value;
 			SetSliderPosFromValuePos();
+
+			if (position != oldPos)
+			{
+				GRWidgetEvent posUpdated;
+				posUpdated.eventType = EGRWidgetEventType::SLIDER_NEW_POS;
+				posUpdated.isCppOnly = true;
+				posUpdated.iMetaData = 0;
+				posUpdated.sMetaData = GetImplementationTypeName();
+				panel.NotifyAncestors(posUpdated, *this);
+			}
 		}
 
 		GRAlignmentFlags guageAlignment;
@@ -292,8 +317,20 @@ namespace GRANON
 
 		void Advance(int quanta) override
 		{
+			double oldPos = position;
+
 			position += quanta * quantum;
 			SetSliderPosFromValuePos();
+
+			if (oldPos != position)
+			{
+				GRWidgetEvent posUpdated;
+				posUpdated.eventType = EGRWidgetEventType::SLIDER_NEW_POS;
+				posUpdated.isCppOnly = true;
+				posUpdated.iMetaData = 0;
+				posUpdated.sMetaData = GetImplementationTypeName();
+				panel.NotifyAncestors(posUpdated, *this);
+			}
 		}
 	};
 

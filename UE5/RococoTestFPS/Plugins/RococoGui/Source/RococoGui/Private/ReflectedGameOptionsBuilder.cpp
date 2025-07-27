@@ -529,13 +529,13 @@ namespace Rococo::GreatSex
 
 			void AddScalarOption(UFunction* method, const char* scalarId, IGameOptionsBuilder& builder)
 			{
-				struct FRococoGameOptionBoolPackage
+				struct FRococoGameOptionScalarPackage
 				{
 					double currentScalar;
-					FRococoGameOptionBool spec;
+					FRococoGameOptionScalar spec;
 				};
 
-				FRococoGameOptionBoolPackage args;
+				FRococoGameOptionScalarPackage args;
 
 				optionObject->ProcessEvent(method, &args);
 
@@ -552,6 +552,8 @@ namespace Rococo::GreatSex
 				ToAscii(title, sizeof title, args.spec.Title);
 
 				s.SetTitle(title);
+
+				s.SetRange(args.spec.MinValue, args.spec.MaxValue, args.spec.QuantumDelta);
 			}
 
 			void AddOptions(IGameOptionsBuilder& builder) override

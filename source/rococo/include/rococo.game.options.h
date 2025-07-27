@@ -31,7 +31,7 @@ namespace Rococo::Game::Options
 	ROCOCO_INTERFACE IScalarInquiry : IInquiry
 	{
 		virtual void SetActiveValue(double value) = 0;
-		virtual void SetRange(double minValue, double maxValue) = 0;
+		virtual void SetRange(double minValue, double maxValue, double quantumDelta) = 0;
 	};
 
 	ROCOCO_INTERFACE IStringInquiry : IInquiry

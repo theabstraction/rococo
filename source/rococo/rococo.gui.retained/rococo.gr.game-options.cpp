@@ -212,10 +212,28 @@ namespace GRANON
 				if (sourceWidget == i.second->Widget())
 				{
 					options.DB().Invoke(i.first, isTrue);
-					return EGREventRouting::Terminate;
+					break;
 				}
 			}
-			return EGREventRouting::NextHandler;
+			return EGREventRouting::Terminate;
+		}
+
+		EGREventRouting OnSliderMoved(IGRWidget& sourceWidget)
+		{
+			auto* slider = Cast<IGRWidgetSlider>(sourceWidget);
+			if (slider)
+			{
+				for (auto& i : mapNameToScalarControl)
+				{
+					if (slider == &i.second->Slider())
+					{
+						options.DB().Invoke(i.first, slider->Position());
+						break;
+					}
+				}
+			}
+
+			return EGREventRouting::Terminate;
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
@@ -232,6 +250,8 @@ namespace GRANON
 				return OnScrollerReleased(widgetEvent, sourceWidget);
 			case EGRWidgetEventType::BOOL_CHANGED:
 				return OnBoolSelected(widgetEvent.iMetaData != 0, sourceWidget);
+			case EGRWidgetEventType::SLIDER_NEW_POS:
+				return OnSliderMoved(sourceWidget);
 			}
 
 			return EGREventRouting::NextHandler;

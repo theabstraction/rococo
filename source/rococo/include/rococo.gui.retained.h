@@ -510,6 +510,7 @@ namespace Rococo::Gui
 		ON_HINT_HOVER, // A hint was hovered with a mouse move event
 		GET_HINT_HOVER, // Retrieve the last hint that was hovered over
 		SLIDER_HELD, // A slider was clicked down with the cursor
+		SLIDER_NEW_POS, // Slider position changed
 		UPDATED_CLIENTAREA_HEIGHT, // A viewport client-area control calculated its new height (passed to iMetaData). The viewport caches this and applies it during the next layout
 		USER_DEFINED = 1025
 	};
