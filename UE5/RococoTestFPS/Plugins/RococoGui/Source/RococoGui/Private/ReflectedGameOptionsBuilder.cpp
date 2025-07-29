@@ -13,12 +13,12 @@ namespace Rococo::GreatSex
 {
 	namespace Implementation
 	{
-		static const FString addChoicePrefix = FString(TEXT("AddChoice_"));
+		// Note that option methods have the signature AddOption_<OPTION-NAME> -> (<TYPE> currentValue)(<SPEC> currentSpec)
+		// We support <TYPE> where <TYPE> is one of bool, double, or FString, the spec is coupled to the <TYPE>
+		static const FString addOptionPrefix = FString(TEXT("AddOption_"));
 		static const FString onChoicePrefix = FString(TEXT("OnChoice_"));
-		static const FString addBoolPrefix = FString(TEXT("AddBool_"));
-		static const FString onBoolPrefix = FString(TEXT("OnBool_"));
-		static const FString addScalarPrefix = FString(TEXT("AddScalar_"));
 		static const FString onScalarPrefix = FString(TEXT("OnScalar_"));
+		static const FString onBoolPrefix = FString(TEXT("OnBool_"));
 
 		void ToAscii(char* buffer, size_t capacity, const FString& s)
 		{
@@ -41,6 +41,12 @@ namespace Rococo::GreatSex
 
 			buffer[i] = 0;
 		}
+
+		struct GameOptionMethodDesc
+		{
+			UFunction* addFuction = nullptr;
+			UFunction* handlerFunction = nullptr;
+		};
 
 		struct ReflectedGameOptions : IGameOptions, IOptionDatabase
 		{
@@ -346,6 +352,56 @@ namespace Rococo::GreatSex
 				handlerMethods.Add(method);
 			}
 
+			FProperty* GetMethodArgument(UFunction* method, int requiredIndex)
+			{
+				int index = 0;
+
+				for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i)
+				{
+					FProperty* property = *i;
+
+					if (!property->HasAnyPropertyFlags(CPF_Parm))
+					{
+						// Not a parameter, probably a local variable
+						continue;
+					}
+
+					if (index == requiredIndex)
+					{
+						return property;
+					}
+
+					index++;
+				}
+
+				return nullptr;
+			}
+			/*
+					if (property->HasAnyPropertyFlags(CPF_OutParm))
+					{
+						OnError(method, property, TEXT("Expecting no outputs"));
+						return;
+					}
+
+					if (index++ == 0)
+					{
+						auto* sp = CastField<FDoubleProperty>(property);
+						if (!sp)
+						{
+							// Signature mismatch
+							OnError(method, property, TEXT("Expecting first method argument to be of type double"));
+							return;
+						}
+					}
+					else
+					{
+						OnError(method, property, TEXT("Expecting only one method argument"));
+						return;
+					}
+			}
+
+			*/
+
 			void AddOnScalarMethodElseLogError(UFunction* method)
 			{
 				int index = 0;
@@ -392,51 +448,93 @@ namespace Rococo::GreatSex
 				handlerMethods.Add(method);
 			}
 
-			void AddMethod(UFunction* method)
+			void AddAddOptionMethodElseLogError(UFunction* method)
 			{
-				if (method->HasAnyFunctionFlags(EFunctionFlags::FUNC_Static))
+				FProperty* argType = GetMethodArgument(method, 0);
+				auto* doubleArg = CastField<FDoubleProperty>(argType);
+				if (doubleArg)
 				{
-					OnError(method, nullptr, TEXT("Expecting method to NOT be static"));
+					AddAddScalarMethodElseLogError(method);
 					return;
 				}
 
-				FString methodName = method->GetFName().ToString();
-				UE_LOG(LogReflectedBuilder, Display, TEXT("method %s"), *methodName);
-
-				if (methodName.Len() > asciiBuffer.Num())
-				{
-					asciiBuffer.SetNum(methodName.Len());
-				}
-
-				if (methodName.StartsWith(addChoicePrefix))
-				{
-					AddAddChoiceMethodElseLogError(method);
-				}
-
-				if (methodName.StartsWith(onChoicePrefix))
-				{
-					AddOnChoiceMethodElseLogError(method);
-				}
-
-				if (methodName.StartsWith(addBoolPrefix))
+				auto* boolArg = CastField<FBoolProperty>(argType);
+				if (boolArg)
 				{
 					AddAddBoolMethodElseLogError(method);
+					return;
+				}
+
+				auto* choiceArg = CastField<FStrProperty>(argType);
+				if (choiceArg)
+				{
+					AddAddChoiceMethodElseLogError(method);
+					return;
+				}
+
+				OnError(method, choiceArg, TEXT("Expecting first argument to be of type double, bool or string"));
+			}
+
+			void AddMethod(UFunction* method)
+			{
+				FString methodName = method->GetFName().ToString();
+
+				FString knownPrefices[] = { onBoolPrefix, onChoicePrefix, onScalarPrefix, addOptionPrefix };
+
+				bool wasMatched = false;
+
+				for (auto& prefix : knownPrefices)
+				{
+					if (methodName.StartsWith(prefix))
+					{
+						if (method->HasAnyFunctionFlags(EFunctionFlags::FUNC_Static))
+						{
+							OnError(method, nullptr, TEXT("Expecting method to NOT be static"));
+							return;
+						}
+
+						UE_LOG(LogReflectedBuilder, Display, TEXT("option method: %s"), *methodName);
+
+						if (methodName.Len() > asciiBuffer.Num())
+						{
+							asciiBuffer.SetNum(methodName.Len());
+						}
+
+						wasMatched = true;
+						break;
+					}
+				}
+
+				if (!wasMatched)
+				{
+					return;
 				}
 
 				if (methodName.StartsWith(onBoolPrefix))
 				{
 					AddOnBoolMethodElseLogError(method);
+					return;
 				}
 
-				if (methodName.StartsWith(addScalarPrefix))
+				if (methodName.StartsWith(onChoicePrefix))
 				{
-					AddAddScalarMethodElseLogError(method);
+					AddOnChoiceMethodElseLogError(method);
+					return;
 				}
 
 				if (methodName.StartsWith(onScalarPrefix))
 				{
 					AddOnScalarMethodElseLogError(method);
+					return;
 				}
+
+				if (methodName.StartsWith(addOptionPrefix))
+				{
+					AddAddOptionMethodElseLogError(method);
+					return;
+				}
+
+				OnError(method, nullptr, TEXT("knownPrefices not matched to handler. Program bug."));
 			}
 
 			const char* GetVolatileAsciiTrailingString(const FString& s, const FString& prefix)
@@ -560,25 +658,36 @@ namespace Rococo::GreatSex
 			{
 				// Enumerate methods and populate builder
 
+				addMethods.Sort();
+
 				for (auto* method : addMethods)
 				{
 					FString methodName = method->GetFName().ToString();
-					const char* choiceId = GetVolatileAsciiTrailingString(methodName, addChoicePrefix);
-					if (choiceId)
+					const char* optionName = GetVolatileAsciiTrailingString(methodName, addOptionPrefix);
+					if (optionName)
 					{
-						AddChoiceOption(method, choiceId, builder);
-					}
+						auto* argType = GetMethodArgument(method, 0);
 
-					choiceId = GetVolatileAsciiTrailingString(methodName, addBoolPrefix);
-					if (choiceId)
-					{
-						AddBoolOption(method, choiceId, builder);
-					}
+						auto* doubleArg = CastField<FDoubleProperty>(argType);
+						if (doubleArg)
+						{
+							AddScalarOption(method, optionName, builder);
+							continue;
+						}
 
-					choiceId = GetVolatileAsciiTrailingString(methodName, addScalarPrefix);
-					if (choiceId)
-					{
-						AddScalarOption(method, choiceId, builder);
+						auto* boolArg = CastField<FBoolProperty>(argType);
+						if (boolArg)
+						{
+							AddBoolOption(method, optionName, builder);
+							continue;
+						}
+
+						auto* choiceArg = CastField<FStrProperty>(argType);
+						if (choiceArg)
+						{
+							AddChoiceOption(method, optionName, builder);
+							continue;
+						}
 					}
 				}
 			}
