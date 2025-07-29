@@ -658,7 +658,13 @@ namespace Rococo::GreatSex
 			{
 				// Enumerate methods and populate builder
 
-				addMethods.Sort();
+				auto byNameAscending = [](const UFunction& a, const UFunction& b) -> bool
+				{
+					FString aName = a.GetFName().ToString();
+					FString bName = b.GetFName().ToString();
+					return a < b;
+				};
+				addMethods.Sort(byNameAscending);
 
 				for (auto* method : addMethods)
 				{
