@@ -308,6 +308,8 @@
 			(Panel.ExpandV)
 			(Colour.Container.Background Transparent)
 			(Colour.Button Yellow)
+			(Colour.Slider.Slot.Edge.1 White)
+			(Colour.Slider.Slot.Edge.2 LightGrey)
 			:
 			
 			// A viewport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
@@ -340,7 +342,7 @@
 				(Colour.Label Transparent)
 				(Colour.Editor DarkRed)
 				(Colour.Slider.Guage LightGrey)
-				(Colour.Slider.Slot Transparent)
+				(Colour.Slider.Slot DarkRed)
 				(Colour.Slider.Slot.Edge.1 FeintWhite)
 				(Colour.Slider.Slot.Edge.2 FeintGrey)
 				(Colour.Occlusion.Surface FeintBlack)

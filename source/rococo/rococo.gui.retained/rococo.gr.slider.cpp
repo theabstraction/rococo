@@ -452,11 +452,10 @@ namespace Rococo::Gui
 		{
 			double quotient = clamp((slider.position - slider.minValue) / valueSpan, 0.0, 1.0);
 			int nBulbsLit = (int)(quotient * BULB_COUNT);
-			int bulbWidth = Width(sliderSlot) / BULB_COUNT;
-
+			
 			RGBAb bulbColour = panel.GetColour(EGRSchemeColourSurface::BUTTON, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 255, 0, 255));
 
-			if (nBulbsLit == 0)
+		//	if (nBulbsLit == 0)
 			{
 				RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
 				g.DrawRect(sliderSlot, sliderSlotColour);
@@ -466,15 +465,19 @@ namespace Rococo::Gui
 
 				g.DrawRectEdge(sliderSlot, sliderEdge1Colour, sliderEdge2Colour);
 			}
+			 
+			const int GAP_WIDTH = 6;
+
+			int bulbWidth = Width(sliderSlot) / BULB_COUNT;
 
 			for (int i = 0; i < nBulbsLit; i++)
 			{
 				GuiRect bulbRect = sliderSlot;
-				bulbRect.top += 1;
-				bulbRect.bottom -= 1;
+				bulbRect.top += GAP_WIDTH;
+				bulbRect.bottom -= GAP_WIDTH;
 
-				bulbRect.left += i * bulbWidth;
-				bulbRect.right = bulbRect.left + bulbWidth - 1;
+				bulbRect.left += i * bulbWidth + GAP_WIDTH;
+				bulbRect.right = bulbRect.left + bulbWidth - GAP_WIDTH;
 
 				g.DrawRect(bulbRect, bulbColour);
 			}
