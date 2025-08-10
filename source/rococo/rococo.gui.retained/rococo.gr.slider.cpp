@@ -468,7 +468,7 @@ namespace Rococo::Gui
 			 
 			const int GAP_WIDTH = 6;
 
-			int bulbWidth = Width(sliderSlot) / BULB_COUNT;
+			double bulbWidth = (Width(sliderSlot) - GAP_WIDTH) / (double) BULB_COUNT;
 
 			for (int i = 0; i < nBulbsLit; i++)
 			{
@@ -476,8 +476,8 @@ namespace Rococo::Gui
 				bulbRect.top += GAP_WIDTH;
 				bulbRect.bottom -= GAP_WIDTH;
 
-				bulbRect.left += i * bulbWidth + GAP_WIDTH;
-				bulbRect.right = bulbRect.left + bulbWidth - GAP_WIDTH;
+				bulbRect.left += (int)(i * bulbWidth) + GAP_WIDTH;
+				bulbRect.right = bulbRect.left + (int) bulbWidth - GAP_WIDTH;
 
 				g.DrawRect(bulbRect, bulbColour);
 			}
