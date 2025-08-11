@@ -25,6 +25,10 @@ namespace GRANON
 		void* renderArgContext = nullptr;
 
 		FN_RENDER_SLIDER fnRenderSlider = RenderSlider_Default;
+
+		int bulbCount = 20;
+		int bulbHGap = 6;
+		int bulbVGap = 6;
 		
 		GRSlider(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -38,6 +42,13 @@ namespace GRANON
 		void Free() override
 		{
 			delete this;
+		}
+
+		void SetRenderingMetrics(int bulbCount, int vgap, int hgap) override
+		{
+			this->bulbCount = bulbCount;
+			this->bulbHGap = hgap;
+			this->bulbVGap = vgap;
 		}
 
 		void SetSlotPadding(GRAnchorPadding padding) override
@@ -291,7 +302,7 @@ namespace GRANON
 			{
 				panel, slotPadding, isRaised, raisedImage, pressedImage, sliderPos, guageFont,
 				guageAlignment, guageSpacing, guageDecimalPlaces, guageTextSurface, position, renderArgContext,
-				minValue, maxValue
+				minValue, maxValue, bulbCount, bulbHGap, bulbVGap
 			};
 
 			fnRenderSlider(g, slider);
@@ -445,7 +456,7 @@ namespace Rococo::Gui
 		sliderSlot.top += slotPadding.top;
 		sliderSlot.bottom -= slotPadding.bottom;
 
-		const int BULB_COUNT = 20;
+		const int BULB_COUNT = slider.bulbCount;
 
 		double valueSpan = slider.maxValue - slider.minValue;
 		if (valueSpan != 0.0)
@@ -455,7 +466,7 @@ namespace Rococo::Gui
 			
 			RGBAb bulbColour = panel.GetColour(EGRSchemeColourSurface::BUTTON, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 255, 0, 255));
 
-		//	if (nBulbsLit == 0)
+		//	if (nBulbsLit == 0) // uncomment this if you want backgrounds to be hidden when sliders are part filled
 			{
 				RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
 				g.DrawRect(sliderSlot, sliderSlotColour);
@@ -466,15 +477,15 @@ namespace Rococo::Gui
 				g.DrawRectEdge(sliderSlot, sliderEdge1Colour, sliderEdge2Colour);
 			}
 			 
-			const int GAP_WIDTH = 6;
+			const int GAP_WIDTH = slider.bulbWidthPadding;
 
 			double bulbWidth = (Width(sliderSlot) - GAP_WIDTH) / (double) BULB_COUNT;
 
 			for (int i = 0; i < nBulbsLit; i++)
 			{
 				GuiRect bulbRect = sliderSlot;
-				bulbRect.top += GAP_WIDTH;
-				bulbRect.bottom -= GAP_WIDTH;
+				bulbRect.top += slider.bulbHeightPadding;
+				bulbRect.bottom -= slider.bulbHeightPadding;
 
 				bulbRect.left += (int)(i * bulbWidth) + GAP_WIDTH;
 				bulbRect.right = bulbRect.left + (int) bulbWidth - GAP_WIDTH;

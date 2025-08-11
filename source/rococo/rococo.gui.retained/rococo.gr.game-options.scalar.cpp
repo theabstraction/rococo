@@ -65,6 +65,8 @@ namespace GRANON
 
 			slider->SetGuage(config.SliderFontId, 2, EGRSchemeColourSurface::SLIDER_GUAGE);
 
+			slider->SetRenderingMetrics(config.sliderBulbCount, config.sliderVGap, config.sliderHGap);
+
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
 		}
 

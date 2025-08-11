@@ -240,6 +240,20 @@ namespace Rococo::GreatSex
 				config.CarouselPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
 			}
 
+			auto* aSliderBulbCount = directive.FindAttributeByName("Slider.Bulb.Count");
+			if (aSliderBulbCount)
+			{
+				config.sliderBulbCount = AsAtomicInt32(aSliderBulbCount->Value());
+			}
+
+			auto* aSliderBulbGaps = directive.FindAttributeByName("Slider.Bulb.Gaps");
+			if (aSliderBulbCount)
+			{
+				Vec2i sliderBulbGap = AsVec2i(aSliderBulbGaps->Value());
+				config.sliderHGap = sliderBulbGap.x;
+				config.sliderVGap = sliderBulbGap.y;
+			}
+
 			auto& vKey = directive["Generate"];
 			cstr key = AsString(vKey).c_str();
 

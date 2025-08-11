@@ -137,6 +137,9 @@ namespace Rococo::Gui
 		void* context;
 		double minValue;
 		double maxValue;
+		int bulbCount;
+		int bulbHeightPadding;
+		int bulbWidthPadding;
 	};
 
 	ROCOCO_GUI_RETAINED_API void RenderSlider_Default(IGRRenderContext& g, SliderDesc& slider);

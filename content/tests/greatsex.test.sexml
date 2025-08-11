@@ -430,6 +430,13 @@
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
 					(Slider.Font SliderFont)
+					
+					// We provide an example here of the override the bulb count (default = 20)
+					(Slider.Bulb.Count 25)
+					
+					// We provide an example here of the override the bulb gaps (default dx=6 dy=6)
+					(#Vec2i Slider.Bulb.Gaps 3 3)
+					
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate AudioOptions)

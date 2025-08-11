@@ -1133,6 +1133,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetSlider& SetRaisedImagePath(cstr imagePath) = 0;
 		virtual void SetGuageAlignment(GRAlignmentFlags alignment, Vec2i scalarGuageSpacing) = 0;
 		virtual void SetSlotPadding(GRAnchorPadding padding) = 0;
+		virtual void SetRenderingMetrics(int bulbCount, int vgap, int hgap) = 0;
 
 		// Used the designated render function for slider rendering, passing the context to the SliderDesc argument of FN_RENDER_SLIDER
 		// The context must remain valid for the lifetime of the slider widget
@@ -1812,6 +1813,15 @@ namespace Rococo::Gui
 		GRFontId SliderFontId = GRFontId::NONE;
 		FN_RENDER_SLIDER SliderRenderFunction = Gui::RenderSlider_AsLeftToRightBulbs;
 		Vec2i EditorPadding{ 0,0 };
+
+		// This is presented to the SliderRenderFunction. In the bulbs implementation, gives the maximum bulbs that span the slider
+		int sliderBulbCount = 20;
+
+		// This is presented to the SliderRenderFunction. In the bulbs implementation, gives the gap between the top and bottom of the slider slot and the bulbs within
+		int sliderVGap = 6;
+
+		// This is presented to the SliderRenderFunction. In the bulbs implementation, gives the gap between the left of the slider slot and the first bulb, also the gap between successive bulbs
+		int sliderHGap = 6;
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
