@@ -229,6 +229,15 @@ namespace GRANON
 			{
 				// The cursor has been moved outside the button, so capture should be lost
 				panel.Root().ReleaseCursor();
+				return EGREventRouting::NextHandler;
+			}
+
+			if (focusOnMouseMove)
+			{
+				if (panel.Root().GR().GetFocusId() != panel.Id())
+				{
+					panel.FocusAndNotifyAncestors();
+				}
 			}
 
 			return EGREventRouting::NextHandler;
@@ -364,6 +373,13 @@ namespace GRANON
 
 		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
+		bool focusOnMouseMove = false;
+
+		IGRWidgetButton& FocusOnMouseMove(bool focusOnMouseMove) override
+		{
+			this->focusOnMouseMove = focusOnMouseMove;
+			return *this;
+		}
 
 		IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) override
 		{

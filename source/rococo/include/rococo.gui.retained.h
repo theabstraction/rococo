@@ -980,6 +980,8 @@ namespace Rococo::Gui
 
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 
+		virtual IGRWidgetButton& FocusOnMouseMove(bool focusOnMouseMove) = 0;
+
 		virtual IGRWidgetButton& SetBackSurface(EGRSchemeColourSurface backSurface) = 0;
 
 		virtual IGRWidgetButton& SetTextSurface(EGRSchemeColourSurface textSurface) = 0;

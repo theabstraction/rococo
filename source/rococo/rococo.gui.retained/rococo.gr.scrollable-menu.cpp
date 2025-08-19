@@ -56,7 +56,7 @@ namespace GRANON
 
 		IGRWidgetViewport* viewport = nullptr;
 
-		ButtonWatcher watcher;
+		ButtonWatcher watcher; // used for debugging, put breakpoints in the watcher implementation if needs be
 		
 		GRScrollableMenu(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -96,6 +96,7 @@ namespace GRANON
 			button->Panel().SetPanelWatcher(&watcher);
 			button->TriggerOnKeyDown();
 			button->Panel().SetHint(hint);
+			button->FocusOnMouseMove(true);
 
 			GRControlMetaData metaData;
 			metaData.stringData = name;
@@ -272,8 +273,22 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnCursorMove(GRCursorEvent&) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			if (panel.Root().CapturedPanelId() == panel.Id())
+			{
+				auto& vpPanel = viewport->ClientArea().Panel();
+				int nChildren = vpPanel.EnumerateChildren(nullptr);
+				for (int i = 0; i < nChildren; i++)
+				{
+					auto* child = vpPanel.GetChild(i);
+					if (IsPointInRect(ce.position, child->AbsRect()))
+					{
+						child->Widget().Manager().OnCursorMove(ce);
+						break;
+					}
+				}
+			}
 			return EGREventRouting::NextHandler;
 		}
 
