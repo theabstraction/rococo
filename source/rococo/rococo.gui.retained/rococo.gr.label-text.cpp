@@ -199,6 +199,11 @@ namespace GRANON
 		{
 			return "GRText";
 		}
+
+		bool IsObscure() const override
+		{
+			return DoesAncestorObscure(panel);
+		}
 	};
 
 	struct GRTextFactory : Rococo::Gui::IGRWidgetFactory

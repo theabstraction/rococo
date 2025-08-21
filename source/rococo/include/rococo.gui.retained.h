@@ -512,6 +512,7 @@ namespace Rococo::Gui
 		SLIDER_HELD, // A slider was clicked down with the cursor
 		SLIDER_NEW_POS, // Slider position changed
 		UPDATED_CLIENTAREA_HEIGHT, // A viewport client-area control calculated its new height (passed to iMetaData). The viewport caches this and applies it during the next layout
+		ARE_DESCENDANTS_OBSCURED,
 		USER_DEFINED = 1025
 	};
 
@@ -595,11 +596,8 @@ namespace Rococo::Gui
 		// using tab to navigate a panel's children cycles through to the first if the final one is already focused
 		CycleTabsEndlessly = 2,
 
-		// The contents of the panel could be grayed or fogged for a better UI experience
-		HintObscure = 4,
-
 		// A rectangle can be drawn over the panel to indicate some other overlaying control has modality (such as a floating menu)
-		OcclusionSurface = 8
+		OcclusionSurface = 4
 	};
 
 	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
@@ -956,6 +954,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetText& SetTextColourShadowSurface(EGRSchemeColourSurface surface) = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
+		virtual bool IsObscure() const = 0;
 	};
 
 	enum class EGRButtonEventType
@@ -1859,6 +1858,8 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetPortrait& CreatePortrait(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetIcon& CreateIcon(IGRWidget& parent);
+
+	ROCOCO_GUI_RETAINED_API bool DoesAncestorObscure(IGRPanel& descendant);
 
 	// Implemented by various editor filters
 	ROCOCO_INTERFACE IGREditFilter

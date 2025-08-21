@@ -97,6 +97,16 @@ namespace GRANON
 
 			DrawPanelBackground(panel, rc);
 
+			dropDownCount = 0;
+
+			for (auto& i : mapNameToChoiceControl)
+			{
+				if (!i.second->Carousel().DropDown().Panel().IsCollapsed())
+				{
+					dropDownCount++;
+				}
+			}
+
 			int nChildren = panel.EnumerateChildren(nullptr);
 
 			if (nChildren > 0)
@@ -125,16 +135,9 @@ namespace GRANON
 				{
 					carousel->Panel().Parent()->FocusAndNotifyAncestors();
 				}
+
 				dropDown.Panel().Root().ReleaseCursor();
 				dropDown.Panel().SetRenderLast(false);
-
-				int nChildren = panel.EnumerateChildren(nullptr);
-				for (int i = 0; i < nChildren; i++)
-				{
-					auto* child = panel.GetChild(i);
-					child->Remove(EGRPanelFlags::HintObscure);
-				}
-
 				return EGREventRouting::Terminate;
 			}
 			
@@ -149,18 +152,6 @@ namespace GRANON
 				auto& dropDown = carousel->DropDown();
 				dropDown.Panel().CaptureCursor();
 				dropDown.Panel().SetRenderLast(true);
-
-				int nChildren = panel.EnumerateChildren(nullptr);
-
-				for (int i = 0; i < nChildren; i++)
-				{
-					auto* child = panel.GetChild(i);
-					if (child->Widget() != sourceWidget.Panel().Parent()->Widget())
-					{
-						child->Add(EGRPanelFlags::HintObscure);
-					}
-				}
-
 				return EGREventRouting::Terminate;
 			}
 
@@ -236,6 +227,8 @@ namespace GRANON
 			return EGREventRouting::Terminate;
 		}
 
+		int dropDownCount = 0;
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
 			switch (widgetEvent.eventType)
@@ -252,6 +245,10 @@ namespace GRANON
 				return OnBoolSelected(widgetEvent.iMetaData != 0, sourceWidget);
 			case EGRWidgetEventType::SLIDER_NEW_POS:
 				return OnSliderMoved(sourceWidget);
+			case EGRWidgetEventType::ARE_DESCENDANTS_OBSCURED:
+				// If there is at least one visible drop down, we increment the meta data and so obscure the descendants
+				widgetEvent.iMetaData += dropDownCount;
+				return EGREventRouting::Terminate;
 			}
 
 			return EGREventRouting::NextHandler;

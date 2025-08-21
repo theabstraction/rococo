@@ -434,7 +434,7 @@ namespace Rococo::Gui
 			g.DrawText(slider.guageFont, panel.AbsRect(), slider.guageAlignment, slider.guageSpacing, to_fstring(guageText), colour);
 		}
 
-		bool isObscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
+		bool isObscured = slider.isObscure;
 		if (isObscured)
 		{
 			g.DrawRect(panel.AbsRect(), RGBAb(64, 64, 64, 192));
@@ -510,7 +510,7 @@ namespace Rococo::Gui
 			g.DrawText(slider.guageFont, panel.AbsRect(), slider.guageAlignment, slider.guageSpacing, to_fstring(guageText), colour);
 		}
 
-		bool isObscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
+		bool isObscured = slider.isObscure;
 		if (isObscured)
 		{
 			g.DrawRect(panel.AbsRect(), RGBAb(64, 64, 64, 192));

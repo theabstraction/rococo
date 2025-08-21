@@ -305,7 +305,7 @@ namespace Rococo::Gui
 	{
 		DrawEdge(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, panel, rc);
 
-		if (panel.HasFlag(EGRPanelFlags::HintObscure))
+		if (title.IsObscure())
 		{
 			title.SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT).SetBackColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND);
 		}

@@ -443,7 +443,7 @@ namespace GRANON
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;
 			GRWidgetRenderState rs(false, isHovered, false);
 
-			bool obscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
+			bool obscured = DoesAncestorObscure(panel);
 
 			RGBAb backColour = panel.GetColour(obscured ? EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND : EGRSchemeColourSurface::CAROUSEL_BACKGROUND, rs);
 			g.DrawRect(edge, backColour, panel.RectStyle(), panel.CornerRadius());
@@ -514,5 +514,18 @@ namespace Rococo::Gui
 		auto& widget = gr.AddWidget(parent.Panel(), factory);
 		auto* carousel = Cast<IGRWidgetCarousel>(widget);
 		return *carousel;
+	}
+
+	ROCOCO_GUI_RETAINED_API bool DoesAncestorObscure(IGRPanel& descendant)
+	{
+		GRWidgetEvent ev;
+		ev.clickPosition = { 0,0 };
+		ev.eventType = EGRWidgetEventType::ARE_DESCENDANTS_OBSCURED;
+		ev.iMetaData = 0; // ancestors will increment this if they need descendants to be obscured
+		ev.isCppOnly = true;
+		ev.panelId = descendant.Id();
+		ev.sMetaData = nullptr;
+		descendant.NotifyAncestors(ev, descendant.Widget());
+		return ev.iMetaData > 0;
 	}
 }
