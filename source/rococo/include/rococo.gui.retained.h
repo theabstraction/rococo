@@ -1741,6 +1741,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetControlPrompt& CreateControlPrompt(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivisionWithText& CreateHintBox(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API void SetFocusWithNoCallback(IGRPanel& panel);
 
 	struct PropertyEditorSpec
 	{

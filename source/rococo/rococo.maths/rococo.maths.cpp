@@ -970,12 +970,12 @@ namespace Rococo
 
 	bool IsPointInRect(Vec2i p, const GuiRect& rect)
 	{
-		return (p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom);
+		return (p.x > rect.left && p.x < rect.right && p.y > rect.top && p.y < rect.bottom);
 	}
 
 	bool IsPointInRect(Vec2 p, const GuiRectf& clipRect)
 	{
-		if (p.x >= clipRect.left && p.x <= clipRect.right && p.y >= clipRect.top && p.y <= clipRect.bottom)
+		if (p.x > clipRect.left && p.x < clipRect.right && p.y > clipRect.top && p.y < clipRect.bottom)
 		{
 			return true;
 		}

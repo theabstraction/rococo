@@ -896,4 +896,9 @@ namespace Rococo::Gui
 	{
 		return static_cast<IGRWidgetSupervisor&>(*this);
 	}
+
+	ROCOCO_GUI_RETAINED_API void SetFocusWithNoCallback(IGRPanel& panel)
+	{
+		panel.Root().GR().SetFocus(panel.Id());
+	}
 }

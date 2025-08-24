@@ -188,7 +188,12 @@ namespace GRANON
 				auto* dropDown = Cast<IGRWidgetScrollableMenu>(ancestor->Widget());
 				if (dropDown)
 				{
-					dropDown->Panel().FocusAndNotifyAncestors().CaptureCursor();
+					auto ddId = dropDown->Panel().Id();
+					SetFocusWithNoCallback(dropDown->Panel());
+					auto* notifier = Cast<IGRFocusNotifier>(dropDown->Viewport().Widget());
+					auto result = notifier->OnDeepChildFocusSet(ddId);
+					UNUSED(result);
+					dropDown->Panel().CaptureCursor();
 					break;
 				}
 			}
@@ -295,7 +300,7 @@ namespace GRANON
 			GuaranteeUnique(mapNameToChoiceControl, name);
 			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, config);
 
-			// Prevent the game options viewports from trying to scroll a carousel selected menu item into view when it is selected.
+			// Prevent a carousel selected menu item from scrolling the main options when the drop down is selected.
 			choiceWidget.Carousel().DropDown().Viewport().PropagateFocusChangesToParent(false);
 			mapNameToChoiceControl.insert(name, &choiceWidget);
 			return choiceWidget.Inquiry();

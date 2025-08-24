@@ -218,7 +218,7 @@ namespace GRANON
 
 		void SetFocusWithoutCallback(IGRWidgetButton& button)
 		{
-			panel.Root().GR().SetFocus(button.Panel().Id());
+			SetFocusWithNoCallback(button.Panel());
 		}
 
 		void SetFocusToTopmostVisibleButton(int deltaOffset)
