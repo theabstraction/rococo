@@ -234,7 +234,7 @@ namespace GRANON
 
 			if (focusOnMouseMove)
 			{
-				if (panel.Root().GR().GetFocusId() != panel.Id())
+				if (panel.Root().GR().GetFocusId() != -1 && panel.HasFocus())
 				{
 					panel.FocusAndNotifyAncestors();
 				}
