@@ -28,6 +28,7 @@ namespace Rococo::Gui
 		virtual void Render(SlateRenderContext& rc) = 0;
 		virtual void RouteKeyboardEvent(const KeyboardEvent& key) = 0;
 		virtual void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) = 0;
+		virtual void SetControlType(cstr lastKnownControlType) = 0;
 		virtual void SetLogging(bool enableToScreen, bool enableToLogFile) = 0;
 	};
 

@@ -58,6 +58,32 @@ Rococo::Gui::IUE5_GRCustodianSupervisor* URococoGRHostWidget::GetCurrentCustodia
 	return _SlateHostWidget->GetCustodian();
 }
 
+void URococoGRHostWidget::SetControlCategory(RococoControlCategory category)
+{
+	Rococo::Gui::IUE5_GRCustodianSupervisor* custodian = URococoGRHostWidget::GetCurrentCustodian();
+	if (custodian)
+	{
+		const char* sCategory = nullptr;
+		switch (category)
+		{
+		case RococoControlCategory::KEYBOARD:
+			sCategory = "Keyboard";
+			break;
+		case RococoControlCategory::XBOX:
+			sCategory = "XBOX";
+			break;
+		case RococoControlCategory::PLAYSTATION:
+			sCategory = "Playstation";
+			break;
+		}
+
+		if (sCategory != nullptr)
+		{
+			custodian->SetControlType(sCategory);
+		}
+	}
+}
+
 static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 {
 	int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());

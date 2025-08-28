@@ -9,6 +9,14 @@
 #include "RococoGuiAPI.h"
 #include "RococoGRHostWidget.generated.h"
 
+UENUM(BlueprintType)
+enum class RococoControlCategory: uint8
+{
+	KEYBOARD,
+	XBOX,
+	PLAYSTATION
+};
+
 // The basic Rococo Gui Retained host widget. Needs C++ to get anywhere. For a blueprint driven system use URococoGRHostWidgetBuilder
 UCLASS(BlueprintType, meta = (DisplayName = "RococoGRHostWidget (Object)"))
 class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics
@@ -78,6 +86,9 @@ protected:
 	Rococo::Gui::IUE5_GlobalFontMetrics* _GlobalFontMetrics = nullptr;
 
 	int GetUE5PointSize(int rococoPointSize) override;
+
+	UFUNCTION(BlueprintCallable, Category = "RococoGui")
+	void SetControlCategory(RococoControlCategory category);
 };
 
 typedef void (*FN_GlobalPrepGenerator)(Rococo::GreatSex::IReflectedGameOptionsBuilder& builder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);

@@ -7,6 +7,21 @@ namespace Rococo
 	uint16 GetJoystickVKey(const FName& name);
 }
 
+bool useRococoMouseAndKeyboardLogging = false;
+
+void UseRococoMouseAndKeyboardLogging(bool value)
+{
+	useRococoMouseAndKeyboardLogging = value;
+}
+
+void LogRococoControlEvent(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const char* text)
+{
+	if (useRococoMouseAndKeyboardLogging)
+	{
+		custodian->Log("%s", text);
+	}
+}
+
 FEventReply RouteMouseButtonDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
 	using namespace Rococo;
@@ -24,21 +39,21 @@ FEventReply RouteMouseButtonDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custod
 		if (mouseKey == EKeys::RightMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::RDown;
-			custodian->Log("MouseButtonDown-R");
+			LogRococoControlEvent(custodian, "MouseButtonDown-R");
 		}
 		else if (mouseKey == EKeys::MiddleMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::MDown;
-			custodian->Log("MouseButtonUp-M");
+			LogRococoControlEvent(custodian, "MouseButtonUp-M");
 		}
 		else if (mouseKey == EKeys::LeftMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::LDown;
-			custodian->Log("MouseButtonUp-L");
+			LogRococoControlEvent(custodian, "MouseButtonUp-L");
 		}
 		else
 		{
-			custodian->Log("MouseButtonUp-Unknown");
+			LogRococoControlEvent(custodian, "MouseButtonUp-Unknown");
 			return FEventReply(false);
 		}
 
@@ -71,21 +86,21 @@ FEventReply RouteMouseButtonUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodia
 		if (mouseKey == EKeys::RightMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::RUp;
-			custodian->Log("MouseButtonUp-R");
+			LogRococoControlEvent(custodian, "MouseButtonUp-R");
 		}
 		else if (mouseKey == EKeys::MiddleMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::MUp;
-			custodian->Log("MouseButtonUp-M");
+			LogRococoControlEvent(custodian, "MouseButtonUp-M");
 		}
 		else if (mouseKey == EKeys::LeftMouseButton)
 		{
 			me.buttonFlags = MouseEvent::Flags::LUp;
-			custodian->Log("MouseButtonUp-L");
+			LogRococoControlEvent(custodian, "MouseButtonUp-L");
 		}
 		else
 		{
-			custodian->Log("MouseButtonUp-Unknown");
+			LogRococoControlEvent(custodian, "MouseButtonUp-Unknown");
 			return FEventReply(false);
 		}
 

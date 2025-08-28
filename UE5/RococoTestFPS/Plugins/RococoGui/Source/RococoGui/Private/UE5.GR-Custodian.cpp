@@ -1259,7 +1259,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 		cstr GetLastKnownControlType() const override
 		{
-			return "XBOX";
+			return lastKnownControlType;
 		}
 
 		int64 nextFontId = 1;
@@ -1527,6 +1527,13 @@ namespace Rococo::Gui::UE5::Implementation
 		{
 			FText localizedText = MapAsciiToLocalizedText(text);
 			return EvaluateMinimalSpan(fontId, localizedText.ToString(), extraSpan, startIndex, endIndex);
+		}
+
+		Strings::HString lastKnownControlType;
+
+		void SetControlType(cstr _lastKnownControlType) override
+		{
+			lastKnownControlType = _lastKnownControlType;
 		}
 
 		void RecordWidget(IGRWidget& widget) override
