@@ -34,6 +34,8 @@ struct NullHandler: ISRococoGRHostWidgetEventHandler
 
 TSharedRef<SWidget> URococoGRHostWidget::RebuildWidget()
 {
+	lastCategory = RococoControlCategory::NONE;
+
 	_SlateHostWidget = SNew(SRococoGRHostWidget);
 
 	NullHandler doNothing;
@@ -60,6 +62,13 @@ Rococo::Gui::IUE5_GRCustodianSupervisor* URococoGRHostWidget::GetCurrentCustodia
 
 void URococoGRHostWidget::SetControlCategory(RococoControlCategory category)
 {
+	if (category == lastCategory)
+	{
+		return;
+	}
+
+	lastCategory = category;
+	
 	Rococo::Gui::IUE5_GRCustodianSupervisor* custodian = URococoGRHostWidget::GetCurrentCustodian();
 	if (custodian)
 	{

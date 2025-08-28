@@ -12,6 +12,7 @@
 UENUM(BlueprintType)
 enum class RococoControlCategory: uint8
 {
+	NONE,
 	KEYBOARD,
 	XBOX,
 	PLAYSTATION
@@ -89,6 +90,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	void SetControlCategory(RococoControlCategory category);
+
+	RococoControlCategory lastCategory = RococoControlCategory::NONE;
 };
 
 typedef void (*FN_GlobalPrepGenerator)(Rococo::GreatSex::IReflectedGameOptionsBuilder& builder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
