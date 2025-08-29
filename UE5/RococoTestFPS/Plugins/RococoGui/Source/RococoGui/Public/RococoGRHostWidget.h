@@ -22,7 +22,10 @@ UENUM(BlueprintType)
 enum class RococoSelectionChangeOrigin : uint8
 {
 	None,
-	KeyNav
+	VMenuKeyNav,
+	CarouselLRArrows,
+	ButtonClick,
+	ScalarChangeKey
 };
 
 // The basic Rococo Gui Retained host widget. Needs C++ to get anywhere. For a blueprint driven system use URococoGRHostWidgetBuilder

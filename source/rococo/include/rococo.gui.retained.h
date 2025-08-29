@@ -557,7 +557,10 @@ namespace Rococo::Gui
 
 	enum class EGRSelectionChangeOrigin
 	{
-		KeyNav
+		VMenuKeyNav,
+		CarouselLRArrows,
+		ScalarChangeKey,
+		ButtonClick
 	};
 
 	ROCOCO_INTERFACE IGRSelectionChangeHandler

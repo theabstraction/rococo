@@ -166,8 +166,17 @@ void URococoGRHostWidget::OnSelectionChanged(Rococo::Gui::IGRPanel& panel, Rococ
 
 	switch (origin)
 	{
-	case Rococo::Gui::EGRSelectionChangeOrigin::KeyNav:
-		ue5origin = RococoSelectionChangeOrigin::KeyNav;
+	case Rococo::Gui::EGRSelectionChangeOrigin::VMenuKeyNav:
+		ue5origin = RococoSelectionChangeOrigin::VMenuKeyNav;
+		break;
+	case Rococo::Gui::EGRSelectionChangeOrigin::CarouselLRArrows:
+		ue5origin = RococoSelectionChangeOrigin::CarouselLRArrows;
+		break;
+	case Rococo::Gui::EGRSelectionChangeOrigin::ButtonClick:
+		ue5origin = RococoSelectionChangeOrigin::ButtonClick;
+		break;
+	case Rococo::Gui::EGRSelectionChangeOrigin::ScalarChangeKey:
+		ue5origin = RococoSelectionChangeOrigin::ScalarChangeKey;
 		break;
 	}
 
@@ -193,8 +202,6 @@ void URococoGRHostWidgetBuilder::ReloadFrame()
 	} onPrepForLoad;
 
 	onPrepForLoad.This = this;
-
-	
 
 	LoadFrame(_SexmlPingPath, onPrepForLoad);
 }

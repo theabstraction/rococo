@@ -341,6 +341,8 @@ namespace GRANON
 				posUpdated.iMetaData = 0;
 				posUpdated.sMetaData = GetImplementationTypeName();
 				panel.NotifyAncestors(posUpdated, *this);
+
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::ScalarChangeKey);
 			}
 		}
 	};

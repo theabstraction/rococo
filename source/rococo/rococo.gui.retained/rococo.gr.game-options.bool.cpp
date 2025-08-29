@@ -119,6 +119,7 @@ namespace GRANON
 			if (widgetEvent.eventType == EGRWidgetEventType::BUTTON_CLICK && sourceWidget == button->Widget())
 			{
 				GRWidgetEvent optionBool{ EGRWidgetEventType::BOOL_CHANGED, panel.Id(), !button->ButtonFlags().isRaised, "", widgetEvent.clickPosition, true };
+				Gui::NotifySelectionChanged(panel, EGRSelectionChangeOrigin::ButtonClick);
 				return panel.NotifyAncestors(optionBool, *this);
 			}
 			return EGREventRouting::NextHandler;

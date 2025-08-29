@@ -317,6 +317,7 @@ namespace GRANON
 				{
 					optionIndex--;
 					NotifyAncestorChange();
+					NotifySelectionChanged(panel, EGRSelectionChangeOrigin::CarouselLRArrows);
 				}
 
 				return EGREventRouting::Terminate;
@@ -328,6 +329,7 @@ namespace GRANON
 				{
 					optionIndex++;
 					NotifyAncestorChange();
+					NotifySelectionChanged(panel, EGRSelectionChangeOrigin::CarouselLRArrows);
 				}
 
 				return EGREventRouting::Terminate;

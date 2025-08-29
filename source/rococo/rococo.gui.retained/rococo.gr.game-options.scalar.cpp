@@ -220,6 +220,8 @@ namespace GRANON
 				{
 					slider->SetPosition(slider->Min());
 				}
+
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::ScalarChangeKey);
 			}
 				break;
 			default:

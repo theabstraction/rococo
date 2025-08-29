@@ -796,7 +796,7 @@ namespace ANON
 
 		void SetSelectionChangeHandler(Rococo::Gui::IGRSelectionChangeHandler* handler) override
 		{
-			handler = changeHandler;
+			changeHandler = handler;
 		}
 	};
 }
