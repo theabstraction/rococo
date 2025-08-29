@@ -15,9 +15,9 @@ namespace Rococo::GreatSex::TestData
 	{
 		OptionDatabase<AudioOptions> db;
 
-		double musicVolume = 0.25;
-		double fxVolume = 0.2;
-		double narrationVolume = 0.4;
+		double musicVolume = 25;
+		double fxVolume = 20;
+		double narrationVolume = 40;
 		HString speakerConfig = "2";
 
 		AudioOptions() : db(*this)
@@ -56,6 +56,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(musicVolume);
 			inquiry.SetHint("Set music volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
 		}
 
 		void SetMusicVolume(double value)
@@ -69,6 +70,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(fxVolume);
 			inquiry.SetHint("Set Special FX volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
 		}
 
 		void SetFXVolume(double value)
@@ -82,6 +84,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetRange(0, 100.0, 0.5);
 			inquiry.SetActiveValue(narrationVolume);
 			inquiry.SetHint("Set narrator's voice volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
 		}
 
 		void SetNarrationVolume(double value)

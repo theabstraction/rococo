@@ -783,6 +783,21 @@ namespace ANON
 				break;
 			}
 		}
+
+		void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin) override
+		{
+			if (changeHandler)
+			{
+				changeHandler->OnSelectionChanged(panel, origin);
+			}
+		}
+
+		IGRSelectionChangeHandler* changeHandler = nullptr;
+
+		void SetSelectionChangeHandler(Rococo::Gui::IGRSelectionChangeHandler* handler) override
+		{
+			handler = changeHandler;
+		}
 	};
 }
 

@@ -555,6 +555,16 @@ namespace Rococo::Gui
 		int32 bottom = 0;
 	};
 
+	enum class EGRSelectionChangeOrigin
+	{
+		KeyNav
+	};
+
+	ROCOCO_INTERFACE IGRSelectionChangeHandler
+	{
+		virtual void OnSelectionChanged(IGRPanel & panel, EGRSelectionChangeOrigin origin) = 0;
+	};
+
 	ROCOCO_INTERFACE IGRPanelRoot
 	{
 		// Redirects all mouse events to the target panel, until it is either destroyed, another panel is captured, or ReleaseCursor is called on this interface
@@ -579,6 +589,11 @@ namespace Rococo::Gui
 		virtual IGRSystem& GR() = 0;
 
 		virtual Vec2i ScreenDimensions() const = 0;
+
+		virtual void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin) = 0;
+
+		// The handler must remain valid for the lifetime of the Gui system, or until a the method is called again. Null => no handler
+		virtual void SetSelectionChangeHandler(IGRSelectionChangeHandler* handler) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRPanelRenderer
@@ -1303,7 +1318,6 @@ namespace Rococo::Gui
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 		[[nodiscard]] virtual IGRWidgetSlider& Slider() = 0;
 		virtual Game::Options::IScalarInquiry& Inquiry() = 0;
-
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsString : IGRBase
@@ -1923,4 +1937,7 @@ namespace Rococo::Gui
 	*  Otherwise returns NextHandler
 	*/
 	ROCOCO_GUI_RETAINED_API EGREventRouting MoveFocusToAncestor(IGRPanel& panel);
+
+	// Generates an event which is generally used to play audio or visual notifications that a selection has changed
+	ROCOCO_GUI_RETAINED_API void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin);
 }

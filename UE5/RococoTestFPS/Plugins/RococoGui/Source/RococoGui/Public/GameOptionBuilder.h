@@ -84,6 +84,10 @@ struct FRococoGameOptionScalar
 	// The smallest increment or decrement
 	UPROPERTY(EditAnywhere)
 	double QuantumDelta = 1.0;
+
+	// The number of digits after the decimal point to display
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0, UIMax = 9))
+	int DecimalPlaces = 2;
 };
 
 

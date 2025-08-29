@@ -574,7 +574,7 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Centre)
+					(Scalar.Guage.Alignment Left)
 					
 					// Offset from alignment edge to guage
 					(#Vec2i Scalar.Guage.Spacing 12 4)

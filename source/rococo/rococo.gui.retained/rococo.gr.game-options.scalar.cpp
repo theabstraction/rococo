@@ -70,6 +70,11 @@ namespace GRANON
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
 		}
 
+		void SetDecimalPlaces(int nPlaces) override
+		{
+			slider->SetGuage(config.SliderFontId, nPlaces, EGRSchemeColourSurface::SLIDER_GUAGE);
+		}
+
 		void LayoutBeforeFit() override
 		{
 

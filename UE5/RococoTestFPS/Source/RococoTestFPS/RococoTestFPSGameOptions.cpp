@@ -21,9 +21,9 @@ namespace RococoTestFPS::Implementation
 	{
 		OptionDatabase<AudioOptions> db;
 
-		double musicVolume = 0.25;
-		double fxVolume = 0.2;
-		double narrationVolume = 0.4;
+		double musicVolume = 25;
+		double fxVolume = 20;
+		double narrationVolume = 40;
 		Rococo::Strings::HString speakerConfig = "2";
 
 		AudioOptions() : db(*this)
@@ -59,9 +59,10 @@ namespace RococoTestFPS::Implementation
 		void GetMusicVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Music Volume");
-			inquiry.SetRange(0, 100.0, 0.5);
+			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(musicVolume);
 			inquiry.SetHint("Set music volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
 		}
 
 		void SetMusicVolume(double value)
@@ -75,6 +76,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(fxVolume);
 			inquiry.SetHint("Set Special FX volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
 		}
 
 		void SetFXVolume(double value)
@@ -85,9 +87,10 @@ namespace RococoTestFPS::Implementation
 		void GetNarrationVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Narration Volume");
-			inquiry.SetRange(0, 100.0, 0.25);
+			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(narrationVolume);
 			inquiry.SetHint("Set narrator's voice volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
 		}
 
 		void SetNarrationVolume(double value)

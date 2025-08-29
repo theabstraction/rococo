@@ -319,26 +319,32 @@ namespace GRANON
 			case IO::VirtualKeys::VKCode_ANTITAB:
 			case IO::VirtualKeys::VKCode_UP:
 				RotateFocusToNextSibling(button, false);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::KeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_TAB:
 			case IO::VirtualKeys::VKCode_DOWN:
 				RotateFocusToNextSibling(button, !ke.context.isCtrlHeld);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::KeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_PGUP:
 				OnFocusPageChange(-1);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::KeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_PGDOWN:
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::KeyNav);
 				OnFocusPageChange(1);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_HOME:
 				viewport->VScroller().Scroller().SetSliderPosition(0);
 				viewport->SetOffset(0, true);
 				SetFocusWithoutCallback(*options.front().button);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::KeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_END:
 				viewport->VScroller().Scroller().SetSliderPosition(-1);
 				viewport->SetOffset(-1, true);
 				SetFocusWithoutCallback(*options.back().button);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::KeyNav);
 				return EGREventRouting::Terminate;
 			}
 
@@ -430,5 +436,10 @@ namespace Rococo::Gui
 		auto& widget = gr.AddWidget(parent.Panel(), menuFactory);
 		auto* menu = Cast<IGRWidgetScrollableMenu>(widget);
 		return *menu;
+	}
+
+	ROCOCO_GUI_RETAINED_API void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin)
+	{
+		panel.Root().NotifySelectionChanged(panel, origin);
 	}
 }

@@ -652,6 +652,8 @@ namespace Rococo::GreatSex
 				s.SetTitle(title);
 
 				s.SetRange(args.spec.MinValue, args.spec.MaxValue, args.spec.QuantumDelta);
+
+				s.SetDecimalPlaces(FMath::Clamp(args.spec.DecimalPlaces, 0, 9));
 			}
 
 			void AddOptions(IGameOptionsBuilder& builder) override
