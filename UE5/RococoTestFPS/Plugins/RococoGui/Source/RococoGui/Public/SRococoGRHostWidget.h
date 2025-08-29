@@ -51,6 +51,11 @@ public:
 		return custodian;
 	}
 
+	Rococo::Gui::IGRSystem* GR()
+	{
+		return grSystem;
+	}
+
 	// Slate widgets are volatile, so store the mapPathToTexture elsewhere and sync our Custodian to it just after construction
 	void SyncCustodian(UObject* worldObject, TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct, Rococo::Gui::IUE5_GlobalFontMetrics& fontMetrics);
 

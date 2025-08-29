@@ -139,6 +139,12 @@ void URococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCal
 	if (_SlateHostWidget.IsValid())
 	{
 		_SlateHostWidget->LoadFrame(sexmlPingPath, onPrepForLoading);
+		auto* gr = _SlateHostWidget->GR();
+		if (gr)
+		{
+			gr->Root().SetSelectionChangeHandler(this);
+		}
+
 	}
 	else
 	{
@@ -150,6 +156,22 @@ int URococoGRHostWidget::GetUE5PointSize(int rococoPointSize)
 {
 	float f = FMath::Clamp(_FontPointSizeRatio, 0.2f, 8.0f);
 	return (int) (f * rococoPointSize);
+}
+
+void URococoGRHostWidget::OnSelectionChanged(Rococo::Gui::IGRPanel& panel, Rococo::Gui::EGRSelectionChangeOrigin origin)
+{
+	UNUSED(panel);
+
+	RococoSelectionChangeOrigin ue5origin = RococoSelectionChangeOrigin::None;
+
+	switch (origin)
+	{
+	case Rococo::Gui::EGRSelectionChangeOrigin::KeyNav:
+		ue5origin = RococoSelectionChangeOrigin::KeyNav;
+		break;
+	}
+
+	EvSelectionChanged(ue5origin);
 }
 
 void URococoGRHostWidgetBuilder::ReloadFrame()

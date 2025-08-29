@@ -18,9 +18,16 @@ enum class RococoControlCategory: uint8
 	PLAYSTATION
 };
 
+UENUM(BlueprintType)
+enum class RococoSelectionChangeOrigin : uint8
+{
+	None,
+	KeyNav
+};
+
 // The basic Rococo Gui Retained host widget. Needs C++ to get anywhere. For a blueprint driven system use URococoGRHostWidgetBuilder
 UCLASS(BlueprintType, meta = (DisplayName = "RococoGRHostWidget (Object)"))
-class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics
+class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics, public Rococo::Gui::IGRSelectionChangeHandler
 {
 public:
 	GENERATED_BODY()
@@ -52,6 +59,8 @@ public:
 	{
 		_GlobalFontMetrics = metricsManager;
 	}
+
+	void OnSelectionChanged(Rococo::Gui::IGRPanel& panel, Rococo::Gui::EGRSelectionChangeOrigin origin) override;
 protected:
 	TSharedPtr<SRococoGRHostWidget> _SlateHostWidget;
 
@@ -92,6 +101,9 @@ protected:
 	void SetControlCategory(RococoControlCategory category);
 
 	RococoControlCategory lastCategory = RococoControlCategory::NONE;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "RococoGui")
+	void EvSelectionChanged(RococoSelectionChangeOrigin origin);
 };
 
 typedef void (*FN_GlobalPrepGenerator)(Rococo::GreatSex::IReflectedGameOptionsBuilder& builder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
@@ -146,7 +158,6 @@ public:
 	// Tells the RococoGUI widget tree to handle a mouse wheel spin
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	FEventReply RouteMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
-
 private:
 	void OnPrepForLoading(Rococo::GreatSex::IGreatSexGenerator& generator);
 	

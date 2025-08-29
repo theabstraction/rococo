@@ -562,7 +562,7 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRSelectionChangeHandler
 	{
-		virtual void OnSelectionChanged(IGRPanel & panel, EGRSelectionChangeOrigin origin) = 0;
+		virtual void OnSelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRPanelRoot
