@@ -245,6 +245,11 @@ namespace GRANON
 			guageTextSurface = surface;
 		}
 
+		void HideBackgroundWhenPartFilled(bool value) override
+		{
+			hideBackgroundWhenPartFilled = value;
+		}
+
 		// Represents the number of units to increment the position when an extremum button is clicked, or the left/right keys are used 
 		void SetQuantum(double quantum) override
 		{
@@ -290,6 +295,8 @@ namespace GRANON
 			return panel;
 		}
 
+		bool hideBackgroundWhenPartFilled = false;
+
 		void Render(IGRRenderContext& g) override
 		{
 			if (lastSliderSpan != Width(panel.AbsRect()))
@@ -302,7 +309,7 @@ namespace GRANON
 			{
 				panel, slotPadding, isRaised, raisedImage, pressedImage, sliderPos, guageFont,
 				guageAlignment, guageSpacing, guageDecimalPlaces, guageTextSurface, position, renderArgContext,
-				minValue, maxValue, bulbCount, bulbHGap, bulbVGap
+				minValue, maxValue, bulbCount, bulbHGap, bulbVGap, hideBackgroundWhenPartFilled
 			};
 
 			fnRenderSlider(g, slider);
@@ -436,7 +443,7 @@ namespace Rococo::Gui
 			g.DrawText(slider.guageFont, panel.AbsRect(), slider.guageAlignment, slider.guageSpacing, to_fstring(guageText), colour);
 		}
 
-		bool isObscured = slider.isObscure;
+		bool isObscured = DoesAncestorObscure(slider.panel);
 		if (isObscured)
 		{
 			g.DrawRect(panel.AbsRect(), RGBAb(64, 64, 64, 192));
@@ -468,7 +475,9 @@ namespace Rococo::Gui
 			
 			RGBAb bulbColour = panel.GetColour(EGRSchemeColourSurface::BUTTON, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 255, 0, 255));
 
-		//	if (nBulbsLit == 0) // uncomment this if you want backgrounds to be hidden when sliders are part filled
+			bool hideBackground = nBulbsLit > 0 && slider.hideBackgroundWhenPartFilled;
+
+			if (!hideBackground) // uncomment this if you want backgrounds to be hidden when sliders are part filled
 			{
 				RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
 				g.DrawRect(sliderSlot, sliderSlotColour);
@@ -483,11 +492,16 @@ namespace Rococo::Gui
 
 			double bulbWidth = (Width(sliderSlot) - GAP_WIDTH) / (double) BULB_COUNT;
 
+			double bulbHeight = min(bulbWidth, (double) Height(sliderSlot) - 2.0 * slider.bulbHeightPadding);
+
+			int y = Centre(sliderSlot).y;
+
 			for (int i = 0; i < nBulbsLit; i++)
 			{
 				GuiRect bulbRect = sliderSlot;
-				bulbRect.top += slider.bulbHeightPadding;
-				bulbRect.bottom -= slider.bulbHeightPadding;
+
+				bulbRect.top = y - (int) (0.5 * bulbHeight);
+				bulbRect.bottom  = y + (int) (0.5 * bulbHeight);
 
 				bulbRect.left += (int)(i * bulbWidth) + GAP_WIDTH;
 				bulbRect.right = bulbRect.left + (int) bulbWidth - GAP_WIDTH;
@@ -512,7 +526,7 @@ namespace Rococo::Gui
 			g.DrawText(slider.guageFont, panel.AbsRect(), slider.guageAlignment, slider.guageSpacing, to_fstring(guageText), colour);
 		}
 
-		bool isObscured = slider.isObscure;
+		bool isObscured = DoesAncestorObscure(slider.panel);
 		if (isObscured)
 		{
 			g.DrawRect(panel.AbsRect(), RGBAb(64, 64, 64, 192));

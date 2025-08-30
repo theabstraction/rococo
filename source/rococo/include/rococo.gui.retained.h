@@ -1142,6 +1142,8 @@ namespace Rococo::Gui
 		// Sets the text output. Note that with GRFontId::NONE no guage is rendered
 		virtual void SetGuage(GRFontId fontId, int decimalPlaces, EGRSchemeColourSurface surface) = 0;
 
+		virtual void HideBackgroundWhenPartFilled(bool value) = 0;
+
 		// Note that the true value is clamp of the supplied value using the range values
 		virtual void SetPosition(double value) = 0;
 

@@ -275,6 +275,11 @@ namespace GRANON
 		{
 			panel.SetHint(text);
 		}
+
+		void HideBackgroundWhenPopulated(bool value) override
+		{
+			slider->HideBackgroundWhenPartFilled(value);
+		}
 	};
 
 	struct GRGameOptionsScalarFactory : IGRWidgetFactory

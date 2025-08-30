@@ -57,6 +57,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetActiveValue(musicVolume);
 			inquiry.SetHint("Set music volume. 0 is off, 100.0 is maximum");
 			inquiry.SetDecimalPlaces(0);
+			inquiry.HideBackgroundWhenPopulated(true);
 		}
 
 		void SetMusicVolume(double value)
@@ -71,6 +72,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetActiveValue(fxVolume);
 			inquiry.SetHint("Set Special FX volume. 0 is off, 100.0 is maximum");
 			inquiry.SetDecimalPlaces(0);
+			inquiry.HideBackgroundWhenPopulated(true);
 		}
 
 		void SetFXVolume(double value)
@@ -85,6 +87,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetActiveValue(narrationVolume);
 			inquiry.SetHint("Set narrator's voice volume. 0 is off, 100.0 is maximum");
 			inquiry.SetDecimalPlaces(0);
+			inquiry.HideBackgroundWhenPopulated(true);
 		}
 
 		void SetNarrationVolume(double value)

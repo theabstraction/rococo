@@ -140,7 +140,7 @@ namespace Rococo::Gui
 		int bulbCount;
 		int bulbHeightPadding;
 		int bulbWidthPadding;
-		bool isObscure;
+		bool hideBackgroundWhenPartFilled;
 	};
 
 	ROCOCO_GUI_RETAINED_API void RenderSlider_Default(IGRRenderContext& g, SliderDesc& slider);

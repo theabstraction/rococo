@@ -33,6 +33,7 @@ namespace Rococo::Game::Options
 		virtual void SetActiveValue(double value) = 0;
 		virtual void SetRange(double minValue, double maxValue, double quantumDelta) = 0;
 		virtual void SetDecimalPlaces(int nPlaces) = 0;
+		virtual void HideBackgroundWhenPopulated(bool value) = 0;
 	};
 
 	ROCOCO_INTERFACE IStringInquiry : IInquiry
