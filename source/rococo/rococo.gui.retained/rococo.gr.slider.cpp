@@ -173,7 +173,7 @@ namespace GRANON
 					qPosition = q;
 				}
 
-				position = qPosition;
+				position = clamp(qPosition, minValue, maxValue);
 			}
 		}
 
@@ -471,7 +471,7 @@ namespace Rococo::Gui
 		if (valueSpan != 0.0)
 		{
 			double quotient = clamp((slider.position - slider.minValue) / valueSpan, 0.0, 1.0);
-			int nBulbsLit = (int)(quotient * BULB_COUNT);
+			int nBulbsLit = (int)(round(quotient * BULB_COUNT));
 			
 			RGBAb bulbColour = panel.GetColour(EGRSchemeColourSurface::BUTTON, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 255, 0, 255));
 

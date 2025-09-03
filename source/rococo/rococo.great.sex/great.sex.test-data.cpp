@@ -386,9 +386,10 @@ namespace Rococo::GreatSex::TestData
 		void GetCursorResponsiveness(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Mouse Sensitivity");
-			inquiry.SetRange(1, 10, 1);
+			inquiry.SetRange(1, 10, 0.5);
 			inquiry.SetActiveValue(cursorResponsiveness);
 			inquiry.SetHint("Set scaling of mouse movement to cursor movement");
+			inquiry.SetDecimalPlaces(1);
 		}
 
 		void SetCursorResponsiveness(double value)
