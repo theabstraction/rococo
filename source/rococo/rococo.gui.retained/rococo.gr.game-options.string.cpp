@@ -33,7 +33,7 @@ namespace GRANON
 			}
 
 			panel.SetExpandToParentHorizontally();
-			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
+			panel.Set(GRAnchorPadding{ 0, 0, 0, 0 });
 		}
 
 		void PostConstruct(const GameOptionConfig& config, int maxCharacters)

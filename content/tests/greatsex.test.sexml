@@ -504,10 +504,10 @@
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 2 40 2)
+					(#Recti Scalar.Slot.Padding 40 4 40 4)
 					
 					// Gives the padding of the string control slot to the string control edges
-					(#Recti String.Slot.Padding 40 2 40 2)
+					(#Recti String.Slot.Padding 40 4 40 4)
 					
 					
 					(Carousel.Font CarouselFont)

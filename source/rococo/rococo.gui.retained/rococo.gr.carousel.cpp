@@ -26,7 +26,7 @@ namespace GRANON
 
 		int optionIndex = 1;
 
-		GRAnchorPadding optionPixelPadding{ 4, 4, 16, 16 };
+		// This gets overwritten by LayoutBeforeFit
 		GRAnchorPadding optionPadding{ 4, 4, 16, 16 };
 
 		IGRWidgetButton* leftButton = nullptr;
@@ -57,7 +57,7 @@ namespace GRANON
 
 		void SetOptionPadding(GRAnchorPadding padding) override
 		{
-			this->optionPixelPadding = padding;
+			this->optionPadding = padding;
 		}
 
 		void PostConstruct(cstr leftImagePathRaised, cstr rightImagePathRaised, cstr leftImagePathPressed, cstr rightImagePathPressed)
@@ -199,13 +199,9 @@ namespace GRANON
 		{
 			Vec2i buttonSpan = leftButton->ImageSpan();
 
-			optionPadding = GetCustodian(panel).Scale(optionPixelPadding);
-
-			Vec2i padding{ 4,4 };
-
 			const auto& rect = panel.AbsRect();
 
-			padding.y = (Height(rect) - buttonSpan.y) / 2;
+			int yPadding = (Height(rect) - buttonSpan.y) / 2;
 
 			GuiRect edge = ComputeEdgeRect();
 			Vec2i centre = Span(rect);
@@ -214,8 +210,8 @@ namespace GRANON
 
 			Vec2i edgeSpan = Span(edge);
 
-			Vec2i leftOffset{  optionPadding.left - buttonSpan.x - 2, padding.y + 1 };
-			Vec2i rightOffset{ Width(rect) - optionPadding.right + 2, padding.y + 1 };
+			Vec2i leftOffset{  optionPadding.left - buttonSpan.x - 2, yPadding + 1 };
+			Vec2i rightOffset{ Width(rect) - optionPadding.right + 2, yPadding + 1 };
 
 			leftButton->Panel().SetParentOffset(leftOffset).SetConstantSpan(buttonSpan);
 			rightButton->Panel().SetParentOffset(rightOffset).SetConstantSpan(buttonSpan);
@@ -410,6 +406,7 @@ namespace GRANON
 			return index;
 		}
 
+		// The edge rect gives the rectangle that contains the carousel button text up to the 3D border, but not including the buttons either side
 		GuiRect ComputeEdgeRect() const
 		{
 			GuiRect optionRect = panel.AbsRect();
