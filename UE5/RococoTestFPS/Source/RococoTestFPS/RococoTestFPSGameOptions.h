@@ -10,14 +10,14 @@ class ROCOCOTESTFPS_API URococoTestFPSGameOptionsLibrary : public UBlueprintFunc
 	GENERATED_BODY()
 
 	// Retrieves the volume level 0 - 1 of the background music
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Audio")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rococo.Audio")
 	static double GetMusicVolume();
 
 	// Retrieves the volume level 0 - 1 of the narrator
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Audio")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rococo.Audio")
 	static double GetNarrationVolume();
 
 	// Retrieves the volume level 0 - 1 of the UI FX 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Audio")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rococo.Audio")
 	static double GetFXVolume();
 };
