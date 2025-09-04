@@ -1,3 +1,4 @@
+#include "RococoTestFPSGameOptions.h"
 #include "RococoUE5.h"
 #include <CoreMinimal.h>
 #include <rococo.great.sex.h>
@@ -6,6 +7,7 @@
 #include <RococoGuiAPI.h>
 #include <GameOptionBuilder.h>
 #include <ReflectedGameOptionsBuilder.h>
+
 
 using namespace Rococo;
 using namespace Rococo::GreatSex;
@@ -591,31 +593,6 @@ namespace RococoTestFPS::Implementation
 	UIOptions s_UIOptions;
 	GameplayOptions s_gameplayOptions;
 	MultiplayerOptions s_MultiplayerOptions;
-
-	IGameOptions& GetUIOptions()
-	{
-		return s_UIOptions;
-	}
-
-	IGameOptions& GetGraphicsOptions()
-	{
-		return s_GraphicsOptions;
-	}
-
-	IGameOptions& GetAudioOptions()
-	{
-		return s_AudioOptions;
-	}
-
-	IGameOptions& GetGameplayOptions()
-	{
-		return s_gameplayOptions;
-	}
-
-	IGameOptions& GetMultiplayerOptions()
-	{
-		return s_MultiplayerOptions;
-	}
 }
 
 namespace RococoTestFPS
@@ -624,11 +601,11 @@ namespace RococoTestFPS
 	{
 		using namespace RococoTestFPS::Implementation;
 
-		generator.AddOptions(GetGraphicsOptions(), "GraphicsOptions");
-		generator.AddOptions(GetAudioOptions(), "AudioOptions");
-		generator.AddOptions(GetUIOptions(), "UIOptions");
-		generator.AddOptions(GetGameplayOptions(), "GameplayOptions");
-		generator.AddOptions(GetMultiplayerOptions(), "MultiplayerOptions");
+		generator.AddOptions(s_GraphicsOptions, "GraphicsOptions");
+		generator.AddOptions(s_AudioOptions, "AudioOptions");
+		generator.AddOptions(s_UIOptions, "UIOptions");
+		generator.AddOptions(s_gameplayOptions, "GameplayOptions");
+		generator.AddOptions(s_MultiplayerOptions, "MultiplayerOptions");
 
 		for (auto* object : context)
 		{
@@ -645,4 +622,19 @@ namespace RococoTestFPS
 	{
 		Rococo::Gui::SetGlobalPrepGenerator(PrepGenerator);
 	}
+}
+
+double URococoTestFPSGameOptionsLibrary::GetMusicVolume()
+{
+	return RococoTestFPS::Implementation::s_AudioOptions.musicVolume / 100.0;
+}
+
+double URococoTestFPSGameOptionsLibrary::GetNarrationVolume()
+{
+	return RococoTestFPS::Implementation::s_AudioOptions.narrationVolume / 100.0;
+}
+
+double URococoTestFPSGameOptionsLibrary::GetFXVolume()
+{
+	return RococoTestFPS::Implementation::s_AudioOptions.fxVolume / 100.0;
 }
