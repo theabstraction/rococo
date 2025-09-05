@@ -7,7 +7,7 @@
 #include <RococoGuiAPI.h>
 #include <GameOptionBuilder.h>
 #include <ReflectedGameOptionsBuilder.h>
-
+#include <GameFramework/GameUserSettings.h>
 
 using namespace Rococo;
 using namespace Rococo::GreatSex;
@@ -16,6 +16,43 @@ using namespace Rococo::Game::Options;
 
 static const char* GEN_HINT_FROM_PARENT_AND_CHOICE = "$*$: ";
 
+struct SortByRefreshThenWidthAndHeight
+{
+	bool operator () (const FScreenResolutionRHI& a, const FScreenResolutionRHI& b) const
+	{
+		if (b.RefreshRate < a.RefreshRate)
+		{
+			return true;
+		}
+
+		if (b.RefreshRate > a.RefreshRate)
+		{
+			return false;
+		}
+
+		if (b.Width < a.Width)
+		{
+			return true;
+		}
+
+		if (b.Width > b.Width)
+		{
+			return false;
+		}
+
+		return b.Height < a.Height;
+	}
+};
+
+inline bool Eq(const FScreenResolutionRHI& a, const FScreenResolutionRHI& b)
+{
+	return a.Height == b.Height && a.Width == b.Width && a.RefreshRate == b.RefreshRate;
+}
+
+inline bool operator == (const FScreenResolutionRHI& a, const FScreenResolutionRHI& b)
+{
+	return Eq(a, b);
+}
 
 namespace RococoTestFPS::Implementation
 {
@@ -263,43 +300,154 @@ namespace RococoTestFPS::Implementation
 			monitor = value;
 		}
 
+		bool TrySetCurrentTo(int width, int height, int hz, const FScreenResolutionArray& knownResolutions, REF IChoiceInquiry& inquiry)
+		{
+			int index = 0;
+			for (auto& r : knownResolutions)
+			{
+				if (r.Width == width && r.Height == height && r.RefreshRate == hz)
+				{
+					currentTargetResolution.Width = width;
+					currentTargetResolution.Height = height;
+					currentTargetResolution.RefreshRate = hz;
+
+					char choiceName[16];
+					SafeFormat(choiceName, "%d %d %d", index + 1, r.Width, r.Height);
+					inquiry.SetActiveChoice(choiceName);
+					return true;
+				}
+
+				index++;
+			}
+
+			return false;
+		}
+
+		const enum {DEFAULT_REFRESH_RATE = 60, DEFAULT_HREZ = 1920, DEFAULT_VREZ = 1080};
+
+		void ComputeDefaults(const FScreenResolutionArray& knownResolutions, REF IChoiceInquiry& inquiry)
+		{
+			FDisplayMetrics m;
+			FDisplayMetrics::RebuildDisplayMetrics(OUT m);
+
+			currentTargetResolution.Width = m.PrimaryDisplayWidth;
+			currentTargetResolution.Height = m.PrimaryDisplayHeight;
+			currentTargetResolution.RefreshRate = 60;
+
+			if (TrySetCurrentTo(m.PrimaryDisplayWidth, m.PrimaryDisplayHeight, DEFAULT_REFRESH_RATE, knownResolutions, inquiry))
+			{
+				return;
+			}
+
+			if (TrySetCurrentTo(DEFAULT_HREZ, DEFAULT_VREZ, DEFAULT_REFRESH_RATE, knownResolutions, inquiry))
+			{
+				return;
+			}
+
+			char defaultText[32];
+			SafeFormat(defaultText, "%d x %d %dHz", DEFAULT_HREZ, DEFAULT_VREZ, DEFAULT_REFRESH_RATE);
+
+			cstr defaultChoice = "default";
+			inquiry.AddChoice(defaultChoice, defaultText, GEN_HINT_FROM_PARENT_AND_CHOICE);
+			inquiry.SetActiveChoice(defaultChoice);
+		}
+
+		FScreenResolutionRHI currentTargetResolution;
+		TArray<FScreenResolutionRHI> resolutions;
+
 		void GetFullscreenResolution(IChoiceInquiry& inquiry)
 		{
 			inquiry.SetTitle("Fullscreen Resolution");
-			inquiry.AddChoice("1.1920x1080", "1920 x 1080 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("2.1920x1200", "1920 x 1200 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("3.2560x1536", "2560 x 1536 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("4.3840x2160", "3840 x 2160 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("5.1366x768", "1366 x 768 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("6.1280x1024", "1280 x 1024 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("7.1024x768", "1024 x 768 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("8.800x600", "800 x 600 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("9.640x480", "640 x 480 60Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("10.1920x1080", "1920 x 1080 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("11.1920x1200", "1920 x 1200 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("12.2560x1536", "2560 x 1536 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("13.3840x2160", "3840 x 2160 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("14.1366x768", "1366 x 768 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("15.1280x1024", "1280 x 1024 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("16.1024x768", "1024 x 768 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("17.800x600", "800 x 600 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("18.640x480", "640 x 480 144Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("19.1920x1080", "1920 x 1080 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("20.1920x1200", "1920 x 1200 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("21.2560x1536", "2560 x 1536 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("22.3840x2160", "3840 x 2160 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("23.1366x768", "1366 x 768 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("24.1280x1024", "1280 x 1024 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("25.1024x768", "1024 x 768 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("26.800x600", "800 x 600 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.AddChoice("27.640x480", "640 x 480 200Hz", GEN_HINT_FROM_PARENT_AND_CHOICE);
-			inquiry.SetActiveChoice(resolution);
+
+			TArray<FScreenResolutionRHI> duplicatedResolutions;
+			resolutions.Empty();
+
+			SortByRefreshThenWidthAndHeight sortByRefreshThenWidthAndHeight;
+			
+			bool ignoreRefreshRate = false;
+
+			int currentIndex = -1;
+
+			const int minHRez = 1280;
+			const int minHz = 59;
+
+			if (RHIGetAvailableResolutions(duplicatedResolutions, ignoreRefreshRate))
+			{
+				for (auto& r : duplicatedResolutions)
+				{
+					resolutions.AddUnique(r);
+				}
+
+				resolutions.Sort(sortByRefreshThenWidthAndHeight);
+
+				int index = 0;
+				for (const FScreenResolutionRHI& r : resolutions)
+				{
+					char choiceName[16];
+					SafeFormat(choiceName, "%d %d %d", index + 1, r.Width, r.Height);
+
+					char choiceDesc[32];
+					SafeFormat(choiceDesc, "%d x %d %dHz", r.Width, r.Height, r.RefreshRate);
+
+					if (Eq(resolution, choiceName))
+					{
+						currentIndex = index;
+					}
+
+					index++;
+
+					if (r.Width >= minHRez && r.RefreshRate >= minHz)
+					{
+						inquiry.AddChoice(choiceName, choiceDesc, GEN_HINT_FROM_PARENT_AND_CHOICE);
+					}
+				}
+			}
+
+			if (currentIndex == -1)
+			{
+				ComputeDefaults(IN resolutions, REF inquiry);
+			}
+
 			inquiry.SetHint("Set full screen resolution and frame rate");
 		}
 
 		void SetFullscreenResolution(cstr choice)
 		{
 			resolution = choice;
+
+			currentTargetResolution.Width = DEFAULT_HREZ;
+			currentTargetResolution.Height = DEFAULT_VREZ;
+			currentTargetResolution.RefreshRate = DEFAULT_REFRESH_RATE;
+
+			if (!Eq(choice, "default"))
+			{
+				int index;
+				int width;
+				int height;
+
+				if (3 == sscanf(choice, "%d%d%d", &index, &width, &height))
+				{
+					if (index >= 0 && index < resolutions.Num())
+					{
+						const auto& r = resolutions[index];
+						if (r.Width == width && r.Height == height)
+						{
+							currentTargetResolution.Width = width;
+							currentTargetResolution.Height = height;
+							currentTargetResolution.RefreshRate = r.RefreshRate;
+						}
+					}
+				}
+			}
+
+#if WITH_EDITOR
+#else
+			UGameUserSettings* settings = GEngine->GetGameUserSettings();
+			settings->SetScreenResolution(FIntPoint(currentTargetResolution.Width, currentTargetResolution.Height));
+			settings->SetFrameRateLimit(currentTargetResolution.RefreshRate);
+			settings->ConfirmVideoMode();
+			settings->RequestUIUpdate();
+#endif
 		}
 
 		void GetTextureQuality(IChoiceInquiry& inquiry)

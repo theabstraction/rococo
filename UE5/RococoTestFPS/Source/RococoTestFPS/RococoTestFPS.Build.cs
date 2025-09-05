@@ -98,7 +98,7 @@ public class RococoTestFPS : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "RococoOS", "RococoGui" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "RHI", "ApplicationCore", "RococoOS", "RococoGui" });
 
         PrepRococoDirectories();
 
