@@ -1167,7 +1167,10 @@ namespace Rococo::Gui::UE5::Implementation
 
 		virtual ~UE5_GR_Custodian()
 		{
-
+			if (fontSet)
+			{
+				fontSet->RemoveFromRoot();
+			}
 		}
 
 		bool enableToScreen = false;
@@ -1337,6 +1340,8 @@ namespace Rococo::Gui::UE5::Implementation
 				{
 					Throw(0, "Font asset was not URococoFontSet: %s", *oFontSet->GetClass()->GetFName().ToString());
 				}
+
+				fontSet->AddToRoot();
 			}
 
 			try

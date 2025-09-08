@@ -44,14 +44,9 @@ struct SortByRefreshThenWidthAndHeight
 	}
 };
 
-inline bool Eq(const FScreenResolutionRHI& a, const FScreenResolutionRHI& b)
-{
-	return a.Height == b.Height && a.Width == b.Width && a.RefreshRate == b.RefreshRate;
-}
-
 inline bool operator == (const FScreenResolutionRHI& a, const FScreenResolutionRHI& b)
 {
-	return Eq(a, b);
+	return a.Height == b.Height && a.Width == b.Width && a.RefreshRate == b.RefreshRate;
 }
 
 namespace RococoTestFPS::Implementation
