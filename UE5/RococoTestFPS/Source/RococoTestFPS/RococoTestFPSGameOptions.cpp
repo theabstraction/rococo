@@ -9,6 +9,12 @@
 #include <ReflectedGameOptionsBuilder.h>
 #include <GameFramework/GameUserSettings.h>
 
+#ifdef _WIN32
+#define local_sscanf sscanf_s
+#else
+#define local_sscanf sscanf
+#endif
+
 using namespace Rococo;
 using namespace Rococo::GreatSex;
 using namespace Rococo::Strings;
@@ -379,7 +385,7 @@ namespace RococoTestFPS::Implementation
 				for (const FScreenResolutionRHI& r : resolutions)
 				{
 					char choiceName[16];
-					SafeFormat(choiceName, "%d %d %d", index + 1, r.Width, r.Height);
+					SafeFormat(choiceName, "%d %d %d", index, r.Width, r.Height);
 
 					char choiceDesc[32];
 					SafeFormat(choiceDesc, "%d x %d %dHz", r.Width, r.Height, r.RefreshRate);
@@ -420,7 +426,7 @@ namespace RococoTestFPS::Implementation
 				int width;
 				int height;
 
-				if (3 == sscanf(choice, "%d%d%d", &index, &width, &height))
+				if (3 == local_sscanf(choice, "%d%d%d", &index, &width, &height))
 				{
 					if (index >= 0 && index < resolutions.Num())
 					{
@@ -440,6 +446,8 @@ namespace RococoTestFPS::Implementation
 			UGameUserSettings* settings = GEngine->GetGameUserSettings();
 			settings->SetScreenResolution(FIntPoint(currentTargetResolution.Width, currentTargetResolution.Height));
 			settings->SetFrameRateLimit(currentTargetResolution.RefreshRate);
+			settings->SetFullscreenMode(EWindowMode::Fullscreen);
+			settings->ApplySettings(true);
 			settings->ConfirmVideoMode();
 			settings->RequestUIUpdate();
 #endif
