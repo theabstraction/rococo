@@ -20,4 +20,8 @@ class ROCOCOTESTFPS_API URococoTestFPSGameOptionsLibrary : public UBlueprintFunc
 	// Retrieves the volume level 0 - 1 of the UI FX 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rococo.Audio")
 	static double GetFXVolume();
+
+	// Sets the screen mode, monitor index and full screen spec to that specified in the graphics config
+	UFUNCTION(BlueprintCallable, Category = "Rococo.Graphics")
+	static void SyncGraphicsToConfig();
 };

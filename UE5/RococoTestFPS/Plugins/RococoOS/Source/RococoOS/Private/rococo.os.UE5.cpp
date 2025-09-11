@@ -170,7 +170,7 @@ namespace Rococo
 		buffer[nElements] = 0;
 	}
 
-	void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
+	ROCOCO_API void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 	{
 		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
 		buffer.SetNumUninitialized(nElements + 1);
