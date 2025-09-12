@@ -345,7 +345,9 @@ namespace RococoTestFPS::Implementation
 			reflectionAlgorithm = value;
 		}
 
-		void SyncMonitorStateToActiveMonitor()
+
+		// Initialize the monitor value and returns the zero-based index of the active monitor
+		int SyncMonitorStateToActiveMonitor()
 		{
 			if (monitor.length() == 0)
 			{
@@ -353,7 +355,7 @@ namespace RococoTestFPS::Implementation
 				if (activeMonitor >= 0)
 				{
 					Format(monitor, "%d", activeMonitor + 1);
-					return;
+					return activeMonitor;
 				}
 
 				FDisplayMetrics displayMetrics;
@@ -367,12 +369,13 @@ namespace RococoTestFPS::Implementation
 					if (window.GetPositionInScreen() == FVector2D(m.WorkArea.Left, m.WorkArea.Top))
 					{
 						Format(monitor, "%d", i + 1);
-						return;
+						return i;
 					}
 				}
 			}
 
 			monitor = "1";
+			return 0;
 		}
 
 		enum { MAX_MONITORS = 8 }; // Keep things sane. In 2075, when the average number of monitors on a PC > 8 think about updating this
@@ -481,7 +484,7 @@ namespace RococoTestFPS::Implementation
 			}
 		}
 
-		void SyncMonitorToIndex(int monitorIndex)
+		void SyncMonitorToIndex(int monitorIndex, bool saveToConfig)
 		{
 			FDisplayMetrics displayMetrics;
 			FSlateApplication::Get().GetInitialDisplayMetrics(displayMetrics);
@@ -490,9 +493,12 @@ namespace RococoTestFPS::Implementation
 			{
 				const FMonitorInfo& targetMonitor = displayMetrics.MonitorInfo[monitorIndex];
 
-				GConfig->SetString(TEXT("/Script/Rococo.Graphics"), TEXT("ActiveMonitorName"), *targetMonitor.Name, GGameIni);
-				GConfig->SetInt(TEXT("/Script/Rococo.Graphics"), TEXT("ActiveMonitorIndex"), monitorIndex, GGameIni);
-				GConfig->Flush(false, GGameIni);
+				if (saveToConfig)
+				{
+					GConfig->SetString(TEXT("/Script/Rococo.Graphics"), TEXT("ActiveMonitorName"), *targetMonitor.Name, GGameIni);
+					GConfig->SetInt(TEXT("/Script/Rococo.Graphics"), TEXT("ActiveMonitorIndex"), monitorIndex, GGameIni);
+					GConfig->Flush(false, GGameIni);
+				}
 
 				auto& window = *GEngine->GameViewport->GetWindow();
 				window.MoveWindowTo(FVector2D(targetMonitor.DisplayRect.Left, targetMonitor.DisplayRect.Top));
@@ -509,7 +515,7 @@ namespace RococoTestFPS::Implementation
 				monitor = value;
 
 				int monitorIndex = value[0] - 49;
-				SyncMonitorToIndex(monitorIndex);
+				SyncMonitorToIndex(monitorIndex, true);
 			}
 
 		}
@@ -784,7 +790,10 @@ namespace RococoTestFPS::Implementation
 				return;
 			}
 
-			SyncMonitorStateToActiveMonitor();
+			int monitorIndex = SyncMonitorStateToActiveMonitor();
+
+			// Config has determined our index, so we do not have to save it
+			SyncMonitorToIndex(monitorIndex, false);
 		}
 	};
 
