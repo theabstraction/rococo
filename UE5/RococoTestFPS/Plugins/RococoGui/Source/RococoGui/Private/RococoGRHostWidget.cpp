@@ -244,14 +244,45 @@ void URococoGRHostWidgetBuilder::OnPrepForLoading(Rococo::GreatSex::IGreatSexGen
 
 #include <rococo.os.h>
 
+#include <Widgets\SViewport.h>
+#include <Rendering\RenderingCommon.h>
+#include <Engine\UserInterfaceSettings.h>
+
+float GetViewportScale()
+{
+	auto* viewportWidget = GEngine->GetGameViewportWidget().Get();
+	if (!viewportWidget)
+	{
+		return 1.0;
+	}
+
+	auto* viewport = viewportWidget->GetViewportInterface().Pin().Get();
+	if (!viewport)
+	{
+		return 1.0;
+	}
+
+	FIntPoint viewportSize = viewport->GetSize();
+
+	float s = GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
+	return s == 0.0f ? 1.0f : s;
+}
+
 void CopySpatialInfo(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry)
 {
 	FVector2f delta = src.GetCursorDelta();
 	dest.dx = (int) delta.X;
 	dest.dy = (int) delta.Y;
 
+	float gameViewportScale = GetViewportScale();
+
 	FVector2f cursorPosScreenSpace = src.GetScreenSpacePosition();
 	FVector2f localPos = geometry.AbsoluteToLocal(cursorPosScreenSpace);
+
+	if (gameViewportScale > 2.0f)
+	{
+		localPos /= gameViewportScale;
+	}
 
 	dest.cursorPos.x = (int) localPos.X;
 	dest.cursorPos.y = (int) localPos.Y;

@@ -307,11 +307,11 @@ namespace ANON
 			alignment.Add(EGRAlignment::Right);
 
 			char cursorLine[32];
-			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
+			Strings::SafeFormat(cursorLine, "%d      %d", pos.x, pos.y);
 
 			GuiRect debugRect;
-			debugRect.left = screenDimensions.right - 70;
-			debugRect.right = debugRect.left + 60;
+			debugRect.right = screenDimensions.right - 10;
+			debugRect.left = debugRect.right - 120;
 			debugRect.top = screenDimensions.top + 10;
 			debugRect.bottom = debugRect.top + 30;
 			g.DrawRect(debugRect, RGBAb(0, 0, 0, 128));

@@ -471,16 +471,12 @@ namespace RococoTestFPS::Implementation
 
 				if (selectedMonitor.NativeWidth < (int) currentTargetResolution.Width || selectedMonitor.NativeHeight < (int) currentTargetResolution.Height)
 				{
-					currentTargetResolution.Width = Rococo::min(selectedMonitor.NativeWidth, (int)currentTargetResolution.Width);
+					currentTargetResolution.Width = selectedMonitor.NativeWidth;
 					currentTargetResolution.Height = selectedMonitor.NativeHeight;
 					currentTargetResolution.RefreshRate = DEFAULT_REFRESH_RATE;
 				}
 
-				FMonitorInfo targetMonitor;
-				if (TryGetCurrentTargetMonitor(OUT targetMonitor))
-				{
-					SyncVideoModeToCurrentTargetResolution(&targetMonitor);
-				}
+				SyncVideoModeToCurrentTargetResolution(&selectedMonitor);
 			}
 		}
 
@@ -710,11 +706,6 @@ namespace RococoTestFPS::Implementation
 		EWindowMode::Type modality = EWindowMode::WindowedFullscreen;
 
 		void SyncVideoModeToCurrentTargetResolution(const FMonitorInfo* selectedMonitor)
-		{
-			SyncVideoModesToCurrentTargetResolutionForClient(selectedMonitor);
-		}
-
-		void SyncVideoModesToCurrentTargetResolutionForClient(const FMonitorInfo* selectedMonitor)
 		{
 			if (selectedMonitor != nullptr)
 			{
