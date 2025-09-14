@@ -311,7 +311,7 @@ namespace ANON
 
 			GuiRect debugRect;
 			debugRect.right = screenDimensions.right - 10;
-			debugRect.left = debugRect.right - 120;
+			debugRect.left = debugRect.right - 160;
 			debugRect.top = screenDimensions.top + 10;
 			debugRect.bottom = debugRect.top + 30;
 			g.DrawRect(debugRect, RGBAb(0, 0, 0, 128));

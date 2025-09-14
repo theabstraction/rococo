@@ -104,7 +104,11 @@ FEventReply RouteMouseButtonUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodia
 			return FEventReply(false);
 		}
 
-		CopySpatialInfo(me, ue5MouseEvent, geometry);
+		/*
+			The call stack invokes RoutePointerUpEvent with an empty widgetpath. This causes the TransformPointerEvent function to be skipped, so we don't need to correct the fullscreen mapping
+			FReply FSlateApplication::RoutePointerUpEvent(const FWidgetPath & WidgetsUnderPointer, const FPointerEvent & PointerEvent)
+		*/
+		CopySpatialInfo_NoFullscreenCorrection(me, ue5MouseEvent, geometry);
 		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
 	}
 	catch (IException& ex)

@@ -4,6 +4,7 @@
 #include <rococo.gui.retained.h>
 #include <rococo.ui.h>
 #include "ReflectedGameOptionsBuilder.h"
+#include <GameFramework/GameUserSettings.h>
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoGUI, Error, All);
 DEFINE_LOG_CATEGORY(RococoGUI);
@@ -248,7 +249,7 @@ void URococoGRHostWidgetBuilder::OnPrepForLoading(Rococo::GreatSex::IGreatSexGen
 #include <Rendering\RenderingCommon.h>
 #include <Engine\UserInterfaceSettings.h>
 
-float GetViewportScale()
+FIntPoint GetViewportSize()
 {
 	auto* viewportWidget = GEngine->GetGameViewportWidget().Get();
 	if (!viewportWidget)
@@ -262,10 +263,34 @@ float GetViewportScale()
 		return 1.0;
 	}
 
-	FIntPoint viewportSize = viewport->GetSize();
+	return viewport->GetSize();
+}
 
-	float s = GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(viewportSize.X, viewportSize.Y));
-	return s == 0.0f ? 1.0f : s;
+// Mouse co-ordiantes are scaled: PointerEvent.GetLastScreenSpacePosition() * WindowSize / DisplaySize
+// The display size is the primary display, NOT the actual monitor display, so we need to undo the scaling and apply the monitor scaling, this gives the correction factor
+FVector2f GetFullscreenCorrection(const FGeometry& geometry)
+{
+	UGameUserSettings* settings = GEngine->GetGameUserSettings();
+	if (settings->GetFullscreenMode() == EWindowMode::Fullscreen)
+	{
+		FDisplayMetrics metrics;
+		FSlateApplication::Get().GetCachedDisplayMetrics(OUT metrics);
+
+		for (auto& monitor : metrics.MonitorInfo)
+		{
+			FVector2f monitorCentre((monitor.WorkArea.Left + monitor.WorkArea.Right) >> 1, (monitor.WorkArea.Top + monitor.WorkArea.Bottom) >> 1);
+
+			if (geometry.IsUnderLocation(monitorCentre))
+			{
+				FVector2f primaryDisplaySize{ (float)metrics.PrimaryDisplayWidth,  (float)metrics.PrimaryDisplayHeight };
+				FVector2f resolution{ (float)monitor.DisplayRect.Right - monitor.DisplayRect.Left, (float)monitor.DisplayRect.Bottom - monitor.DisplayRect.Top };
+				FVector2f correction = primaryDisplaySize / resolution;
+				return correction;
+			}
+		}
+	}
+
+	return FVector2f(1.0f, 1.0f);
 }
 
 void CopySpatialInfo(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry)
@@ -274,18 +299,27 @@ void CopySpatialInfo(Rococo::MouseEvent& dest, const FPointerEvent& src, const F
 	dest.dx = (int) delta.X;
 	dest.dy = (int) delta.Y;
 
-	float gameViewportScale = GetViewportScale();
+	FVector2f cursorPosScreenSpace = src.GetScreenSpacePosition();
+
+	FVector2f correctedScreenSpacePos = cursorPosScreenSpace * GetFullscreenCorrection(geometry);
+
+	FVector2f localPos = geometry.AbsoluteToLocal(correctedScreenSpacePos);
+
+	dest.cursorPos.x = (int) localPos.X;
+	dest.cursorPos.y = (int) localPos.Y;
+}
+
+void CopySpatialInfo_NoFullscreenCorrection(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry)
+{
+	FVector2f delta = src.GetCursorDelta();
+	dest.dx = (int)delta.X;
+	dest.dy = (int)delta.Y;
 
 	FVector2f cursorPosScreenSpace = src.GetScreenSpacePosition();
 	FVector2f localPos = geometry.AbsoluteToLocal(cursorPosScreenSpace);
 
-	if (gameViewportScale > 2.0f)
-	{
-		localPos /= gameViewportScale;
-	}
-
-	dest.cursorPos.x = (int) localPos.X;
-	dest.cursorPos.y = (int) localPos.Y;
+	dest.cursorPos.x = (int)localPos.X;
+	dest.cursorPos.y = (int)localPos.Y;
 }
 
 Rococo::Gui::GRKeyContextFlags ToContext(const FPointerEvent& ev)

@@ -359,7 +359,7 @@ namespace RococoTestFPS::Implementation
 				}
 
 				FDisplayMetrics displayMetrics;
-				FSlateApplication::Get().GetInitialDisplayMetrics(OUT displayMetrics);
+				FDisplayMetrics::RebuildDisplayMetrics(OUT displayMetrics);
 
 				auto& window = *GEngine->GameViewport->GetWindow();
 
@@ -384,7 +384,7 @@ namespace RococoTestFPS::Implementation
 		int GetMonitorByConfig()
 		{
 			FDisplayMetrics displayMetrics;
-			FSlateApplication::Get().GetInitialDisplayMetrics(displayMetrics);
+			FDisplayMetrics::RebuildDisplayMetrics(OUT displayMetrics);
 
 			int targetIndex = -1;
 
@@ -436,7 +436,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetTitle("Active Monitor");
 
 			FDisplayMetrics displayMetrics;
-			FSlateApplication::Get().GetInitialDisplayMetrics(displayMetrics);
+			FDisplayMetrics::RebuildDisplayMetrics(displayMetrics);
 
 			enum { MAX_MONITORS = 8 };
 
@@ -483,7 +483,7 @@ namespace RococoTestFPS::Implementation
 		void SyncMonitorToIndex(int monitorIndex, bool saveToConfig)
 		{
 			FDisplayMetrics displayMetrics;
-			FSlateApplication::Get().GetInitialDisplayMetrics(displayMetrics);
+			FDisplayMetrics::RebuildDisplayMetrics(displayMetrics);
 
 			if (displayMetrics.MonitorInfo.IsValidIndex(monitorIndex))
 			{
@@ -642,7 +642,7 @@ namespace RococoTestFPS::Implementation
 		[[nodiscard]] bool TryGetCurrentTargetMonitor(OUT FMonitorInfo& currentMonitor)
 		{
 			FDisplayMetrics displayMetrics;
-			FSlateApplication::Get().GetInitialDisplayMetrics(displayMetrics);
+			FDisplayMetrics::RebuildDisplayMetrics(displayMetrics);
 
 			auto& window = *GEngine->GameViewport->GetWindow();
 
