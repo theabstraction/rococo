@@ -156,7 +156,8 @@ FEventReply RouteMouseWheel(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, 
 		MouseEvent me = { 0 };
 		me.buttonFlags = MouseEvent::Flags::MouseWheel;
 		me.buttonData = (int)(ue5MouseEvent.GetWheelDelta() * 120.0f);
-		CopySpatialInfo(me, ue5MouseEvent, geometry);
+		// Mouse wheel events do not seem to need to erroneously scale the mouse cursor
+		CopySpatialInfo_NoFullscreenCorrection(me, ue5MouseEvent, geometry);
 		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
 	}
 	catch (IException& ex)
