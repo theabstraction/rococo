@@ -82,13 +82,21 @@ namespace ANON
 
 		virtual ~GRSystem()
 		{
-			for (auto d : frameDescriptors)
+			for (auto& d : frameDescriptors)
 			{
 				d.panel->ReleasePanel();
 			}
 
 			delete eventQueue;
 			delete dispatchQueue;
+		}
+
+		void OnTick(float dt) override
+		{
+			for (auto& d : frameDescriptors)
+			{
+				d.panel->OnTick(dt);
+			}
 		}
 
 		void QueueGarbageCollect() override

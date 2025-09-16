@@ -27,6 +27,15 @@ namespace GRANON
 			_panel.SetLayoutDirection(ELayoutDirection::None);
 		}
 
+		virtual ~GRMainFrame()
+		{
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void LayoutBeforeFit() override
 		{
 			MakeTitleBar();

@@ -34,6 +34,16 @@ namespace GRANON
 			
 		}
 
+		virtual ~GRCollapser()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		bool IsCollapsed() const override
 		{
 			return collapseButton ? !collapseButton->ButtonFlags().isRaised : false;

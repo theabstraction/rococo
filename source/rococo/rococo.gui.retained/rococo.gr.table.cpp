@@ -40,6 +40,16 @@ namespace GRANON
 		{
 		}
 
+		virtual ~GRTable()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		int32 AddColumn(const GRColumnSpec& spec) override
 		{
 			columnHeaders.push_back(GRColumn{ spec.name, spec.minWidth, spec.defaultWidth, spec.maxWidth, spec.defaultWidth });

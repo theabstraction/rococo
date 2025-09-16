@@ -1173,6 +1173,14 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
+		void OnTick(float dt) override
+		{
+			if (grSystem)
+			{
+				grSystem->OnTick(dt);
+			}
+		}
+
 		bool enableToScreen = false;
 		bool enableToLogFile = false;
 

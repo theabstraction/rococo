@@ -64,4 +64,6 @@ public:
 	int32 OnPaint(const FPaintArgs& args, const FGeometry& allottedGeometry, const FSlateRect& cullingRect, OUT FSlateWindowElementList& drawElements, int32 LayerId, const FWidgetStyle& widgetStyle, bool bParentEnabled) const override;
 
 	void LoadFrame(const char* pingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
+
+	void Tick(const FGeometry& geometry, const double t, const float dt) override;
 };

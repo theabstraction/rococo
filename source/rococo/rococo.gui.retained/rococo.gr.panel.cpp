@@ -57,6 +57,16 @@ namespace GRANON
 			refCount = 1;
 		}
 
+		void OnTick(float dt) override
+		{
+			widget->OnTick(dt);
+
+			for (auto* child : children)
+			{
+				child->OnTick(dt);
+			}
+		}
+
 		std::vector<HString> navigationTargets;
 
 		void AddNavigationTarget(cstr target) override

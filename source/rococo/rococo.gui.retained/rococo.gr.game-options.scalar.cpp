@@ -39,6 +39,11 @@ namespace GRANON
 
 		}
 
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct(const GameOptionConfig& config)
 		{
 			this->config = config;

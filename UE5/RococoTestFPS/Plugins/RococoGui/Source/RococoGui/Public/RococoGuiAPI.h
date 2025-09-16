@@ -30,6 +30,7 @@ namespace Rococo::Gui
 		virtual void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) = 0;
 		virtual void SetControlType(cstr lastKnownControlType) = 0;
 		virtual void SetLogging(bool enableToScreen, bool enableToLogFile) = 0;
+		virtual void OnTick(float dt) = 0;
 	};
 
 	// Allows implementation external to the custodian to control some of its logic

@@ -53,6 +53,16 @@ void SRococoGRHostWidget::SyncCustodian(UObject* worldObject, TMapPathToTexture&
 	}
 }
 
+void SRococoGRHostWidget::Tick(const FGeometry& geometry, const double t, const float dt)
+{
+	SLeafWidget::Tick(geometry, t, dt);
+
+	if (custodian)
+	{
+		custodian->OnTick(dt);
+	}
+}
+
 FVector2D SRococoGRHostWidget::ComputeDesiredSize(float) const
 {
 	return FVector2D(64, 64);

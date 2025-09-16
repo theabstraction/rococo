@@ -34,6 +34,16 @@ namespace GRANON
 			realDraggerStartPos = _draggerStartPos;
 		}
 
+		virtual ~GRSplitter()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct()
 		{
 			if (!first)

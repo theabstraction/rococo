@@ -36,6 +36,16 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 0, 0, 0, 0 });
 		}
 
+		virtual ~GRGameOptionStringWidget()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct(const GameOptionConfig& config, int maxCharacters)
 		{
 			this->config = config;

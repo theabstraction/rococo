@@ -22,6 +22,16 @@ namespace ANON
 			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 		}
 
+		virtual ~GRViewportWidget()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct()
 		{
 			clipArea = &CreateDivision(*this);

@@ -67,6 +67,8 @@ public:
 protected:
 	TSharedPtr<SRococoGRHostWidget> _SlateHostWidget;
 
+	FDelegateHandle WindowActionNotificationHandle;
+
 	// This caches the Rococo::Gui textures. The slate widget is volatile, so perhaps is not appropriate for persisting textures.
 	// We pass it to the slate widget by calling slateHostWidget->SyncCustodian(...) inside of RebuildWidget
 	UPROPERTY(Transient)

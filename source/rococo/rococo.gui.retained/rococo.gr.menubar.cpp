@@ -169,6 +169,16 @@ namespace GRANON
 			tree.root = new MenuBranch(tree, rootId, nullptr);
 		}
 
+		virtual ~GRMenuBar()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		bool AddButton(GRMenuItemId parentMenu, const GRMenuButtonItem& item) override
 		{
 			auto* branch = tree.FindBranch(parentMenu);

@@ -834,6 +834,7 @@ namespace Rococo::Gui
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
 		virtual void SetWidget(IGRWidgetSupervisor& widget) = 0;
 		virtual void ReleasePanel() = 0;
+		virtual void OnTick(float dt) = 0;
 	};
 
 	enum class EGRQueryInterfaceResult
@@ -900,6 +901,7 @@ namespace Rococo::Gui
 	{
 		// Invoked by the IGRRetained instance management logic
 		virtual void Free() = 0;
+		virtual void OnTick(float dt) = 0;
 	};
 
 	template<class CAST_TO_THIS_INTERFACE> inline CAST_TO_THIS_INTERFACE* Cast(IGRWidget& widget, cstr interfaceId)

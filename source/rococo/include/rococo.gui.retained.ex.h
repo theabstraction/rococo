@@ -22,6 +22,7 @@ namespace Rococo::Gui
 		virtual IGREventHandler* SetEventHandler(IGREventHandler* eventHandler) = 0;
 		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
 		virtual EGREventRouting OnGREvent(GRWidgetEvent& ev) = 0;
+		virtual void OnTick(float dt) = 0;
 		virtual void Free() = 0;
 	};
 

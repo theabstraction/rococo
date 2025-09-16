@@ -24,6 +24,16 @@ namespace GRANON
 		{
 		}
 
+		virtual ~GRText()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void Free() override
 		{
 			delete this;
