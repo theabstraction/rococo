@@ -12,7 +12,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder, IGRWidgetInitializer, IEventCallback<ButtonEvent>
+	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder, IGRWidgetInitializer, IEventCallback<ButtonEvent>, IGameOptionChangeRequirements
 	{
 		IGRPanel& panel;
 		IGameOptions& options;
@@ -41,6 +41,11 @@ namespace GRANON
 
 		virtual ~GRGameOptionsList()
 		{
+		}
+
+		void RefreshOptions() override
+		{
+
 		}
 
 		void OnTick(float dt) override
@@ -178,7 +183,7 @@ namespace GRANON
 					cstr optionName = i.first;
 					cstr optionValue = choice.sMetaData;
 
-					options.DB().Invoke(optionName, optionValue);
+					options.DB().Invoke(optionName, optionValue, *this);
 				}
 			}
 			return EGREventRouting::Terminate;
@@ -212,7 +217,7 @@ namespace GRANON
 			{
 				if (sourceWidget == i.second->Widget())
 				{
-					options.DB().Invoke(i.first, isTrue);
+					options.DB().Invoke(i.first, isTrue, *this);
 					break;
 				}
 			}
@@ -228,7 +233,7 @@ namespace GRANON
 				{
 					if (slider == &i.second->Slider())
 					{
-						options.DB().Invoke(i.first, slider->Position());
+						options.DB().Invoke(i.first, slider->Position(), *this);
 						break;
 					}
 				}

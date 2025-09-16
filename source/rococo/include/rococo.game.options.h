@@ -9,6 +9,11 @@ namespace Rococo::Gui
 
 namespace Rococo::Game::Options
 {
+	ROCOCO_INTERFACE IGameOptionChangeRequirements
+	{
+		virtual void RefreshOptions() = 0;
+	};
+
 	ROCOCO_INTERFACE IInquiry
 	{
 		virtual void SetHint(cstr text) = 0;
@@ -57,9 +62,9 @@ namespace Rococo::Game::Options
 
 	ROCOCO_INTERFACE IOptionDatabase
 	{
-		virtual void Invoke(cstr name, cstr choice) = 0;
-		virtual void Invoke(cstr name, bool boolValue) = 0;
-		virtual void Invoke(cstr name, double scalarValue) = 0;
+		virtual void Invoke(cstr name, cstr choice, IGameOptionChangeRequirements& requirements) = 0;
+		virtual void Invoke(cstr name, bool boolValue, IGameOptionChangeRequirements& requirements) = 0;
+		virtual void Invoke(cstr name, double scalarValue, IGameOptionChangeRequirements& requirements) = 0;
 	};
 
 	ROCOCO_INTERFACE IGameOptions

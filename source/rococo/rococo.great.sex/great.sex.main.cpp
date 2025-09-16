@@ -52,9 +52,9 @@ namespace Rococo::Game::Options
 	{
 		struct MissingOptDatabase : IOptionDatabase
 		{
-			void Invoke(cstr, cstr) override {}
-			void Invoke(cstr, bool) override {}
-			void Invoke(cstr, double)  override {}
+			void Invoke(cstr, cstr, IGameOptionChangeRequirements&) override {}
+			void Invoke(cstr, bool, IGameOptionChangeRequirements&) override {}
+			void Invoke(cstr, double, IGameOptionChangeRequirements&)  override {}
 		};
 
 		struct MissingOptions : IMissingOptions
