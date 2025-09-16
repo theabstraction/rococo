@@ -89,6 +89,11 @@ namespace Rococo::Game::Options
 				delete this;
 			}
 
+			void OnTick(float dt) override
+			{
+				UNUSED(dt);
+			}
+
 			void AddOptions(IGameOptionsBuilder& builder)
 			{
 				char name[24];

@@ -30,6 +30,11 @@ namespace Rococo::GreatSex::TestData
 
 		}
 
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		IOptionDatabase& DB() override
 		{
 			return db;
@@ -164,6 +169,11 @@ namespace Rococo::GreatSex::TestData
 		GraphicsOptions() : db(*this)
 		{
 
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
 		}
 
 		void GetScreenMode(IChoiceInquiry& inquiry)
@@ -363,6 +373,11 @@ namespace Rococo::GreatSex::TestData
 
 		}
 
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		IOptionDatabase& DB() override
 		{
 			return db;
@@ -433,6 +448,11 @@ namespace Rococo::GreatSex::TestData
 		virtual ~GameplayOptions()
 		{
 
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
 		}
 
 		IOptionDatabase& DB() override
@@ -532,6 +552,11 @@ namespace Rococo::GreatSex::TestData
 		virtual ~MultiplayerOptions()
 		{
 
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
 		}
 
 		IOptionDatabase& DB() override

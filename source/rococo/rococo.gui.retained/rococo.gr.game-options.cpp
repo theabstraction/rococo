@@ -45,7 +45,7 @@ namespace GRANON
 
 		void OnTick(float dt) override
 		{
-			UNUSED(dt);
+			options.OnTick(dt);
 		}
 
 		IGameOptions& Options() override

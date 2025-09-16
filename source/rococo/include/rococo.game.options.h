@@ -67,6 +67,7 @@ namespace Rococo::Game::Options
 		virtual void AddOptions(IGameOptionsBuilder & builder) = 0;
 		virtual IOptionDatabase& DB() = 0;
 		virtual void Accept() = 0;
+		virtual void OnTick(float dt) = 0;
 		virtual void Revert() = 0;
 		virtual bool IsModified() const = 0;
 	};
