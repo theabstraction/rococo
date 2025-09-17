@@ -34,6 +34,11 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
+		virtual ~GRGameOptionChoiceWidget()
+		{
+
+		}
+
 		void OnTick(float dt) override
 		{
 			UNUSED(dt);
@@ -167,7 +172,7 @@ namespace GRANON
 		{
 			switch (widgetEvent.eventType)
 			{
-			case EGRWidgetEventType::BUTTON_CLICK:				
+			case EGRWidgetEventType::BUTTON_CLICK:
 				return OnButtonClick(sourceWidget, widgetEvent.clickPosition);
 			}
 

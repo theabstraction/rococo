@@ -38,10 +38,10 @@ namespace Rococo::Game::Options
 	template<class T>
 	struct OptionSelectedFunctionDescriptor
 	{
-		typedef void (T::* FN_OnBoolOptionSelected)(bool value, IGameOptionChangeRequirements& requirements);
-		typedef void (T::* FN_OnScalarOptionSelected)(double value, IGameOptionChangeRequirements& requirements);
-		typedef void (T::* FN_OnChoiceSelected)(cstr value, IGameOptionChangeRequirements& requirements);
-		typedef void (T::* FN_OnStringSelected)(cstr value, IGameOptionChangeRequirements& requirements);
+		typedef void (T::* FN_OnBoolOptionSelected)(bool value, IGameOptionChangeNotifier& requirements);
+		typedef void (T::* FN_OnScalarOptionSelected)(double value, IGameOptionChangeNotifier& requirements);
+		typedef void (T::* FN_OnChoiceSelected)(cstr value, IGameOptionChangeNotifier& requirements);
+		typedef void (T::* FN_OnStringSelected)(cstr value, IGameOptionChangeNotifier& requirements);
 
 		union
 		{
@@ -221,7 +221,43 @@ namespace Rococo::Game::Options
 			}
 		}
 
-		void Invoke(cstr name, cstr choice, IGameOptionChangeRequirements& requirements) override
+		void Refresh(IGameOptionsBuilder& builder)
+		{
+			for (auto& q : inquiryFunctions)
+			{
+				switch (q.type)
+				{
+				case EInquiryType::Boolean:
+				{
+					auto& Q = builder.GetBool(q.name);
+					(owner.*q.functions.BoolInquiryFunction)(Q);
+					break;
+				}
+				case EInquiryType::Choice:
+				{
+					auto& Q = builder.GetChoice(q.name);
+					(owner.*q.functions.ChoiceInquiryFunction)(Q);
+					break;
+				}
+				case EInquiryType::Scalar:
+				{
+					auto& Q = builder.GetScalar(q.name);
+					(owner.*q.functions.ScalarInquiryFunction)(Q);
+					break;
+				}
+				case EInquiryType::String:
+				{
+					auto& Q = builder.GetString(q.name);
+					(owner.*q.functions.StringInquiryFunction)(Q);
+					break;
+				}
+				default:
+					break;
+				}
+			}
+		}
+
+		void Invoke(cstr name, cstr choice, IGameOptionChangeNotifier& requirements) override
 		{
 			for (auto& r : optionSelectedFunctions)
 			{
@@ -239,7 +275,7 @@ namespace Rococo::Game::Options
 			}
 		}
 
-		void Invoke(cstr name, bool boolValue, IGameOptionChangeRequirements& requirements) override
+		void Invoke(cstr name, bool boolValue, IGameOptionChangeNotifier& requirements) override
 		{
 			for (auto& r : optionSelectedFunctions)
 			{
@@ -251,7 +287,7 @@ namespace Rococo::Game::Options
 			}
 		}
 
-		void Invoke(cstr name, double scalarValue, IGameOptionChangeRequirements& requirements) override
+		void Invoke(cstr name, double scalarValue, IGameOptionChangeNotifier& requirements) override
 		{
 			for (auto& r : optionSelectedFunctions)
 			{

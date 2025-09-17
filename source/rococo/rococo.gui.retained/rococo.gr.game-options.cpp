@@ -12,7 +12,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder, IGRWidgetInitializer, IEventCallback<ButtonEvent>, IGameOptionChangeRequirements
+	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder, IGRWidgetInitializer, IEventCallback<ButtonEvent>, IGameOptionChangeNotifier
 	{
 		IGRPanel& panel;
 		IGameOptions& options;
@@ -43,14 +43,14 @@ namespace GRANON
 		{
 		}
 
-		void RefreshOptions() override
+		void OnSupervenientOptionChanged(IGameOptions&) override
 		{
-
+			options.Refresh(*this);
 		}
 
 		void OnTick(float dt) override
 		{
-			options.OnTick(dt);
+			UNUSED(dt);
 		}
 
 		IGameOptions& Options() override
@@ -343,6 +343,50 @@ namespace GRANON
 			IGRWidgetGameOptionsString& stringWidget = CreateGameOptionsString(*this, config, maxCharacters);
 			mapNameToStringControl.insert(name, &stringWidget);
 			return stringWidget.Inquiry();
+		}
+
+		IChoiceInquiry& GetChoice(cstr name) override
+		{
+			auto i = mapNameToChoiceControl.find(name);
+			if (i == mapNameToChoiceControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			return i->second->Inquiry();
+		}
+
+		IBoolInquiry& GetBool(cstr name) override
+		{
+			auto i = mapNameToBoolControl.find(name);
+			if (i == mapNameToBoolControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			return i->second->Inquiry();
+		}
+
+		IScalarInquiry& GetScalar(cstr name) override
+		{
+			auto i = mapNameToScalarControl.find(name);
+			if (i == mapNameToScalarControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			return i->second->Inquiry();
+		}
+
+		IStringInquiry& GetString(cstr name) override
+		{
+			auto i = mapNameToStringControl.find(name);
+			if (i == mapNameToStringControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			return i->second->Inquiry();
 		}
 
 		void OnEvent(ButtonEvent& ev) override

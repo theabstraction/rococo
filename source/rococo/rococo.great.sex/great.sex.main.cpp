@@ -52,9 +52,9 @@ namespace Rococo::Game::Options
 	{
 		struct MissingOptDatabase : IOptionDatabase
 		{
-			void Invoke(cstr, cstr, IGameOptionChangeRequirements&) override {}
-			void Invoke(cstr, bool, IGameOptionChangeRequirements&) override {}
-			void Invoke(cstr, double, IGameOptionChangeRequirements&)  override {}
+			void Invoke(cstr, cstr, IGameOptionChangeNotifier&) override {}
+			void Invoke(cstr, bool, IGameOptionChangeNotifier&) override {}
+			void Invoke(cstr, double, IGameOptionChangeNotifier&)  override {}
 		};
 
 		struct MissingOptions : IMissingOptions
@@ -89,11 +89,6 @@ namespace Rococo::Game::Options
 				delete this;
 			}
 
-			void OnTick(float dt) override
-			{
-				UNUSED(dt);
-			}
-
 			void AddOptions(IGameOptionsBuilder& builder)
 			{
 				char name[24];
@@ -105,6 +100,11 @@ namespace Rococo::Game::Options
 					b.SetTitle(err.msg);
 					b.SetActiveValue(err.indicator);
 				}
+			}
+
+			void Refresh(IGameOptionsBuilder&) override
+			{
+
 			}
 
 			IOptionDatabase& DB() { return db; }
