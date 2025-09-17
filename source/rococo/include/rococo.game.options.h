@@ -11,6 +11,8 @@ namespace Rococo::Game::Options
 {
 	ROCOCO_INTERFACE IGameOptionChangeNotifier
 	{
+		// Note that potentially an infinite loop could occur if this becomes recursive
+		// It is up to the caller to ensure recursion is managed well
 		virtual void OnSupervenientOptionChanged(IGameOptions& sender) = 0;
 	};
 
@@ -76,6 +78,9 @@ namespace Rococo::Game::Options
 	{
 		virtual void AddOptions(IGameOptionsBuilder& builder) = 0;
 		virtual void Refresh(IGameOptionsBuilder& builder) = 0;
+
+		// Here we allow an option set to periodically calculate if an option needs synchronizing with the game engine, and if so, it should apply for a refresh via the notifier
+		virtual void OnTick(float dt, IGameOptionChangeNotifier& notifier) = 0;
 		virtual IOptionDatabase& DB() = 0;
 		virtual void Accept() = 0;
 		virtual void Revert() = 0;

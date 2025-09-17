@@ -107,6 +107,12 @@ namespace Rococo::Game::Options
 
 			}
 
+			void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+			{
+				UNUSED(dt);
+				UNUSED(notifier);
+			}
+
 			IOptionDatabase& DB() { return db; }
 			void Accept() {}
 			void Revert() {}

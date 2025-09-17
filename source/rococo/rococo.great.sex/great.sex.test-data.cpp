@@ -45,6 +45,13 @@ namespace Rococo::GreatSex::TestData
 
 		}
 
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
+		}
+
+
 		bool IsModified() const override
 		{
 			return true;
@@ -154,6 +161,12 @@ namespace Rococo::GreatSex::TestData
 		bool IsModified() const override
 		{
 			return true;
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
 		}
 
 		HString activeScreenMode = "Fullscreen";
@@ -465,6 +478,13 @@ namespace Rococo::GreatSex::TestData
 
 		}
 
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
+		}
+
+
 		bool IsModified() const override
 		{
 			return true;
@@ -612,6 +632,12 @@ namespace Rococo::GreatSex::TestData
 		{
 
 		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
+		}
 	};
 
 	struct MultiplayerOptions : IGameOptions
@@ -683,6 +709,12 @@ namespace Rococo::GreatSex::TestData
 		void Refresh(IGameOptionsBuilder&) override
 		{
 
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
 		}
 	};
 

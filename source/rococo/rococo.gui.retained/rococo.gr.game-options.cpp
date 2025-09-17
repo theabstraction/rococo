@@ -50,7 +50,7 @@ namespace GRANON
 
 		void OnTick(float dt) override
 		{
-			UNUSED(dt);
+			options.OnTick(dt, *this);
 		}
 
 		IGameOptions& Options() override
