@@ -99,7 +99,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetDecimalPlaces(0);
 		}
 
-		void SetMusicVolume(double value)
+		void SetMusicVolume(double value, IGameOptionChangeNotifier&)
 		{
 			musicVolume = value;
 		}
@@ -113,7 +113,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetDecimalPlaces(0);
 		}
 
-		void SetFXVolume(double value)
+		void SetFXVolume(double value, IGameOptionChangeNotifier&)
 		{
 			fxVolume = value;
 		}
@@ -127,7 +127,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetDecimalPlaces(0);
 		}
 
-		void SetNarrationVolume(double value)
+		void SetNarrationVolume(double value, IGameOptionChangeNotifier&)
 		{
 			narrationVolume = value;
 		}
@@ -144,7 +144,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set sound set-up.");
 		}
 
-		void SetSpeakerConfiguration(cstr choice)
+		void SetSpeakerConfiguration(cstr choice, IGameOptionChangeNotifier&)
 		{
 			speakerConfig = choice;
 		}
@@ -156,6 +156,16 @@ namespace RococoTestFPS::Implementation
 			ADD_GAME_OPTIONS(db, AudioOptions, NarrationVolume)
 			ADD_GAME_OPTIONS(db, AudioOptions, SpeakerConfiguration)
 			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder& builder) override
+		{
+			db.Refresh(builder);
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier&) override
+		{
+			UNUSED(dt);
 		}
 	};
 
@@ -243,7 +253,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set screen mode");
 		}
 
-		void SetScreenMode(cstr choice)
+		void SetScreenMode(cstr choice, IGameOptionChangeNotifier&)
 		{
 			activeScreenMode = choice;
 
@@ -271,7 +281,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Enable or disable full screen anti-aliasing");
 		}
 
-		void SetFSAA(bool value)
+		void SetFSAA(bool value, IGameOptionChangeNotifier&)
 		{
 			isFSAAEnabled = value;
 		}
@@ -288,7 +298,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set the quality of shadows. Higher settings may reduce frame-rate");
 		}
 
-		void SetShadowQuality(cstr value)
+		void SetShadowQuality(cstr value, IGameOptionChangeNotifier&)
 		{
 			shadowQuality = value;
 		}
@@ -305,7 +315,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set the quality of landscape rendering. Higher settings may reduce frame-rate");
 		}
 
-		void SetLandscapeQuality(cstr value)
+		void SetLandscapeQuality(cstr value, IGameOptionChangeNotifier&)
 		{
 			landscapeQuality = value;
 		}
@@ -322,7 +332,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set the quality of reflections. Higher settings may reduce frame-rate");
 		}
 
-		void SetReflectionAlgorithm(cstr value)
+		void SetReflectionAlgorithm(cstr value, IGameOptionChangeNotifier&)
 		{
 			reflectionAlgorithm = value;
 		}
@@ -501,7 +511,7 @@ namespace RococoTestFPS::Implementation
 			}
 		}
 
-		void SetActiveMonitor(cstr value)
+		void SetActiveMonitor(cstr value, IGameOptionChangeNotifier&)
 		{
 			// Assume values is "1", "2", etc, a positive integer
 			targetMonitorIndex = atoi(value) - 1;
@@ -588,7 +598,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set fullscreen maximum framerate");
 		}
 
-		void SetMaximumFramerate(cstr choice)
+		void SetMaximumFramerate(cstr choice, IGameOptionChangeNotifier&)
 		{
 			currentTargetResolution.RefreshRate = clamp(atoi(choice), 60, 200);
 			GConfig->SetInt(TEXT("/Script/Rococo.Graphics"), TEXT("FullScreenResolution.Hz"), currentTargetResolution.RefreshRate, GGameIni);
@@ -697,7 +707,7 @@ namespace RococoTestFPS::Implementation
 			return false;
 		}
 
-		void SetFullscreenResolution(cstr choice)
+		void SetFullscreenResolution(cstr choice, IGameOptionChangeNotifier&)
 		{
 			currentTargetResolution = FScreenResolutionRHI(DEFAULT_HREZ, DEFAULT_VREZ, DEFAULT_REFRESH_RATE);
 
@@ -779,7 +789,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set the texture sizes. Higher settings may slow frame rate");
 		}
 
-		void SetTextureQuality(cstr choice)
+		void SetTextureQuality(cstr choice, IGameOptionChangeNotifier&)
 		{
 			textureQuality = choice;
 		}
@@ -796,7 +806,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set the quality of water rendering. Higher settings may slow frame rate");
 		}
 
-		void SetWaterQuality(cstr choice)
+		void SetWaterQuality(cstr choice, IGameOptionChangeNotifier&)
 		{
 			waterQuality = choice;
 		}
@@ -814,6 +824,16 @@ namespace RococoTestFPS::Implementation
 			ADD_GAME_OPTIONS(db, GraphicsOptions, TextureQuality)
 			ADD_GAME_OPTIONS(db, GraphicsOptions, WaterQuality)
 			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder& builder) override
+		{
+			db.Refresh(builder);
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier&) override
+		{
+			UNUSED(dt);
 		}
 
 		void SyncGraphicsToConfig()
@@ -876,7 +896,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set scaling of mouse movement to cursor movement");
 		}
 
-		void SetCursorResponsiveness(double value)
+		void SetCursorResponsiveness(double value, IGameOptionChangeNotifier&)
 		{
 			cursorResponsiveness = value;
 		}
@@ -888,7 +908,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Reverse the response to player ascent to the joystick direction");
 		}
 
-		void SetInvertYAxis(bool value)
+		void SetInvertYAxis(bool value, IGameOptionChangeNotifier&)
 		{
 			isYAxisInverted = value;
 		}
@@ -898,6 +918,16 @@ namespace RococoTestFPS::Implementation
 			ADD_GAME_OPTIONS(db, UIOptions, CursorResponsiveness)
 			ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
 			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder& builder) override
+		{
+			db.Refresh(builder);
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier&) override
+		{
+			UNUSED(dt);
 		}
 	};
 
@@ -951,7 +981,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set the difficulty of the training mission");
 		}
 
-		void SetStartingDifficulty(cstr value)
+		void SetStartingDifficulty(cstr value, IGameOptionChangeNotifier&)
 		{
 			startDifficulty = value;
 		}
@@ -968,12 +998,12 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set the difficulty of the main game");
 		}
 
-		void SetGameDifficulty(cstr value)
+		void SetGameDifficulty(cstr value, IGameOptionChangeNotifier&)
 		{
 			gameDifficulty = value;
 		}
 
-		void SetPlayerName(cstr value)
+		void SetPlayerName(cstr value, IGameOptionChangeNotifier&)
 		{
 			if (*value == 0)
 			{
@@ -998,6 +1028,16 @@ namespace RococoTestFPS::Implementation
 			ADD_GAME_OPTIONS_STRING(db, GameplayOptions, PlayerName, 32)
 
 			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder& builder) override
+		{
+			db.Refresh(builder);
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier&) override
+		{
+			UNUSED(dt);
 		}
 	};
 
@@ -1044,7 +1084,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetActiveValue(hostGame);
 		}
 
-		void SetHostGame(bool value)
+		void SetHostGame(bool value, IGameOptionChangeNotifier&)
 		{
 			hostGame = value;
 		}
@@ -1055,7 +1095,7 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetActiveValue(useUDP);
 		}
 
-		void SetUseUDP(bool value)
+		void SetUseUDP(bool value, IGameOptionChangeNotifier&)
 		{
 			useUDP = value;
 		}
@@ -1065,6 +1105,16 @@ namespace RococoTestFPS::Implementation
 			ADD_GAME_OPTIONS(db, MultiplayerOptions, HostGame)
 			ADD_GAME_OPTIONS(db, MultiplayerOptions, UseUDP)
 			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder& builder) override
+		{
+			db.Refresh(builder);
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier&) override
+		{
+			UNUSED(dt);
 		}
 	};
 

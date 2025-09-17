@@ -735,7 +735,7 @@ namespace Rococo::GreatSex
 				return nullptr;
 			}
 
-			void Invoke(cstr name, cstr choice) override
+			void Invoke(cstr name, cstr choice, IGameOptionChangeNotifier&) override
 			{
 				// invoke OnChoice on the object
 				FString invokeName = FString::Printf(TEXT("OnChoice_%hs"), name);
@@ -750,7 +750,7 @@ namespace Rococo::GreatSex
 				optionObject->ProcessEvent(method, &arg);
 			}
 
-			void Invoke(cstr name, bool boolValue) override
+			void Invoke(cstr name, bool boolValue, IGameOptionChangeNotifier&) override
 			{
 				// Invoke OnBool on the object
 				FString invokeName = FString::Printf(TEXT("OnBool_%hs"), name);
@@ -765,7 +765,7 @@ namespace Rococo::GreatSex
 				optionObject->ProcessEvent(method, &boolValue);
 			}
 
-			void Invoke(cstr name, double scalarValue) override
+			void Invoke(cstr name, double scalarValue, IGameOptionChangeNotifier&) override
 			{
 				// Invoke OnScalar on the object
 				FString invokeName = FString::Printf(TEXT("OnScalar_%hs"), name);
@@ -777,6 +777,15 @@ namespace Rococo::GreatSex
 				}
 
 				optionObject->ProcessEvent(method, &scalarValue);
+			}
+
+			void Refresh(IGameOptionsBuilder&) override
+			{
+			}
+
+			void OnTick(float dt, IGameOptionChangeNotifier&) override
+			{
+				UNUSED(dt);
 			}
 		};
 
