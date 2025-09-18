@@ -15,6 +15,10 @@ namespace Rococo::GreatSex::TestData
 	{
 		OptionDatabase<AudioOptions> db;
 
+		double acceptedMusicVoluem = 25;
+		double acceptedFXVolume = 20;
+		double acceptedNarrationVolume = 40;
+
 		double musicVolume = 25;
 		double fxVolume = 20;
 		double narrationVolume = 40;
@@ -35,14 +39,19 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
-
+			acceptedMusicVoluem = musicVolume;
+			acceptedFXVolume = fxVolume;
+			acceptedNarrationVolume = narrationVolume;
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier& notifier) override
 		{
-
+			musicVolume = acceptedMusicVoluem;
+			fxVolume = acceptedFXVolume;
+			narrationVolume = acceptedNarrationVolume;
+			notifier.OnSupervenientOptionChanged(*this);
 		}
 
 		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
@@ -128,9 +137,9 @@ namespace Rococo::GreatSex::TestData
 			db.Build(builder);
 		}
 
-		void Refresh(IGameOptionsBuilder&) override
+		void Refresh(IGameOptionsBuilder& builder) override
 		{
-
+			db.Refresh(builder);
 		}
 	};
 
@@ -148,12 +157,12 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -468,12 +477,12 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -552,12 +561,12 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -662,12 +671,12 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}

@@ -82,8 +82,8 @@ namespace Rococo::Game::Options
 		// Here we allow an option set to periodically calculate if an option needs synchronizing with the game engine, and if so, it should apply for a refresh via the notifier
 		virtual void OnTick(float dt, IGameOptionChangeNotifier& notifier) = 0;
 		virtual IOptionDatabase& DB() = 0;
-		virtual void Accept() = 0;
-		virtual void Revert() = 0;
+		virtual void Accept(IGameOptionChangeNotifier& notifier) = 0;
+		virtual void Revert(IGameOptionChangeNotifier& notifier) = 0;
 		virtual bool IsModified() const = 0;
 	};
 

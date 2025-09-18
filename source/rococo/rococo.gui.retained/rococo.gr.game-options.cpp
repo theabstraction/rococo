@@ -394,11 +394,11 @@ namespace GRANON
 			cstr desc = ev.button.Panel().Desc();
 			if (Eq("ButtonAccept", desc))
 			{
-				options.Accept();
+				options.Accept(*this);
 			}
 			else if (Eq("ButtonRevert", desc))
 			{
-				options.Revert();
+				options.Revert(*this);
 			}
 		}
 

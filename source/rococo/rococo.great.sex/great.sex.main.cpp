@@ -114,8 +114,8 @@ namespace Rococo::Game::Options
 			}
 
 			IOptionDatabase& DB() { return db; }
-			void Accept() {}
-			void Revert() {}
+			void Accept(IGameOptionChangeNotifier&) {}
+			void Revert(IGameOptionChangeNotifier&) {}
 			bool IsModified() const { return false; }
 		};
 	}
@@ -145,6 +145,33 @@ namespace Rococo::GreatSex
 			GRWidgetRenderState rs;
 			RGBAb colour;
 		};
+
+		static std::vector<Game::Options::IMissingOptions*>* missingOptionsArray = nullptr;
+
+		void CleanupAtExit()
+		{
+			if (missingOptionsArray)
+			{
+				for (auto* opt : *missingOptionsArray)
+				{
+					opt->Free();
+				}
+
+				delete missingOptionsArray;
+				missingOptionsArray = nullptr;
+			}
+		}
+
+		void ManageGlobalMissingOptions(Game::Options::IMissingOptions* options)
+		{
+			if (!missingOptionsArray)
+			{
+				missingOptionsArray = new std::vector<Game::Options::IMissingOptions*>();
+				atexit(CleanupAtExit);
+			}
+
+			missingOptionsArray->push_back(options);
+		}
 
 		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder, ISEXMLInserter, ISEXMLGameOptionsList
 		{
@@ -234,14 +261,9 @@ namespace Rococo::GreatSex
 				}
 			}
 
-			std::vector<Game::Options::IMissingOptions*> missingOptions;
-
 			virtual ~GreatSexGenerator()
 			{
-				for (auto* opt : missingOptions)
-				{
-					opt->Free();
-				}
+				
 			}
 
 			struct GRSexInsertCache
@@ -371,7 +393,7 @@ namespace Rococo::GreatSex
 					auto* options = Game::Options::CreateMissingOptions("%s? - No options", key);
 					options->AddLine(true, "C++ developer should use");
 					options->AddLine(true, "IGreatSexGenerator::AddOptions(...)");
-					missingOptions.push_back(options);
+					ManageGlobalMissingOptions(options);
 					mapNameToOptions.insert(key, options);
 					return *options;
 				}
@@ -387,7 +409,7 @@ namespace Rococo::GreatSex
 					options->AddLine(true, j.first);
 				}
 
-				missingOptions.push_back(options);
+				ManageGlobalMissingOptions(options);
 				mapNameToOptions.insert(key, options);
 				return *options;
 			}
