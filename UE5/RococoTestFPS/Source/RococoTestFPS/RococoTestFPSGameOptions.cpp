@@ -75,12 +75,12 @@ namespace RococoTestFPS::Implementation
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -183,12 +183,12 @@ namespace RococoTestFPS::Implementation
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -873,12 +873,12 @@ namespace RococoTestFPS::Implementation
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -954,12 +954,12 @@ namespace RococoTestFPS::Implementation
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -1063,12 +1063,12 @@ namespace RococoTestFPS::Implementation
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}

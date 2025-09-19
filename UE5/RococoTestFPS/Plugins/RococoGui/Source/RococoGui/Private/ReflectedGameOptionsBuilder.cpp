@@ -13,6 +13,25 @@ namespace Rococo::GreatSex
 {
 	namespace Implementation
 	{
+		struct FRococoGameOptionChoicePackage
+		{
+			FString currentChoice;
+			FRococoGameOptionChoice spec;
+		};
+
+		struct FRococoGameOptionScalarPackage
+		{
+			double currentScalar;
+			FRococoGameOptionScalar spec;
+		};
+
+		struct FRococoGameOptionBoolPackage
+		{
+			uint32 currentBool;
+			FRococoGameOptionBool spec;
+		};
+
+
 		// Note that option methods have the signature AddOption_<OPTION-NAME> -> (<TYPE> currentValue)(<SPEC> currentSpec)
 		// We support <TYPE> where <TYPE> is one of bool, double, or FString, the spec is coupled to the <TYPE>
 		static const FString addOptionPrefix = FString(TEXT("AddOption_"));
@@ -376,31 +395,6 @@ namespace Rococo::GreatSex
 
 				return nullptr;
 			}
-			/*
-					if (property->HasAnyPropertyFlags(CPF_OutParm))
-					{
-						OnError(method, property, TEXT("Expecting no outputs"));
-						return;
-					}
-
-					if (index++ == 0)
-					{
-						auto* sp = CastField<FDoubleProperty>(property);
-						if (!sp)
-						{
-							// Signature mismatch
-							OnError(method, property, TEXT("Expecting first method argument to be of type double"));
-							return;
-						}
-					}
-					else
-					{
-						OnError(method, property, TEXT("Expecting only one method argument"));
-						return;
-					}
-			}
-
-			*/
 
 			void AddOnScalarMethodElseLogError(UFunction* method)
 			{
@@ -555,13 +549,12 @@ namespace Rococo::GreatSex
 				return asciiBuffer.GetData();
 			}
 
+			TSet<UFunction*> choiceMethods;
+
 			void AddChoiceOption(UFunction* method, const char* choiceId, IGameOptionsBuilder& builder)
 			{
-				struct FRococoGameOptionChoicePackage
-				{
-					FString currentChoice;
-					FRococoGameOptionChoice spec;
-				};
+				bool exists = false;
+				choiceMethods.Add(method, OUT &exists);
 
 				FRococoGameOptionChoicePackage args;
 
@@ -598,13 +591,12 @@ namespace Rococo::GreatSex
 				c.SetTitle(choiceTitle);
 			}
 
+			TSet<UFunction*> boolMethods;
+
 			void AddBoolOption(UFunction* method, const char* boolId, IGameOptionsBuilder& builder)
 			{
-				struct FRococoGameOptionBoolPackage
-				{
-					uint32 currentBool;
-					FRococoGameOptionBool spec;
-				};
+				bool exists = false;
+				boolMethods.Add(method, OUT & exists);
 
 				FRococoGameOptionBoolPackage args;
 
@@ -612,7 +604,7 @@ namespace Rococo::GreatSex
 
 				auto& b = builder.AddBool(boolId);
 
-				b.SetActiveValue(args.currentBool == 0 ? false : true);
+				b.SetActiveValue((args.currentBool & 0xFF) == 0 ? false : true);
 
 				char hint[256];
 				ToAscii(hint, sizeof hint, args.spec.Hint);
@@ -625,13 +617,12 @@ namespace Rococo::GreatSex
 				b.SetTitle(title);
 			}
 
+			TSet<UFunction*> scalarMethods;
+
 			void AddScalarOption(UFunction* method, const char* scalarId, IGameOptionsBuilder& builder)
 			{
-				struct FRococoGameOptionScalarPackage
-				{
-					double currentScalar;
-					FRococoGameOptionScalar spec;
-				};
+				bool exists = false;
+				scalarMethods.Add(method, OUT & exists);
 
 				FRococoGameOptionScalarPackage args;
 
@@ -705,14 +696,27 @@ namespace Rococo::GreatSex
 				return *this;
 			}
 
-			void Accept() override
+			void Accept(IGameOptionChangeNotifier& notifier) override
 			{
 				// invoke accept on the object
+				if (optionObject->Implements<URococoGameOptionBuilder>())
+				{
+					auto builder = TScriptInterface<IRococoGameOptionBuilder>(optionObject);
+					builder->Execute_OnAccept(optionObject);
+				}
+
+				notifier.OnSupervenientOptionChanged(*this);
 			}
 
-			void Revert() override
+			void Revert(IGameOptionChangeNotifier& notifier) override
 			{
-				// invoke revert on the object
+				if (optionObject->Implements<URococoGameOptionBuilder>())
+				{
+					auto builder = TScriptInterface<IRococoGameOptionBuilder>(optionObject);
+					builder->Execute_OnRevert(optionObject);
+				}
+
+				notifier.OnSupervenientOptionChanged(*this);
 			}
 
 			bool IsModified() const override
@@ -779,8 +783,67 @@ namespace Rococo::GreatSex
 				optionObject->ProcessEvent(method, &scalarValue);
 			}
 
-			void Refresh(IGameOptionsBuilder&) override
+			void UpdateChoice(UFunction* choiceMethod, IGameOptionsBuilder& builder)
 			{
+				FString methodName = choiceMethod->GetFName().ToString();
+				const char* choiceId = GetVolatileAsciiTrailingString(methodName, addOptionPrefix);
+
+				FRococoGameOptionChoicePackage args;
+
+				optionObject->ProcessEvent(choiceMethod, &args);
+
+				auto& c = builder.GetChoice(choiceId);
+
+				char currentChoice[128];
+				ToAscii(currentChoice, sizeof currentChoice, args.currentChoice);
+
+				c.SetActiveChoice(currentChoice);
+			}
+
+			void UpdateScalar(UFunction* scalarMethod, IGameOptionsBuilder& builder)
+			{
+				FString methodName = scalarMethod->GetFName().ToString();
+				const char* scalarId = GetVolatileAsciiTrailingString(methodName, addOptionPrefix);
+
+				FRococoGameOptionScalarPackage args;
+
+				optionObject->ProcessEvent(scalarMethod, &args);
+
+				auto& s = builder.GetScalar(scalarId);
+
+				s.SetActiveValue(args.currentScalar);
+			}
+
+			void UpdateBool(UFunction* boolMethod, IGameOptionsBuilder& builder)
+			{
+				FString methodName = boolMethod->GetFName().ToString();
+				const char* boolId = GetVolatileAsciiTrailingString(methodName, addOptionPrefix);
+
+				FRococoGameOptionBoolPackage args;
+
+				optionObject->ProcessEvent(boolMethod, &args);
+
+				auto& b = builder.GetBool(boolId);
+
+				b.SetActiveValue((args.currentBool & 0xFF) == 0 ? false : true);
+			}
+
+			void Refresh(IGameOptionsBuilder& builder) override
+			{
+				for (auto* choiceMethod : choiceMethods)
+				{
+					UpdateChoice(choiceMethod, builder);
+				}
+
+				for (auto* scalarMethod : scalarMethods)
+				{
+					UpdateScalar(scalarMethod, builder);
+				}
+
+				for (auto* boolMethod : boolMethods)
+				{
+					UpdateBool(boolMethod, builder);
+				}
 			}
 
 			void OnTick(float dt, IGameOptionChangeNotifier&) override

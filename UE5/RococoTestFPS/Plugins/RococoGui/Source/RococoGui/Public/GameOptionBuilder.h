@@ -105,4 +105,19 @@ public:
 	FString GetOptionId();
 
 	virtual FString RaiseGetOptionId();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnRevert();
+
+	virtual void Revert();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAccept();
+
+	virtual void Accept();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void InitOptions();
+
+	virtual void InvokeInitOptions();
 };
