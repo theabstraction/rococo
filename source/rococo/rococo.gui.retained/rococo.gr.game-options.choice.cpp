@@ -247,9 +247,19 @@ namespace GRANON
 			return *this;
 		}
 
+		bool ignoreAdditions = false;
+
+		void IgnoreAdditions(bool shouldIgnore) override
+		{
+			ignoreAdditions = shouldIgnore;
+		}
+
 		void AddChoice(cstr choiceName, cstr choiceText, cstr hint) override
 		{
-			carousel->AddOption(choiceName, choiceText, hint);
+			if (!ignoreAdditions)
+			{
+				carousel->AddOption(choiceName, choiceText, hint);
+			}
 		}
 
 		void SetActiveChoice(cstr choiceName) override

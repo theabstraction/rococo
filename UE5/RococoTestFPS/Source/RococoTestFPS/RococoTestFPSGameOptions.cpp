@@ -183,14 +183,29 @@ namespace RococoTestFPS::Implementation
 			return db;
 		}
 
-		void Accept(IGameOptionChangeNotifier&) override
+		void Accept(IGameOptionChangeNotifier& notifier) override
 		{
+			FMonitorInfo targetMonitor;
+			if (TryGetCurrentTargetMonitor(OUT targetMonitor))
+			{
+				// Push the screen onto the target monitor. This is half-arsed because Unreal Engine does little to expose the DX12 screen config API for monitor micromanagement
+				SyncViewportToMonitor(targetMonitor);
+				SyncVideoModeToCurrentTargetResolution(&targetMonitor);
+			}
 
+			// Sanitization may have changed things, so update the GUI
+			notifier.OnSupervenientOptionChanged(*this);
 		}
 
-		void Revert(IGameOptionChangeNotifier&) override
+		void Revert(IGameOptionChangeNotifier& notifier) override
 		{
-
+			targetMonitorIndex = 0;
+			UGameUserSettings* settings = GEngine->GetGameUserSettings();
+			settings->SetFullscreenMode(EWindowMode::WindowedFullscreen);
+			SetRezInConfig(DEFAULT_HREZ, DEFAULT_VREZ);
+			GConfig->SetInt(TEXT("/Script/Rococo.Graphics"), TEXT("FullScreenResolution.Hz"), DEFAULT_REFRESH_RATE, GGameIni);
+			SyncMonitorToIndex(targetMonitorIndex, true);
+			notifier.OnSupervenientOptionChanged(*this);
 		}
 
 		bool IsModified() const override
@@ -198,7 +213,6 @@ namespace RococoTestFPS::Implementation
 			return true;
 		}
 
-		Rococo::Strings::HString activeScreenMode = "";
 		Rococo::Strings::HString shadowQuality = "2";
 		Rococo::Strings::HString landscapeQuality = "1";
 		Rococo::Strings::HString reflectionAlgorithm = "1";
@@ -233,19 +247,18 @@ namespace RococoTestFPS::Implementation
 				inquiry.AddChoice(mode.shortName, mode.desc, GEN_HINT_FROM_PARENT_AND_CHOICE);
 			}
 
-			if (activeScreenMode.length() == 0)
-			{
-				auto& window = *GEngine->GameViewport->GetWindow();
+			auto& window = *GEngine->GameViewport->GetWindow();
 				
-				UGameUserSettings* settings = GEngine->GetGameUserSettings();
+			UGameUserSettings* settings = GEngine->GetGameUserSettings();
 
-				for (auto& desc : modeDesc)
+			cstr activeScreenMode = "FWindowed";
+			
+			for (auto& desc : modeDesc)
+			{
+				if (desc.ue5Type == settings->GetFullscreenMode())
 				{
-					if (desc.ue5Type == settings->GetFullscreenMode())
-					{
-						activeScreenMode = desc.shortName;
-						break;
-					}
+					activeScreenMode = desc.shortName;
+					break;
 				}
 			}
 
@@ -253,15 +266,14 @@ namespace RococoTestFPS::Implementation
 			inquiry.SetHint("Set screen mode");
 		}
 
-		void SetScreenMode(cstr choice, IGameOptionChangeNotifier&)
+		void SetScreenMode(cstr choice, IGameOptionChangeNotifier& notifier)
 		{
-			activeScreenMode = choice;
-
 			for (auto& mode : modeDesc)
 			{
 				if (Eq(mode.shortName, choice))
 				{
-					modality = mode.ue5Type;
+					UGameUserSettings* settings = GEngine->GetGameUserSettings();
+					settings->SetFullscreenMode(mode.ue5Type);
 					break;
 				}
 			}
@@ -272,6 +284,8 @@ namespace RococoTestFPS::Implementation
 				SyncViewportToMonitor(targetMonitor);
 				SyncVideoModeToCurrentTargetResolution(&targetMonitor);
 			}
+
+			notifier.OnSupervenientOptionChanged(*this);
 		}
 
 		void GetFSAA(IBoolInquiry& inquiry)
@@ -486,8 +500,40 @@ namespace RococoTestFPS::Implementation
 		void SyncViewportToMonitor(const FMonitorInfo& targetMonitor)
 		{
 			auto& window = *GEngine->GameViewport->GetWindow();
-			window.MoveWindowTo(FVector2D(targetMonitor.DisplayRect.Left, targetMonitor.DisplayRect.Top));
-			window.Resize(FVector2D(targetMonitor.NativeWidth, targetMonitor.NativeHeight));
+
+			FVector2D topLeft(targetMonitor.DisplayRect.Left, targetMonitor.DisplayRect.Top);
+
+			UGameUserSettings* settings = GEngine->GetGameUserSettings();
+
+			enum { LEFT_OFFSET = 32, TOP_OFFSET = 128 };
+
+			switch (settings->GetFullscreenMode())
+			{
+			case EWindowMode::Windowed:
+				topLeft += FVector2D(LEFT_OFFSET, TOP_OFFSET);
+				break;
+			default:
+				break;
+			}
+
+			window.MoveWindowTo(topLeft);
+
+			FVector2D nativeSpan(targetMonitor.NativeWidth, targetMonitor.NativeHeight);
+
+			switch (settings->GetFullscreenMode())
+			{
+			case EWindowMode::WindowedFullscreen:
+				window.Resize(nativeSpan);
+				break;
+			case EWindowMode::Fullscreen:
+				if (window.GetSizeInScreen().X > nativeSpan.X || window.GetSizeInScreen().Y > nativeSpan.Y)
+				{
+					window.Resize(nativeSpan);
+				}
+				break;
+			default:
+				break;
+			}
 		}
 
 		void SyncMonitorToIndex(int monitorIndex, bool saveToConfig)
@@ -511,11 +557,12 @@ namespace RococoTestFPS::Implementation
 			}
 		}
 
-		void SetActiveMonitor(cstr value, IGameOptionChangeNotifier&)
+		void SetActiveMonitor(cstr value, IGameOptionChangeNotifier& notifier)
 		{
 			// Assume values is "1", "2", etc, a positive integer
 			targetMonitorIndex = atoi(value) - 1;
 			SyncMonitorToIndex(targetMonitorIndex, true);
+			notifier.OnSupervenientOptionChanged(*this);
 		}
 
 		void SetRezInConfig(int width, int height)
@@ -638,16 +685,14 @@ namespace RococoTestFPS::Implementation
 
 				resolutions.Sort(byWidthAndHeight);
 
-				int configWidth = 0, configHeight = 0;
-				GConfig->GetInt(TEXT("/Script/Rococo.Graphics"), TEXT("FullScreenResolution.Width"), OUT configWidth, GGameIni);
-				GConfig->GetInt(TEXT("/Script/Rococo.Graphics"), TEXT("FullScreenResolution.Height"), OUT configHeight, GGameIni);
+				Vec2i configSpan = GetRezFromConfig();
 
 				int index = 0;
 				for (const FIntPoint& r : resolutions)
 				{
 					if (r.X >= minHRez && r.Y >= minVRez)
 					{
-						if (r.X == configWidth && r.Y == configHeight)
+						if (r.X == configSpan.x && r.Y == configSpan.y)
 						{
 							currentIndex = index;
 						}
@@ -686,12 +731,22 @@ namespace RococoTestFPS::Implementation
 
 			auto& window = *GEngine->GameViewport->GetWindow();
 
+			if (displayMetrics.MonitorInfo.IsValidIndex(targetMonitorIndex))
+			{
+				OUT currentMonitor = displayMetrics.MonitorInfo[targetMonitorIndex];
+				return true;
+			}
+
 			for (const FMonitorInfo& m : displayMetrics.MonitorInfo)
 			{
-				if (window.GetPositionInScreen() == FVector2D(m.WorkArea.Left, m.WorkArea.Top))
+				FVector2D leftTop = window.GetPositionInScreen();
+				if (leftTop.X >= m.WorkArea.Left && leftTop.X < m.WorkArea.Right)
 				{
-					currentMonitor = m;
-					return true;
+					if (leftTop.Y >= m.WorkArea.Top && leftTop.Y < m.WorkArea.Bottom)
+					{
+						currentMonitor = m;
+						return true;
+					}
 				}
 			}
 
@@ -707,7 +762,7 @@ namespace RococoTestFPS::Implementation
 			return false;
 		}
 
-		void SetFullscreenResolution(cstr choice, IGameOptionChangeNotifier&)
+		void SetFullscreenResolution(cstr choice, IGameOptionChangeNotifier& notifier)
 		{
 			currentTargetResolution = FScreenResolutionRHI(DEFAULT_HREZ, DEFAULT_VREZ, DEFAULT_REFRESH_RATE);
 
@@ -742,9 +797,9 @@ namespace RococoTestFPS::Implementation
 			{
 				SyncVideoModeToCurrentTargetResolution(&currentMonitor);
 			}
-		}
 
-		EWindowMode::Type modality = EWindowMode::WindowedFullscreen;
+			notifier.OnSupervenientOptionChanged(*this);
+		}
 
 		void SyncVideoModeToCurrentTargetResolution(const FMonitorInfo* selectedMonitor)
 		{
@@ -756,6 +811,8 @@ namespace RococoTestFPS::Implementation
 			UGameUserSettings* settings = GEngine->GetGameUserSettings();
 
 			FIntPoint nextRez(currentTargetResolution.Width, currentTargetResolution.Height);
+
+			auto modality = settings->GetFullscreenMode();
 
 			if (modality == EWindowMode::Windowed)
 			{
@@ -836,6 +893,21 @@ namespace RococoTestFPS::Implementation
 			UNUSED(dt);
 		}
 
+		Vec2i GetRezFromConfig() const
+		{
+			UGameUserSettings* settings = GEngine->GetGameUserSettings();
+			FIntPoint resolution = settings->GetScreenResolution();
+
+			return { resolution.X, resolution.Y };
+
+			/*
+			int configWidth = 0, configHeight = 0;
+			GConfig->GetInt(TEXT("/Script/Rococo.Graphics"), TEXT("FullScreenResolution.Width"), OUT configWidth, GGameIni);
+			GConfig->GetInt(TEXT("/Script/Rococo.Graphics"), TEXT("FullScreenResolution.Height"), OUT configHeight, GGameIni);
+			return { configWidth, configHeight };
+			*/
+		}
+
 		void SyncGraphicsToConfig()
 		{
 			if (!GEngine->GameViewport || !GEngine->GameViewport->GetWindow())
@@ -843,6 +915,11 @@ namespace RococoTestFPS::Implementation
 				UE_LOG(TestFPSOptions, Error, TEXT("%hs: viewport window does not exist at time of invocation"), __func__);
 				return;
 			}
+
+			Vec2i res = GetRezFromConfig();
+	
+			currentTargetResolution.Width = res.x;;
+			currentTargetResolution.Height = res.y;
 
 			SyncMonitorStateToActiveMonitor();
 

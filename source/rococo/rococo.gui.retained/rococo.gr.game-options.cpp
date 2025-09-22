@@ -353,6 +353,7 @@ namespace GRANON
 				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
 			}
 
+			i->second->IgnoreAdditions(true);
 			return i->second->Inquiry();
 		}
 

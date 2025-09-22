@@ -134,7 +134,10 @@ namespace GRANON
 				}
 			}
 
-			CollapseDropDownAndNotify({ 0,0 });
+			if (!dropDown->Panel().IsCollapsed())
+			{
+				CollapseDropDownAndNotify({ 0,0 });
+			}
 		}
 
 		void CollapseDropDownAndNotify(Vec2i clickPosition)

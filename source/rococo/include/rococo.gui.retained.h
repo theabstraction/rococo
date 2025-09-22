@@ -1316,6 +1316,9 @@ namespace Rococo::Gui
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 		virtual Game::Options::IChoiceInquiry& Inquiry() = 0;
+
+		// Prevent Inquiry from adding choices
+		virtual void IgnoreAdditions(bool shouldIgnore) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsScalar : IGRBase
