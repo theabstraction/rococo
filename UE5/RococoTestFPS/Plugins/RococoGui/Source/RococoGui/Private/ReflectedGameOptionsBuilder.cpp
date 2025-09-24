@@ -114,7 +114,7 @@ namespace Rococo::GreatSex
 
 					if (!property->HasAnyPropertyFlags(CPF_OutParm))
 					{
-						OnError(method, property, TEXT("Expecting no inputs"));
+						OnError(method, property, TEXT("Expecting no outputs"));
 					}
 
 					if (index == 0)

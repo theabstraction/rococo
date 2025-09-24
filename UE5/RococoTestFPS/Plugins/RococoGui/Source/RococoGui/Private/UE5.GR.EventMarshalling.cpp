@@ -1,6 +1,10 @@
 #include "UE5.GR.EventMarshalling.h"
 #include <Widgets/SWidget.h>
 #include "RococoGuiAPI.h"
+#include <GameOptionBuilder.h>
+
+DECLARE_LOG_CATEGORY_EXTERN(RococoEvents, Error, All);
+DEFINE_LOG_CATEGORY(RococoEvents);
 
 namespace Rococo
 {
@@ -21,6 +25,131 @@ void LogRococoControlEvent(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, c
 		custodian->Log("%s", text);
 	}
 }
+
+static FName name_OnButtonClick(TEXT("OnButtonClick"));
+static FName name_OnUserDefined(TEXT("OnUserDefined"));
+
+FName GetName(Rococo::Gui::GRWidgetEvent& ev)
+{
+	using namespace Rococo::Gui;
+
+	switch (ev.eventType)
+	{
+	case EGRWidgetEventType::BUTTON_CLICK:
+		return name_OnButtonClick;
+	case EGRWidgetEventType::USER_DEFINED:
+		return name_OnUserDefined;
+	default:
+		return name_OnUserDefined; // User defined value that is valued (EGRWidgetEventType::USER_DEFINED + offset) where offset > 0
+	}
+}
+
+void RaiseError(UObject* object, const FString& methodMsg, const FString& prop, const FString& err)
+{
+	if (object->Implements<URococoReflectionEventHandler>())
+	{
+		auto errorHandler = TScriptInterface<IRococoReflectionEventHandler>(object);
+		errorHandler->Execute_OnError(object, methodMsg, prop, err);
+	}	
+	else if (object)
+	{
+		UE_LOG(RococoEvents, Error, TEXT("%s: event object %s does not implement IRococoReflectionEventHandler"), *err, *object->GetClass()->GetName());
+	}
+	else
+	{
+		UE_LOG(RococoEvents, Error, TEXT("%s: no event object"), *err);
+	}
+}
+
+void RaiseError(UObject* object, UFunction* method, const FProperty* prop, const FString& err)
+{
+	RaiseError(object, method->GetName(), prop ? prop->GetName() : TEXT(""), err);
+}
+
+ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)
+{
+	if (!handler)
+	{
+		return;
+	}
+
+	UClass* objectClass = handler->GetClass();
+
+	FName methodName = GetName(ev);
+
+	UFunction* method = objectClass->FindFunctionByName(methodName);
+	if (!method)
+	{
+		RaiseError(handler, methodName.ToString(), TEXT(""), FString::Printf(TEXT("Could not find function in event handler %s"), *handler->GetClass()->GetName()));
+		return;
+	}
+
+	int index = 0;
+
+	bool hasInput = false;
+
+	for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+	{
+		FProperty* property = *i;
+
+		if (!property->HasAnyPropertyFlags(CPF_Parm))
+		{
+			// Not a parameter, probably a local variable
+			continue;
+		}
+
+		if (!property->HasAnyPropertyFlags(CPF_OutParm))
+		{
+			RaiseError(handler, method, property, TEXT("Expecting no outputs"));
+		}
+
+		if (index == 0)
+		{
+			auto* sp = CastField<FStructProperty>(property);
+			if (!sp)
+			{
+				RaiseError(handler, method, property, TEXT("Expecting first method argument to be a struct of type FRococoGREvent"));
+				return;
+			}
+
+			if (sp->Struct != FRococoGREvent::StaticStruct())
+			{
+				// Signature mismatch
+				RaiseError(handler, method, property, TEXT("Expecting first method argument to be of type FRococoGREvent"));
+				return;
+			}
+
+			hasInput = true;
+		}
+		else
+		{
+			RaiseError(handler, method, property, TEXT("Expecting only one method argument"));
+			return;
+		}
+	}
+
+	if (!hasInput)
+	{
+		RaiseError(handler, method, nullptr, TEXT("Expecting only one method argument of type FRococoGREvent"));
+		return;
+	}
+
+	FRococoGREvent args;
+	args.EventCode = ev.eventType == Rococo::Gui::EGRWidgetEventType::USER_DEFINED ? RococoGREventCode::USER_DEFINED : (RococoGREventCode)(ev.eventType);
+	args.extendedEventCode = (int)ev.eventType;
+	args.MetaDataInt = ev.iMetaData;
+	args.PanelId = ev.panelId;
+
+	auto* widget = gr.FindWidget(ev.panelId);
+	if (widget)
+	{
+		args.MetaDataString = FString::Printf(TEXT("%hs"), ev.sMetaData);
+		args.SenderDesc = FString::Printf(TEXT("%hs"), widget->Panel().Desc());
+	}
+
+	handler->ProcessEvent(method, &args);
+}
+
 
 FEventReply RouteMouseButtonDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {

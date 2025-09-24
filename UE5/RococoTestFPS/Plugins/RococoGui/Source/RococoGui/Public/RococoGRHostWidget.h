@@ -30,7 +30,7 @@ enum class RococoSelectionChangeOrigin : uint8
 
 // The basic Rococo Gui Retained host widget. Needs C++ to get anywhere. For a blueprint driven system use URococoGRHostWidgetBuilder
 UCLASS(BlueprintType, meta = (DisplayName = "RococoGRHostWidget (Object)"))
-class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics, public Rococo::Gui::IGRSelectionChangeHandler
+class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics, public Rococo::Gui::IGRSelectionChangeHandler, public Rococo::Gui::IGREventHandler
 {
 public:
 	GENERATED_BODY()
@@ -64,6 +64,8 @@ public:
 	}
 
 	void OnSelectionChanged(Rococo::Gui::IGRPanel& panel, Rococo::Gui::EGRSelectionChangeOrigin origin) override;
+
+	Rococo::Gui::EGREventRouting OnGREvent(Rococo::Gui::GRWidgetEvent& ev) override;
 protected:
 	TSharedPtr<SRococoGRHostWidget> _SlateHostWidget;
 
@@ -73,6 +75,10 @@ protected:
 	// We pass it to the slate widget by calling slateHostWidget->SyncCustodian(...) inside of RebuildWidget
 	UPROPERTY(Transient)
 	TMap<FString, UTexture2D*> _MapPathToTexture;
+
+	// The event handler methods are called by reflection in response to GR_PumpMessages
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
+	TObjectPtr<UObject> _GREventHandler;
 
 	// Multiplier of the Rococo point size value for fonts to create the UE5 point size. The default value was determined empircally to best approximate the UE5
 	// fonts to those of the Rococo GDI test application. The value is capped between 0.2 and 8.0
@@ -104,6 +110,10 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	void SetControlCategory(RococoControlCategory category);
+
+	// This should be called periodically from the main thread, it will invoke the _GREventHandler with messages from the GR message queue.
+	UFUNCTION(BlueprintCallable, Category = "RococoGui")
+	void GRPumpMessages();
 
 	RococoControlCategory lastCategory = RococoControlCategory::NONE;
 

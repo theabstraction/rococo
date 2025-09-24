@@ -94,6 +94,56 @@ void URococoGRHostWidget::SetControlCategory(RococoControlCategory category)
 	}
 }
 
+void URococoGRHostWidget::GRPumpMessages()
+{
+	if (!_SlateHostWidget)
+	{
+		return;
+	}
+
+	auto* gr = static_cast<Rococo::Gui::IGRSystemSupervisor*>(_SlateHostWidget->GR());
+	if (!gr)
+	{
+		return;
+	}
+
+	if (!_GREventHandler)
+	{
+		return;
+	}
+
+	gr->SetEventHandler(this);
+
+	// This will trigger URococoGRHostWidget::OnGREvent for each pending event. _GREventHandler must be assigned first
+	gr->DispatchMessages();
+}
+
+ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr);
+
+Rococo::Gui::EGREventRouting URococoGRHostWidget::OnGREvent(Rococo::Gui::GRWidgetEvent& ev)
+{
+	if (_GREventHandler == nullptr)
+	{
+		UE_LOG(RococoGUI, Error, TEXT("RouteGREventViaReflection unhandled, as handler was NULL"));
+	}
+	else
+	{
+		if (!_SlateHostWidget)
+		{
+			UE_LOG(RococoGUI, Error, TEXT("RouteGREventViaReflection unhandled, as _SlateHostWidget was NULL"));
+		}
+		else if (!_SlateHostWidget->GR())
+		{
+			UE_LOG(RococoGUI, Error, TEXT("RouteGREventViaReflection unhandled, as _SlateHostWidget->GR() was NULL"));
+		}
+		else
+		{
+			RouteGREventViaReflection(_GREventHandler, ev, *_SlateHostWidget->GR());
+		}
+	}
+	return Rococo::Gui::EGREventRouting::Terminate;
+}
+
 static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 {
 	int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
