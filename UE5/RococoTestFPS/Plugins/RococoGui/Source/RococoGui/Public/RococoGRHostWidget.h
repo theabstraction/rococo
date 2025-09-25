@@ -66,6 +66,7 @@ public:
 	void OnSelectionChanged(Rococo::Gui::IGRPanel& panel, Rococo::Gui::EGRSelectionChangeOrigin origin) override;
 
 	Rococo::Gui::EGREventRouting OnGREvent(Rococo::Gui::GRWidgetEvent& ev) override;
+	Rococo::Gui::EGREventRouting OnGlobalKeyEvent(Rococo::Gui::GRKeyEvent& keyEvent) override;
 protected:
 	TSharedPtr<SRococoGRHostWidget> _SlateHostWidget;
 

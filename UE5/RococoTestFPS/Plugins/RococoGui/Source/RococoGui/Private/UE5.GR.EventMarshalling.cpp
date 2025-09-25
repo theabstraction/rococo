@@ -2,6 +2,8 @@
 #include <Widgets/SWidget.h>
 #include "RococoGuiAPI.h"
 #include <RococoGui_BPEvents.h>
+#include <rococo.ui.h>
+#include <Components/SlateWrapperTypes.h>
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoEvents, Error, All);
 DEFINE_LOG_CATEGORY(RococoEvents);
@@ -154,6 +156,32 @@ bool IsAsciiFunctionName(const char* s)
 	}
 
 	return true;
+}
+
+ROCOCOGUI_API FReply RouteGRKeyEvent(UObject* handler, Rococo::Gui::GRKeyEvent& keyEvent)
+{
+	if (!handler)
+	{
+		return FReply::Unhandled();
+	}
+
+	if (!handler->Implements<URococoReflectionEventHandler>())
+	{
+		return FReply::Unhandled();
+	}
+
+	auto iHandler = TScriptInterface<IRococoReflectionEventHandler>(handler);
+	if (keyEvent.osKeyEvent.IsUp())
+	{
+		auto result = iHandler->Execute_OnGlobalKeyUp(handler, keyEvent.osKeyEvent.VKey, keyEvent.osKeyEvent.unicode);
+		return result.NativeReply;
+	}
+	else
+	{
+		auto result = iHandler->Execute_OnGlobalKeyDown(handler, keyEvent.osKeyEvent.VKey, keyEvent.osKeyEvent.unicode);
+		return result.NativeReply;
+	}
+	return FReply::Handled();
 }
 
 ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)

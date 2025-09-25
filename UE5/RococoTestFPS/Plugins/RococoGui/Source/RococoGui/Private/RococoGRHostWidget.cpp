@@ -124,17 +124,17 @@ Rococo::Gui::EGREventRouting URococoGRHostWidget::OnGREvent(Rococo::Gui::GRWidge
 {
 	if (_GREventHandler == nullptr)
 	{
-		UE_LOG(RococoGUI, Error, TEXT("RouteGREventViaReflection unhandled, as handler was NULL"));
+		UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as handler was NULL"));
 	}
 	else
 	{
 		if (!_SlateHostWidget)
 		{
-			UE_LOG(RococoGUI, Error, TEXT("RouteGREventViaReflection unhandled, as _SlateHostWidget was NULL"));
+			UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as _SlateHostWidget was NULL"));
 		}
 		else if (!_SlateHostWidget->GR())
 		{
-			UE_LOG(RococoGUI, Error, TEXT("RouteGREventViaReflection unhandled, as _SlateHostWidget->GR() was NULL"));
+			UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as _SlateHostWidget->GR() was NULL"));
 		}
 		else
 		{
@@ -142,6 +142,37 @@ Rococo::Gui::EGREventRouting URococoGRHostWidget::OnGREvent(Rococo::Gui::GRWidge
 		}
 	}
 	return Rococo::Gui::EGREventRouting::Terminate;
+}
+
+ROCOCOGUI_API FReply RouteGRKeyEvent(UObject* handler, Rococo::Gui::GRKeyEvent& keyEvent);
+
+Rococo::Gui::EGREventRouting URococoGRHostWidget::OnGlobalKeyEvent(Rococo::Gui::GRKeyEvent& keyEvent)
+{
+	if (_GREventHandler == nullptr)
+	{
+		UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as handler was NULL"));
+	}
+	else
+	{
+		if (!_SlateHostWidget)
+		{
+			UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as _SlateHostWidget was NULL"));
+		}
+		else if (!_SlateHostWidget->GR())
+		{
+			UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as _SlateHostWidget->GR() was NULL"));
+		}
+		else
+		{
+			FReply reply = RouteGRKeyEvent(_GREventHandler, keyEvent);
+			if (reply.IsEventHandled())
+			{
+				return Rococo::Gui::EGREventRouting::Terminate;
+			}
+		}
+	}
+
+	return Rococo::Gui::EGREventRouting::NextHandler;
 }
 
 static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)

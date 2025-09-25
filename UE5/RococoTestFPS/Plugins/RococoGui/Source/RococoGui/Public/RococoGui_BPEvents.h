@@ -19,6 +19,15 @@ public:
 	void OnBadMethod(const FString& errMsg, const FString& methodMsg, const FString& propertyMsg);
 
 	virtual void RaiseBadMethod(const FString& errMsg, const FString& methodMsg, const FString& propertyMsg);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	FEventReply OnGlobalKeyUp(int virtualKeyCode, int unicode);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	FEventReply OnGlobalKeyDown(int virtualKeyCode, int unicode);
+
+	virtual FEventReply RaiseGlobalKeyUp(int virtualKeyCode, int unicode);
+	virtual FEventReply RaiseGlobalKeyDown(int virtualKeyCode, int unicode);
 };
 
 UENUM(BlueprintType)

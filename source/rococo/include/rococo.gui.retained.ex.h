@@ -13,6 +13,9 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGREventHandler
 	{
 		virtual EGREventRouting OnGREvent(GRWidgetEvent & ev) = 0;
+
+		// A key press was not trapped by the GUI widget system
+		virtual EGREventRouting OnGlobalKeyEvent(GRKeyEvent& keyEvent) = 0;
 	};
 
 	// Lifetime manager for a gui retained instance

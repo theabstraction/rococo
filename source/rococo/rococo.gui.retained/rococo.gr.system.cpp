@@ -778,6 +778,15 @@ namespace ANON
 
 		void ApplyKeyGlobally(GRKeyEvent& keyEvent) override
 		{
+			if (eventHandler)
+			{
+				EGREventRouting routing = eventHandler->OnGlobalKeyEvent(keyEvent);
+				if (routing == EGREventRouting::Terminate)
+				{
+					return;
+				}
+			}
+
 			switch (keyEvent.osKeyEvent.VKey)
 			{
 			case IO::VirtualKeys::VKCode_TAB:
@@ -788,7 +797,6 @@ namespace ANON
 						OnNavigate(EGRNavigationDirective::Tab);
 					}
 				}
-				break;
 			}
 		}
 
