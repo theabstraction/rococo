@@ -5,11 +5,6 @@ void IRococoGameOptionBuilder::RaiseError(const FString& methodMsg, const FStrin
 	OnError(methodMsg, propertyMsg, errMsg);
 }
 
-void IRococoReflectionEventHandler::RaiseError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg)
-{
-	OnError(methodMsg, propertyMsg, errMsg);
-}
-
 void IRococoGameOptionBuilder::Accept()
 {
 	OnAccept();

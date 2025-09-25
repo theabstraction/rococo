@@ -1,7 +1,7 @@
 #include "UE5.GR.EventMarshalling.h"
 #include <Widgets/SWidget.h>
 #include "RococoGuiAPI.h"
-#include <GameOptionBuilder.h>
+#include <RococoGui_BPEvents.h>
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoEvents, Error, All);
 DEFINE_LOG_CATEGORY(RococoEvents);
@@ -49,7 +49,7 @@ void RaiseError(UObject* object, const FString& methodMsg, const FString& prop, 
 	if (object->Implements<URococoReflectionEventHandler>())
 	{
 		auto errorHandler = TScriptInterface<IRococoReflectionEventHandler>(object);
-		errorHandler->Execute_OnError(object, methodMsg, prop, err);
+		errorHandler->Execute_OnBadMethod(object, err, methodMsg, prop);
 	}	
 	else if (object)
 	{
@@ -66,29 +66,11 @@ void RaiseError(UObject* object, UFunction* method, const FProperty* prop, const
 	RaiseError(object, method->GetName(), prop ? prop->GetName() : TEXT(""), err);
 }
 
-ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)
+void Invoke(UFunction* method, UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)
 {
-	if (!handler)
-	{
-		return;
-	}
-
-	UClass* objectClass = handler->GetClass();
-
-	FName methodName = GetName(ev);
-
-	UFunction* method = objectClass->FindFunctionByName(methodName);
-	if (!method)
-	{
-		RaiseError(handler, methodName.ToString(), TEXT(""), FString::Printf(TEXT("Could not find function in event handler %s"), *handler->GetClass()->GetName()));
-		return;
-	}
-
-	int index = 0;
-
 	bool hasInput = false;
 
-	for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i, ++index)
+	for (TFieldIterator<FProperty> i(method, EFieldIteratorFlags::ExcludeSuper); i; ++i)
 	{
 		FProperty* property = *i;
 
@@ -98,34 +80,36 @@ ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWi
 			continue;
 		}
 
-		if (!property->HasAnyPropertyFlags(CPF_OutParm))
+		if (!property->HasAnyPropertyFlags(CPF_ConstParm))
 		{
-			RaiseError(handler, method, property, TEXT("Expecting no outputs"));
+			RaiseError(handler, method, property, TEXT("Expecting const input ref"));
 		}
 
-		if (index == 0)
+		if (!property->HasAnyPropertyFlags(CPF_ReferenceParm))
 		{
-			auto* sp = CastField<FStructProperty>(property);
-			if (!sp)
-			{
-				RaiseError(handler, method, property, TEXT("Expecting first method argument to be a struct of type FRococoGREvent"));
-				return;
-			}
-
-			if (sp->Struct != FRococoGREvent::StaticStruct())
-			{
-				// Signature mismatch
-				RaiseError(handler, method, property, TEXT("Expecting first method argument to be of type FRococoGREvent"));
-				return;
-			}
-
-			hasInput = true;
+			RaiseError(handler, method, property, TEXT("Expecting const input ref"));
 		}
-		else
+
+		if (hasInput)
 		{
-			RaiseError(handler, method, property, TEXT("Expecting only one method argument"));
+			RaiseError(handler, method, nullptr, TEXT("Expecting only one method argument of type FRococoGREvent"));
+		}
+
+		auto* sp = CastField<FStructProperty>(property);
+		if (!sp)
+		{
+			RaiseError(handler, method, property, TEXT("Expecting first method argument to be a struct of type FRococoGREvent"));
 			return;
 		}
+
+		if (sp->Struct != FRococoGREvent::StaticStruct())
+		{
+			// Signature mismatch
+			RaiseError(handler, method, property, TEXT("Expecting first method argument to be of type FRococoGREvent"));
+			return;
+		}
+
+		hasInput = true;
 	}
 
 	if (!hasInput)
@@ -148,6 +132,65 @@ ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWi
 	}
 
 	handler->ProcessEvent(method, &args);
+}
+
+bool IsAsciiFunctionName(const char* s)
+{
+	if (s == nullptr || *s == 0) return false;
+
+	if (!isalpha(*s))
+	{
+		return false;
+	}
+
+	s++;
+
+	for (; *s != 0; s++)
+	{
+		if (!isalnum(*s))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)
+{
+	if (!handler)
+	{
+		return;
+	}
+
+	UClass* objectClass = handler->GetClass();
+
+	FName methodName = GetName(ev);
+
+	auto* widget = gr.FindWidget(ev.panelId);
+	if (widget)
+	{
+		auto* desc = widget->Panel().Desc();
+		if (IsAsciiFunctionName(desc))
+		{
+			FString extendedName = FString::Printf(TEXT("%s_%hs"), *methodName.ToString(), desc);
+			UFunction* methodEx = objectClass->FindFunctionByName(FName(extendedName));
+			if (methodEx)
+			{
+				Invoke(methodEx, handler, ev, gr);
+				return;
+			}
+		}
+	}
+
+	UFunction* method = objectClass->FindFunctionByName(methodName);
+	if (!method)
+	{
+		RaiseError(handler, methodName.ToString(), TEXT(""), FString::Printf(TEXT("Could not find function in event handler %s"), *handler->GetClass()->GetName()));
+		return;
+	}
+
+	Invoke(method, handler, ev, gr);
 }
 
 
