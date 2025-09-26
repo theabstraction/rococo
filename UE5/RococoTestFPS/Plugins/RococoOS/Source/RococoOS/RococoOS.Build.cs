@@ -193,6 +193,8 @@ public class RococoOS : ModuleRules
 
     public RococoOS(ReadOnlyTargetRules Target) : base(Target)
 	{
+        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoOS!");
+
         PrepRococoDirectories();
         CreateBundles();
 
@@ -248,6 +250,8 @@ public class RococoOS : ModuleRules
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
-			);
-	}
+		);
+
+        System.Console.WriteLine("Constructed XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    }
 }

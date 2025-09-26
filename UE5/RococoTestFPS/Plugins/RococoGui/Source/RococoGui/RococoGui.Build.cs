@@ -178,6 +178,8 @@ public class RococoGui : ModuleRules
 
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)
     {
+        System.Console.WriteLine("|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoGuiLib!");
+
         PrepRococoDirectories();
 
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
@@ -261,5 +263,7 @@ public class RococoGui : ModuleRules
         RuntimeDependencies.Add("$(TargetOutputDir)/lib-jpg.dll", libJpegWin64_DLL);
         RuntimeDependencies.Add("$(TargetOutputDir)/lib-zip.dll", libZip_DLL);
         */
+
+        System.Console.WriteLine("Constructed RococoGuiLib! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
 }

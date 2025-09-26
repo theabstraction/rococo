@@ -96,6 +96,8 @@ public class RococoTestFPS : ModuleRules
 
     public RococoTestFPS(ReadOnlyTargetRules Target) : base(Target)
 	{
+        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoTestFPS!");
+
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SlateCore", "Slate", "EnhancedInput", "RHI", "ApplicationCore", "RococoOS", "RococoGui" });
@@ -121,6 +123,9 @@ public class RococoTestFPS : ModuleRules
           {
                 rococoIncludeDirectory
           }
-      );
+        );
+
+        System.Console.WriteLine("Constructed RococoTestFPS! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
     }
 }
