@@ -248,8 +248,6 @@ public class RococoJPEGLib : ModuleRules
     }
     public RococoJPEGLib(ReadOnlyTargetRules Target) : base(Target)
 	{
-        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoJPEGLib!");
-
         PrepRococoDirectories();
         CreateBundles();
 
@@ -306,7 +304,5 @@ public class RococoJPEGLib : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 		);
-
-        System.Console.WriteLine("Constructed RococoJPEGLib! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
 }

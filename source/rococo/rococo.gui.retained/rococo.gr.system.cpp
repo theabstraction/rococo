@@ -776,26 +776,22 @@ namespace ANON
 			}
 		}
 
+		void FocusDefaultTab() override
+		{
+			if (focusId > 0)
+			{
+				OnNavigate(EGRNavigationDirective::Tab);
+			}
+		}
+
 		void ApplyKeyGlobally(GRKeyEvent& keyEvent) override
 		{
-			if (eventHandler)
-			{
-				EGREventRouting routing = eventHandler->OnGlobalKeyEvent(keyEvent);
-				if (routing == EGREventRouting::Terminate)
-				{
-					return;
-				}
-			}
-
 			switch (keyEvent.osKeyEvent.VKey)
 			{
 			case IO::VirtualKeys::VKCode_TAB:
 				if (keyEvent.osKeyEvent.IsUp())
 				{
-					if (focusId > 0)
-					{
-						OnNavigate(EGRNavigationDirective::Tab);
-					}
+					FocusDefaultTab();
 				}
 			}
 		}

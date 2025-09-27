@@ -158,32 +158,6 @@ bool IsAsciiFunctionName(const char* s)
 	return true;
 }
 
-ROCOCOGUI_API FReply RouteGRKeyEvent(UObject* handler, Rococo::Gui::GRKeyEvent& keyEvent)
-{
-	if (!handler)
-	{
-		return FReply::Unhandled();
-	}
-
-	if (!handler->Implements<URococoReflectionEventHandler>())
-	{
-		return FReply::Unhandled();
-	}
-
-	auto iHandler = TScriptInterface<IRococoReflectionEventHandler>(handler);
-	if (keyEvent.osKeyEvent.IsUp())
-	{
-		auto result = iHandler->Execute_OnGlobalKeyUp(handler, keyEvent.osKeyEvent.VKey, keyEvent.osKeyEvent.unicode);
-		return result.NativeReply;
-	}
-	else
-	{
-		auto result = iHandler->Execute_OnGlobalKeyDown(handler, keyEvent.osKeyEvent.VKey, keyEvent.osKeyEvent.unicode);
-		return result.NativeReply;
-	}
-	return FReply::Handled();
-}
-
 ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)
 {
 	if (!handler)
@@ -259,7 +233,11 @@ FEventReply RouteMouseButtonDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custod
 
 		CopySpatialInfo(me, ue5MouseEvent, geometry);
 
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		if (result == Rococo::Gui::EGREventRouting::NextHandler)
+		{
+			return FEventReply(false);
+		}
 	}
 	catch (IException& ex)
 	{
@@ -309,7 +287,11 @@ FEventReply RouteMouseButtonUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodia
 			FReply FSlateApplication::RoutePointerUpEvent(const FWidgetPath & WidgetsUnderPointer, const FPointerEvent & PointerEvent)
 		*/
 		CopySpatialInfo_NoFullscreenCorrection(me, ue5MouseEvent, geometry);
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		if (result == Rococo::Gui::EGREventRouting::NextHandler)
+		{
+			return FEventReply(false);
+		}
 	}
 	catch (IException& ex)
 	{
@@ -332,7 +314,11 @@ FEventReply RouteMouseMove(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, c
 
 		MouseEvent me = { 0 };
 		CopySpatialInfo(me, ue5MouseEvent, geometry);
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		if (result == Rococo::Gui::EGREventRouting::NextHandler)
+		{
+			return FEventReply(false);
+		}
 	}
 	catch (IException& ex)
 	{
@@ -358,7 +344,11 @@ FEventReply RouteMouseWheel(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, 
 		me.buttonData = (int)(ue5MouseEvent.GetWheelDelta() * 120.0f);
 		// Mouse wheel events do not seem to need to erroneously scale the mouse cursor
 		CopySpatialInfo_NoFullscreenCorrection(me, ue5MouseEvent, geometry);
-		custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
+		if (result == Rococo::Gui::EGREventRouting::NextHandler)
+		{
+			return FEventReply(false);
+		}
 	}
 	catch (IException& ex)
 	{
@@ -455,11 +445,15 @@ FEventReply RouteKeyDown(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, con
 			kex.unicode = shiftCaps ? charCode : tolower(charCode);
 		}
 
-		custodian->RouteKeyboardEvent(kex);
+		auto result = custodian->RouteKeyboardEvent(kex);
+		if (result == Rococo::Gui::EGREventRouting::NextHandler)
+		{
+			return FEventReply(false);
+		}
 	}
 	catch (IException& ex)
 	{
-		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);;
+		LogExceptionAndContinue(ex, __FUNCTION__, nullptr);
 	}
 
 	return FEventReply(true);
@@ -486,7 +480,11 @@ FEventReply RouteKeyUp(Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const
 		kex.scanCode = 0;
 		kex.Flags = 1;
 		kex.unicode = ue5KeyEvent.GetCharacter();
-		custodian->RouteKeyboardEvent(kex);
+		auto result = custodian->RouteKeyboardEvent(kex);
+		if (result == Rococo::Gui::EGREventRouting::NextHandler)
+		{
+			return FEventReply(false);
+		}
 	}
 	catch (IException& ex)
 	{

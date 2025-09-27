@@ -170,8 +170,6 @@ public class RococoZLib : ModuleRules
 
     public RococoZLib(ReadOnlyTargetRules Target) : base(Target)
 	{
-        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoZLib!");
-
         PrepRococoDirectories();
         CreateBundles();
 
@@ -227,8 +225,5 @@ public class RococoZLib : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 		);
-
-        System.Console.WriteLine("Constructed RococoZLib XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX!");
-
     }
 }

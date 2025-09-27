@@ -178,8 +178,6 @@ public class RococoGui : ModuleRules
 
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)
     {
-        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoGuiLib!");
-
         PrepRococoDirectories();
 
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
@@ -245,25 +243,6 @@ public class RococoGui : ModuleRules
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
-			);
-
-
-        /*
-        string libTiffWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-tiff.lib");
-        string libJpegWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-jpg.lib");
-
-        PublicAdditionalLibraries.Add(libTiffWin64);
-        PublicAdditionalLibraries.Add(libJpegWin64);
-
-        string libTiffWin64_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-tiff.dll");
-        string libJpegWin64_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-jpg.dll");
-        string libZip_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-zip.dll");
-
-        RuntimeDependencies.Add("$(TargetOutputDir)/lib-tiff.dll", libTiffWin64_DLL);
-        RuntimeDependencies.Add("$(TargetOutputDir)/lib-jpg.dll", libJpegWin64_DLL);
-        RuntimeDependencies.Add("$(TargetOutputDir)/lib-zip.dll", libZip_DLL);
-        */
-
-        System.Console.WriteLine("Constructed RococoGuiLib! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+		);
     }
 }

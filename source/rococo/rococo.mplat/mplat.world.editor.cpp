@@ -197,11 +197,6 @@ namespace ANON
 			return EGREventRouting::Terminate;
 		}
 
-		EGREventRouting OnGlobalKeyEvent(GRKeyEvent& keyEvent) override
-		{
-			return EGREventRouting::NextHandler;
-		}
-
 		void Free() override
 		{
 			delete this;

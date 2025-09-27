@@ -35,11 +35,6 @@ void RunMessageLoop(IGRClientWindow& client)
 			}
 		}
 
-		EGREventRouting OnGlobalKeyEvent(GRKeyEvent&) override
-		{
-			return EGREventRouting::NextHandler;
-		}
-
 		EGREventRouting OnEditorEvent(GRWidgetEvent_EditorUpdated& ev)
 		{
 			UNUSED(ev);

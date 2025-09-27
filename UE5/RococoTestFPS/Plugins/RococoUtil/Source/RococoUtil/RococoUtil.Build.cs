@@ -250,8 +250,6 @@ public class RococoUtil : ModuleRules
 
     public RococoUtil(ReadOnlyTargetRules Target) : base(Target)
 	{
-        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoUtil!");
-
         PrepRococoDirectories();
 		CreateBundles();
 
@@ -310,7 +308,5 @@ public class RococoUtil : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 		    }
 		);
-
-        System.Console.WriteLine("Constructed RococoUtil! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
 }

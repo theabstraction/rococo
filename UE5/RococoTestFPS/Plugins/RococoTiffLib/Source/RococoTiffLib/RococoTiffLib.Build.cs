@@ -209,8 +209,6 @@ public class RococoTiffLib : ModuleRules
 
     public RococoTiffLib(ReadOnlyTargetRules Target) : base(Target)
 	{
-        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoTiffLib!");
-
         PrepRococoDirectories();
         CreateBundles();
 
@@ -267,7 +265,5 @@ public class RococoTiffLib : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 		);
-
-        System.Console.WriteLine("Constructed RococoTiffLib XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX!");
     }
 }

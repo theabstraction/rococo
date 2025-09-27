@@ -24,10 +24,11 @@ namespace Rococo::Gui
 		// If invoked this will make the custodian render the error than the widget system
 		virtual void AddLoadError(Rococo::GreatSex::LoadFrameException& err) = 0;
 		virtual void Bind(IGRSystemSupervisor& grSystem) = 0;
+		virtual void FocusDefaultTab() = 0;
 		virtual IO::IInstallation& Installation() = 0;
 		virtual void Render(SlateRenderContext& rc) = 0;
-		virtual void RouteKeyboardEvent(const KeyboardEvent& key) = 0;
-		virtual void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) = 0;
+		virtual EGREventRouting RouteKeyboardEvent(const KeyboardEvent& key) = 0;
+		virtual EGREventRouting RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) = 0;
 		virtual void SetControlType(cstr lastKnownControlType) = 0;
 		virtual void SetLogging(bool enableToScreen, bool enableToLogFile) = 0;
 		virtual void OnTick(float dt) = 0;

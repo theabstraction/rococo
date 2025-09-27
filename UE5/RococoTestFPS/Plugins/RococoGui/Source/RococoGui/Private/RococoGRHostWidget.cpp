@@ -144,37 +144,6 @@ Rococo::Gui::EGREventRouting URococoGRHostWidget::OnGREvent(Rococo::Gui::GRWidge
 	return Rococo::Gui::EGREventRouting::Terminate;
 }
 
-ROCOCOGUI_API FReply RouteGRKeyEvent(UObject* handler, Rococo::Gui::GRKeyEvent& keyEvent);
-
-Rococo::Gui::EGREventRouting URococoGRHostWidget::OnGlobalKeyEvent(Rococo::Gui::GRKeyEvent& keyEvent)
-{
-	if (_GREventHandler == nullptr)
-	{
-		UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as handler was NULL"));
-	}
-	else
-	{
-		if (!_SlateHostWidget)
-		{
-			UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as _SlateHostWidget was NULL"));
-		}
-		else if (!_SlateHostWidget->GR())
-		{
-			UE_LOG(RococoGUI, Error, TEXT("OnGREvent unhandled, as _SlateHostWidget->GR() was NULL"));
-		}
-		else
-		{
-			FReply reply = RouteGRKeyEvent(_GREventHandler, keyEvent);
-			if (reply.IsEventHandled())
-			{
-				return Rococo::Gui::EGREventRouting::Terminate;
-			}
-		}
-	}
-
-	return Rococo::Gui::EGREventRouting::NextHandler;
-}
-
 static void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 {
 	int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
@@ -286,6 +255,15 @@ void URococoGRHostWidgetBuilder::ReloadFrame()
 	onPrepForLoad.This = this;
 
 	LoadFrame(_SexmlPingPath, onPrepForLoad);
+}
+
+void URococoGRHostWidgetBuilder::FocusDefaultTab()
+{
+	auto* custodian = GetCurrentCustodian();
+	if (custodian)
+	{
+		custodian->FocusDefaultTab();
+	}
 }
 
 #include <Modules/ModuleManager.h>
@@ -416,30 +394,102 @@ Rococo::Gui::GRKeyContextFlags ToContext(const FPointerEvent& ev)
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonDown(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	return ::RouteMouseButtonDown(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	auto guiResult = ::RouteMouseButtonDown(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	if (guiResult.NativeReply.IsEventHandled())
+	{
+		return guiResult;
+	}
+
+	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
+	{
+		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
+		return handler->Execute_OnGlobalMouseButtonDown(_GlobalUIEventHandler, geometry, ue5MouseEvent);
+	}
+
+	return FEventReply(false);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	return ::RouteMouseButtonUp(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	auto guiResult = ::RouteMouseButtonUp(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	if (guiResult.NativeReply.IsEventHandled())
+	{
+		return guiResult;
+	}
+
+	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
+	{
+		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
+		return handler->Execute_OnGlobalMouseButtonUp(_GlobalUIEventHandler, geometry, ue5MouseEvent);
+	}
+
+	return FEventReply(false);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseMove(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	return ::RouteMouseMove(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	auto guiResult = ::RouteMouseMove(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	if (guiResult.NativeReply.IsEventHandled())
+	{
+		return guiResult;
+	}
+
+	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
+	{
+		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
+		return handler->Execute_OnGlobalMouseMove(_GlobalUIEventHandler, geometry, ue5MouseEvent);
+	}
+
+	return FEventReply(false);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseWheel(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	return ::RouteMouseWheel(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	auto guiResult = ::RouteMouseWheel(GetCurrentCustodian(), geometry, ue5MouseEvent);
+	if (guiResult.NativeReply.IsEventHandled())
+	{
+		return guiResult;
+	}
+
+	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
+	{
+		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
+		return handler->Execute_OnGlobalMouseWheel(_GlobalUIEventHandler, geometry, ue5MouseEvent);
+	}
+
+	return FEventReply(false);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteKeyDown(const FGeometry& geometry, FKeyEvent ue5KeyEvent)
 {
-	return ::RouteKeyDown(GetCurrentCustodian(), geometry, ue5KeyEvent);
+	auto guiResult = ::RouteKeyDown(GetCurrentCustodian(), geometry, ue5KeyEvent);
+	if (guiResult.NativeReply.IsEventHandled())
+	{
+		return guiResult;
+	}
+
+	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
+	{
+		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
+		return handler->Execute_OnGlobalKeyDown(_GlobalUIEventHandler, geometry, ue5KeyEvent);
+	}
+
+	return FEventReply(false);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteKeyUp(const FGeometry& geometry, FKeyEvent ue5KeyEvent)
 {
-	return ::RouteKeyUp(GetCurrentCustodian(), geometry, ue5KeyEvent);
+	auto guiResult = ::RouteKeyUp(GetCurrentCustodian(), geometry, ue5KeyEvent);
+	if (guiResult.NativeReply.IsEventHandled())
+	{
+		return guiResult;
+	}
+
+	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
+	{
+		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
+		return handler->Execute_OnGlobalKeyUp(_GlobalUIEventHandler, geometry, ue5KeyEvent);
+	}
+
+	return FEventReply(false);
 }

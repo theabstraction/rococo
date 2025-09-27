@@ -1173,6 +1173,14 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 		}
 
+		void FocusDefaultTab() override
+		{
+			if (grSystem)
+			{
+				grSystem->FocusDefaultTab();
+			}
+		}
+
 		void OnTick(float dt) override
 		{
 			if (grSystem)
@@ -1554,7 +1562,7 @@ namespace Rococo::Gui::UE5::Implementation
 			history.push_back(&widget);
 		}
 
-		void RouteKeyboardEvent(const KeyboardEvent& key) override
+		EGREventRouting RouteKeyboardEvent(const KeyboardEvent& key) override
 		{
 			if (!grSystem)
 			{
@@ -1562,17 +1570,14 @@ namespace Rococo::Gui::UE5::Implementation
 			}
 			GRKeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = grSystem->RouteKeyEvent(keyEvent);
-			if (lastRoutingStatus == EGREventRouting::NextHandler)
-			{
-				grSystem->ApplyKeyGlobally(keyEvent);
-			}
+			return lastRoutingStatus;
 		}
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;
 
 		Vec2i lastCursorPos = { -1000000, -1000000 };
 
-		void RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) override
+		EGREventRouting RouteMouseEvent(const MouseEvent& me, const GRKeyContextFlags& context) override
 		{
 			if (!grSystem)
 			{
@@ -1610,6 +1615,8 @@ namespace Rococo::Gui::UE5::Implementation
 				}
 			}
 			eventCount++;
+
+			return lastRoutingStatus;
 		}
 
 		void RaiseError(const Sex::ISExpression* associatedSExpression, EGRErrorCode, cstr function, cstr format, ...) override

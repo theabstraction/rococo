@@ -6,6 +6,8 @@
 #include <Widgets/SWidget.h>
 #include "SRococoGRHostWidget.h"
 
+#include "RococoGui_BPEvents.h"
+
 #include "RococoGuiAPI.h"
 #include "RococoGRHostWidget.generated.h"
 
@@ -66,7 +68,6 @@ public:
 	void OnSelectionChanged(Rococo::Gui::IGRPanel& panel, Rococo::Gui::EGRSelectionChangeOrigin origin) override;
 
 	Rococo::Gui::EGREventRouting OnGREvent(Rococo::Gui::GRWidgetEvent& ev) override;
-	Rococo::Gui::EGREventRouting OnGlobalKeyEvent(Rococo::Gui::GRKeyEvent& keyEvent) override;
 protected:
 	TSharedPtr<SRococoGRHostWidget> _SlateHostWidget;
 
@@ -87,7 +88,7 @@ protected:
 	float _FontPointSizeRatio = 0.7826f;
 
 	// The location where fonts are expected.
-	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "RococoFontSet"), Category = "RococoGui")
+	UPROPERTY(EditAnywhere, meta = (AllowedClasses = "/Script/RococoGui.RococoFontSet"), Category = "RococoGui")
 	FSoftObjectPath _FontAsset;
 
 	// Set to true to enable logging of GUI events to the screen
@@ -148,8 +149,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	TArray<UObject*> _GeneratorContext;
 
+	// The global event handler, invoked when the gui widget does not trap the event (FEventReply.Unhandled)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowedClasses = "/Script/RococoGui.RococoGlobalUIEventHandler"), Category = "RococoGui")
+	TObjectPtr<UObject> _GlobalUIEventHandler;
+
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	void ReloadFrame();
+
+	// Set the tab position to the first available focus slot
+	UFUNCTION(BlueprintCallable, Category = "RococoGui")
+	void FocusDefaultTab();
 
 	// Tells the RococoGUI widget tree to handle a mouse mouse down event
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
