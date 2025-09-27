@@ -7,3 +7,5 @@
 # pragma warning(disable: 4611)
 #else
 #endif
+
+#ifndef ROCOCO_BUILD_IS_MONOLITHIC

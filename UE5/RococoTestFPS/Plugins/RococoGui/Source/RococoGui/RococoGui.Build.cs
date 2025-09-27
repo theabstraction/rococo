@@ -178,7 +178,7 @@ public class RococoGui : ModuleRules
 
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)
     {
-        System.Console.WriteLine("|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoGuiLib!");
+        System.Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Constructing RococoGuiLib!");
 
         PrepRococoDirectories();
 
