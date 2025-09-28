@@ -22,6 +22,16 @@ namespace ANON
 			owningPanel.SetLayoutDirection(ELayoutDirection::None);
 		}
 
+		virtual ~GRViewportWidget()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct()
 		{
 			clipArea = &CreateDivision(*this);
@@ -273,8 +283,7 @@ namespace ANON
 		{
 			if (ce.wheelDelta != 0)
 			{
-				vscroller->Scroller().Widget().Supervisor().OnCursorClick(ce);
-				return EGREventRouting::Terminate;
+				return vscroller->Scroller().Widget().Supervisor().OnCursorClick(ce);
 			}
 
 			return EGREventRouting::NextHandler;
@@ -316,6 +325,13 @@ namespace ANON
 					dOffset = rect.top - clipArea->Panel().AbsRect().bottom;
 				}
 			}
+			else if (rect.bottom > clipArea->Panel().AbsRect().bottom)
+			{
+				if (Height(rect) < Height(clipRect))
+				{
+					dOffset = rect.bottom - clipArea->Panel().AbsRect().bottom;
+				}
+			}
 			else
 			{
 				return;
@@ -331,12 +347,19 @@ namespace ANON
 			}
 		}
 
-		void OnDeepChildFocusSet(int64 panelId) override
+		void PropagateFocusChangesToParent(bool value) override
+		{
+			propagateFocusChangesToParent = value;
+		}
+
+		bool propagateFocusChangesToParent = true;
+
+		EFlowLogic OnDeepChildFocusSet(int64 panelId) override
 		{
 			auto* w = panel.Root().GR().FindWidget(panelId);
 			if (!w)
 			{
-				return;
+				return EFlowLogic::BREAK;
 			}
 
 			if (IsCandidateDescendantOfParent(clientOffsetArea->Panel(), w->Panel()))
@@ -344,6 +367,8 @@ namespace ANON
 				auto rect = w->Panel().AbsRect();
 				ScrollIntoView(rect);
 			}
+
+			return propagateFocusChangesToParent ? EFlowLogic::CONTINUE : EFlowLogic::BREAK;
 		}
 
 		IGRPanel& Panel() override
@@ -361,8 +386,17 @@ namespace ANON
 			return *vscroller;
 		}
 
+		Vec2i lastSpan{ 0,0 };
+
 		void Render(IGRRenderContext& g) override
 		{
+			Vec2i newSpan = Span(panel.AbsRect());
+			if (newSpan != lastSpan)
+			{
+				lastSpan = newSpan;
+				clientOffsetAreaParentOffset = 0;
+			}
+
 			DrawPanelBackgroundEx(panel, g, EGRSchemeColourSurface::BACKGROUND, EGRSchemeColourSurface::CONTAINER_TOP_LEFT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);
 		}
 

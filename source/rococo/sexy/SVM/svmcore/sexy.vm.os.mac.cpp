@@ -38,7 +38,7 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 
-#include <sexy.s-parser.h>
+#include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
 
 using namespace Rococo;

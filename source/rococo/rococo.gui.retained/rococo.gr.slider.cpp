@@ -21,6 +21,14 @@ namespace GRANON
 		int sliderPos = 0;
 
 		int lastSliderSpan = 0;
+
+		void* renderArgContext = nullptr;
+
+		FN_RENDER_SLIDER fnRenderSlider = RenderSlider_Default;
+
+		int bulbCount = 20;
+		int bulbHGap = 6;
+		int bulbVGap = 6;
 		
 		GRSlider(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -31,9 +39,21 @@ namespace GRANON
 
 		}
 
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void Free() override
 		{
 			delete this;
+		}
+
+		void SetRenderingMetrics(int bulbCount, int vgap, int hgap) override
+		{
+			this->bulbCount = bulbCount;
+			this->bulbHGap = hgap;
+			this->bulbVGap = vgap;
 		}
 
 		void SetSlotPadding(GRAnchorPadding padding) override
@@ -64,10 +84,19 @@ namespace GRANON
 			return *this;
 		}
 
+		void SetRenderFunction(FN_RENDER_SLIDER fnRender, void* context)
+		{
+			this->fnRenderSlider = fnRender;
+			this->renderArgContext = context;
+		}
+
+		double positionBeforeClick = 0;
+
 		EGREventRouting OnCursorClick(GRCursorEvent& ce) override
 		{
 			if (ce.click.LeftButtonDown)
 			{
+				positionBeforeClick = position;
 				isRaised = false;
 				panel.CaptureCursor();
 				if (!isRaised) UpdateSliderPos(ce.position);
@@ -92,6 +121,17 @@ namespace GRANON
 				mouseUp.iMetaData = 0;
 				mouseUp.sMetaData = GetImplementationTypeName();
 				panel.NotifyAncestors(mouseUp, *this);
+
+				if (positionBeforeClick != position)
+				{
+					GRWidgetEvent posUpdated;
+					posUpdated.eventType = EGRWidgetEventType::SLIDER_NEW_POS;
+					posUpdated.isCppOnly = true;
+					posUpdated.iMetaData = 0;
+					posUpdated.sMetaData = GetImplementationTypeName();
+					panel.NotifyAncestors(posUpdated, *this);
+				}
+
 				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;
@@ -138,7 +178,7 @@ namespace GRANON
 					qPosition = q;
 				}
 
-				position = qPosition;
+				position = clamp(qPosition, minValue, maxValue);
 			}
 		}
 
@@ -210,6 +250,11 @@ namespace GRANON
 			guageTextSurface = surface;
 		}
 
+		void HideBackgroundWhenPartFilled(bool value) override
+		{
+			hideBackgroundWhenPartFilled = value;
+		}
+
 		// Represents the number of units to increment the position when an extremum button is clicked, or the left/right keys are used 
 		void SetQuantum(double quantum) override
 		{
@@ -226,8 +271,19 @@ namespace GRANON
 		// Note that the true value is clamp of the supplied value using the range values
 		void SetPosition(double value) override
 		{
+			double oldPos = position;
 			position = value;
 			SetSliderPosFromValuePos();
+
+			if (position != oldPos)
+			{
+				GRWidgetEvent posUpdated;
+				posUpdated.eventType = EGRWidgetEventType::SLIDER_NEW_POS;
+				posUpdated.isCppOnly = true;
+				posUpdated.iMetaData = 0;
+				posUpdated.sMetaData = GetImplementationTypeName();
+				panel.NotifyAncestors(posUpdated, *this);
+			}
 		}
 
 		GRAlignmentFlags guageAlignment;
@@ -244,72 +300,24 @@ namespace GRANON
 			return panel;
 		}
 
+		bool hideBackgroundWhenPartFilled = false;
+
 		void Render(IGRRenderContext& g) override
 		{
-			bool isHovered = g.IsHovered(panel);
-
-			GuiRect sliderSlot = panel.AbsRect();
-			sliderSlot.left += slotPadding.left;
-			sliderSlot.right -= slotPadding.right;
-			
-			sliderSlot.top += slotPadding.top;
-			sliderSlot.bottom -= slotPadding.bottom;
-
-			int y = Centre(sliderSlot).y;
-
-			RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255,255,0,255));
-			g.DrawRect(panel.AbsRect(), backColour);
-
-			RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
-			g.DrawRect(sliderSlot, sliderSlotColour);
-
-			IGRImage* image = isRaised ? raisedImage : pressedImage;
-
-			GRWidgetRenderState rs(!isRaised, isHovered, false);
-
 			if (lastSliderSpan != Width(panel.AbsRect()))
 			{
 				lastSliderSpan = Width(panel.AbsRect());
 				SetSliderPosFromValuePos();
 			}
 
-			if (image)
+			SliderDesc slider 
 			{
-				GRAlignmentFlags centred;
-				centred.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+				panel, slotPadding, isRaised, raisedImage, pressedImage, sliderPos, guageFont,
+				guageAlignment, guageSpacing, guageDecimalPlaces, guageTextSurface, position, renderArgContext,
+				minValue, maxValue, bulbCount, bulbHGap, bulbVGap, hideBackgroundWhenPartFilled
+			};
 
-				Vec2i imageSpan = image->Span();
-
-				int renderedSliderPos = panel.AbsRect().left + slotPadding.left + clamp(sliderPos, 0, Width(panel.AbsRect()) - slotPadding.right - slotPadding.left);
-
-				int x = renderedSliderPos - (imageSpan.x / 2);
-
-				GuiRect targetRect;
-				targetRect.left = x;
-				targetRect.top = y - 200;
-				targetRect.bottom = y + 200;
-				targetRect.right = x + imageSpan.x;
-				g.DrawImageUnstretched(*image, targetRect, centred);
-			}
-
-			if (guageFont != GRFontId::NONE)
-			{
-				char guageText[16];
-				char format[16];
-
-				Strings::SafeFormat(format, "%%.%df", guageDecimalPlaces);
-
-				Strings::SafeFormat(guageText, format, position);
-
-				RGBAb colour = panel.GetColour(guageTextSurface, rs);
-				g.DrawText(guageFont, panel.AbsRect(), guageAlignment, guageSpacing, to_fstring(guageText), colour);
-			}
-
-			bool isObscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
-			if (isObscured)
-			{
-				g.DrawRect(panel.AbsRect(), RGBAb(64, 64, 64, 192));
-			}
+			fnRenderSlider(g, slider);
 		}
 
 		GRAlignmentFlags alignment;
@@ -332,8 +340,22 @@ namespace GRANON
 
 		void Advance(int quanta) override
 		{
+			double oldPos = position;
+
 			position += quanta * quantum;
 			SetSliderPosFromValuePos();
+
+			if (oldPos != position)
+			{
+				GRWidgetEvent posUpdated;
+				posUpdated.eventType = EGRWidgetEventType::SLIDER_NEW_POS;
+				posUpdated.isCppOnly = true;
+				posUpdated.iMetaData = 0;
+				posUpdated.sMetaData = GetImplementationTypeName();
+				panel.NotifyAncestors(posUpdated, *this);
+
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::ScalarChangeKey);
+			}
 		}
 	};
 
@@ -360,5 +382,171 @@ namespace Rococo::Gui
 		auto& widget = gr.AddWidget(parent.Panel(), GRANON::s_SliderFactory);
 		auto* slider = static_cast<GRANON::GRSlider*>(Cast<IGRWidgetSlider>(widget));
 		return *slider;
+	}
+
+	ROCOCO_GUI_RETAINED_API void RenderSlider_Default(IGRRenderContext& g, SliderDesc& slider)
+	{
+		auto& panel = slider.panel;
+		auto& slotPadding = slider.slotPadding;
+		bool isRaised = slider.isRaised;
+
+		bool isHovered = g.IsHovered(panel);
+
+		GuiRect sliderSlot = panel.AbsRect();
+		sliderSlot.left += slotPadding.left;
+		sliderSlot.right -= slotPadding.right;
+
+		sliderSlot.top += slotPadding.top;
+		sliderSlot.bottom -= slotPadding.bottom;
+
+		int y = Centre(sliderSlot).y;
+
+		RGBAb backColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 255, 0, 255));
+		g.DrawRect(panel.AbsRect(), backColour);
+
+		RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
+		g.DrawRect(sliderSlot, sliderSlotColour);
+
+		RGBAb sliderEdge1Colour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_EDGE_1, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
+		RGBAb sliderEdge2Colour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_EDGE_2, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
+
+		g.DrawRectEdge(sliderSlot, sliderEdge1Colour, sliderEdge2Colour);
+
+		IGRImage* image = isRaised ? slider.raisedImage : slider.pressedImage;
+
+		GRWidgetRenderState rs(!isRaised, isHovered, false);
+
+		if (image)
+		{
+			GRAlignmentFlags centred;
+			centred.Add(EGRAlignment::HCentre).Add(EGRAlignment::VCentre);
+
+			Vec2i imageSpan = image->Span();
+
+			int renderedSliderPos = panel.AbsRect().left + slotPadding.left + clamp(slider.sliderPos, 0, Width(panel.AbsRect()) - slotPadding.right - slotPadding.left);
+
+			int x = renderedSliderPos - (imageSpan.x / 2);
+
+			GuiRect targetRect;
+			targetRect.left = x;
+			targetRect.top = y - 200;
+			targetRect.bottom = y + 200;
+			targetRect.right = x + imageSpan.x;
+			g.DrawImageUnstretched(*image, targetRect, centred);
+		}
+
+		if (slider.guageFont != GRFontId::NONE)
+		{
+			char guageText[16];
+			char format[16];
+
+			Strings::SafeFormat(format, "%%.%df", slider.guageDecimalPlaces);
+
+			Strings::SafeFormat(guageText, format, slider.position);
+
+			RGBAb colour = panel.GetColour(slider.guageTextSurface, rs);
+			g.DrawText(slider.guageFont, panel.AbsRect(), slider.guageAlignment, slider.guageSpacing, to_fstring(guageText), colour);
+		}
+
+		bool isObscured = DoesAncestorObscure(slider.panel);
+		if (isObscured)
+		{
+			g.DrawRect(panel.AbsRect(), RGBAb(64, 64, 64, 192));
+		}
+	}
+
+	ROCOCO_GUI_RETAINED_API void RenderSlider_AsLeftToRightBulbs(IGRRenderContext& g, SliderDesc& slider)
+	{
+		auto& panel = slider.panel;
+		auto& slotPadding = slider.slotPadding;
+		bool isRaised = slider.isRaised;
+
+		bool isHovered = g.IsHovered(panel);
+
+		GuiRect sliderSlot = panel.AbsRect();
+		sliderSlot.left += slotPadding.left;
+		sliderSlot.right -= slotPadding.right;
+
+		sliderSlot.top += slotPadding.top;
+		sliderSlot.bottom -= slotPadding.bottom;
+
+		const int BULB_COUNT = slider.bulbCount;
+
+		double valueSpan = slider.maxValue - slider.minValue;
+		if (valueSpan != 0.0)
+		{
+			double quotient = clamp((slider.position - slider.minValue) / valueSpan, 0.0, 1.0);
+			int nBulbsLit = (int)(round(quotient * BULB_COUNT));
+			
+			RGBAb bulbColour = panel.GetColour(EGRSchemeColourSurface::BUTTON, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 255, 0, 255));
+
+			bool hideBackground = nBulbsLit > 0 && slider.hideBackgroundWhenPartFilled;
+
+			if (!hideBackground) // uncomment this if you want backgrounds to be hidden when sliders are part filled
+			{
+				RGBAb sliderSlotColour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
+				g.DrawRect(sliderSlot, sliderSlotColour);
+
+				RGBAb sliderEdge1Colour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_EDGE_1, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
+				RGBAb sliderEdge2Colour = panel.GetColour(EGRSchemeColourSurface::SLIDER_SLOT_EDGE_2, GRWidgetRenderState(false, isHovered, false), RGBAb(255, 0, 255, 255));
+
+				g.DrawRectEdge(sliderSlot, sliderEdge1Colour, sliderEdge2Colour);
+			}
+			 
+			const int GAP_WIDTH = slider.bulbWidthPadding;
+
+			double bulbWidth = (Width(sliderSlot) - GAP_WIDTH) / (double) BULB_COUNT;
+
+			double bulbHeight = min(bulbWidth, (double) Height(sliderSlot) - 2.0 * slider.bulbHeightPadding);
+
+			int y = Centre(sliderSlot).y;
+
+			for (int i = 0; i < nBulbsLit; i++)
+			{
+				GuiRect bulbRect = sliderSlot;
+
+				bulbRect.top = y - (int) (0.5 * bulbHeight);
+				bulbRect.bottom  = y + (int) (0.5 * bulbHeight);
+
+				bulbRect.left += (int)(i * bulbWidth) + GAP_WIDTH;
+				bulbRect.right = bulbRect.left + (int) bulbWidth - GAP_WIDTH;
+
+				g.DrawRect(bulbRect, bulbColour);
+			}
+		}
+
+		GRWidgetRenderState rs(!isRaised, isHovered, false);
+
+		if (slider.guageFont != GRFontId::NONE)
+		{
+			char guageText[16];
+			char format[16];
+
+			Strings::SafeFormat(format, "%%.%df", slider.guageDecimalPlaces);
+
+			Strings::SafeFormat(guageText, format, slider.position);
+
+			RGBAb colour = panel.GetColour(slider.guageTextSurface, rs);
+
+			g.DrawText(slider.guageFont, panel.AbsRect(), slider.guageAlignment, slider.guageSpacing, to_fstring(guageText), colour);
+		}
+
+		bool isObscured = DoesAncestorObscure(slider.panel);
+		if (isObscured)
+		{
+			g.DrawRect(panel.AbsRect(), RGBAb(64, 64, 64, 192));
+		}
+	}
+
+	Rococo::Gui::FN_RENDER_SLIDER sliderCustomRenderer = RenderSlider_Default;
+
+	ROCOCO_GUI_RETAINED_API void SetCustomSliderRenderer(FN_RENDER_SLIDER fnRender)
+	{
+		sliderCustomRenderer = fnRender;
+	}
+
+	ROCOCO_GUI_RETAINED_API void RenderSlider_Custom(IGRRenderContext& g, SliderDesc& slider)
+	{
+		sliderCustomRenderer(g, slider);
 	}
 }

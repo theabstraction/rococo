@@ -1,9 +1,13 @@
+#pragma once
+
 #ifndef ROCOCO_ALLOCATORS_H
 #define ROCOCO_ALLOCATORS_H
 
 #ifndef ROCOCO_API 
 # define ROCOCO_API __declspec(dllimport)
 #endif
+
+// This is an onerous header, which generally should not be included by other headers, only source files
 
 #include <rococo.types.h>
 #include <vector>
@@ -13,6 +17,8 @@ namespace Rococo::Memory
 	ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
 	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
 	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateTrackingAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
+	ROCOCO_API void* rococo_aligned_malloc(size_t alignment, size_t bufferLength);
+	ROCOCO_API void rococo_aligned_free(void* pData);
 	ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t));
 	ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*));
 
@@ -57,7 +63,7 @@ namespace Rococo::Memory
 		{
 			for (auto i : activeAllocs)
 			{
-				_aligned_free(i);
+				rococo_aligned_free(i);
 			}
 		}
 
@@ -65,7 +71,7 @@ namespace Rococo::Memory
 		{
 			if (freeAllocs.empty())
 			{
-				void* buffer = _aligned_malloc(sizeof(T), 16);
+				void* buffer = rococo_aligned_malloc(sizeof(T), 16);
 				auto t = (T*)buffer;
 				activeAllocs.push_back(t);
 				return t;

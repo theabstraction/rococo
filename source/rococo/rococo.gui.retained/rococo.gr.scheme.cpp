@@ -163,6 +163,8 @@ namespace Rococo::Gui
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::SLIDER_BACKGROUND, RGBAb(64, 64, 64, 255));
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_BACKGROUND, RGBAb(64, 64, 64, 255));
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::SLIDER_SLOT_BACKGROUND, RGBAb(128, 128, 128, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::SLIDER_SLOT_EDGE_1, RGBAb(255, 255, 255, 255));
+		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::SLIDER_SLOT_EDGE_2, RGBAb(192, 192, 192, 255));
 
 		SetUniformColourForAllRenderStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(128, 128, 128, 255));
 		SetAllHoverStates(scheme, EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, RGBAb(255, 255, 255, 255));

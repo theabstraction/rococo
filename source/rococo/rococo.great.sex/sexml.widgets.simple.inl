@@ -73,6 +73,12 @@ namespace Rococo::GreatSex
 				config.CarouselButtonPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
 			}
 
+			auto* aEditorPadding = directive.FindAttributeByName("Editor.Padding");
+			if (aEditorPadding)
+			{
+				config.EditorPadding = AsVec2i(aEditorPadding->Value());
+			}
+
 			auto* aFont = directive.FindAttributeByName("Title.Font");
 			if (aFont)
 			{
@@ -174,6 +180,28 @@ namespace Rococo::GreatSex
 				config.ScalarSlotPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
 			}
 
+			auto* aScalarRenderFn = directive.FindAttributeByName("Scalar.Render.Function");
+			if (aScalarRenderFn)
+			{
+				cstr fn = AsString(aScalarRenderFn->Value()).c_str();
+				if (EqI(fn, "Default"))
+				{
+					config.SliderRenderFunction = Rococo::Gui::RenderSlider_Default;
+				}
+				else if (EqI(fn, "LRBulbs"))
+				{
+					config.SliderRenderFunction = Rococo::Gui::RenderSlider_AsLeftToRightBulbs;
+				}
+				else if (EqI(fn, "Custom"))
+				{
+					config.SliderRenderFunction = Rococo::Gui::RenderSlider_Custom;
+				}
+				else
+				{
+					Throw(aScalarRenderFn->S(), "Expecting Default|LRBulbs|Custom");
+				}
+			}
+
 			auto* aStringSlotPadding = directive.FindAttributeByName("String.Slot.Padding");
 			if (aStringSlotPadding)
 			{
@@ -210,6 +238,20 @@ namespace Rococo::GreatSex
 			{
 				GuiRect padding = AsGuiRect(aCarouselPadding->Value());
 				config.CarouselPadding = GRAnchorPadding{ padding.left, padding.right, padding.top, padding.bottom };
+			}
+
+			auto* aSliderBulbCount = directive.FindAttributeByName("Slider.Bulb.Count");
+			if (aSliderBulbCount)
+			{
+				config.sliderBulbCount = AsAtomicInt32(aSliderBulbCount->Value());
+			}
+
+			auto* aSliderBulbGaps = directive.FindAttributeByName("Slider.Bulb.Gaps");
+			if (aSliderBulbCount)
+			{
+				Vec2i sliderBulbGap = AsVec2i(aSliderBulbGaps->Value());
+				config.sliderHGap = sliderBulbGap.x;
+				config.sliderVGap = sliderBulbGap.y;
 			}
 
 			auto& vKey = directive["Generate"];

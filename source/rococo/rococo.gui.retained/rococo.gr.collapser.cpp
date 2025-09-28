@@ -34,6 +34,16 @@ namespace GRANON
 			
 		}
 
+		virtual ~GRCollapser()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		bool IsCollapsed() const override
 		{
 			return collapseButton ? !collapseButton->ButtonFlags().isRaised : false;
@@ -124,7 +134,7 @@ namespace GRANON
 		{
 			if (ce.click.LeftButtonUp)
 			{
-				panel.Focus();
+				panel.FocusAndNotifyAncestors();
 				return EGREventRouting::Terminate;
 			}
 			return EGREventRouting::NextHandler;

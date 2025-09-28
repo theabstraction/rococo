@@ -17,13 +17,13 @@ void SRococoGRHostWidget::Construct(const FArguments& InArgs)
 
 }
 
-void SRococoGRHostWidget::SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct)
+void SRococoGRHostWidget::SyncCustodian(UObject* worldObject, TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct, Rococo::Gui::IUE5_GlobalFontMetrics& fontMetrics)
 {
 	try
 	{
 		if (!custodian)
 		{
-			custodian = Rococo::Gui::Create_UE5_GRCustodian(mapPathToTexture, font);
+			custodian = Rococo::Gui::Create_UE5_GRCustodian(worldObject, mapPathToTexture, font, fontMetrics);
 			Rococo::Gui::GRConfig config;
 			grSystem = CreateGRSystem(config, *custodian);
 			custodian->Bind(*grSystem);
@@ -50,6 +50,16 @@ void SRococoGRHostWidget::SyncCustodian(TMapPathToTexture& mapPathToTexture, con
 			grSystem = nullptr;
 			custodian = nullptr;
 		}
+	}
+}
+
+void SRococoGRHostWidget::Tick(const FGeometry& geometry, const double t, const float dt)
+{
+	SLeafWidget::Tick(geometry, t, dt);
+
+	if (custodian)
+	{
+		custodian->OnTick(dt);
 	}
 }
 

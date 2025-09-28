@@ -1,3 +1,4 @@
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.great.sex.h>
 #include <sexy.types.h>
 #include <Sexy.S-Parser.h>
@@ -7,6 +8,7 @@
 #include <rococo.functional.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
+#include <rococo.game.options.h>
 #include <vector>
 
 #define MATCH(text, value, numericEquivalent) if (Strings::EqI(text,value)) return numericEquivalent;
@@ -44,6 +46,94 @@ namespace Rococo
 	}
 }
 
+namespace Rococo::Game::Options
+{
+	namespace Implementation
+	{
+		struct MissingOptDatabase : IOptionDatabase
+		{
+			void Invoke(cstr, cstr, IGameOptionChangeNotifier&) override {}
+			void Invoke(cstr, bool, IGameOptionChangeNotifier&) override {}
+			void Invoke(cstr, double, IGameOptionChangeNotifier&)  override {}
+		};
+
+		struct MissingOptions : IMissingOptions
+		{
+			MissingOptDatabase db;
+
+			struct Err
+			{
+				bool indicator;
+				HString msg;
+			};
+
+			std::vector<Err> errs;
+
+			MissingOptions(cstr msg)
+			{
+				errs.push_back({ false, msg });
+			}
+
+			virtual ~MissingOptions()
+			{
+
+			}
+
+			void AddLine(bool indicator, cstr msg) override
+			{
+				errs.push_back({ indicator, msg });
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+
+			void AddOptions(IGameOptionsBuilder& builder)
+			{
+				char name[24];
+				int index = 0;
+				for (auto& err : errs)
+				{
+					SafeFormat(name, "err_%d", index++);
+					auto& b = builder.AddBool(name);
+					b.SetTitle(err.msg);
+					b.SetActiveValue(err.indicator);
+				}
+			}
+
+			void Refresh(IGameOptionsBuilder&) override
+			{
+
+			}
+
+			void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+			{
+				UNUSED(dt);
+				UNUSED(notifier);
+			}
+
+			IOptionDatabase& DB() { return db; }
+			void Accept(IGameOptionChangeNotifier&) {}
+			void Revert(IGameOptionChangeNotifier&) {}
+			bool IsModified() const { return false; }
+		};
+	}
+
+	IMissingOptions* CreateMissingOptions(const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		char msg[1024];
+		SafeVFormat(msg, sizeof msg, format, args);
+
+		va_end(args);
+
+		return new Implementation::MissingOptions(msg);
+	}
+}
+
 namespace Rococo::GreatSex
 {
 	const ColourDirectiveBind* GetColourBindings(OUT size_t& nElements);
@@ -55,6 +145,33 @@ namespace Rococo::GreatSex
 			GRWidgetRenderState rs;
 			RGBAb colour;
 		};
+
+		static std::vector<Game::Options::IMissingOptions*>* missingOptionsArray = nullptr;
+
+		void CleanupAtExit()
+		{
+			if (missingOptionsArray)
+			{
+				for (auto* opt : *missingOptionsArray)
+				{
+					opt->Free();
+				}
+
+				delete missingOptionsArray;
+				missingOptionsArray = nullptr;
+			}
+		}
+
+		void ManageGlobalMissingOptions(Game::Options::IMissingOptions* options)
+		{
+			if (!missingOptionsArray)
+			{
+				missingOptionsArray = new std::vector<Game::Options::IMissingOptions*>();
+				atexit(CleanupAtExit);
+			}
+
+			missingOptionsArray->push_back(options);
+		}
 
 		struct GreatSexGenerator : IGreatSexGeneratorSupervisor, ISEXMLColourSchemeBuilder, ISEXMLInserter, ISEXMLGameOptionsList
 		{
@@ -146,7 +263,7 @@ namespace Rococo::GreatSex
 
 			virtual ~GreatSexGenerator()
 			{
-
+				
 			}
 
 			struct GRSexInsertCache
@@ -263,6 +380,8 @@ namespace Rococo::GreatSex
 
 			Game::Options::IGameOptions& GetOptions(cstr key, cr_sex src) override
 			{
+				UNUSED(src);
+
 				auto i = mapNameToOptions.find(key);
 				if (i != mapNameToOptions.end())
 				{
@@ -271,11 +390,28 @@ namespace Rococo::GreatSex
 
 				if (mapNameToOptions.empty())
 				{
-					Throw(src, "Could not find option '%s'. No known options. C++ developer should use IGreatSexGenerator::AddOptions(...)", key);
+					auto* options = Game::Options::CreateMissingOptions("%s? - No options", key);
+					options->AddLine(true, "C++ developer should use");
+					options->AddLine(true, "IGreatSexGenerator::AddOptions(...)");
+					ManageGlobalMissingOptions(options);
+					mapNameToOptions.insert(key, options);
+					return *options;
 				}
 
-				AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(256);
-				Throw(src, "Could not find option '%s'. Known options: %s", key, AppendKeys(mapNameToOptions, dsb->Builder()));
+				auto* options = Game::Options::CreateMissingOptions("Ayup! Unknown option '%s'", key);
+
+				char info[256];
+				SafeFormat(info, "great.sex.main.cpp #%d", __LINE__);
+				options->AddLine(false, info);
+
+				for (auto j : mapNameToOptions)
+				{
+					options->AddLine(true, j.first);
+				}
+
+				ManageGlobalMissingOptions(options);
+				mapNameToOptions.insert(key, options);
+				return *options;
 			}
 
 			struct FontDef
@@ -721,6 +857,19 @@ namespace Rococo::GreatSex
 				}
 			}
 
+			void OnAttribute_OcclusionSurface(IGRPanel& panel, const ISEXMLAttributeValue& value)
+			{
+				bool isOccluder = AsBool(value);
+				if (isOccluder)
+				{
+					panel.Add(EGRPanelFlags::OcclusionSurface);
+				}
+				else
+				{
+					panel.Remove(EGRPanelFlags::OcclusionSurface);
+				}
+			}
+
 			void SetPanelAttributes(IGRWidget& widget, const ISEXMLDirective& widgetDirective) override
 			{
 				auto& panel = widget.Panel();
@@ -751,6 +900,7 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.NavRight"] = &GreatSexGenerator::OnAttribute_NavRight;
 					attributeHandlers["Panel.NavUp"] = &GreatSexGenerator::OnAttribute_NavUp;
 					attributeHandlers["Panel.NavDown"] = &GreatSexGenerator::OnAttribute_NavDown;
+					attributeHandlers["Panel.OcclusionSurface"] = &GreatSexGenerator::OnAttribute_OcclusionSurface;
 				}
 
 				for (size_t i = 0; i < widgetDirective.NumberOfAttributes(); i++)
@@ -850,6 +1000,8 @@ namespace Rococo::GreatSex
 			{
 				Auto<ISParserTree> tree = sParser->CreateTree(*src);
 				cr_sex s = tree->Root();
+
+				frame.ClearZoomsScenarios();
 
 				greatSex->AppendWidgetTreeFromSexML(s, frame.ClientArea().Widget());
 				frame.Panel().PrepPanelAndDescendants();

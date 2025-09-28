@@ -165,93 +165,78 @@ public class RococoJPEGLib : ModuleRules
 
     private void CreateBundles()
     {
-        CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
-            new List<string>()
-            {
-               "jcapimin.c",
-               "jcapistd.c",
-               "jccoefct.c",
-               "jccolor.c",
-               "jcdctmgr.c",
-               "jchuff.c",
-               "jcinit.c",
-               "jcmainct.c",
-               "jcmarker.c",
-               "jcmaster.c",
-               "jcomapi.c",
-               "jcphuff.c",
-               "jcprepct.c",
-               "jcsample.c",
-               "jctrans.c",
-               "jdapimin.c",
-               "jdatafromem.c",
-               "jdatasrc.c",
-               "jdatadst.c",
-               "jdatastream.h",
-               "jdcoefct.c",
-               "jdcolor.c",
-               "jddctmgr.c",
-               "jdhuff.c",
-               "jdinput.c",
-               "jdmainct.c",
-               "jdmarker.c",
-               "jdmaster.c",
-               "jdmerge.c",
-               "jdphuff.c",
-               "jdpostct.c",
-               "jdsample.c",
-               "jdtrans.c",
-               "jerror.c",
-               "jfdctflt.c",
-               "jfdctfst.c",
-               "jfdctint.c",
-               "jidctflt.c",
-               "jidctint.c",
-               "jidctfst.c",
-               "jidctred.c",
-               "jmemmgr.c",
-               "jmemnobs.c",
-               "jquant1.c",
-               "jquant2.c",
-               "jutils.c",
-               "rdbmp.c",
-               "rdcolmap.c",
-               "rdgif.c",
-               "rdppm.c",
-               "rdrle.c",
-               "rdswitch.c",
-               "rdtarga.c",
-               "wrbmp.c",
-               "wrgif.c",
-               "wrppm.c",
-               "wrrle.c",
-               "wrtarga.c"
-            }
-        );
+        var items = new List<string>()
+        {
+            "jcapimin.c",
+            "jcapistd.c",
+            "jccoefct.c",
+            "jccolor.c",
+            "jcdctmgr.c",
+            "jchuff.c",
+            "jcinit.c",
+            "jcmainct.c",
+            "jcmarker.c",
+            "jcmaster.c",
+            "jcomapi.c",
+            "jcphuff.c",
+            "jcprepct.c",
+            "jcsample.c",
+            "jctrans.c",
+            "jdapimin.c",
+            "jdatafromem.c",
+            "jdatasrc.c",
+            "jdatadst.c",
+            "jdatastream.h",
+            "jdcoefct.c",
+            "jdcolor.c",
+            "jddctmgr.c",
+            "jdhuff.c",
+            "jdinput.c",
+            "jdmainct.c",
+            "jdmarker.c",
+            "jdmaster.c",
+            "jdmerge.c",
+            "jdphuff.c",
+            "jdpostct.c",
+            "jdsample.c",
+            "jdtrans.c",
+            "jerror.c",
+            "jfdctflt.c",
+            "jfdctfst.c",
+            "jfdctint.c",
+            "jidctflt.c",
+            "jidctint.c",
+            "jidctfst.c",
+            "jidctred.c",
+            "jmemmgr.c",
+            "jmemnobs.c",
+            "jquant1.c",
+            "jquant2.c",
+            "jutils.c",
+            "rdbmp.c",
+            "rdcolmap.c",
+            "rdgif.c",
+            "rdppm.c",
+            "rdrle.c",
+            "rdswitch.c",
+            "rdtarga.c",
+            "wrbmp.c",
+            "wrgif.c",
+            "wrppm.c",
+            "wrrle.c",
+            "wrtarga.c"
+        };
 
-        if (Target.LinkType == TargetLinkType.Monolithic && Target.Architecture == UnrealArch.X64)
-        {
-            // We rely on Unreal's libjpg-turbo lib to give us the API
-            DeleteFiles(new List<string>
-                {
-                    "wrap.jcparam.c",
-                    "wrap.jdapistd.c",
-                    "wrap.transupp.c"
-                }
-            );
-        }
-        else
-        {
-            // libjpg-turbo is not available, so fall back on libjpg 6b
-            CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
-                new List<string>()
-                {
+        CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.dll.h", "rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
+               new List<string>()
+               {
                     "jcparam.c",
                     "jdapistd.c",
                     "transupp.c"
-                }
-            );
-        }
+               }
+        );
+
+        CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b", items);
 
         CreateSeparateFilesDirect("wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
             new List<string>()
@@ -318,6 +303,6 @@ public class RococoJPEGLib : ModuleRules
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
-			);
-	}
+		);
+    }
 }

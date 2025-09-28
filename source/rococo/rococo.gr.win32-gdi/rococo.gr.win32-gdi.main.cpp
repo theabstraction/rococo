@@ -1524,6 +1524,16 @@ namespace GRANON
 			defaultFont = knownFonts[0].handle;
 		}
 
+		void Log(const char* format, ...) override
+		{
+			UNUSED(format);
+		}
+
+		void OnFocusChanged(IGRPanel* panel) override
+		{
+			UNUSED(panel);
+		}
+
 		operator HWND() const override
 		{
 			return hOwnerWindow;
@@ -1702,6 +1712,12 @@ namespace GRANON
 			SceneRenderer renderer(*this, hWnd, paintDC, 0);
 			UseBkMode bkMode(paintDC, TRANSPARENT);
 			renderer.Render(scene);
+		}
+
+		GRAnchorPadding Scale(GRAnchorPadding pixelPadding) override
+		{
+			// The GDI implementation maps pixels to absolute co-ordinates in 1:1 ratio
+			return pixelPadding;
 		}
 
 		void RenderGui(IGRSystem& gr, HWND hWnd, HDC paintDC) override
@@ -2321,7 +2337,7 @@ namespace GRANON
 			{
 				Rococo::Windows::THIS_WINDOW parent(GetParent(hWnd));
 				SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) DefWindowProc);
-				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in " __ROCOCO_FUNCTION__);
+				Rococo::Windows::ShowErrorBox(parent, ex, "Exception caught in %s", __ROCOCO_FUNCTION__);
 				PostQuitMessage(0);
 				return 0L;
 			}

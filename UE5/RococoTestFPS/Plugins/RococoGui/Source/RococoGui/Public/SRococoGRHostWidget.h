@@ -14,6 +14,10 @@ namespace Rococo::GreatSex
 	struct IGreatSexGenerator;
 }
 
+namespace Rococo::Gui
+{
+	struct IUE5_GlobalFontMetrics;
+}
 
 class FPaintArgs;
 class FSlateWindowElementList;
@@ -47,12 +51,19 @@ public:
 		return custodian;
 	}
 
+	Rococo::Gui::IGRSystem* GR()
+	{
+		return grSystem;
+	}
+
 	// Slate widgets are volatile, so store the mapPathToTexture elsewhere and sync our Custodian to it just after construction
-	void SyncCustodian(TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct);
+	void SyncCustodian(UObject* worldObject, TMapPathToTexture& mapPathToTexture, const FSoftObjectPath& font, bool useDefaultFocus, ISRococoGRHostWidgetEventHandler& onConstruct, Rococo::Gui::IUE5_GlobalFontMetrics& fontMetrics);
 
 	void Construct(const FArguments& args);
 	FVector2D ComputeDesiredSize(float) const override;
 	int32 OnPaint(const FPaintArgs& args, const FGeometry& allottedGeometry, const FSlateRect& cullingRect, OUT FSlateWindowElementList& drawElements, int32 LayerId, const FWidgetStyle& widgetStyle, bool bParentEnabled) const override;
 
 	void LoadFrame(const char* pingPath, Rococo::IEventCallback<Rococo::GreatSex::IGreatSexGenerator>& onPrepForLoading);
+
+	void Tick(const FGeometry& geometry, const double t, const float dt) override;
 };

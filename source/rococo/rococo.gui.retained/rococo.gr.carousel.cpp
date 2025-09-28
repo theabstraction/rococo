@@ -26,6 +26,7 @@ namespace GRANON
 
 		int optionIndex = 1;
 
+		// This gets overwritten by LayoutBeforeFit
 		GRAnchorPadding optionPadding{ 4, 4, 16, 16 };
 
 		IGRWidgetButton* leftButton = nullptr;
@@ -42,6 +43,11 @@ namespace GRANON
 		virtual ~GRCarousel()
 		{
 
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
 		}
 
 		void Free() override
@@ -128,7 +134,10 @@ namespace GRANON
 				}
 			}
 
-			CollapseDropDownAndNotify({ 0,0 });
+			if (!dropDown->Panel().IsCollapsed())
+			{
+				CollapseDropDownAndNotify({ 0,0 });
+			}
 		}
 
 		void CollapseDropDownAndNotify(Vec2i clickPosition)
@@ -149,6 +158,11 @@ namespace GRANON
 		{
 			dropDown->Panel().SetCollapsed(false);
 			dropDown->OnVisible();
+
+			// Ensure this carousel is fully visible in the container viewport
+			panel.FocusAndNotifyAncestors();
+
+			// Then focus the dropdown
 			auto* focusWidget = TrySetDeepFocus(dropDown->Panel());
 			UNUSED(focusWidget);
 			GRWidgetEvent we;
@@ -193,11 +207,9 @@ namespace GRANON
 		{
 			Vec2i buttonSpan = leftButton->ImageSpan();
 
-			Vec2i padding{ 4,4 };
-
 			const auto& rect = panel.AbsRect();
 
-			padding.y = (Height(rect) - buttonSpan.y) / 2;
+			int yPadding = (Height(rect) - buttonSpan.y) / 2;
 
 			GuiRect edge = ComputeEdgeRect();
 			Vec2i centre = Span(rect);
@@ -206,8 +218,8 @@ namespace GRANON
 
 			Vec2i edgeSpan = Span(edge);
 
-			Vec2i leftOffset{  optionPadding.left - buttonSpan.x - 2, padding.y + 1 };
-			Vec2i rightOffset{ Width(rect) - optionPadding.right + 2, padding.y + 1 };
+			Vec2i leftOffset{  optionPadding.left - buttonSpan.x - 2, yPadding + 1 };
+			Vec2i rightOffset{ Width(rect) - optionPadding.right + 2, yPadding + 1 };
 
 			leftButton->Panel().SetParentOffset(leftOffset).SetConstantSpan(buttonSpan);
 			rightButton->Panel().SetParentOffset(rightOffset).SetConstantSpan(buttonSpan);
@@ -295,6 +307,12 @@ namespace GRANON
 
 		}
 
+		void NotifyAncestorChange()
+		{
+			optionIndex = ModulateOptionIndexToArrayIndex(optionIndex);
+			dropDown->SignalButtonClick(optionIndex);
+		}
+
 		EGREventRouting OnChildEvent(GRWidgetEvent& we, IGRWidget& source) override
 		{
 			if (source == leftButton->Widget())
@@ -302,6 +320,8 @@ namespace GRANON
 				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
 				{
 					optionIndex--;
+					NotifyAncestorChange();
+					NotifySelectionChanged(panel, EGRSelectionChangeOrigin::CarouselLRArrows);
 				}
 
 				return EGREventRouting::Terminate;
@@ -312,6 +332,8 @@ namespace GRANON
 				if (we.eventType == EGRWidgetEventType::BUTTON_CLICK)
 				{
 					optionIndex++;
+					NotifyAncestorChange();
+					NotifySelectionChanged(panel, EGRSelectionChangeOrigin::CarouselLRArrows);
 				}
 
 				return EGREventRouting::Terminate;
@@ -334,7 +356,7 @@ namespace GRANON
 					{
 					case IO::VirtualKeys::VKCode_ESCAPE:
 						CollapseDropDownAndNotify(Centre(panel.AbsRect()));
-						panel.Parent()->Focus();
+						panel.Parent()->FocusAndNotifyAncestors();
 						return EGREventRouting::Terminate;
 					}
 				}
@@ -392,6 +414,7 @@ namespace GRANON
 			return index;
 		}
 
+		// The edge rect gives the rectangle that contains the carousel button text up to the 3D border, but not including the buttons either side
 		GuiRect ComputeEdgeRect() const
 		{
 			GuiRect optionRect = panel.AbsRect();
@@ -427,7 +450,7 @@ namespace GRANON
 			bool isHovered = IsPointInRect(g.CursorHoverPoint(), edge) && !isDisabled;
 			GRWidgetRenderState rs(false, isHovered, false);
 
-			bool obscured = panel.Parent()->HasFlag(EGRPanelFlags::HintObscure);
+			bool obscured = DoesAncestorObscure(panel);
 
 			RGBAb backColour = panel.GetColour(obscured ? EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND : EGRSchemeColourSurface::CAROUSEL_BACKGROUND, rs);
 			g.DrawRect(edge, backColour, panel.RectStyle(), panel.CornerRadius());
@@ -498,5 +521,18 @@ namespace Rococo::Gui
 		auto& widget = gr.AddWidget(parent.Panel(), factory);
 		auto* carousel = Cast<IGRWidgetCarousel>(widget);
 		return *carousel;
+	}
+
+	ROCOCO_GUI_RETAINED_API bool DoesAncestorObscure(IGRPanel& descendant)
+	{
+		GRWidgetEvent ev;
+		ev.clickPosition = { 0,0 };
+		ev.eventType = EGRWidgetEventType::ARE_DESCENDANTS_OBSCURED;
+		ev.iMetaData = 0; // ancestors will increment this if they need descendants to be obscured
+		ev.isCppOnly = true;
+		ev.panelId = descendant.Id();
+		ev.sMetaData = nullptr;
+		descendant.NotifyAncestors(ev, descendant.Widget());
+		return ev.iMetaData > 0;
 	}
 }

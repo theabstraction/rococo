@@ -27,6 +27,15 @@ namespace GRANON
 			_panel.SetLayoutDirection(ELayoutDirection::None);
 		}
 
+		virtual ~GRMainFrame()
+		{
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void LayoutBeforeFit() override
 		{
 			MakeTitleBar();
@@ -171,6 +180,11 @@ namespace GRANON
 			);
 		}
 
+		void ClearZoomsScenarios() override
+		{
+			zoomScenarios.clear();
+		}
+
 		const ZoomScenario* GetBestZoomScenario() const
 		{
 			Vec2i frameSpan = panel.Span();
@@ -266,10 +280,11 @@ namespace GRANON
 			hoverHint = hint.sMetaData;
 		}
 
-		void OnDeepChildFocusSet(int64 /* panelId */) override
+		EFlowLogic OnDeepChildFocusSet(int64 /* panelId */) override
 		{
 			// Changing focus zaps the hovered hint. This way focus takes priority when the mouse is not moving.
 			hoverHint = "";
+			return EFlowLogic::CONTINUE;
 		}
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget&) override
@@ -655,7 +670,7 @@ namespace Rococo::Gui
 		{
 			if (ancestor->HasFlag(EGRPanelFlags::AcceptsFocus))
 			{
-				ancestor->Focus();
+				ancestor->FocusAndNotifyAncestors();
 				return EGREventRouting::Terminate;
 			}
 		}

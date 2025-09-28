@@ -42,6 +42,11 @@ namespace GRANON
 		{
 		}
 
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void TriggerOnKeyDown() override
 		{
 			triggersOnKeyUp = false;
@@ -93,6 +98,7 @@ namespace GRANON
 
 			if (nTerminations > 0)
 			{
+				GetCustodian(panel).Log("GRButton::FireEvent(): subscriber terminated. [%lld] %s", panel.Id(), panel.Desc());
 				return;
 			}
 
@@ -101,6 +107,7 @@ namespace GRANON
 				// We cannot copy the meta data string, because it may be invalidated by the time the consumer comes to read it
 				GRWidgetEvent asyncWidgetEvent{ EGRWidgetEventType::BUTTON_CLICK, panel.Id(), iMetadata, "", clickPosition, isEventHandlerCPPOnly };
 				RouteEventToHandler(panel, asyncWidgetEvent);
+				GetCustodian(panel).Log("GRButton::FireEvent(): PublicEvent routed async. [%lld] %s", panel.Id(), panel.Desc());
 			}
 			else if (eventPolicy == EGREventPolicy::NotifyAncestors)
 			{
@@ -111,7 +118,16 @@ namespace GRANON
 				{
 					// Nothing handled it
 					RouteEventToHandler(panel, widgetEvent);
+					GetCustodian(panel).Log("GRButton::FireEvent(): RouteEventToHandler handled. [%lld] %s", panel.Id(), panel.Desc());
 				}
+				else
+				{
+					GetCustodian(panel).Log("GRButton::FireEvent(): Ancestor handled. [%lld] %s", panel.Id(), panel.Desc());
+				}
+			}
+			else
+			{
+				GetCustodian(panel).Log("GRButton::FireEvent(): Nothing handled it. [%lld] %s", panel.Id(), panel.Desc());
 			}
 		}
 
@@ -119,7 +135,7 @@ namespace GRANON
 		{
 			if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
 			{
-				panel.Focus();
+				panel.FocusAndNotifyAncestors();
 			}
 
 			if (ce.click.LeftButtonDown)
@@ -192,19 +208,7 @@ namespace GRANON
 						panel.Root().ReleaseCursor();
 					}
 				}
-				else if (clickCriterion == EGRClickCriterion::OnDown)
-				{
-					if (!isToggler)
-					{
-						isRaised = true;
-						SyncMinimalSpan();
-					}
-					else
-					{
-						FireEvent(ce.position);
-					}
-				}
-
+				
 				return EGREventRouting::Terminate;
 			}
 
@@ -230,6 +234,15 @@ namespace GRANON
 			{
 				// The cursor has been moved outside the button, so capture should be lost
 				panel.Root().ReleaseCursor();
+				return EGREventRouting::NextHandler;
+			}
+
+			if (focusOnMouseMove)
+			{
+				if (panel.Root().GR().GetFocusId() != -1 && panel.HasFocus())
+				{
+					panel.FocusAndNotifyAncestors();
+				}
 			}
 
 			return EGREventRouting::NextHandler;
@@ -365,6 +378,13 @@ namespace GRANON
 
 		GRAlignmentFlags alignment;
 		Vec2i spacing { 0,0 };
+		bool focusOnMouseMove = false;
+
+		IGRWidgetButton& FocusOnMouseMove(bool focusOnMouseMove) override
+		{
+			this->focusOnMouseMove = focusOnMouseMove;
+			return *this;
+		}
 
 		IGRWidgetButton& SetAlignment(GRAlignmentFlags alignment, Vec2i spacing) override
 		{

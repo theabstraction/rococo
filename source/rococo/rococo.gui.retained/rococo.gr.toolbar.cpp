@@ -18,6 +18,16 @@ namespace GRANON
 		{
 		}
 
+		virtual ~GRToolbar()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void Free() override
 		{
 			delete this;

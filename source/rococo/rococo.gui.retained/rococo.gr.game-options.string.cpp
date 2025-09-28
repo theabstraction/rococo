@@ -33,7 +33,17 @@ namespace GRANON
 			}
 
 			panel.SetExpandToParentHorizontally();
-			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
+			panel.Set(GRAnchorPadding{ 0, 0, 0, 0 });
+		}
+
+		virtual ~GRGameOptionStringWidget()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
 		}
 
 		void PostConstruct(const GameOptionConfig& config, int maxCharacters)
@@ -67,7 +77,7 @@ namespace GRANON
 
 			GRAlignmentFlags alignment;
 			alignment.Add(EGRAlignment::HCentre);
-			editor->SetAlignment(alignment, {0,0});
+			editor->SetAlignment(alignment, config.EditorPadding);
 
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_TOP_LEFT, EGRSchemeColourSurface::CONTAINER_TOP_LEFT);
 			CopyAllColours(panel, editor->Panel(), EGRSchemeColourSurface::CAROUSEL_BOTTOM_RIGHT, EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT);

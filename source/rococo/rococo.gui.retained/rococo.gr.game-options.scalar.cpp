@@ -34,6 +34,16 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
+		virtual ~GRGameOptionScalarWidget()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct(const GameOptionConfig& config)
 		{
 			this->config = config;
@@ -60,7 +70,14 @@ namespace GRANON
 
 			slider->SetGuage(config.SliderFontId, 2, EGRSchemeColourSurface::SLIDER_GUAGE);
 
+			slider->SetRenderingMetrics(config.sliderBulbCount, config.sliderVGap, config.sliderHGap);
+
 			MakeTransparent(slider->Widget().Panel(), EGRSchemeColourSurface::SLIDER_BACKGROUND);
+		}
+
+		void SetDecimalPlaces(int nPlaces) override
+		{
+			slider->SetGuage(config.SliderFontId, nPlaces, EGRSchemeColourSurface::SLIDER_GUAGE);
 		}
 
 		void LayoutBeforeFit() override
@@ -120,6 +137,11 @@ namespace GRANON
 
 		}
 
+		IGRWidgetSlider& Slider() override
+		{
+			return *slider;
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;
@@ -139,7 +161,7 @@ namespace GRANON
 				case EGRWidgetEventType::SCROLLER_RELEASED:
 					return EGREventRouting::Terminate;
 				case EGRWidgetEventType::SLIDER_HELD:
-					panel.Focus();
+					panel.FocusAndNotifyAncestors();
 					return EGREventRouting::Terminate;
 				}
 			}
@@ -203,6 +225,8 @@ namespace GRANON
 				{
 					slider->SetPosition(slider->Min());
 				}
+
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::ScalarChangeKey);
 			}
 				break;
 			default:
@@ -241,9 +265,10 @@ namespace GRANON
 			return *this;
 		}
 
-		void SetRange(double minValue, double maxValue) override
+		void SetRange(double minValue, double maxValue, double quantumDelta) override
 		{
 			slider->SetRange(minValue, maxValue);
+			slider->SetQuantum(quantumDelta);
 		}
 
 		void SetActiveValue(double scalarValue) override
@@ -254,6 +279,11 @@ namespace GRANON
 		void SetHint(cstr text) override
 		{
 			panel.SetHint(text);
+		}
+
+		void HideBackgroundWhenPopulated(bool value) override
+		{
+			slider->HideBackgroundWhenPartFilled(value);
 		}
 	};
 
@@ -292,7 +322,7 @@ namespace Rococo::Gui
 	{
 		DrawEdge(EGRSchemeColourSurface::GAME_OPTION_TOP_LEFT, EGRSchemeColourSurface::GAME_OPTION_BOTTOM_RIGHT, panel, rc);
 
-		if (panel.HasFlag(EGRPanelFlags::HintObscure))
+		if (title.IsObscure())
 		{
 			title.SetTextColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_TEXT).SetBackColourSurface(EGRSchemeColourSurface::GAME_OPTION_DISABLED_BACKGROUND);
 		}

@@ -34,6 +34,16 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
+		virtual ~GRGameOptionChoiceWidget()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct(const GameOptionConfig& config)
 		{
 			this->config = config;
@@ -46,8 +56,8 @@ namespace GRANON
 			title = &AddGameOptionTitleWidget(*this, config);
 
 			carousel = &Gui::CreateCarousel(*this, config.LeftImageRaised, config.RightImageRaised, config.LeftImagePressed, config.RightImagePressed);
-			carousel->Widget().Panel().SetExpandToParentHorizontally();
-			carousel->Widget().Panel().SetExpandToParentVertically();
+			carousel->Panel().SetExpandToParentHorizontally();
+			carousel->Panel().SetExpandToParentVertically();
 			carousel->SetDisableCarouselWhenDropDownVisible(true);
 			carousel->SetOptionPadding(config.CarouselPadding);
 			carousel->SetFont(config.CarouselFontId);
@@ -113,6 +123,11 @@ namespace GRANON
 
 		}
 
+		IGRWidgetCarousel& Carousel() override
+		{
+			return *carousel;
+		}
+
 		IGRPanel& Panel() override
 		{
 			return panel;
@@ -157,7 +172,7 @@ namespace GRANON
 		{
 			switch (widgetEvent.eventType)
 			{
-			case EGRWidgetEventType::BUTTON_CLICK:				
+			case EGRWidgetEventType::BUTTON_CLICK:
 				return OnButtonClick(sourceWidget, widgetEvent.clickPosition);
 			}
 
@@ -193,7 +208,7 @@ namespace GRANON
 				break;
 			case IO::VirtualKeys::VKCode_ENTER:
 				carousel->FlipDropDown();
-				panel.Focus();
+				panel.FocusAndNotifyAncestors();
 				MoveFocusIntoChildren(panel);
 				break;
 			default:
@@ -232,9 +247,19 @@ namespace GRANON
 			return *this;
 		}
 
+		bool ignoreAdditions = false;
+
+		void IgnoreAdditions(bool shouldIgnore) override
+		{
+			ignoreAdditions = shouldIgnore;
+		}
+
 		void AddChoice(cstr choiceName, cstr choiceText, cstr hint) override
 		{
-			carousel->AddOption(choiceName, choiceText, hint);
+			if (!ignoreAdditions)
+			{
+				carousel->AddOption(choiceName, choiceText, hint);
+			}
 		}
 
 		void SetActiveChoice(cstr choiceName) override

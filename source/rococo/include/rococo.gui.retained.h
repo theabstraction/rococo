@@ -145,7 +145,8 @@ namespace Rococo::Gui
 		Bottom = 8,
 		HCentre = 3,
 		VCentre = 12,
-		AutoFonts = 16 // Flag that indicates something in the render chain will try to select the best font for rendering (situation dependent)
+		AutoFonts = 16, // Flag that indicates something in the render chain will try to select the best font for rendering (situation dependent)
+		DrawAlignmentEdge = 32 // Generally used for debugging - this highlights the text rect
 	};
 
 	enum class GRFontId: size_t
@@ -324,7 +325,9 @@ namespace Rococo::Gui
 
 	enum class EGRSchemeColourSurface
 	{
+		NONE = 0,
 		BACKGROUND,
+		OCCLUSION_SURFACE,
 		BUTTON,
 		BUTTON_EDGE_TOP_LEFT,
 		BUTTON_EDGE_BOTTOM_RIGHT,
@@ -351,6 +354,8 @@ namespace Rococo::Gui
 		SCROLLER_SLIDER_BOTTOM_RIGHT,
 		SCROLLER_TRIANGLE_NORMAL,
 		SLIDER_BACKGROUND,
+		SLIDER_SLOT_EDGE_1,
+		SLIDER_SLOT_EDGE_2,
 		SLIDER_SLOT_BACKGROUND,
 		SLIDER_GUAGE,
 		EDITOR,
@@ -495,6 +500,7 @@ namespace Rococo::Gui
 		BUTTON_CLICK,
 		BUTTON_KEYPRESS_DOWN, // // A key was pressed while the button had focus, and the meta data contains the vkey code
 		BUTTON_KEYPRESS_UP, // A key was released while the button had focus, and the meta data contains the vkey code
+		BOOL_CHANGED, // A boolean valued control was changed. The meta data int is 0 for false and not zero for true
 		CHOICE_MADE, // A choice was selected, the meta data contains the key
 		EDITOR_UPDATED, // Cast WidgetEvent to WidgetEvent_EditorUpdated
 		DROP_DOWN_COLLAPSED, // The drop down control collapsed
@@ -504,7 +510,9 @@ namespace Rococo::Gui
 		ON_HINT_HOVER, // A hint was hovered with a mouse move event
 		GET_HINT_HOVER, // Retrieve the last hint that was hovered over
 		SLIDER_HELD, // A slider was clicked down with the cursor
+		SLIDER_NEW_POS, // Slider position changed
 		UPDATED_CLIENTAREA_HEIGHT, // A viewport client-area control calculated its new height (passed to iMetaData). The viewport caches this and applies it during the next layout
+		ARE_DESCENDANTS_OBSCURED,
 		USER_DEFINED = 1025
 	};
 
@@ -538,6 +546,28 @@ namespace Rococo::Gui
 		int32 VerticalScrollerWheelScaling = -1;
 	};
 
+	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom
+	struct GRAnchorPadding
+	{
+		int32 left = 0;
+		int32 right = 0;
+		int32 top = 0;
+		int32 bottom = 0;
+	};
+
+	enum class EGRSelectionChangeOrigin
+	{
+		VMenuKeyNav,
+		CarouselLRArrows,
+		ScalarChangeKey,
+		ButtonClick
+	};
+
+	ROCOCO_INTERFACE IGRSelectionChangeHandler
+	{
+		virtual void OnSelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin) = 0;
+	};
+
 	ROCOCO_INTERFACE IGRPanelRoot
 	{
 		// Redirects all mouse events to the target panel, until it is either destroyed, another panel is captured, or ReleaseCursor is called on this interface
@@ -562,15 +592,11 @@ namespace Rococo::Gui
 		virtual IGRSystem& GR() = 0;
 
 		virtual Vec2i ScreenDimensions() const = 0;
-	};
 
-	// Gives the number of pixels between an anchored side and the parent control. Implicit construction order is Left, Right, Top, Bottom
-	struct GRAnchorPadding
-	{
-		int32 left = 0;
-		int32 right = 0;
-		int32 top = 0;
-		int32 bottom = 0;
+		virtual void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin) = 0;
+
+		// The handler must remain valid for the lifetime of the Gui system, or until a the method is called again. Null => no handler
+		virtual void SetSelectionChangeHandler(IGRSelectionChangeHandler* handler) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRPanelRenderer
@@ -588,8 +614,8 @@ namespace Rococo::Gui
 		// using tab to navigate a panel's children cycles through to the first if the final one is already focused
 		CycleTabsEndlessly = 2,
 
-		// The contents of the panel could be grayed or fogged for a better UI experience
-		HintObscure = 4
+		// A rectangle can be drawn over the panel to indicate some other overlaying control has modality (such as a floating menu)
+		OcclusionSurface = 4
 	};
 
 	// The base class from which queriable interfaces are derived. Used by QueryInterface methods herein
@@ -601,7 +627,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRFocusNotifier: IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
-		virtual void OnDeepChildFocusSet(int64 panelId) = 0;
+		[[nodiscard]] virtual EFlowLogic OnDeepChildFocusSet(int64 panelId) = 0;
 	};
 
 	enum class ELayoutDirection
@@ -733,7 +759,7 @@ namespace Rococo::Gui
 		// Returns true if any only it is either collapsed or it has a collapsed ancestor
 		virtual bool IsCollapsedOrAncestorCollasped() const = 0;
 
-		virtual IGRPanel& Focus() = 0;
+		virtual IGRPanel& FocusAndNotifyAncestors() = 0;
 		virtual bool HasFocus() const = 0;
 
 		virtual void SetClipChildren(bool enabled) = 0;
@@ -808,6 +834,7 @@ namespace Rococo::Gui
 		virtual void BuildCursorMovementHistoryRecursive(GRCursorEvent& ce, IGRPanelEventBuilder& wb) = 0;
 		virtual void SetWidget(IGRWidgetSupervisor& widget) = 0;
 		virtual void ReleasePanel() = 0;
+		virtual void OnTick(float dt) = 0;
 	};
 
 	enum class EGRQueryInterfaceResult
@@ -874,6 +901,7 @@ namespace Rococo::Gui
 	{
 		// Invoked by the IGRRetained instance management logic
 		virtual void Free() = 0;
+		virtual void OnTick(float dt) = 0;
 	};
 
 	template<class CAST_TO_THIS_INTERFACE> inline CAST_TO_THIS_INTERFACE* Cast(IGRWidget& widget, cstr interfaceId)
@@ -946,6 +974,7 @@ namespace Rococo::Gui
 		virtual IGRWidgetText& SetTextColourShadowSurface(EGRSchemeColourSurface surface) = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
+		virtual bool IsObscure() const = 0;
 	};
 
 	enum class EGRButtonEventType
@@ -969,6 +998,8 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
+
+		virtual IGRWidgetButton& FocusOnMouseMove(bool focusOnMouseMove) = 0;
 
 		virtual IGRWidgetButton& SetBackSurface(EGRSchemeColourSurface backSurface) = 0;
 
@@ -1083,10 +1114,14 @@ namespace Rococo::Gui
 		virtual void SetOptionFont(GRFontId fontId) = 0;
 		virtual void SetOptionPadding(const GRAnchorPadding& padding) = 0;
 		virtual Vec2i LastComputedButtonSpan() const = 0;
+		virtual void SignalButtonClick(int optionIndex) = 0;
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;		
 		[[nodiscard]] virtual IGRWidgetViewport& Viewport() = 0;
 	};
+
+	struct SliderDesc; // Defined in rococo.gui.retained.ex.h
+	typedef void (*FN_RENDER_SLIDER)(IGRRenderContext& g, SliderDesc& slider);
 
 	ROCOCO_INTERFACE IGRWidgetSlider : IGRBase
 	{
@@ -1109,6 +1144,8 @@ namespace Rococo::Gui
 		// Sets the text output. Note that with GRFontId::NONE no guage is rendered
 		virtual void SetGuage(GRFontId fontId, int decimalPlaces, EGRSchemeColourSurface surface) = 0;
 
+		virtual void HideBackgroundWhenPartFilled(bool value) = 0;
+
 		// Note that the true value is clamp of the supplied value using the range values
 		virtual void SetPosition(double value) = 0;
 
@@ -1119,6 +1156,11 @@ namespace Rococo::Gui
 		virtual IGRWidgetSlider& SetRaisedImagePath(cstr imagePath) = 0;
 		virtual void SetGuageAlignment(GRAlignmentFlags alignment, Vec2i scalarGuageSpacing) = 0;
 		virtual void SetSlotPadding(GRAnchorPadding padding) = 0;
+		virtual void SetRenderingMetrics(int bulbCount, int vgap, int hgap) = 0;
+
+		// Used the designated render function for slider rendering, passing the context to the SliderDesc argument of FN_RENDER_SLIDER
+		// The context must remain valid for the lifetime of the slider widget
+		virtual void SetRenderFunction(FN_RENDER_SLIDER fnRender, void* context) = 0;
 	};
 
 	struct GRMenuButtonItem
@@ -1270,9 +1312,13 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRWidgetGameOptionsChoice : IGRBase
 	{
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
+		[[nodiscard]] virtual IGRWidgetCarousel& Carousel() = 0;
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 		virtual Game::Options::IChoiceInquiry& Inquiry() = 0;
+
+		// Prevent Inquiry from adding choices
+		virtual void IgnoreAdditions(bool shouldIgnore) = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetGameOptionsScalar : IGRBase
@@ -1280,6 +1326,7 @@ namespace Rococo::Gui
 		ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
+		[[nodiscard]] virtual IGRWidgetSlider& Slider() = 0;
 		virtual Game::Options::IScalarInquiry& Inquiry() = 0;
 	};
 
@@ -1375,6 +1422,8 @@ namespace Rococo::Gui
 		{
 			AddZoomScenario(1920, 1080, levels);
 		}
+
+		virtual void ClearZoomsScenarios() = 0;
 	};
 
 	ROCOCO_INTERFACE IGRWidgetMainFrameSupervisor: IGRWidgetMainFrame
@@ -1471,7 +1520,7 @@ namespace Rococo::Gui
 		[[nodiscard]] virtual int64 GetFocusId() const = 0;
 
 		// Sets the keyboard focus to the id of a panel.
-		virtual void SetFocus(int64 id = -1);
+		virtual void SetFocus(int64 id = -1) = 0;
 
 		virtual EGREventRouting RouteCursorClickEvent(GRCursorEvent& mouseEvent) = 0;
 		virtual EGREventRouting RouteCursorMoveEvent(GRCursorEvent& mouseEvent) = 0;
@@ -1587,6 +1636,9 @@ namespace Rococo::Gui
 
 		// Each layout before fit calls SetDomainHeight with the sum of the fixed heights of the children of the client area
 		virtual void SyncDomainToChildren() = 0;
+
+		// Set value to false to prevent focus change handling propagating to ancestors
+		virtual void PropagateFocusChangesToParent(bool value) = 0;
 	};
 
 	// A vertical list that aligns its children vertically
@@ -1713,6 +1765,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API IGRWidgetControlPrompt& CreateControlPrompt(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivision& CreateDivision(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetDivisionWithText& CreateHintBox(IGRWidget& parent);
+	ROCOCO_GUI_RETAINED_API void SetFocusWithNoCallback(IGRPanel& panel);
 
 	struct PropertyEditorSpec
 	{
@@ -1760,6 +1813,8 @@ namespace Rococo::Gui
 		int LineDeltaPixels = 10;
 	};
 
+	ROCOCO_GUI_RETAINED_API void RenderSlider_AsLeftToRightBulbs(IGRRenderContext& g, SliderDesc& slider);
+
 	struct GameOptionConfig
 	{
 		bool TitlesOnLeft = false; // If false, titles appear above controls, otherwise they appear to the left.
@@ -1782,6 +1837,17 @@ namespace Rococo::Gui
 		GRFontId CarouselFontId = GRFontId::NONE;
 		GRFontId CarouselButtonFontId = GRFontId::NONE;
 		GRFontId SliderFontId = GRFontId::NONE;
+		FN_RENDER_SLIDER SliderRenderFunction = Gui::RenderSlider_AsLeftToRightBulbs;
+		Vec2i EditorPadding{ 0,0 };
+
+		// This is presented to the SliderRenderFunction. In the bulbs implementation, gives the maximum bulbs that span the slider
+		int sliderBulbCount = 20;
+
+		// This is presented to the SliderRenderFunction. In the bulbs implementation, gives the gap between the top and bottom of the slider slot and the bulbs within
+		int sliderVGap = 6;
+
+		// This is presented to the SliderRenderFunction. In the bulbs implementation, gives the gap between the left of the slider slot and the first bulb, also the gap between successive bulbs
+		int sliderHGap = 6;
 	};
 
 	// Create a property tree editor. The instance of IGRWidgetPropertyEditorTreeEvents& has to be valid for the lifespan of the widget, or mark the widget panel for deletion when events can no longer be handled
@@ -1817,6 +1883,8 @@ namespace Rococo::Gui
 
 	ROCOCO_GUI_RETAINED_API IGRWidgetPortrait& CreatePortrait(IGRWidget& parent);
 	ROCOCO_GUI_RETAINED_API IGRWidgetIcon& CreateIcon(IGRWidget& parent);
+
+	ROCOCO_GUI_RETAINED_API bool DoesAncestorObscure(IGRPanel& descendant);
 
 	// Implemented by various editor filters
 	ROCOCO_INTERFACE IGREditFilter
@@ -1879,4 +1947,7 @@ namespace Rococo::Gui
 	*  Otherwise returns NextHandler
 	*/
 	ROCOCO_GUI_RETAINED_API EGREventRouting MoveFocusToAncestor(IGRPanel& panel);
+
+	// Generates an event which is generally used to play audio or visual notifications that a selection has changed
+	ROCOCO_GUI_RETAINED_API void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin);
 }

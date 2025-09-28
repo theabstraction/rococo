@@ -38,10 +38,10 @@ namespace Rococo::Game::Options
 	template<class T>
 	struct OptionSelectedFunctionDescriptor
 	{
-		typedef void (T::* FN_OnBoolOptionSelected)(bool value);
-		typedef void (T::* FN_OnScalarOptionSelected)(double value);
-		typedef void (T::* FN_OnChoiceSelected)(cstr value);
-		typedef void (T::* FN_OnStringSelected)(cstr value);
+		typedef void (T::* FN_OnBoolOptionSelected)(bool value, IGameOptionChangeNotifier& requirements);
+		typedef void (T::* FN_OnScalarOptionSelected)(double value, IGameOptionChangeNotifier& requirements);
+		typedef void (T::* FN_OnChoiceSelected)(cstr value, IGameOptionChangeNotifier& requirements);
+		typedef void (T::* FN_OnStringSelected)(cstr value, IGameOptionChangeNotifier& requirements);
 
 		union
 		{
@@ -221,43 +221,79 @@ namespace Rococo::Game::Options
 			}
 		}
 
-		void Invoke(cstr name, cstr choice) override
+		void Refresh(IGameOptionsBuilder& builder)
 		{
-			for (auto& r : optionSelectedFunctions)
+			for (auto& q : inquiryFunctions)
 			{
-				if (Eq(r.name, name) && r.type == EInquiryType::Choice)
+				switch (q.type)
 				{
-					(owner.*r.functions.ChoiceSelectedFunction)(choice);
+				case EInquiryType::Boolean:
+				{
+					auto& Q = builder.GetBool(q.name);
+					(owner.*q.functions.BoolInquiryFunction)(Q);
 					break;
 				}
-
-				if (Eq(r.name, name) && r.type == EInquiryType::String)
+				case EInquiryType::Choice:
 				{
-					(owner.*r.functions.StringSelectedFunction)(choice);
+					auto& Q = builder.GetChoice(q.name);
+					(owner.*q.functions.ChoiceInquiryFunction)(Q);
+					break;
+				}
+				case EInquiryType::Scalar:
+				{
+					auto& Q = builder.GetScalar(q.name);
+					(owner.*q.functions.ScalarInquiryFunction)(Q);
+					break;
+				}
+				case EInquiryType::String:
+				{
+					auto& Q = builder.GetString(q.name);
+					(owner.*q.functions.StringInquiryFunction)(Q);
+					break;
+				}
+				default:
 					break;
 				}
 			}
 		}
 
-		void Invoke(cstr name, bool boolValue) override
+		void Invoke(cstr name, cstr choice, IGameOptionChangeNotifier& requirements) override
 		{
 			for (auto& r : optionSelectedFunctions)
 			{
-				if (Eq(r.name, name) && r.type == EInquiryType::Boolean)
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::Choice)
 				{
-					(owner.*r.functions.BoolSelectedFunction)(boolValue);
+					(owner.*r.functions.ChoiceSelectedFunction)(choice, requirements);
+					break;
+				}
+
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::String)
+				{
+					(owner.*r.functions.StringSelectedFunction)(choice, requirements);
 					break;
 				}
 			}
 		}
 
-		void Invoke(cstr name, double scalarValue) override
+		void Invoke(cstr name, bool boolValue, IGameOptionChangeNotifier& requirements) override
 		{
 			for (auto& r : optionSelectedFunctions)
 			{
-				if (Eq(r.name, name) && r.type == EInquiryType::Scalar)
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::Boolean)
 				{
-					(owner.*r.functions.ScalarSelectedFunction)(scalarValue);
+					(owner.*r.functions.BoolSelectedFunction)(boolValue, requirements);
+					break;
+				}
+			}
+		}
+
+		void Invoke(cstr name, double scalarValue, IGameOptionChangeNotifier& requirements) override
+		{
+			for (auto& r : optionSelectedFunctions)
+			{
+				if (Rococo::Strings::Eq(r.name, name) && r.type == EInquiryType::Scalar)
+				{
+					(owner.*r.functions.ScalarSelectedFunction)(scalarValue, requirements);
 					break;
 				}
 			}

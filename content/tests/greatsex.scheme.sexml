@@ -258,6 +258,10 @@
 (Colour (Id LightGrey)  ([] Uniform.RGBAb   192 192 192 255))
 (Colour (Id DarkGrey)   ([] Uniform.RGBAb    64 64 64 255))
 (Colour (Id White)  ([] Uniform.RGBAb       255 255 255 255))
+(Colour (Id Yellow)  ([] Uniform.RGBAb      255 255 128 255))
+(Colour (Id FeintWhite) ([] Uniform.RGBAb   255 255 255 64))
+(Colour (Id FeintBlack) ([] Uniform.RGBAb     0   0   0 64))
+(Colour (Id FeintGrey)  ([] Uniform.RGBAb   192 192 192 64))
 
 (Colour (Id gfTopLeft)     ([] Uniform.RGBAb   0  0   0   0))
 (Colour (Id gfTopRight)    ([] Uniform.RGBAb   0  0   0 255))

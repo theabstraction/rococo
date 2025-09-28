@@ -1,3 +1,4 @@
+#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <rococo.game.options.h>
@@ -11,7 +12,7 @@ using namespace Rococo::Strings;
 
 namespace GRANON
 {
-	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder, IGRWidgetInitializer, IEventCallback<ButtonEvent>
+	struct GRGameOptionsList : IGRWidgetGameOptions, IGRWidgetSupervisor, IGameOptionsBuilder, IGRWidgetInitializer, IEventCallback<ButtonEvent>, IGameOptionChangeNotifier
 	{
 		IGRPanel& panel;
 		IGameOptions& options;
@@ -40,6 +41,16 @@ namespace GRANON
 
 		virtual ~GRGameOptionsList()
 		{
+		}
+
+		void OnSupervenientOptionChanged(IGameOptions&) override
+		{
+			options.Refresh(*this);
+		}
+
+		void OnTick(float dt) override
+		{
+			options.OnTick(dt, *this);
 		}
 
 		IGameOptions& Options() override
@@ -96,12 +107,22 @@ namespace GRANON
 
 			DrawPanelBackground(panel, rc);
 
+			dropDownCount = 0;
+
+			for (auto& i : mapNameToChoiceControl)
+			{
+				if (!i.second->Carousel().DropDown().Panel().IsCollapsed())
+				{
+					dropDownCount++;
+				}
+			}
+
 			int nChildren = panel.EnumerateChildren(nullptr);
 
 			if (nChildren > 0)
 			{
 				auto* lastChild = panel.GetChild(nChildren - 1);
-				int domainHeight = lastChild->ParentOffset().y + lastChild->Span().y + panel.ChildPadding();
+				int domainHeight = lastChild->ParentOffset().y + lastChild->Span().y + panel.ChildPadding() + panel.Padding().bottom;
 
 				GRWidgetEvent updatedDomainHeight;
 				updatedDomainHeight.eventType = EGRWidgetEventType::UPDATED_CLIENTAREA_HEIGHT;
@@ -122,18 +143,11 @@ namespace GRANON
 				auto& dropDown = carousel->DropDown();
 				if (panel.Root().GR().GetFocusId() >= 0)
 				{
-					carousel->Panel().Parent()->Focus();
+					carousel->Panel().Parent()->FocusAndNotifyAncestors();
 				}
+
 				dropDown.Panel().Root().ReleaseCursor();
 				dropDown.Panel().SetRenderLast(false);
-
-				int nChildren = panel.EnumerateChildren(nullptr);
-				for (int i = 0; i < nChildren; i++)
-				{
-					auto* child = panel.GetChild(i);
-					child->Remove(EGRPanelFlags::HintObscure);
-				}
-
 				return EGREventRouting::Terminate;
 			}
 			
@@ -148,19 +162,6 @@ namespace GRANON
 				auto& dropDown = carousel->DropDown();
 				dropDown.Panel().CaptureCursor();
 				dropDown.Panel().SetRenderLast(true);
-
-				int nChildren = panel.EnumerateChildren(nullptr);
-
-				for (int i = 0; i < nChildren; i++)
-				{
-					auto* child = panel.GetChild(i);
-					if (child->Widget() != sourceWidget.Panel().Parent()->Widget())
-					{
-						// Something other than the carousel
-						child->Add(EGRPanelFlags::HintObscure);
-					}
-				}
-
 				return EGREventRouting::Terminate;
 			}
 
@@ -182,7 +183,7 @@ namespace GRANON
 					cstr optionName = i.first;
 					cstr optionValue = choice.sMetaData;
 
-					options.DB().Invoke(optionName, optionValue);
+					options.DB().Invoke(optionName, optionValue, *this);
 				}
 			}
 			return EGREventRouting::Terminate;
@@ -197,13 +198,51 @@ namespace GRANON
 				auto* dropDown = Cast<IGRWidgetScrollableMenu>(ancestor->Widget());
 				if (dropDown)
 				{
-					dropDown->Panel().Focus().CaptureCursor();
+					auto ddId = dropDown->Panel().Id();
+					SetFocusWithNoCallback(dropDown->Panel());
+					auto* notifier = Cast<IGRFocusNotifier>(dropDown->Viewport().Widget());
+					auto result = notifier->OnDeepChildFocusSet(ddId);
+					UNUSED(result);
+					dropDown->Panel().CaptureCursor();
 					break;
 				}
 			}
 
 			return EGREventRouting::Terminate;
 		}
+
+		EGREventRouting OnBoolSelected(bool isTrue, IGRWidget& sourceWidget)
+		{
+			for (auto& i : mapNameToBoolControl)
+			{
+				if (sourceWidget == i.second->Widget())
+				{
+					options.DB().Invoke(i.first, isTrue, *this);
+					break;
+				}
+			}
+			return EGREventRouting::Terminate;
+		}
+
+		EGREventRouting OnSliderMoved(IGRWidget& sourceWidget)
+		{
+			auto* slider = Cast<IGRWidgetSlider>(sourceWidget);
+			if (slider)
+			{
+				for (auto& i : mapNameToScalarControl)
+				{
+					if (slider == &i.second->Slider())
+					{
+						options.DB().Invoke(i.first, slider->Position(), *this);
+						break;
+					}
+				}
+			}
+
+			return EGREventRouting::Terminate;
+		}
+
+		int dropDownCount = 0;
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
@@ -217,6 +256,14 @@ namespace GRANON
 				return OnChoiceMade(widgetEvent, sourceWidget);
 			case EGRWidgetEventType::SCROLLER_RELEASED:
 				return OnScrollerReleased(widgetEvent, sourceWidget);
+			case EGRWidgetEventType::BOOL_CHANGED:
+				return OnBoolSelected(widgetEvent.iMetaData != 0, sourceWidget);
+			case EGRWidgetEventType::SLIDER_NEW_POS:
+				return OnSliderMoved(sourceWidget);
+			case EGRWidgetEventType::ARE_DESCENDANTS_OBSCURED:
+				// If there is at least one visible drop down, we increment the meta data and so obscure the descendants
+				widgetEvent.iMetaData += dropDownCount;
+				return EGREventRouting::Terminate;
 			}
 
 			return EGREventRouting::NextHandler;
@@ -262,6 +309,9 @@ namespace GRANON
 		{
 			GuaranteeUnique(mapNameToChoiceControl, name);
 			IGRWidgetGameOptionsChoice& choiceWidget = CreateGameOptionsChoice(*this, config);
+
+			// Prevent a carousel selected menu item from scrolling the main options when the drop down is selected.
+			choiceWidget.Carousel().DropDown().Viewport().PropagateFocusChangesToParent(false);
 			mapNameToChoiceControl.insert(name, &choiceWidget);
 			return choiceWidget.Inquiry();
 		}
@@ -279,6 +329,7 @@ namespace GRANON
 			GuaranteeUnique(mapNameToScalarControl, name);
 			IGRWidgetGameOptionsScalar& scalarWidget = CreateGameOptionsScalar(*this, config);
 			mapNameToScalarControl.insert(name, &scalarWidget);
+			scalarWidget.Slider().SetRenderFunction(config.SliderRenderFunction, nullptr);
 			return scalarWidget.Inquiry();
 		}
 
@@ -294,16 +345,61 @@ namespace GRANON
 			return stringWidget.Inquiry();
 		}
 
+		IChoiceInquiry& GetChoice(cstr name) override
+		{
+			auto i = mapNameToChoiceControl.find(name);
+			if (i == mapNameToChoiceControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			i->second->IgnoreAdditions(true);
+			return i->second->Inquiry();
+		}
+
+		IBoolInquiry& GetBool(cstr name) override
+		{
+			auto i = mapNameToBoolControl.find(name);
+			if (i == mapNameToBoolControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			return i->second->Inquiry();
+		}
+
+		IScalarInquiry& GetScalar(cstr name) override
+		{
+			auto i = mapNameToScalarControl.find(name);
+			if (i == mapNameToScalarControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			return i->second->Inquiry();
+		}
+
+		IStringInquiry& GetString(cstr name) override
+		{
+			auto i = mapNameToStringControl.find(name);
+			if (i == mapNameToStringControl.end())
+			{
+				RaiseError(panel, EGRErrorCode::InvalidArg, __FUNCTION__, "Bad name");
+			}
+
+			return i->second->Inquiry();
+		}
+
 		void OnEvent(ButtonEvent& ev) override
 		{
 			cstr desc = ev.button.Panel().Desc();
 			if (Eq("ButtonAccept", desc))
 			{
-				options.Accept();
+				options.Accept(*this);
 			}
 			else if (Eq("ButtonRevert", desc))
 			{
-				options.Revert();
+				options.Revert(*this);
 			}
 		}
 
@@ -382,4 +478,5 @@ namespace Rococo::Gui
 		l.PostConstruct();
 		return l;
 	}
+
 }

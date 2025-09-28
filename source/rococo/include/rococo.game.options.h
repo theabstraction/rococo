@@ -9,6 +9,13 @@ namespace Rococo::Gui
 
 namespace Rococo::Game::Options
 {
+	ROCOCO_INTERFACE IGameOptionChangeNotifier
+	{
+		// Note that potentially an infinite loop could occur if this becomes recursive
+		// It is up to the caller to ensure recursion is managed well
+		virtual void OnSupervenientOptionChanged(IGameOptions& sender) = 0;
+	};
+
 	ROCOCO_INTERFACE IInquiry
 	{
 		virtual void SetHint(cstr text) = 0;
@@ -31,7 +38,9 @@ namespace Rococo::Game::Options
 	ROCOCO_INTERFACE IScalarInquiry : IInquiry
 	{
 		virtual void SetActiveValue(double value) = 0;
-		virtual void SetRange(double minValue, double maxValue) = 0;
+		virtual void SetRange(double minValue, double maxValue, double quantumDelta) = 0;
+		virtual void SetDecimalPlaces(int nPlaces) = 0;
+		virtual void HideBackgroundWhenPopulated(bool value) = 0;
 	};
 
 	ROCOCO_INTERFACE IStringInquiry : IInquiry
@@ -51,21 +60,38 @@ namespace Rococo::Game::Options
 		// Add a string editor, maxCharacters should be something sane. GR editors put a limit on 4096 characters.
 		// If the requested size is not positive or exceeds capacity an exception is thrown
 		virtual IStringInquiry& AddString(cstr name, int maxCharacters) = 0;
+
+		virtual IChoiceInquiry& GetChoice(cstr name) = 0;
+		virtual IBoolInquiry& GetBool(cstr name) = 0;
+		virtual IScalarInquiry& GetScalar(cstr name) = 0;
+		virtual IStringInquiry& GetString(cstr name) = 0;
 	};
 
 	ROCOCO_INTERFACE IOptionDatabase
 	{
-		virtual void Invoke(cstr name, cstr choice) = 0;
-		virtual void Invoke(cstr name, bool boolValue) = 0;
-		virtual void Invoke(cstr name, double scalarValue) = 0;
+		virtual void Invoke(cstr name, cstr choice, IGameOptionChangeNotifier& requirements) = 0;
+		virtual void Invoke(cstr name, bool boolValue, IGameOptionChangeNotifier& requirements) = 0;
+		virtual void Invoke(cstr name, double scalarValue, IGameOptionChangeNotifier& requirements) = 0;
 	};
 
 	ROCOCO_INTERFACE IGameOptions
 	{
-		virtual void AddOptions(IGameOptionsBuilder & builder) = 0;
+		virtual void AddOptions(IGameOptionsBuilder& builder) = 0;
+		virtual void Refresh(IGameOptionsBuilder& builder) = 0;
+
+		// Here we allow an option set to periodically calculate if an option needs synchronizing with the game engine, and if so, it should apply for a refresh via the notifier
+		virtual void OnTick(float dt, IGameOptionChangeNotifier& notifier) = 0;
 		virtual IOptionDatabase& DB() = 0;
-		virtual void Accept() = 0;
-		virtual void Revert() = 0;
+		virtual void Accept(IGameOptionChangeNotifier& notifier) = 0;
+		virtual void Revert(IGameOptionChangeNotifier& notifier) = 0;
 		virtual bool IsModified() const = 0;
 	};
+
+	ROCOCO_INTERFACE IMissingOptions : IGameOptions
+	{
+		virtual void AddLine(bool indicator, cstr msg) = 0;
+		virtual void Free() = 0;
+	};
+
+	IMissingOptions* CreateMissingOptions(const char* format, ...);
 }

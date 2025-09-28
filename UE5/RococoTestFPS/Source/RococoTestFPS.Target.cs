@@ -1,8 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-using UnrealBuildTool;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using UnrealBuildTool;
 
 public class RococoTestFPSTarget : TargetRules
 {
@@ -14,5 +16,6 @@ public class RococoTestFPSTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
 		ExtraModuleNames.Add("RococoTestFPS");
+		// PreBuildSteps.Add("copy-rococo-files.bat");
     }
 }

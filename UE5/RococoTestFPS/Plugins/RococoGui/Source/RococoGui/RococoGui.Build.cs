@@ -169,27 +169,16 @@ public class RococoGui : ModuleRules
     {
         get { return rococoHomeDirectory; }
     }
-    private void CreateBundles()
-    {
-    }
+
     public string GetUProjectPath()
     {
         // see https://forums.unrealengine.com/t/how-to-modify-build-file-to-copy-dlls-to-binaries/353587
         return Directory.GetParent(ModuleDirectory).Parent.Parent.Parent.ToString();
     }
 
-    private void CopyIfDoesNotExist(string src, string destFileName)
-    {
-        if (!File.Exists(destFileName))
-        {
-            File.Copy(src, destFileName);
-        }
-    }
-
     public RococoGui(ReadOnlyTargetRules Target) : base(Target)
     {
         PrepRococoDirectories();
-        CreateBundles();
 
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -207,6 +196,9 @@ public class RococoGui : ModuleRules
            }
            );
 
+        PublicSystemIncludePaths.Add(RococoIncludeDirectory);
+
+        this.ForceIncludeFiles.Add("rococo.GR.UE5.h");
 
         PrivateIncludePaths.AddRange(
 			new string[] {
@@ -251,23 +243,6 @@ public class RococoGui : ModuleRules
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
-			);
-
-
-        /*
-        string libTiffWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-tiff.lib");
-        string libJpegWin64 = Path.Combine(rococoHomeDirectory, @"gen\lib\win64\Release\lib-jpg.lib");
-
-        PublicAdditionalLibraries.Add(libTiffWin64);
-        PublicAdditionalLibraries.Add(libJpegWin64);
-
-        string libTiffWin64_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-tiff.dll");
-        string libJpegWin64_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-jpg.dll");
-        string libZip_DLL = Path.Combine(rococoHomeDirectory, @"gen\bin\win64\Release\lib-zip.dll");
-
-        RuntimeDependencies.Add("$(TargetOutputDir)/lib-tiff.dll", libTiffWin64_DLL);
-        RuntimeDependencies.Add("$(TargetOutputDir)/lib-jpg.dll", libJpegWin64_DLL);
-        RuntimeDependencies.Add("$(TargetOutputDir)/lib-zip.dll", libZip_DLL);
-        */
+		);
     }
 }

@@ -35,6 +35,16 @@ namespace GRANON
 			panel.Set(GRAnchorPadding{ 1, 1, 1, 1 });
 		}
 
+		virtual ~GRGameOptionsBoolWidget()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct(const GameOptionConfig& config)
 		{
 			this->config = config;
@@ -49,6 +59,7 @@ namespace GRANON
 			button = &Gui::CreateButton(*this);
 			button->Widget().Panel().SetExpandToParentHorizontally();
 			button->Widget().Panel().SetExpandToParentVertically();
+			button->SetEventPolicy(EGREventPolicy::NotifyAncestors);
 			button->MakeToggleButton();
 			button->SetPressedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/Yes.tiff");
 			button->SetRaisedImagePath("!textures/toolbars/3rd-party/www.aha-soft.com/No.tiff");
@@ -115,8 +126,12 @@ namespace GRANON
 
 		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget)
 		{
-			UNUSED(widgetEvent);
-			UNUSED(sourceWidget);
+			if (widgetEvent.eventType == EGRWidgetEventType::BUTTON_CLICK && sourceWidget == button->Widget())
+			{
+				GRWidgetEvent optionBool{ EGRWidgetEventType::BOOL_CHANGED, panel.Id(), !button->ButtonFlags().isRaised, "", widgetEvent.clickPosition, true };
+				Gui::NotifySelectionChanged(panel, EGRSelectionChangeOrigin::ButtonClick);
+				return panel.NotifyAncestors(optionBool, *this);
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -189,7 +204,7 @@ namespace GRANON
 
 		void SetActiveValue(bool boolValue) override
 		{
-			UNUSED(boolValue);
+			button->SetPressedNoCallback(boolValue);
 		}
 
 		void SetHint(cstr text) override

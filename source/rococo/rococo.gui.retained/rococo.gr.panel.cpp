@@ -57,6 +57,16 @@ namespace GRANON
 			refCount = 1;
 		}
 
+		void OnTick(float dt) override
+		{
+			widget->OnTick(dt);
+
+			for (auto* child : children)
+			{
+				child->OnTick(dt);
+			}
+		}
+
 		std::vector<HString> navigationTargets;
 
 		void AddNavigationTarget(cstr target) override
@@ -363,7 +373,7 @@ namespace GRANON
 			return Root().GR().GetFocusId() == Id();
 		}
 
-		IGRPanel& Focus() override
+		IGRPanel& FocusAndNotifyAncestors() override
 		{
 			Root().GR().SetFocus(Id());
 
@@ -372,7 +382,11 @@ namespace GRANON
 				auto* focusNotifier = Cast<IGRFocusNotifier>(target->Widget());
 				if (focusNotifier)
 				{
-					focusNotifier->OnDeepChildFocusSet(Id());
+					EFlowLogic flow = focusNotifier->OnDeepChildFocusSet(Id());
+					if (flow == EFlowLogic::BREAK)
+					{
+						break;
+					}
 				}
 			}
 
@@ -1034,6 +1048,11 @@ namespace GRANON
 
 		RGBAb GetColour(EGRSchemeColourSurface surface, GRWidgetRenderState rs, RGBAb defaultColour) const override
 		{
+			if (surface == EGRSchemeColourSurface::NONE)
+			{
+				return RGBAb(0, 0, 0, 0);
+			}
+
 			RGBAb result;
 			if (!TryGetColour(surface, result, rs))
 			{
@@ -1195,7 +1214,7 @@ namespace GRANON
 			for (auto* child : children)
 			{
 				GuiRect childClipRect = doesClipChildren ? IntersectNormalizedRects(clipRect, child->AbsRect()) : child->AbsRect();
-				if (childClipRect.IsNormalized())
+				if (childClipRect.IsNormalized() || child->isRenderingLast)
 				{
 					child->RenderRecursive(g, childClipRect, isRenderingFirstLayer, focusId);
 				}
@@ -1464,7 +1483,7 @@ namespace Rococo::Gui
 
 		if (panel.HasFlag(EGRPanelFlags::AcceptsFocus))
 		{
-			panel.Focus();
+			panel.FocusAndNotifyAncestors();
 			return &panel;
 		}
 
@@ -1472,7 +1491,7 @@ namespace Rococo::Gui
 		auto* targetPanel = panel.FindDescendantByDesc(nextTarget.desc);
 		if (targetPanel != nullptr)
 		{
-			targetPanel->Focus();
+			targetPanel->FocusAndNotifyAncestors();
 			return targetPanel;
 		}
 

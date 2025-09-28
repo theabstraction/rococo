@@ -24,6 +24,16 @@ namespace GRANON
 		{
 		}
 
+		virtual ~GRText()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -198,6 +208,11 @@ namespace GRANON
 		cstr GetImplementationTypeName() const override
 		{
 			return "GRText";
+		}
+
+		bool IsObscure() const override
+		{
+			return DoesAncestorObscure(panel);
 		}
 	};
 

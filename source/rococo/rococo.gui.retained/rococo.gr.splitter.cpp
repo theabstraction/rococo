@@ -34,6 +34,16 @@ namespace GRANON
 			realDraggerStartPos = _draggerStartPos;
 		}
 
+		virtual ~GRSplitter()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct()
 		{
 			if (!first)
@@ -141,7 +151,7 @@ namespace GRANON
 				}
 				if (IsPointInRect(ce.position, draggerRect))
 				{
-					panel.Focus();
+					panel.FocusAndNotifyAncestors();
 					virtualDraggerStartPos = ce.position.x;
 					return EGREventRouting::Terminate;
 				}

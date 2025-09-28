@@ -46,6 +46,15 @@ namespace GRANON
 			owningPanel.Add(EGRPanelFlags::AcceptsFocus);
 		}
 
+		virtual ~GREditBox()
+		{
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -100,7 +109,7 @@ namespace GRANON
 				}
 				else
 				{
-					panel.Focus();
+					panel.FocusAndNotifyAncestors();
 
 					if (!isReadOnly)
 					{
@@ -217,14 +226,8 @@ namespace GRANON
 
 			RGBAb editorColour = panel.GetColour(isReadOnly ? EGRSchemeColourSurface::LABEL_BACKGROUND : EGRSchemeColourSurface::EDITOR, rs, RGBAb(0, 0, 0, 225));
 
-			GuiRect innerRect = rect;
-			innerRect.left += 1;
-			innerRect.top += 1;
-			innerRect.right -= 1;
-			innerRect.bottom -= 1;
-
-			g.DrawRect(innerRect, editorColour);
-			g.DrawRectEdge(innerRect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
+			g.DrawRect(rect, editorColour);
+			g.DrawRectEdge(rect, panel.GetColour(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, rs, RGBAb(0, 0, 0, 225)), panel.GetColour(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, rs, RGBAb(0, 0, 0, 225)));
 
 			if (!rs.value.bitValues.focused || isReadOnly)
 			{
@@ -307,7 +310,7 @@ namespace GRANON
 			{
 				if (candidate->HasFlag(EGRPanelFlags::AcceptsFocus))
 				{
-					candidate->Focus();
+					candidate->FocusAndNotifyAncestors();
 					return true;
 				}
 			}

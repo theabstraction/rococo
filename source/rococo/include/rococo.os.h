@@ -232,7 +232,7 @@ namespace Rococo::OS
 namespace Rococo::Windows
 {
 	ROCOCO_API IWindow& NoParent(); // This is in the utils lib, which reduces need to include rococo.windows, avoiding circular dependecies
-	ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr caption);
+	ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, IException& ex, cstr captionFormat, ...);
 	ROCOCO_WINDOWS_API void ShowErrorBox(Windows::IWindow& parent, int errorCode, cstr msg, cstr caption);
 
 	enum class SHOW_WINDOW_TYPE

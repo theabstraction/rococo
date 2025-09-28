@@ -179,7 +179,7 @@
 		:
 		
 		(RadioButtons 
-			([] Group Button.UI Button.Graphics Button.Audio Button.Gameplay Button.Multiplayer)
+			([] Group Button.UI Button.Graphics Button.Audio Button.Gameplay Button.Multiplayer Button.PlutoNinja)
 			(Navigate Vertical)
 			(Default Button.Graphics)
 			(Panel.Description OptionCategories)
@@ -282,6 +282,23 @@
 				(Text.Alignment Left)
 				(Text Multiplayer)	
 			)
+			
+			(Tab 
+				(For Button.PlutoNinja)
+				(Toggles GameOptions.PlutoNinja)
+			)
+			
+			(Button
+				(Panel.NavRight GameOptionsInnerDiv)
+				(Meta Button.PlutoNinja)
+				(#Recti Panel.Padding 8 0 0 8)
+				(Panel.ExpandH)
+				(FitTextV)
+				(Font OptionButtonFont)
+				(#Vec2i Text.Spacing 8 0)
+				(Text.Alignment Left)
+				(Text "PlutoNinja 2.0")	
+			)
 		)
 		
 		(Div
@@ -290,6 +307,9 @@
 			(Panel.ExpandH)
 			(Panel.ExpandV)
 			(Colour.Container.Background Transparent)
+			(Colour.Button Yellow)
+			(Colour.Slider.Slot.Edge.1 White)
+			(Colour.Slider.Slot.Edge.2 LightGrey)
 			:
 			
 			// A viewport has a client area that is offset by a scroll bar. The scroll range allows us to navigate to and from any offscreen elements
@@ -305,6 +325,7 @@
 				(Viewport.Rectstyle.NotScrollable Rounded)
 				(Panel.CornerRadius 16)
 				(Panel.AcceptsFocus)
+				(Panel.OcclusionSurface true)
 				(Panel.ExpandH)
 				(Panel.ExpandV)
 				(Panel.NavDown GameOptionsFinalization)
@@ -316,9 +337,15 @@
 				(Colour.GameOption.Bottom.Right Transparent)
 				(Colour.GameOption.Background Transparent)
 				(Colour.GameOption.ChildSpacer DarkGrey)
+				(Colour.GameOption.Disabled.Background Transparent)
+				(Colour.GameOption.Disabled.Text DarkGrey)
 				(Colour.Label Transparent)
 				(Colour.Editor DarkRed)
 				(Colour.Slider.Guage LightGrey)
+				(Colour.Slider.Slot DarkRed)
+				(Colour.Slider.Slot.Edge.1 FeintWhite)
+				(Colour.Slider.Slot.Edge.2 FeintGrey)
+				(Colour.Occlusion.Surface FeintBlack)
 				:
 				(Viewport.ClientArea
 					(Panel.Layout TopToBottom)
@@ -341,8 +368,10 @@
 					(Title.Font SubOptionTitleFont)
 					(SubscribeToCommitButtons) 
 					
+					(#Recti Panel.Padding 0 8 0 8)
+					
 					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
-					(Title.HeightMultiplier 1.75)
+					(Title.HeightMultiplier 2.00)
 					
 					// Multiplies the title font height to yield the title x spacing.
 					(Title.XSpacingMultiplier 0.25)
@@ -390,17 +419,24 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Centre)
+					(Scalar.Guage.Alignment Left)
 					
 					// Offset from alignment edge to guage
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 50 2 40 2)
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
 					(Slider.Font SliderFont)
+					
+					// We provide an example here of the override the bulb count (default = 20)
+					(Slider.Bulb.Count 25)
+					
+					// We provide an example here of the override the bulb gaps (default dx=6 dy=6)
+					(#Vec2i Slider.Bulb.Gaps 3 3)
+					
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate AudioOptions)
@@ -426,13 +462,13 @@
 					(#Recti Carousel.Button.Padding 4 4 4 4)
 					
 					// Determine which side of the control the numeric feedback is rendered at
-					(Scalar.Guage.Alignment Centre)
+					(Scalar.Guage.Alignment Left)
 					
 					// Offset from alignment edge to guage
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 40 2 40 2)
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
@@ -468,10 +504,10 @@
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 40 4 40 4)
 					
 					// Gives the padding of the string control slot to the string control edges
-					(#Recti String.Slot.Padding 40 2 40 2)
+					(#Recti String.Slot.Padding 40 4 40 4)
 					
 					
 					(Carousel.Font CarouselFont)
@@ -508,7 +544,7 @@
 					(#Vec2i Scalar.Guage.Spacing 12 4)
 					
 					// Gives the padding of the slider control slot to the slider control edges
-					(#Recti Scalar.Slot.Padding 40 10 40 10)
+					(#Recti Scalar.Slot.Padding 40 2 40 2)
 					
 					(Carousel.Font CarouselFont)
 					(Carousel.Button.Font CarouselFont)
@@ -516,6 +552,42 @@
 				
 					// The Generate attribute determines which options are used to generate the children
 					(Generate MultiplayerOptions)
+				)
+				
+				(GameOptions 
+					(Panel.Description GameOptions.PlutoNinja)
+					(Title.Style TitlesOnLeft)
+					(Title.Alignment Left)
+					(Title.Font SubOptionTitleFont)
+					(SubscribeToCommitButtons) 
+					
+					// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
+					(Title.HeightMultiplier 1.75)
+					
+					// Multiplies the title font height to yield the title x spacing.
+					(Title.XSpacingMultiplier 0.25)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Padding 40 2 40 4)
+					
+					// Gives the padding of the carousel controls to their interior rectangle
+					(#Recti Carousel.Button.Padding 4 4 4 4)
+					
+					// Determine which side of the control the numeric feedback is rendered at
+					(Scalar.Guage.Alignment Left)
+					
+					// Offset from alignment edge to guage
+					(#Vec2i Scalar.Guage.Spacing 12 4)
+					
+					// Gives the padding of the slider control slot to the slider control edges
+					(#Recti Scalar.Slot.Padding 40 2 40 2)
+					
+					(Carousel.Font CarouselFont)
+					(Carousel.Button.Font CarouselFont)
+					(Slider.Font SliderFont)
+				
+					// The Generate attribute determines which options are used to generate the children
+					(Generate PlutoNinja)
 				)
 			)
 			

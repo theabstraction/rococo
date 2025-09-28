@@ -88,6 +88,16 @@ namespace ANON
 			downRenderer.orientation = 180_degrees;
 		}
 
+		virtual ~GRVerticalScrollerWithButtons()
+		{
+
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		void PostConstruct()
 		{
 			panel.SetLayoutDirection(ELayoutDirection::None);

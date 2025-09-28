@@ -2,7 +2,7 @@
 #include <rococo.package.h>
 #include <rococo.hashtable.h>
 #include <sexy.vector.h>
-#include <sexy.s-parser.h>
+#include <Sexy.S-Parser.h>
 
 using namespace Rococo;
 using namespace Rococo::Script;

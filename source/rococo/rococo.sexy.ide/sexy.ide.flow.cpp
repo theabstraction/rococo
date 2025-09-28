@@ -6,7 +6,7 @@
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
-#include <sexy.s-parser.h>
+#include <Sexy.S-Parser.h>
 
 #include <rococo.strings.h>
 #include <rococo.ide.h>

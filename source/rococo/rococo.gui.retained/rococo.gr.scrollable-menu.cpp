@@ -56,7 +56,7 @@ namespace GRANON
 
 		IGRWidgetViewport* viewport = nullptr;
 
-		ButtonWatcher watcher;
+		ButtonWatcher watcher; // used for debugging, put breakpoints in the watcher implementation if needs be
 		
 		GRScrollableMenu(IGRPanel& owningPanel) : panel(owningPanel)
 		{
@@ -66,6 +66,11 @@ namespace GRANON
 		virtual ~GRScrollableMenu()
 		{
 
+		}
+
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
 		}
 
 		void Free() override
@@ -96,6 +101,7 @@ namespace GRANON
 			button->Panel().SetPanelWatcher(&watcher);
 			button->TriggerOnKeyDown();
 			button->Panel().SetHint(hint);
+			button->FocusOnMouseMove(true);
 
 			GRControlMetaData metaData;
 			metaData.stringData = name;
@@ -217,7 +223,7 @@ namespace GRANON
 
 		void SetFocusWithoutCallback(IGRWidgetButton& button)
 		{
-			panel.Root().GR().SetFocus(button.Panel().Id());
+			SetFocusWithNoCallback(button.Panel());
 		}
 
 		void SetFocusToTopmostVisibleButton(int deltaOffset)
@@ -272,8 +278,22 @@ namespace GRANON
 			return EGREventRouting::NextHandler;
 		}
 
-		EGREventRouting OnCursorMove(GRCursorEvent&) override
+		EGREventRouting OnCursorMove(GRCursorEvent& ce) override
 		{
+			if (panel.Root().CapturedPanelId() == panel.Id())
+			{
+				auto& vpPanel = viewport->ClientArea().Panel();
+				int nChildren = vpPanel.EnumerateChildren(nullptr);
+				for (int i = 0; i < nChildren; i++)
+				{
+					auto* child = vpPanel.GetChild(i);
+					if (IsPointInRect(ce.position, child->AbsRect()))
+					{
+						child->Widget().Manager().OnCursorMove(ce);
+						break;
+					}
+				}
+			}
 			return EGREventRouting::NextHandler;
 		}
 
@@ -304,30 +324,49 @@ namespace GRANON
 			case IO::VirtualKeys::VKCode_ANTITAB:
 			case IO::VirtualKeys::VKCode_UP:
 				RotateFocusToNextSibling(button, false);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::VMenuKeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_TAB:
 			case IO::VirtualKeys::VKCode_DOWN:
 				RotateFocusToNextSibling(button, !ke.context.isCtrlHeld);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::VMenuKeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_PGUP:
 				OnFocusPageChange(-1);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::VMenuKeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_PGDOWN:
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::VMenuKeyNav);
 				OnFocusPageChange(1);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_HOME:
 				viewport->VScroller().Scroller().SetSliderPosition(0);
 				viewport->SetOffset(0, true);
 				SetFocusWithoutCallback(*options.front().button);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::VMenuKeyNav);
 				return EGREventRouting::Terminate;
 			case IO::VirtualKeys::VKCode_END:
 				viewport->VScroller().Scroller().SetSliderPosition(-1);
 				viewport->SetOffset(-1, true);
 				SetFocusWithoutCallback(*options.back().button);
+				NotifySelectionChanged(panel, EGRSelectionChangeOrigin::VMenuKeyNav);
 				return EGREventRouting::Terminate;
 			}
 
 			return EGREventRouting::NextHandler;
+		}
+
+		void SignalButtonClick(int optionIndex) override
+		{
+			if (optionIndex < 0 || optionIndex >= (int)options.size())
+			{
+				return;
+			}
+
+			auto& button = *options[optionIndex].button;
+			GRWidgetEvent widgetEvent{ EGRWidgetEventType::BUTTON_CLICK, button.Panel().Id(), 0, "SignalButtonClick", {0,0}, true };
+			auto result = panel.NotifyAncestors(widgetEvent, button.Widget());
+			UNUSED(result);
 		}
 
 		IGRPanel& Panel() override
@@ -335,10 +374,24 @@ namespace GRANON
 			return panel;
 		}
 
-		void Render(IGRRenderContext&) override
+		void Render(IGRRenderContext& g) override
 		{
 			// Viewport expands to the widget area and covers up everything we would render, so our method is empty
 			viewport->SetLineDeltaPixels(LastComputedButtonSpan().y);
+
+			if (panel.IsCollapsed())
+			{
+				return;
+			}
+
+			for (auto* ancestor = panel.Parent(); ancestor != nullptr; ancestor = ancestor->Parent())
+			{
+				if (ancestor->HasFlag(EGRPanelFlags::OcclusionSurface))
+				{
+					DrawPanelBackgroundEx(*ancestor, g, EGRSchemeColourSurface::OCCLUSION_SURFACE, EGRSchemeColourSurface::NONE, EGRSchemeColourSurface::NONE);
+					break;
+				}
+			}
 		}
 
 		EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) override
@@ -388,5 +441,10 @@ namespace Rococo::Gui
 		auto& widget = gr.AddWidget(parent.Panel(), menuFactory);
 		auto* menu = Cast<IGRWidgetScrollableMenu>(widget);
 		return *menu;
+	}
+
+	ROCOCO_GUI_RETAINED_API void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin)
+	{
+		panel.Root().NotifySelectionChanged(panel, origin);
 	}
 }

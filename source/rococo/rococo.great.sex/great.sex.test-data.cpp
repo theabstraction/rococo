@@ -15,9 +15,13 @@ namespace Rococo::GreatSex::TestData
 	{
 		OptionDatabase<AudioOptions> db;
 
-		double musicVolume = 0.25;
-		double fxVolume = 0.2;
-		double narrationVolume = 0.4;
+		double acceptedMusicVoluem = 25;
+		double acceptedFXVolume = 20;
+		double acceptedNarrationVolume = 40;
+
+		double musicVolume = 25;
+		double fxVolume = 20;
+		double narrationVolume = 40;
 		HString speakerConfig = "2";
 
 		AudioOptions() : db(*this)
@@ -35,15 +39,27 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
-
+			acceptedMusicVoluem = musicVolume;
+			acceptedFXVolume = fxVolume;
+			acceptedNarrationVolume = narrationVolume;
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier& notifier) override
 		{
-
+			musicVolume = acceptedMusicVoluem;
+			fxVolume = acceptedFXVolume;
+			narrationVolume = acceptedNarrationVolume;
+			notifier.OnSupervenientOptionChanged(*this);
 		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
+		}
+
 
 		bool IsModified() const override
 		{
@@ -53,12 +69,14 @@ namespace Rococo::GreatSex::TestData
 		void GetMusicVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Music Volume");
-			inquiry.SetRange(0, 100.0);
+			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(musicVolume);
 			inquiry.SetHint("Set music volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
+			inquiry.HideBackgroundWhenPopulated(true);
 		}
 
-		void SetMusicVolume(double value)
+		void SetMusicVolume(double value, IGameOptionChangeNotifier&)
 		{
 			musicVolume = value;
 		}
@@ -66,12 +84,14 @@ namespace Rococo::GreatSex::TestData
 		void GetFXVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("FX Volume");
-			inquiry.SetRange(0, 100.0);
+			inquiry.SetRange(0, 100.0, 1.0);
 			inquiry.SetActiveValue(fxVolume);
 			inquiry.SetHint("Set Special FX volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
+			inquiry.HideBackgroundWhenPopulated(true);
 		}
 
-		void SetFXVolume(double value)
+		void SetFXVolume(double value, IGameOptionChangeNotifier&)
 		{
 			fxVolume = value;
 		}
@@ -79,12 +99,14 @@ namespace Rococo::GreatSex::TestData
 		void GetNarrationVolume(IScalarInquiry& inquiry)
 		{
 			inquiry.SetTitle("Narration Volume");
-			inquiry.SetRange(0, 100.0);
+			inquiry.SetRange(0, 100.0, 0.5);
 			inquiry.SetActiveValue(narrationVolume);
 			inquiry.SetHint("Set narrator's voice volume. 0 is off, 100.0 is maximum");
+			inquiry.SetDecimalPlaces(0);
+			inquiry.HideBackgroundWhenPopulated(true);
 		}
 
-		void SetNarrationVolume(double value)
+		void SetNarrationVolume(double value, IGameOptionChangeNotifier&)
 		{
 			narrationVolume = value;
 		}
@@ -101,7 +123,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set sound set-up.");
 		}
 
-		void SetSpeakerConfiguration(cstr choice)
+		void SetSpeakerConfiguration(cstr choice, IGameOptionChangeNotifier&)
 		{
 			speakerConfig = choice;
 		}
@@ -109,10 +131,15 @@ namespace Rococo::GreatSex::TestData
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, AudioOptions, MusicVolume)
-				ADD_GAME_OPTIONS(db, AudioOptions, FXVolume)
-				ADD_GAME_OPTIONS(db, AudioOptions, NarrationVolume)
-				ADD_GAME_OPTIONS(db, AudioOptions, SpeakerConfiguration)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, AudioOptions, FXVolume)
+			ADD_GAME_OPTIONS(db, AudioOptions, NarrationVolume)
+			ADD_GAME_OPTIONS(db, AudioOptions, SpeakerConfiguration)
+			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder& builder) override
+		{
+			db.Refresh(builder);
 		}
 	};
 
@@ -130,12 +157,12 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -143,6 +170,12 @@ namespace Rococo::GreatSex::TestData
 		bool IsModified() const override
 		{
 			return true;
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
 		}
 
 		HString activeScreenMode = "Fullscreen";
@@ -154,6 +187,20 @@ namespace Rococo::GreatSex::TestData
 		HString textureQuality = "1";
 		HString waterQuality = "1";
 		bool isFSAAEnabled = false;
+
+		// Zero based, 0 = lowest, 1 = low, 2 = medium, 3  = high, 4 = very high, 5 = extreme
+
+		enum EGlobalQuality
+		{
+			GlobalQuality_Lowest = 0,
+			GlobalQuality_Low,
+			GlobalQuality_Medium,
+			GlobalQuality_High,
+			GlobalQuality_VeryHigh,
+			GlobalQuality_Extreme
+		};
+
+		EGlobalQuality globalQuality = GlobalQuality_Lowest;
 
 		GraphicsOptions() : db(*this)
 		{
@@ -170,7 +217,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set screen mode");
 		}
 
-		void SetScreenMode(cstr choice)
+		void SetScreenMode(cstr choice, IGameOptionChangeNotifier&)
 		{
 			activeScreenMode = choice;
 		}
@@ -182,7 +229,69 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Enable or disable full screen anti-aliasing");
 		}
 
-		void SetFSAA(bool value)
+		void SetGlobalQuality(cstr value, IGameOptionChangeNotifier& notifier)
+		{
+			auto eValue = static_cast<EGlobalQuality>(atoi(value));
+
+			if (eValue == globalQuality)
+			{
+				return;
+			}
+
+			globalQuality = clamp(eValue, GlobalQuality_Lowest, GlobalQuality_Extreme);
+
+			isFSAAEnabled = false;
+
+			switch (eValue)
+			{
+			case GlobalQuality_Low:
+				shadowQuality = "1";
+				landscapeQuality = "1";
+				break;
+			case GlobalQuality_Lowest:
+				shadowQuality = "2";
+				landscapeQuality = "2";
+				break;
+			case GlobalQuality_Medium:
+				shadowQuality = "3";
+				landscapeQuality = "3";
+				break;
+			case GlobalQuality_High:
+				shadowQuality = "4";
+				landscapeQuality = "4";
+				break;
+			case GlobalQuality_VeryHigh:
+				shadowQuality = "4";
+				landscapeQuality = "5";
+				break;
+			case GlobalQuality_Extreme:
+				shadowQuality = "5";
+				isFSAAEnabled = true;
+				landscapeQuality = "5";
+				break;
+			}
+
+			notifier.OnSupervenientOptionChanged(*this);
+		}
+
+		void GetGlobalQuality(IChoiceInquiry& inquiry)
+		{
+			inquiry.SetTitle("Global Quality");
+
+			inquiry.AddChoice("0", "Lowest", GEN_HINT_FROM_PARENT_AND_CHOICE);
+			inquiry.AddChoice("1", "Low", GEN_HINT_FROM_PARENT_AND_CHOICE);
+			inquiry.AddChoice("2", "Medium", GEN_HINT_FROM_PARENT_AND_CHOICE);
+			inquiry.AddChoice("3", "High", GEN_HINT_FROM_PARENT_AND_CHOICE);
+			inquiry.AddChoice("4", "Very-High", GEN_HINT_FROM_PARENT_AND_CHOICE);
+			inquiry.AddChoice("5", "Extreme", GEN_HINT_FROM_PARENT_AND_CHOICE);
+
+			char value[8];
+			SafeFormat(value, "%d", static_cast<int>(globalQuality));
+			inquiry.SetActiveChoice(value);
+			inquiry.SetHint("Set all quality settings");
+		}
+
+		void SetFSAA(bool value, IGameOptionChangeNotifier&)
 		{
 			isFSAAEnabled = value;
 		}
@@ -199,7 +308,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set the quality of shadows. Higher settings may reduce frame-rate");
 		}
 
-		void SetShadowQuality(cstr value)
+		void SetShadowQuality(cstr value, IGameOptionChangeNotifier&)
 		{
 			shadowQuality = value;
 		}
@@ -216,7 +325,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set the quality of landscape rendering. Higher settings may reduce frame-rate");
 		}
 
-		void SetLandscapeQuality(cstr value)
+		void SetLandscapeQuality(cstr value, IGameOptionChangeNotifier&)
 		{
 			landscapeQuality = value;
 		}
@@ -233,7 +342,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set the quality of reflections. Higher settings may reduce frame-rate");
 		}
 
-		void SetReflectionAlgorithm(cstr value)
+		void SetReflectionAlgorithm(cstr value, IGameOptionChangeNotifier&)
 		{
 			reflectionAlgorithm = value;
 		}
@@ -247,7 +356,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set which monitor to present the game in fullscreen");
 		}
 
-		void SetActiveMonitor(cstr value)
+		void SetActiveMonitor(cstr value, IGameOptionChangeNotifier&)
 		{
 			monitor = value;
 		}
@@ -286,7 +395,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set full screen resolution and frame rate");
 		}
 
-		void SetFullscreenResolution(cstr choice)
+		void SetFullscreenResolution(cstr choice, IGameOptionChangeNotifier&)
 		{
 			resolution = choice;
 		}
@@ -303,7 +412,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set the texture sizes. Higher settings may slow frame rate");
 		}
 
-		void SetTextureQuality(cstr choice)
+		void SetTextureQuality(cstr choice, IGameOptionChangeNotifier&)
 		{
 			textureQuality = choice;
 		}
@@ -320,7 +429,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set the quality of water rendering. Higher settings may slow frame rate");
 		}
 
-		void SetWaterQuality(cstr choice)
+		void SetWaterQuality(cstr choice, IGameOptionChangeNotifier&)
 		{
 			waterQuality = choice;
 		}
@@ -328,15 +437,21 @@ namespace Rococo::GreatSex::TestData
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, GraphicsOptions, ScreenMode)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, FSAA)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, ShadowQuality)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, LandscapeQuality)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, ReflectionAlgorithm)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, ActiveMonitor)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, FullscreenResolution)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, TextureQuality)
-				ADD_GAME_OPTIONS(db, GraphicsOptions, WaterQuality)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, GraphicsOptions, GlobalQuality);
+			ADD_GAME_OPTIONS(db, GraphicsOptions, FSAA)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, ShadowQuality)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, LandscapeQuality)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, ReflectionAlgorithm)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, ActiveMonitor)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, FullscreenResolution)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, TextureQuality)
+			ADD_GAME_OPTIONS(db, GraphicsOptions, WaterQuality)
+			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder& builder) override
+		{
+			db.Refresh(builder);
 		}
 	};
 
@@ -362,15 +477,22 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
+		}
+
 
 		bool IsModified() const override
 		{
@@ -379,13 +501,14 @@ namespace Rococo::GreatSex::TestData
 
 		void GetCursorResponsiveness(IScalarInquiry& inquiry)
 		{
-			inquiry.SetTitle("Screen Mode");
-			inquiry.SetRange(1, 10);
+			inquiry.SetTitle("Mouse Sensitivity");
+			inquiry.SetRange(1, 10, 0.5);
 			inquiry.SetActiveValue(cursorResponsiveness);
-			inquiry.SetHint("Set scaling on to mouse movement to cursor movement");
+			inquiry.SetHint("Set scaling of mouse movement to cursor movement");
+			inquiry.SetDecimalPlaces(1);
 		}
 
-		void SetCursorResponsiveness(double value)
+		void SetCursorResponsiveness(double value, IGameOptionChangeNotifier&)
 		{
 			cursorResponsiveness = value;
 		}
@@ -397,7 +520,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Reverse the response to player ascent to the joystick direction");
 		}
 
-		void SetInvertYAxis(bool value)
+		void SetInvertYAxis(bool value, IGameOptionChangeNotifier&)
 		{
 			isYAxisInverted = value;
 		}
@@ -405,8 +528,13 @@ namespace Rococo::GreatSex::TestData
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, UIOptions, CursorResponsiveness)
-				ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, UIOptions, InvertYAxis)
+			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder&) override
+		{
+
 		}
 	};
 
@@ -433,12 +561,12 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -460,7 +588,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set the difficulty of the training mission");
 		}
 
-		void SetStartingDifficulty(cstr value)
+		void SetStartingDifficulty(cstr value, IGameOptionChangeNotifier&)
 		{
 			startDifficulty = value;
 		}
@@ -477,12 +605,12 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetHint("Set the difficulty of the main game");
 		}
 
-		void SetGameDifficulty(cstr value)
+		void SetGameDifficulty(cstr value, IGameOptionChangeNotifier&)
 		{
 			gameDifficulty = value;
 		}
 
-		void SetPlayerName(cstr value)
+		void SetPlayerName(cstr value, IGameOptionChangeNotifier&)
 		{
 			if (*value == 0)
 			{
@@ -503,10 +631,21 @@ namespace Rococo::GreatSex::TestData
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, GameplayOptions, StartingDifficulty)
-				ADD_GAME_OPTIONS(db, GameplayOptions, GameDifficulty)
-				ADD_GAME_OPTIONS_STRING(db, GameplayOptions, PlayerName, 32)
+			ADD_GAME_OPTIONS(db, GameplayOptions, GameDifficulty)
+			ADD_GAME_OPTIONS_STRING(db, GameplayOptions, PlayerName, 32)
 
-				db.Build(builder);
+			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder&) override
+		{
+
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
 		}
 	};
 
@@ -532,12 +671,12 @@ namespace Rococo::GreatSex::TestData
 			return db;
 		}
 
-		void Accept() override
+		void Accept(IGameOptionChangeNotifier&) override
 		{
 
 		}
 
-		void Revert() override
+		void Revert(IGameOptionChangeNotifier&) override
 		{
 
 		}
@@ -553,7 +692,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetActiveValue(hostGame);
 		}
 
-		void SetHostGame(bool value)
+		void SetHostGame(bool value, IGameOptionChangeNotifier&)
 		{
 			hostGame = value;
 		}
@@ -564,7 +703,7 @@ namespace Rococo::GreatSex::TestData
 			inquiry.SetActiveValue(useUDP);
 		}
 
-		void SetUseUDP(bool value)
+		void SetUseUDP(bool value, IGameOptionChangeNotifier&)
 		{
 			useUDP = value;
 		}
@@ -572,8 +711,19 @@ namespace Rococo::GreatSex::TestData
 		void AddOptions(IGameOptionsBuilder& builder) override
 		{
 			ADD_GAME_OPTIONS(db, MultiplayerOptions, HostGame)
-				ADD_GAME_OPTIONS(db, MultiplayerOptions, UseUDP)
-				db.Build(builder);
+			ADD_GAME_OPTIONS(db, MultiplayerOptions, UseUDP)
+			db.Build(builder);
+		}
+
+		void Refresh(IGameOptionsBuilder&) override
+		{
+
+		}
+
+		void OnTick(float dt, IGameOptionChangeNotifier& notifier)
+		{
+			UNUSED(dt);
+			UNUSED(notifier);
 		}
 	};
 

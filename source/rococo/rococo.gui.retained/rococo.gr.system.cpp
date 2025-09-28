@@ -82,13 +82,21 @@ namespace ANON
 
 		virtual ~GRSystem()
 		{
-			for (auto d : frameDescriptors)
+			for (auto& d : frameDescriptors)
 			{
 				d.panel->ReleasePanel();
 			}
 
 			delete eventQueue;
 			delete dispatchQueue;
+		}
+
+		void OnTick(float dt) override
+		{
+			for (auto& d : frameDescriptors)
+			{
+				d.panel->OnTick(dt);
+			}
 		}
 
 		void QueueGarbageCollect() override
@@ -307,11 +315,11 @@ namespace ANON
 			alignment.Add(EGRAlignment::Right);
 
 			char cursorLine[32];
-			Strings::SafeFormat(cursorLine, "%d %d", pos.x, pos.y);
+			Strings::SafeFormat(cursorLine, "%d      %d", pos.x, pos.y);
 
 			GuiRect debugRect;
-			debugRect.left = screenDimensions.right - 70;
-			debugRect.right = debugRect.left + 60;
+			debugRect.right = screenDimensions.right - 10;
+			debugRect.left = debugRect.right - 160;
 			debugRect.top = screenDimensions.top + 10;
 			debugRect.bottom = debugRect.top + 30;
 			g.DrawRect(debugRect, RGBAb(0, 0, 0, 128));
@@ -672,6 +680,16 @@ namespace ANON
 		void SetFocus(int64 id = -1) override
 		{
 			focusId = id;
+
+			if (id == -1)
+			{
+				custodian.OnFocusChanged(nullptr);
+			}
+			else
+			{
+				auto* focusWidget = FindWidget(id);
+				custodian.OnFocusChanged(focusWidget ? &focusWidget->Panel() : nullptr);
+			}
 		}
 
 		IGREventHandler* eventHandler = nullptr;
@@ -758,6 +776,14 @@ namespace ANON
 			}
 		}
 
+		void FocusDefaultTab() override
+		{
+			if (focusId > 0)
+			{
+				OnNavigate(EGRNavigationDirective::Tab);
+			}
+		}
+
 		void ApplyKeyGlobally(GRKeyEvent& keyEvent) override
 		{
 			switch (keyEvent.osKeyEvent.VKey)
@@ -765,13 +791,24 @@ namespace ANON
 			case IO::VirtualKeys::VKCode_TAB:
 				if (keyEvent.osKeyEvent.IsUp())
 				{
-					if (focusId > 0)
-					{
-						OnNavigate(EGRNavigationDirective::Tab);
-					}
+					FocusDefaultTab();
 				}
-				break;
 			}
+		}
+
+		void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin) override
+		{
+			if (changeHandler)
+			{
+				changeHandler->OnSelectionChanged(panel, origin);
+			}
+		}
+
+		IGRSelectionChangeHandler* changeHandler = nullptr;
+
+		void SetSelectionChangeHandler(Rococo::Gui::IGRSelectionChangeHandler* handler) override
+		{
+			changeHandler = handler;
 		}
 	};
 }
@@ -885,5 +922,10 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetSupervisor& IGRWidget::Supervisor()
 	{
 		return static_cast<IGRWidgetSupervisor&>(*this);
+	}
+
+	ROCOCO_GUI_RETAINED_API void SetFocusWithNoCallback(IGRPanel& panel)
+	{
+		panel.Root().GR().SetFocus(panel.Id());
 	}
 }

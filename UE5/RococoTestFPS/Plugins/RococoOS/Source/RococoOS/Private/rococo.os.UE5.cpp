@@ -42,6 +42,19 @@ namespace Rococo
 
 namespace Rococo::Strings
 {
+	bool EndsWith(const TCHAR* bigString, const TCHAR* subString)
+	{
+		int32 bigStringLength = TCString<ROCOCO_WIDECHAR>::Strlen(bigString);
+		int32 subStringLength = TCString<ROCOCO_WIDECHAR>::Strlen(subString);
+
+		if (subStringLength > bigStringLength)
+		{
+			return false;
+		}
+
+		return TCString<ROCOCO_WIDECHAR>::Strncmp(bigString + bigStringLength - subStringLength, subString, subStringLength) == 0;
+	}
+
 	int Compare(ROCOCO_WIDECHAR const* a, ROCOCO_WIDECHAR const* b, unsigned long nChars)
 	{
 		return TCString<ROCOCO_WIDECHAR>::Strncmp(a, b, nChars);
@@ -157,7 +170,7 @@ namespace Rococo
 		buffer[nElements] = 0;
 	}
 
-	void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
+	ROCOCO_API void ConvertFStringToUTF8Buffer(TArray<uint8>& buffer, const FString& src)
 	{
 		int32 nElements = FTCHARToUTF8_Convert::ConvertedLength(*src, src.Len());
 		buffer.SetNumUninitialized(nElements + 1);

@@ -32,7 +32,7 @@
 */
 
 #include <sexy.types.h>
-#include <sexy.s-parser.h>
+#include <Sexy.S-Parser.h>
 #include <sexy.compiler.public.h>
 
 using namespace Rococo::Sex;

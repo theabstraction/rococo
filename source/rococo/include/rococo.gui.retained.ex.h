@@ -22,6 +22,8 @@ namespace Rococo::Gui
 		virtual IGREventHandler* SetEventHandler(IGREventHandler* eventHandler) = 0;
 		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
 		virtual EGREventRouting OnGREvent(GRWidgetEvent& ev) = 0;
+		virtual void OnTick(float dt) = 0;
+		virtual void FocusDefaultTab() = 0;
 		virtual void Free() = 0;
 	};
 
@@ -69,9 +71,18 @@ namespace Rococo::Gui
 
 		virtual IGRFonts& Fonts() = 0;
 
+		virtual void OnFocusChanged(IGRPanel* srcPanel) = 0;
+
 		// Set the zoom level for the user-interface. The value is clamped between 1 and 100
 		virtual void SetUIZoom(float zoomLevel) = 0;
 		virtual float ZoomLevel() const = 0;
+
+		// Converts padding values according to the known render scales mapping pixel sizes to absolute co-ordinates.
+		virtual GRAnchorPadding Scale(GRAnchorPadding pixelPadding) = 0;
+
+		// Logs info to the custodian. The higher the log level the lower the priority
+		virtual void Log(const char* format, ...) = 0;
+
 	};
 
 	ROCOCO_INTERFACE IGRCustodianSupervisor : IGRCustodian
@@ -110,4 +121,32 @@ namespace Rococo::Gui
 
 		return EGRQueryInterfaceResult::NOT_IMPLEMENTED;
 	}
+
+	struct SliderDesc
+	{
+		IGRPanel& panel;
+		GRAnchorPadding slotPadding;
+		bool isRaised;
+		IGRImage* raisedImage;
+		IGRImage* pressedImage;
+		int sliderPos;
+		GRFontId guageFont;
+		GRAlignmentFlags guageAlignment;
+		Vec2i guageSpacing;
+		int guageDecimalPlaces;
+		EGRSchemeColourSurface guageTextSurface;
+		double position;
+		void* context;
+		double minValue;
+		double maxValue;
+		int bulbCount;
+		int bulbHeightPadding;
+		int bulbWidthPadding;
+		bool hideBackgroundWhenPartFilled;
+	};
+
+	ROCOCO_GUI_RETAINED_API void RenderSlider_Default(IGRRenderContext& g, SliderDesc& slider);
+	ROCOCO_GUI_RETAINED_API void RenderSlider_AsLeftToRightBulbs(IGRRenderContext& g, SliderDesc& slider);
+	ROCOCO_GUI_RETAINED_API void SetCustomSliderRenderer(FN_RENDER_SLIDER fnRender);
+	ROCOCO_GUI_RETAINED_API void RenderSlider_Custom(IGRRenderContext& g, SliderDesc& slider);
 }

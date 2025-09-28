@@ -26,6 +26,7 @@ namespace Rococo::Sex
 namespace Rococo::Game::Options
 {
 	DECLARE_ROCOCO_INTERFACE IGameOptions;
+	DECLARE_ROCOCO_INTERFACE IMissingOptions;
 }
 
 // (G)ui(Re)t(a)ined(T)emplate via SexML

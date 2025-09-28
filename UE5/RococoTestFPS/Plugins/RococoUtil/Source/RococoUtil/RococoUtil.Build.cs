@@ -282,6 +282,7 @@ public class RococoUtil : ModuleRules
 			new string[]
 			{
 				"Core",
+                "Engine"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -305,7 +306,7 @@ public class RococoUtil : ModuleRules
 			new string[]
 			{
 				// ... add any modules that your module loads dynamically here ...
-			}
-			);
+		    }
+		);
     }
 }

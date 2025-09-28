@@ -26,6 +26,11 @@ namespace GRANON
 
 		}
 
+		void OnTick(float dt) override
+		{
+			UNUSED(dt);
+		}
+
 		IGRWidget& Widget() override
 		{
 			return *this;
