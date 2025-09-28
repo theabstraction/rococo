@@ -236,7 +236,7 @@ FEventReply RouteMouseButtonDown(TScriptInterface<IRococoEmittedUIEventHandler>&
 		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
 		if (result == Rococo::Gui::EGREventRouting::NextHandler)
 		{
-			return eventHandler ? eventHandler->Execute_OnEmittedMouseButtonDown(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
+			return eventHandler.GetObject() ? eventHandler->Execute_OnEmittedMouseButtonDown(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
 		}
 	}
 	catch (IException& ex)
@@ -290,7 +290,7 @@ FEventReply RouteMouseButtonUp(TScriptInterface<IRococoEmittedUIEventHandler>& e
 		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
 		if (result == Rococo::Gui::EGREventRouting::NextHandler)
 		{
-			return eventHandler ? eventHandler->Execute_OnEmittedMouseButtonUp(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
+			return eventHandler.GetObject() ? eventHandler->Execute_OnEmittedMouseButtonUp(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
 		}
 	}
 	catch (IException& ex)
@@ -317,7 +317,7 @@ FEventReply RouteMouseMove(TScriptInterface<IRococoEmittedUIEventHandler>& event
 		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
 		if (result == Rococo::Gui::EGREventRouting::NextHandler)
 		{
-			return eventHandler ? eventHandler->Execute_OnEmittedMouseMove(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
+			return eventHandler.GetObject() ? eventHandler->Execute_OnEmittedMouseMove(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
 		}
 	}
 	catch (IException& ex)
@@ -347,7 +347,7 @@ FEventReply RouteMouseWheel(TScriptInterface<IRococoEmittedUIEventHandler>& even
 		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));
 		if (result == Rococo::Gui::EGREventRouting::NextHandler)
 		{
-			return eventHandler ? eventHandler->Execute_OnEmittedMouseWheel(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
+			return eventHandler.GetObject() ? eventHandler->Execute_OnEmittedMouseWheel(eventHandler.GetObject(), geometry, ue5MouseEvent) : FEventReply(false);
 		}
 	}
 	catch (IException& ex)
@@ -448,7 +448,7 @@ FEventReply RouteKeyDown(TScriptInterface<IRococoEmittedUIEventHandler>& eventHa
 		auto result = custodian->RouteKeyboardEvent(kex);
 		if (result == Rococo::Gui::EGREventRouting::NextHandler)
 		{
-			return eventHandler ? eventHandler->Execute_OnEmittedKeyDown(eventHandler.GetObject(), geometry, ue5KeyEvent) : FEventReply(false);
+			return eventHandler.GetObject() ? eventHandler->Execute_OnEmittedKeyDown(eventHandler.GetObject(), geometry, ue5KeyEvent) : FEventReply(false);
 		}
 	}
 	catch (IException& ex)
@@ -483,7 +483,7 @@ FEventReply RouteKeyUp(TScriptInterface<IRococoEmittedUIEventHandler>& eventHand
 		auto result = custodian->RouteKeyboardEvent(kex);
 		if (result == Rococo::Gui::EGREventRouting::NextHandler)
 		{
-			return eventHandler ? eventHandler->Execute_OnEmittedKeyUp(eventHandler.GetObject(), geometry, ue5KeyEvent) : FEventReply(false);
+			return eventHandler.GetObject() ? eventHandler->Execute_OnEmittedKeyUp(eventHandler.GetObject(), geometry, ue5KeyEvent) : FEventReply(false);
 		}
 	}
 	catch (IException& ex)
