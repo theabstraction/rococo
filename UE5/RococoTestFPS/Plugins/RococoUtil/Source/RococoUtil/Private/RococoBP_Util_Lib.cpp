@@ -19,3 +19,8 @@ void ROCOCO_UE5_EXPORT URococoUtilLibrary::PrintStringItems(
 	UKismetSystemLibrary::PrintString(WorldContextObject, s, bPrintToScreen, bPrintToLog, TextColor, Duration, Key);
 	
 }
+
+bool ROCOCO_UE5_EXPORT URococoUtilLibrary::IsKey(const FKeyEvent& ev, ERococoVirtualKey vkCode)
+{
+	return ev.GetKeyCode() == static_cast<uint32>(vkCode);
+}

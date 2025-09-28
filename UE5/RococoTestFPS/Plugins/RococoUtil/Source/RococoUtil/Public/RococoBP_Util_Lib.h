@@ -4,6 +4,14 @@
 #include "rococo.UE5.h"
 #include "RococoBP_Util_Lib.generated.h"
 
+UENUM(BlueprintType, Category = "Rococo")
+enum class ERococoVirtualKey : uint8
+{
+	None = 0,
+	Escape = 27,
+	Tab = 9
+};
+
 UCLASS(meta = (ScriptName = "RococoUtilLibrary"))
 class ROCOCO_BPUTIL_API URococoUtilLibrary : public UBlueprintFunctionLibrary
 {
@@ -41,4 +49,7 @@ public:
 		float Duration = 2.f,
 		const FName Key = NAME_None
 	);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rococo")
+	static bool IsKey(const FKeyEvent& ev, ERococoVirtualKey vkCode);
 };
