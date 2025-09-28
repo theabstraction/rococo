@@ -394,102 +394,30 @@ Rococo::Gui::GRKeyContextFlags ToContext(const FPointerEvent& ev)
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonDown(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	auto guiResult = ::RouteMouseButtonDown(GetCurrentCustodian(), geometry, ue5MouseEvent);
-	if (guiResult.NativeReply.IsEventHandled())
-	{
-		return guiResult;
-	}
-
-	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
-	{
-		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
-		return handler->Execute_OnGlobalMouseButtonDown(_GlobalUIEventHandler, geometry, ue5MouseEvent);
-	}
-
-	return FEventReply(false);
+	return ::RouteMouseButtonDown(_EmittedEventHandler, GetCurrentCustodian(), geometry, ue5MouseEvent);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseButtonUp(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	auto guiResult = ::RouteMouseButtonUp(GetCurrentCustodian(), geometry, ue5MouseEvent);
-	if (guiResult.NativeReply.IsEventHandled())
-	{
-		return guiResult;
-	}
-
-	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
-	{
-		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
-		return handler->Execute_OnGlobalMouseButtonUp(_GlobalUIEventHandler, geometry, ue5MouseEvent);
-	}
-
-	return FEventReply(false);
+	return ::RouteMouseButtonUp(_EmittedEventHandler, GetCurrentCustodian(), geometry, ue5MouseEvent);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseMove(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	auto guiResult = ::RouteMouseMove(GetCurrentCustodian(), geometry, ue5MouseEvent);
-	if (guiResult.NativeReply.IsEventHandled())
-	{
-		return guiResult;
-	}
-
-	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
-	{
-		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
-		return handler->Execute_OnGlobalMouseMove(_GlobalUIEventHandler, geometry, ue5MouseEvent);
-	}
-
-	return FEventReply(false);
+	return ::RouteMouseMove(_EmittedEventHandler, GetCurrentCustodian(), geometry, ue5MouseEvent);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteMouseWheel(const FGeometry& geometry, const FPointerEvent& ue5MouseEvent)
 {
-	auto guiResult = ::RouteMouseWheel(GetCurrentCustodian(), geometry, ue5MouseEvent);
-	if (guiResult.NativeReply.IsEventHandled())
-	{
-		return guiResult;
-	}
-
-	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
-	{
-		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
-		return handler->Execute_OnGlobalMouseWheel(_GlobalUIEventHandler, geometry, ue5MouseEvent);
-	}
-
-	return FEventReply(false);
+	return ::RouteMouseWheel(_EmittedEventHandler, GetCurrentCustodian(), geometry, ue5MouseEvent);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteKeyDown(const FGeometry& geometry, FKeyEvent ue5KeyEvent)
 {
-	auto guiResult = ::RouteKeyDown(GetCurrentCustodian(), geometry, ue5KeyEvent);
-	if (guiResult.NativeReply.IsEventHandled())
-	{
-		return guiResult;
-	}
-
-	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
-	{
-		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
-		return handler->Execute_OnGlobalKeyDown(_GlobalUIEventHandler, geometry, ue5KeyEvent);
-	}
-
-	return FEventReply(false);
+	return ::RouteKeyDown(_EmittedEventHandler, GetCurrentCustodian(), geometry, ue5KeyEvent);
 }
 
 FEventReply URococoGRHostWidgetBuilder::RouteKeyUp(const FGeometry& geometry, FKeyEvent ue5KeyEvent)
 {
-	auto guiResult = ::RouteKeyUp(GetCurrentCustodian(), geometry, ue5KeyEvent);
-	if (guiResult.NativeReply.IsEventHandled())
-	{
-		return guiResult;
-	}
-
-	if (_GlobalUIEventHandler->Implements<URococoGlobalUIEventHandler>())
-	{
-		auto handler = TScriptInterface<IRococoGlobalUIEventHandler>(_GlobalUIEventHandler);
-		return handler->Execute_OnGlobalKeyUp(_GlobalUIEventHandler, geometry, ue5KeyEvent);
-	}
-
-	return FEventReply(false);
+	return ::RouteKeyUp(_EmittedEventHandler, GetCurrentCustodian(), geometry, ue5KeyEvent);
 }

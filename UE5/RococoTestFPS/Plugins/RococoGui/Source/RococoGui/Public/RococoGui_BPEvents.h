@@ -74,38 +74,39 @@ struct FRococoGREvent
 	FString MetaDataString;
 };
 
+// Interface for an object that handles UI input emitted from a widget (by not being handled)
 UINTERFACE(Blueprintable)
-class ROCOCO_GUI_API URococoGlobalUIEventHandler : public UInterface
+class ROCOCO_GUI_API URococoEmittedUIEventHandler : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class ROCOCO_GUI_API IRococoGlobalUIEventHandler
+class ROCOCO_GUI_API IRococoEmittedUIEventHandler
 {
 	GENERATED_BODY()
 
 public:
 	// A RococoGUI widget tree did not handle a mouse down event
 	UFUNCTION(BlueprintImplementableEvent)
-	FEventReply OnGlobalMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+	FEventReply OnEmittedMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a mouse up event
 	UFUNCTION(BlueprintImplementableEvent)
-	FEventReply OnGlobalMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+	FEventReply OnEmittedMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a mouse move event
 	UFUNCTION(BlueprintImplementableEvent)
-	FEventReply OnGlobalMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+	FEventReply OnEmittedMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a mouse wheel event
 	UFUNCTION(BlueprintImplementableEvent)
-	FEventReply OnGlobalMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
+	FEventReply OnEmittedMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a key-press or key-repeat event
 	UFUNCTION(BlueprintImplementableEvent)
-	FEventReply OnGlobalKeyDown(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
+	FEventReply OnEmittedKeyDown(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
 
 	// A RococoGUI widget tree did not handle a key-release
 	UFUNCTION(BlueprintImplementableEvent)
-	FEventReply OnGlobalKeyUp(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
+	FEventReply OnEmittedKeyUp(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
 };

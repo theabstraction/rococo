@@ -149,9 +149,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
 	TArray<UObject*> _GeneratorContext;
 
-	// The global event handler, invoked when the gui widget does not trap the event (FEventReply.Unhandled)
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowedClasses = "/Script/RococoGui.RococoGlobalUIEventHandler"), Category = "RococoGui")
-	TObjectPtr<UObject> _GlobalUIEventHandler;
+	// The emitted event handler, invoked when the gui widget does not trap the event (FEventReply.Unhandled)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RococoGui")
+	TScriptInterface<IRococoEmittedUIEventHandler> _EmittedEventHandler;
 
 	UFUNCTION(BlueprintCallable, Category = "RococoGui")
 	void ReloadFrame();

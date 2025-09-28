@@ -50,6 +50,7 @@ public:
 		const FName Key = NAME_None
 	);
 
+	// Determines if the key events is a known and specified Rococo gui key
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rococo")
 	static bool IsKey(const FKeyEvent& ev, ERococoVirtualKey vkCode);
 };
