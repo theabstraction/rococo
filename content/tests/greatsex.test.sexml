@@ -113,7 +113,7 @@
 	(Colour.Label.Shadow Transparent)
 	(Colour.Carousel.Background DarkRed)
 	
-	(Image "!textures/test/AI-castle.jpg")
+	(Image "!textures/test/pure_blue.jpg")
 	
 	(#Recti Panel.Padding 15% 10% 5% 5%)
 	:
@@ -678,6 +678,7 @@
 		)
 	)
 	
+	// This appears when the keyboard or XBOX gamepad is used.
 	(ControlPrompt
 		(Panel.Description ControlPrompt)
 		(Panel.FixedHeight 40)

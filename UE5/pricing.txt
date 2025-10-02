@@ -1,0 +1,39 @@
+Licensing Costs (Subject to change at any time - please email for a quote)
+--------------------------------------------------------------------------
+
+Single Commercial Enterprise Scale Project License - One Time Purchase £3000 - 'Enterprise License'
+	This permits you to use Rococo for Unreal Engine for a single project, which is typically a single game, perhaps on multiple hardware platforms, such as XBOX and Windows. You must purchase the license before releasing the software in any way that raises revenues. If you are selling for a fixed price, for rent, to raise advertising income, for a third-party contract, or for revenue via micro-transactions you need to buy this license. You do not need subsequent licenses for DLCs, Expansion packs or update patches. If your software is some kind of engine in itself, potentially allowing third-parties to sell modifications, then the third-parties will need to purchase a license for each such product. If your product does not naturally fit the description of a single game project, you require written permission from me. Id's Quake III is an example of a single game project. A flight simulator for a military customer would be another such example. GOG Galaxy is an example of software not covered by this license, and a similar project would require a special agreement with me. Note: even if your project is not released, or your decide an alternative GUI you still need to have paid the development costs before hand. If you release separate games in a series, then the sequels each require a license. An example of a game series is Doom, which yielded Doom II and Doom III.
+
+
+
+
+Medical and Government Non-Commercial Project License - Yearly Rental £10,000 per year - 'Government License'
+	This permits a health service or government to use Rococo for Unreal Engine for a single government project for non-commercial purposes. By government I include police, military, judicial, executive and administrative branches. I prohibit the use of such software for use in surveillance systems, the administration of Digital IDs, or any purpose that may constitute a Human Rights abuse. A government project may include a number of interrelated applications for a single purpose, such as a front-end suite for a medical database. Private medical and healthcare software requires this license rather than the Enterprise license at the top.
+
+          
+
+
+
+
+Single None-Commercial Project License - Free - 'Hobby License'
+	If your project is not commercial, has no adverts, no subscription fees, no licensing costs, no micro-transactions, no one-off fee, and no third-party contracts, and is not to be used to enable third-parties to release commercial products, the software is free. If later you decided to commercialize your efforts, you should buy the relevant development license.
+
+
+
+
+
+
+Small Developer Commercial Project License - One Time Purchase £100 
+	If your development team never exceeds five developers and you have good reason to expect less than £10,000 revenue for a commercial release, this license is for you. If the revenue of your product unexpectedly exceeds £20,000, and you used my software during its development you need to purchase a Development Enterprise license to continue to sell your product.
+
+
+Mods 
+	If your software permits mods, third-party extensions, then your should inform mod-developers that they require the purchase of a suitable license to commercialize their product. An example of a commercialized mod is Valve's Half-Life, which used Id's Quake Engine.
+
+
+
+To license, you need to email me and send the value equivalent in cryptocurrency. You also need a line or two describing your project. You may get a refund within 30 days if you decide not to use the software after payment. Note that the refund will be to the fiat currency value paid, not the cryptocurrency quantity.
+
+
+mark.anthony.taylor@gmail.com
+https://www.linkedin.com/in/mark-taylor-0973455/
