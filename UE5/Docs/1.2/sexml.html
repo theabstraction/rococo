@@ -19,6 +19,33 @@
 				margin-top: 20px;
 				margin-bottom: 80px;
 			}
+			#attribute_type
+			{
+				width: 60px;
+				background-color: white;
+				border: 1px solid black;
+			}
+			#attribute_format
+			{
+				width: 360px;
+				background-color: lightgray;
+				border: 1px solid black;
+			}
+			#attribute_comment
+			{
+				background-color: white;
+				border: 1px solid black;
+			}
+			#attribute_table
+			{
+				border: 1px solid black;
+				border-collapse: collapse;
+				background-color: lightgreen;
+			}
+			#attribute_row
+			{
+				border: 1px solid black;
+			}
 		</style>
 	</head>
   <body>
@@ -33,6 +60,191 @@
 		Other ANSI codes greater than zero are permitted but frowned upon ;o(</p>
 		<p>The language is a specialization of <a href="s.html">Rococo S-Expressions</a> One should familiarize oneself with
 		the specification to make sense of this document</p>		
+		</p>
+	</div>
+	<div>
+		<h2>Directives</h2>
+	</div>
+	<div>
+		<p>	
+		A directive is a compound S-Expression that is recursively defined as a sequence of attributes followed by the subdirective indicator (the colon character ':')  and then subdirectives. As you
+		may have guessed each subdirective is... a directive. The root S-expression of a file is defined as the root directive. In the case that there are no subdirectives
+		then it is permissible to eliminate the subdirective indicator.
+		</p>
+		<p> The first token of the directive is a dotted namespace name, each subspace and must start with a capital letter A-Z. Following the capital are any number of alphanumeric characters
+		A-Z, a-z and 0-9 Names do not have to be unique, so you can have more than one directive with the same name.
+		</p><pre><code>
+		/* Example: an SEXML file describing a couple of carts with four attributes:
+			Weight, Length, Width and Depth, 
+		   with the first cart having three subdirectives Apple, Pear, Banana
+		   and the second card being empty
+		*/
+		(AntiSophocles.Cart
+			(Weight 50kgs)
+			(Length 1m)
+			(Width 2m)
+			(Depth 0.5m)
+			:
+			(Item.Apple 
+				(Pips 4)
+			)
+			(Item.Pear
+			)
+			(Item.Banana
+			)
+		)
+		(AntiSophocles.Cart
+			(Weight 30kgs)
+			(Length 1m)
+			(Width 2m)
+			(Depth 0.5m)
+		)
+		</code></pre><p>
+	</div>
+	<div>
+		<h2>Attributes</h2>
+	</div>
+	<div>
+		<p>	
+		An attribute is a compound S-Expression that contains at least one unique attribute name, defined by an atomic expression. The name follows the same rules
+		as for directives, a dotted namespace name with each subspace a capital for the first character and then any number of alphanumerics, 
+		but each attribute must be uniquely named within the given directive.
+		</p>
+	</div>
+	<div>
+		<h3>Existential Attributes</h3>
+	</div>
+	<div>
+		<p>	
+		An attribute that is merely one atomic expression, a name, is deemed an <i>existential attribute</i>. It marks a directive of having a property. Absence
+		of the attribute is deemed to mark the directive as being void of the attribute.
+		</p>
+		</p><pre><code>
+		/* Example: an SEXML file describing a public employee. All of the attributes are existential:
+		*/
+		(CivilServant.V1
+			(Fistname John)
+			(Surname Doe)
+			(Invisible)
+			(Useless)
+			(Costly)
+			(Smirking)
+			// (Responsible)
+		)
+		</code></pre><p>
+	</div>
+	<div>
+		<h3>Name-Value Pair Attributes</h3>
+	</div>
+	<div>
+		<p>	
+		An attribute that consists of two expressions is a name-value pair. The first giving the attribute name
+		and the second the attribute value. The format is (<code>[name] [value]</code>). The value expression can be an 
+		atomic expression or a string literal. String literals are required when values contain blank-space
+		</p>
+		</p><pre><code>
+		/* Example: an SEXML file describing a public employee. All of the attributes are name-value pairs:
+		*/
+		(CivilServant.V2
+			(Fistname John)
+			(Surname "Doe Hargreaves")
+			(Invisible 90%)
+			(Useless true)
+			(Costly true)
+			(Smirking always)
+			(Responsible never)
+		)
+		</code></pre><p>
+	</div>
+	<div>
+		<h3>Type-Name-Value Attributes</h3>
+	</div>
+	<div>
+		<p>	
+		An attribute which has its first token a # character is typed. The type is determined by the whole of the first token, the name is the second token,
+		and the number and type of successive tokens is dependent on the type. Integers are either decimal or hexadecimal. In the latter case they are prefixed
+		with the 0x characters. Integers are expected to be converted to 32-bit signed values. If no such prefix is found the expectation is that the sequences
+		are decimals. Floating point numbers are expected to be	converted to 64-bit IEEE 754 numbers by any SEXML parser. Parsers may raise an error state
+		in the event that arguments cannot be converted to these numeric types.
+		</p>
+		<p>
+		The format is (<code>[type] [name] ...</code>).
+		</p>
+		</p><pre><code>
+		(Box
+			// Define a box with span 10x5x2 units, #Vec3 is a type with 3 integer elements, X, Y and Z
+			(#Vec3i span 10 5 2)
+		)
+		</code></pre><p>
+	</div>
+	<div>
+		<h3>Typed Attributes</h3>
+	</div>
+	<div>
+		<table id="attribute_table">
+			<tr>
+				<td>Type</td>
+				<td>Format</td>
+				<td>Comment</td>
+			</tr>
+			<tr id="attribute_row">
+				<td id="attribute_type">#Vec2</td>
+				<td id="attribute_format">(#Vec2 [name] [X] [Y])</td>
+				<td id="attribute_comment">X and Y are floating point numbers</td>
+			</tr>
+			<tr id="attribute_row">
+				<td id="attribute_type">#Vec3</td>
+				<td id="attribute_format">(#Vec3 [name] [X] [Y] [Z])</td>
+				<td id="attribute_comment">X, Y and Z are floating point numbers</td>
+			</tr>
+			<tr id="attribute_row">
+				<td id="attribute_type">#Vec4</td>
+				<td id="attribute_format">(#Vec4 [name] [X] [Y] [Z] [W])</td>
+				<td id="attribute_comment">X, Y, Z and W are floating point numbers</td>
+			</tr>
+			<tr id="attribute_row">
+				<td id="attribute_type">#Quat</td>
+				<td id="attribute_format">(#Quat [name] [Vx] [Vy] [Vz] [S])</td>
+				<td id="attribute_comment">Vx, Vy, Vz and S are floating point numbers</td>
+			</tr>
+			<tr id="attribute_row">
+				<td id="attribute_type">#Vec2i</td>
+				<td id="attribute_format">(#Vec2i [name] [X] [Y])</td>
+				<td id="attribute_comment">X and Y are 32-bit signed integers. Decimal or hexadecimal</td>
+			</tr>
+			<tr id="attribute_row">
+				<td id="attribute_type">#Recti</td>
+				<td id="attribute_format">(#Recti [name] [Top] [Left] [Right] [Bottom])</td>
+				<td id="attribute_comment">Top, Left, Right and Bottom are 32-bit signed integers. Decimal or hexadecimal</td>
+			</tr>
+			<tr id="attribute_row">
+				<td id="attribute_type">#List</td>
+				<td id="attribute_format">(#List [name] ...)</td>
+				<td id="attribute_comment">The value is a sequence of expressions, each of which can be atomic or string literals</td>
+			</tr>
+		</table>
+	</div>
+	<div>
+		<h3>Array Attributes</h3>
+	</div>
+	<div>
+		<p>	
+		An attribute which has its first token [] is typed as an array of items. It is synonymous with using #List. Each element can be either an atomic 
+		or string literal.
+		</p>
+		<p>
+		Example: ([] KnownItems 1 2 7 13 "Hello World" Casper!) // An attribute 'KnownItems' with 6 elements.
+		</p>
+	</div>
+		<h3>Raw Attributes</h3>
+	</div>
+	<div>
+		<p>	
+		An attribute which has its first token as a single quote is typed as a raw attribute. The format is (' [name] [-value-])
+		where [name] is the dotted namespace name of the attribute, and value is any legal S-expression.
+		</p>
+		<p>
+		Example: (' Stats ( (Strength 18) (Int 19) (Wisdom 5) ) // An attribute 'Stats' with a value of a compound S-Expression of 3 elements.
 		</p>
 	</div>
   </body>

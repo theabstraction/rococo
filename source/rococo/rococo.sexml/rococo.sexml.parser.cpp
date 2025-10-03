@@ -224,7 +224,7 @@ namespace Rococo::Sex::SEXML
 				}
 				catch (...)
 				{
-					Throw(sValue, "Error interpreting %s as a double", value);
+					Throw(sValue, "Error interpreting %s as an integer", value);
 				}
 			}
 
