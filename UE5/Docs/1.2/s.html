@@ -1,0 +1,205 @@
+<html>
+	<head>
+		<title>SEXML 1.0 Specification</title>
+		<style>
+			body {
+				background-color: lightyellow;
+				margin-left: 128px;
+			}
+			h1 {
+				color: blue;
+				text-align: center;
+			}
+			p {
+				font-size: 18px;
+				color: gray;
+				max-width: 920
+			}
+			img {
+				margin-top: 20px;
+				margin-bottom: 80px;
+			}
+		</style>
+	</head>
+  <body>
+	<h1>Rococo S-Expression 1.0 Specification</h1>
+	<div>
+		<h2>Introduction</h2>
+	</div>
+	<div>
+		<p>	
+			Rococo S-Expression is a standard based on Lisp S-Expressions, It was first used as the syntax of Rococo's Sexy Script language.
+		</p>
+	</div>
+	<div>
+		<h2>Legal Characters</h2>
+	</div>
+	<div>
+		<p>	
+			A Rococo S-Expression is an ascii string with codes 32-127 plus line feed 9 (code 14), return (code 15) and tab (code 11). 
+			Every code outside this range from 1-31 is permitted, and ANSI characters 127-255 are also permitted, but in both cases should be avoided.
+			Generally human programmers should not use characters outside the basic ascii range, but lexical processing should not report them as errors.
+			S-Expressions are limited to 2^31-1 bytes, or 1 byte short of 2 gigabytes. This allows a 32-bit signed integer to hold the length of any
+			legitimate S-Expression. It also sanitizes the length of files - file editors can assume any file >= 2GB should not be parsed as an S-Expression.
+		</p>
+		<p>
+			Space (32), line feed (code 14), return (code 15) and tab (code 11) define the complete set of blank-space characters. They are used to separate 
+			tokens.
+			Parenthesis characters '(' and ')' are used to demarkate the beginning and end of compound expressions.
+			There is a single quotation character - the double quote: ".
+		</p>
+		<p>
+			<h2>Comments, Line and Block</h2>
+		</p>
+		<p>
+			Comments are inspired by C++. Sexy Script was designed to script C++ programs, so inherits some of its characteristics to make it easier for C++
+			programmers to work with it.
+		</p>
+		<p>
+			The comment character '/' can be used to start either a line-comment or a block comment. If doubled, as in '//', then it begins a line-comment,
+			and everything that follows is skipped by lexical analysis; analysis continues once a line feed or return character is hit. If the
+			comment character is followed by an asterix as in '/*', then a block comment begins. Lexical analysis skips characters until the sequence '*/' is 
+			read. Blank-space characters do not terminate a block-comment, so block-comments are generally used either for a paragraph of comment text, or to mark
+			a comment within a line.
+		</p>
+	</div>
+	<div>
+		<h2>Compound S-Expressions</h2>
+	</div>
+	<div>
+		<p>	
+			A compound expression is defined recursively as a sequence of tokens of at least one token in length, separated by blank-space, with each token 
+			either being an atomic expression, a null expression, a string literal expression or a compound expression. The tokens are termed the children of the
+			compound expression, with counting begining from zero, so all compound expressions will have a child 0. If a token is a compound-expression, then it 
+			is demarkated with opening and closing parenthesis.
+		</p>
+		<p><b>
+			(this is a (compound) expression with (8) children) /* A compound expression with eight children, two of which are compound expressions */
+		</b></p>
+	</div>
+	<div>
+		<h2>Atomic S-Expressions</h2>
+	</div>
+	<div>
+		<p>	
+			An atomic expression is a sequence of ascii characters, at least one character in length, none of which is blank-space, comment characters,
+			parenthesis characters or quotation characters.
+		</p>	
+		<p><b>
+		(this-is-atomic-expression) // A compound expression with one child that is an atomic expression
+		</b></p>
+		</p>
+	</div>
+	<div>
+		<h2>Null S-Expressions</h2>
+	</div>
+	<div>
+		<p>	
+			An expression that has no children is like a compound-expression with notionally no tokens, but it is not a legitimate compound-expression, it is
+			called the null expression. There is only one way to define a null expression, by using opening and closing parenthesis with at most blank-space
+			between either character, like this: ()
+		</p>
+		<p>	<b>
+			(This is a null expression: ()) /* A compound expression with 6 children, the final one is the null expression */
+		</b></p>	
+	</div>
+	<div>
+		<p>	
+			<h2>String Literals</h2>
+		</p>
+	</div>
+	<div>
+		<p>	
+			An expression that opens and closes with a double quote character is called a string literal. A lexical analyzer will treat it as one token, stripping
+			the quote characters from the interal representation. In such a context the ampersand character '&amp;' acts as <i>the escape character</i>. If the 
+			escape character is scanned then it is stripped from the internal representation, along with a number of trailing characters called the <i>escape sequence</i>,
+			and substituted with the <i>value</i> of the escape sequence. The following escape sequences are defined:
+		</p>
+	</div>
+	<div>
+		<table>
+			<tr>
+				<td>Escape Sequence</td>
+				<td>Decimal Ascii Value<td>
+				<td>Value</td>
+			</tr>
+			<tr>
+				<td>&amp;&amp;</td>
+				<td>38</td><td>ampersand: &amp;</td>
+			</tr>
+			<tr>
+				<td>&amp;a</td>
+				<td>7</td><td>alert</td>
+			</tr>
+			<tr>
+				<td>&amp;b</td>
+				<td>8</td><td>backspace</td>
+			</tr>
+			<tr>
+				<td>&amp;e</td>
+				<td>38</td><td>ampersand: &amp;</td>
+			</tr>
+			<tr>
+				<td>&amp;f</td>
+				<td>12</td><td>form-feed</td>
+			</tr>
+			<tr>
+				<td>&amp;r</td>
+				<td>13</td><td>carriage return</td>
+			</tr>
+			<tr>
+				<td>&amp;n</td>
+				<td>10</td><td>line feed</td>
+			</tr>
+			<tr>
+				<td>&amp;t</td>
+				<td>9</td><td>horizontal tab</td>
+			</tr>
+			<tr>
+				<td>&amp;v</td>
+				<td>11</td><td>vertical tab</td>
+			</tr>
+			<tr>
+				<td>&amp;'</td>
+				<td>39</td><td>single quote: '</td>
+			</tr>
+			<tr>
+				<td>&amp;"</td>
+				<td>34</td><td>double quote: "</td>
+			</tr>
+			<tr>
+				<td>&amp;xAB</td>
+				<td>N/A</td><td>hexcode AB, where A and B are hexadecimcal digits giving the character code</td>
+			</tr>
+		</table>			
+	</div>
+	<div>
+		<p><b>("This is a string literal&amp;n") // A compound expression with one child, a string literal.</b></p>
+	</div>
+	<div>
+		<h2>Rococo S-Expression Source Files and Root Expressions</h2>
+	</div>
+	<div>
+		<p>
+		In a plain-text file, parsed as a Rococo S-Expression file, the text forms the root expression. Root expressions have no parents, but may have children.
+		For a file of zero length or constituted purely of blank-space - a blank file - the root expression is deemed a null expression. If none-blank-space 
+		characters are present then the root expression is a compound expression. Root expressions defined in text files do not have enclosing parenthesis. 
+		</p>
+		<p>
+		</p>
+	</div>
+	<div>
+		<h2>Rococo S-Block Parser in C++</h2>
+	</div>
+	<div>
+		<p>
+			In the Rococo repository is a project sexy.s-parser. This is the foundational parser for the Sexy scripting language, and converts an S-Expression file
+			into an S-Expression tree. The module is designed to mimimize memory fragmentation and can convert arbitrarily large S-Expression files into expression 
+			trees with a single memory allocation - the S-block. This also has the advantage of keeping trees localized in memory, which may increase parsing speed by
+			capitalizing on the cache behaviour of modern CPUs. The module is lightweight, so is easily used in any project that benefits from S-Expression files.
+		</p>
+		<p>
+		</p>
+	</div>
+  </body>
+ </html>

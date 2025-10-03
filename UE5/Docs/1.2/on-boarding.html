@@ -1,0 +1,223 @@
+<html>
+	<head>
+		<title>Rococo Gui Plugin Introduction</title>
+		<style>
+			body {
+				background-color: lightyellow;
+				margin-left: 128px;
+			}
+			h1 {
+				color: blue;
+				text-align: center;
+			}
+			p {
+				font-size: 18px;
+				color: gray;
+				max-width: 920
+			}
+			img {
+				margin-top: 20px;
+				margin-bottom: 80px;
+			}
+		</style>
+	</head>
+  <body>
+	<div>
+		<p>
+		<h1>Introducing the Rococo GUI Plugin Suite for Unreal Engine</h1>
+		</p>
+	</div>
+	<div>
+		<p>
+		The option widget below was written with the Rococo GUI API. Unlike traditional Unreal Engine development, the entire screen was configured with a single plain-text file,
+		in the S-Expression Mark-up Language - 'SEXML.' SEXML is like XML, but with less boiler-plate. It is easier to type, extend and parse than XML.
+		</p>
+		<p>
+		After compiling and running the RococoTestFPS project you should see this screen. Note that the demo is optimized for 4K. If you are running at HD in windowed mode in the 
+		editor the control may seem cramped. I recommend PIE for testing if this is the case for you. While Rococo's design philosophy is to maximise the utility of the available screen,
+		creating a single document that works as well at 4K as sub-HD resolutions is a challenge. You can use shift+mousewheel to increase the zoom factor - zooming is fully functional in
+		game as well as	the editor. 
+		</p>
+	</div>
+	<div>
+	</div>
+	<div>
+		<a href="Images/Homepage.jpg">
+		<img src="Images/Homepage.jpg" width=960 />
+		</a>
+	</div>
+	<div>
+	<p>
+	In order to reduce the memory footprint of the images in this documentation, we will make the background easier to compress. This also demonstrates how SEXML can be used to 
+	modify the appearance of a screen without having to restart the game session. We must edit $(rococo)/content/tests/greatsex.test.sexml. In notepad++ the shipped file is presented below
+	and line 116 is what we must edit:
+	this:
+	</p>
+	</div>
+	<div>
+		<a href="Images/notepad.1.png">
+		<img src="Images/notepad.1.png" width=960 />
+		</a>
+	</div>
+	<div>
+	<p>
+	We change the line to so that our background image is replaced with the image file  $(rococo)/content/textures/test/pure_blue.jpg:
+	</p>
+	</div>	
+	<div>
+		<a href="Images/notepad.2.png">
+		<img src="Images/notepad.2.png" width=960 />
+		</a>
+	</div>
+	<div>
+	<p>
+	Now, without having to restart the game session we can press F12 to refresh the GUI from the SEXML. Ensure that the file is saved, and also if one has tab-switched out of the editor
+	one may need to click on the game screen for it to regain focus. The screen should update to this:
+	</p>
+	</div>
+	<div>
+		<a href="Images/Homepage.2.png">
+		<img src="Images/Homepage.2.png" width=960 />
+		</a>
+	</div>
+	<div>
+	<p>
+	An example of a zoomed display (shift+mousewheel) is here:	
+	</p>
+	</div>
+	<div>
+		<a href="Images/Homepage.2.zoomed.png">
+		<img src="Images/Homepage.2.zoomed.png" width=960 />
+		</a>
+	</div>
+	<div>
+	<p>
+	Now we will look at how the demo project is architectured to enable the Rococo GUI system. The content browser shows these blueprints:
+	</p>
+	</div>
+	<div>
+		<a href="Images/Content.Browser.png">
+		<img src="Images/Content.Browser.png" width=960 />
+		</a>
+	</div>
+  </body>
+  <div>
+  <p>
+  We have created a BP_RococoGuiHost widget that derives from URococoGRHostWidgetBuilder. This is configured to use the greatsex.test.sexml SEXML file in its details panel (bottom left):
+  </p>
+  </div>
+  <div>
+		<a href="Images/BP_RococoGuiHost.jpg">
+		<img src="Images/BP_RococoGuiHost.jpg" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  In order for this widget to be visible, and render the SEXML as a GUI, we have to add the host widget to the FirstPersonHUD. 
+  We also set the HUD as an event handler for the  host widget. The relevant elements are highlighted in orange:
+  </p>
+  </div>
+  <div>
+		<a href="Images/FirstPersonHUD.png">
+		<img src="Images/FirstPersonHUD.png" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  The key selling point for the Rococo Gui is a drop-in solution for a game's options screen. For this the GUI has to be linked to the objects that persist option states.
+  These can be implemented in C++ or in Blueprints, or a combination of both. An example below is the blueprint for PlutoNinjaOptions (the name was chosen to avoid naming conflicts!).
+  Options are defined as pairs of functions, prefixed Add and On. An example is in the screenshot, AddOption_Deathstrike. The elements of the local variable it uses are to the right, in 
+  the Details panel. The Rococo GUI system populates an option tab from a blueprint by enumerating its methods and looking for a function signature match. AddOption_XXX
+  methods populate a drop-down list. The suffix XXX in such a method gives the option id. If a matching function exists - OnChoice_XXX with XXX matching the id - it will be
+  invoked, allowing the blueprint to persist the option change.
+  </p>
+  </div>
+  <div>
+		<a href="Images/BP_PlutoNinjaOptions.png">
+		<img src="Images/BP_PlutoNinjaOptions.png" width=960 />
+		</a>
+  </div>
+  <p>
+  For lack of a better place, the NinjaOptions were made part of the game instance file BP_FPS_GameInstance. Game instances persist through level changes, so are a
+  reasonable place to hold some references to the option objects. As can be seen in the image below, the NinjaOptions are appended to the BpGameOptions member of
+  the game instance, and the InitOptions method is invoked. InitOptions is used by PlutoNinja to compute initial values. Generally option files should deserialize
+  configuration at startup. How this is done is outside the scope of the Rococo GUI API. You will also note that the game instance implements an interface that has a 
+  single method GetOptionObjects. This returns a reference to BpGameOptions. This is used in BP_RococoGuiHost EventConstruct to populate the Generator Context array.
+  The Generator Context is read whenever the gui needs repopulating. It is used in tandem with the SEXML to determine what options appear in each option tab.
+  </p>
+  <div>
+		<a href="Images/BP_FPS_GameInstance.png">
+		<img src="Images/BP_FPS_GameInstance.png" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  C++ options are generally static instances of option classes. An example audio implementation exposes volume control for background music and background narration
+  and exposes them to blueprints via a blueprint function library. (See $(rococo)/UE5/RococoTestFPS/Source/RococoTestFPS/RococoTestFPSGameOptions.h). The audio library
+  is picked up by the FirstPersonMap blueprint's audio implementation (the bottom two nodes in green):
+  </p>
+  </div>
+  <div>
+		<a href="Images/FirstPersonMap.png">
+		<img src="Images/FirstPersonMap.png" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  A screenshot of the C++ API is here:
+  </p>
+  </div>
+  <div>
+		<a href="Images/AudioOptions_C++.png">
+		<img src="Images/AudioOptions_C++.png" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  A screenshot of the C++ implementation is below. You can see the implementation of GetMusicVolume scales the audio options' music volume static instance:
+  </p>
+  </div>
+  <div>
+		<a href="Images/AudioOptions_C++_2.png">
+		<img src="Images/AudioOptions_C++_2.png" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  As with blueprints, options are defined with pairs of C++ functions. One for querying the state of the option, the other for setting an update. A database
+  registration function binds the functions to the system (AddOptions, visible at the end of the file). Again it is an inversion of data-driven design. Code drives the data.
+  You will notice that the functions are defined entirely in the cpp file. The headers do not specify any of the option methods, nor the option state, this enables
+  one to change implementation and specification without having to recompile masses of cpp files. This is consistent with the general philosophy of the Rococo codebase.
+  </div>
+  </p>
+  <div>
+		<a href="Images/AudioOptions-C++_3.png">
+		<img src="Images/AudioOptions-C++_3.png" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  You can see the results here:
+  </p>
+  </div>
+  <div>
+		<a href="Images/HomePage.2.audio.png">
+		<img src="Images/HomePage.2.audio.png" width=960 />
+		</a>
+  </div>
+  <div>
+  <p>
+  The graphics options in C++ have a substantial implementation. In a game build they drive a system that can handle multiple screens of different resolutions,
+  switching between windowed modes and refresh rates. There appears to be an outstanding bug in Unreal Engine, in which the scaling of the primary display breaks
+  the mouse down events for secondary windows if the resolutions do not match. The Rococo GUI works around the bug by correcting the scaling factors. A lot of work
+  went into getting multiple monitor set-up working well. Enjoy!
+  </p>
+  </div>
+   <div>
+		<a href="Images/HomePage.2.graphics.png">
+		<img src="Images/HomePage.2.graphics.png" width=960 />
+		</a>
+  </div>
+  </body>
+</html>
+ 
