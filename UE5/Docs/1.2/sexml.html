@@ -69,10 +69,12 @@
 		<p>	
 		A directive is a compound S-Expression that is recursively defined as a sequence of attributes followed by the subdirective indicator (the colon character ':')  and then subdirectives. As you
 		may have guessed each subdirective is... a directive. The root S-expression of a file is defined as the root directive. In the case that there are no subdirectives
-		then it is permissible to eliminate the subdirective indicator.
+		then it is permissible to omit the subdirective indicator.
 		</p>
-		<p> The first token of the directive is a dotted namespace name, each subspace and must start with a capital letter A-Z. Following the capital are any number of alphanumeric characters
-		A-Z, a-z and 0-9 Names do not have to be unique, so you can have more than one directive with the same name.
+		<p> The first token of a directive is a dotted namespace name, each subspace and must start with a capital letter A-Z. Following the capital are any number of alphanumeric characters
+		A-Z, a-z and 0-9. Names do not have to be unique, so you can have more than one directive with the same name. This convention for subspaces is known as Pascal
+		case. We can define a <i>Pascal Namespace</i> as a sequence of Pascal case subspaces separated by single period characters (.). All subspaces must have at least 
+		one character and the namespace must not have a leading period nor a trailing period. There must be at least one subspace, i.e empty namespaces are prohibited.
 		</p><pre><code>
 		/* Example: an SEXML file describing a couple of carts with four attributes:
 			Weight, Length, Width and Depth, 
@@ -107,8 +109,7 @@
 	<div>
 		<p>	
 		An attribute is a compound S-Expression that contains at least one unique attribute name, defined by an atomic expression. The name follows the same rules
-		as for directives, a dotted namespace name with each subspace a capital for the first character and then any number of alphanumerics, 
-		but each attribute must be uniquely named within the given directive.
+		as for directives, a <i>Pascal Namespace</i>. Each attribute must be uniquely named within the given directive.
 		</p>
 	</div>
 	<div>
@@ -117,7 +118,7 @@
 	<div>
 		<p>	
 		An attribute that is merely one atomic expression, a name, is deemed an <i>existential attribute</i>. It marks a directive of having a property. Absence
-		of the attribute is deemed to mark the directive as being void of the attribute.
+		of the attribute is deemed to mark the directive as being void of the property. Thus they can be interpreted as boolean properties.
 		</p>
 		</p><pre><code>
 		/* Example: an SEXML file describing a public employee. All of the attributes are existential:
@@ -162,9 +163,12 @@
 	<div>
 		<p>	
 		An attribute which has its first token a # character is typed. The type is determined by the whole of the first token, the name is the second token,
-		and the number and type of successive tokens is dependent on the type. Integers are either decimal or hexadecimal. In the latter case they are prefixed
-		with the 0x characters. Integers are expected to be converted to 32-bit signed values. If no such prefix is found the expectation is that the sequences
-		are decimals. Floating point numbers are expected to be	converted to 64-bit IEEE 754 numbers by any SEXML parser. Parsers may raise an error state
+		and the number and type of successive tokens is dependent on the type.
+		</p>
+		<p>
+		For typed values, parsers are expected to interpret integers, where expected, as 32-bit signed values. 
+		Integers are either decimal or hexadecimal. In the latter case they are prefixed with the 0x characters. If no such prefix is found the expectation is 
+		that the sequences are decimals. Floating point numbers are expected to be converted to 64-bit IEEE 754 numbers by any SEXML parser. Parsers may raise an error state
 		in the event that arguments cannot be converted to these numeric types.
 		</p>
 		<p>
@@ -214,8 +218,8 @@
 			</tr>
 			<tr id="attribute_row">
 				<td id="attribute_type">#Recti</td>
-				<td id="attribute_format">(#Recti [name] [Top] [Left] [Right] [Bottom])</td>
-				<td id="attribute_comment">Top, Left, Right and Bottom are 32-bit signed integers. Decimal or hexadecimal</td>
+				<td id="attribute_format">(#Recti [name] [Left] [Top] [Right] [Bottom])</td>
+				<td id="attribute_comment">Left, Top, Right and Bottom are 32-bit signed integers. Decimal or hexadecimal</td>
 			</tr>
 			<tr id="attribute_row">
 				<td id="attribute_type">#List</td>
@@ -232,20 +236,24 @@
 		An attribute which has its first token [] is typed as an array of items. It is synonymous with using #List. Each element can be either an atomic 
 		or string literal.
 		</p>
-		<p>
-		Example: ([] KnownItems 1 2 7 13 "Hello World" Casper!) // An attribute 'KnownItems' with 6 elements.
-		</p>
+		<pre><code>
+		([] KnownItems 1 2 7 13 "Hello World" Casper!) // An attribute 'KnownItems' with 6 elements.
+		</code></pre>
 	</div>
 		<h3>Raw Attributes</h3>
 	</div>
 	<div>
 		<p>	
 		An attribute which has its first token as a single quote is typed as a raw attribute. The format is (' [name] [-value-])
-		where [name] is the dotted namespace name of the attribute, and value is any legal S-expression.
+		where [name] is the dotted namespace name of the attribute, and value is any legal S-expression. Designers of SEXML should generally
+		avoid using raw attributes, and instead represent complex data with other attributes and subdirectives. The main motivation for raw 
+		attributes is to permit embedding S-Expression scripting code within a document. The converse is also true, SEXML may be embedded in
+		any S-Expression scripting code that permits raw expressions. This is an example of code-as-data and data-as-code.
 		</p>
-		<p>
-		Example: (' Stats ( (Strength 18) (Int 19) (Wisdom 5) ) // An attribute 'Stats' with a value of a compound S-Expression of 3 elements.
-		</p>
+		<pre><code>
+		// An attribute 'OnClick' with a value of an S-Expression of 3 elements.
+		(' OnClick ( (Int32 i = 1) (RegisterFriend i "John Paul" "Smith") (i += 1) )
+		</code></pre>
 	</div>
   </body>
  </html>

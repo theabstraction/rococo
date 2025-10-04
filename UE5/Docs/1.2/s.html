@@ -19,6 +19,38 @@
 				margin-top: 20px;
 				margin-bottom: 80px;
 			}
+			#escape_sequence
+			{
+				width: 120px;
+				background-color: white;
+				border: 1px solid black;
+			}
+			#escape_ascii
+			{
+				width: 160px;
+				background-color: lightgray;
+				border: 1px solid black;
+			}
+			#escape_value
+			{
+				background-color: white;
+				border: 1px solid black;
+			}
+			#escape_table
+			{
+				border: 1px solid black;
+				border-collapse: collapse;
+				background-color: lightgreen;
+			}
+			#escape_row
+			{
+				border: 1px solid black;
+			}
+			#escape_header
+			{
+				border: 1px solid black;
+				background-color: lightgreen;
+			}
 		</style>
 	</head>
   <body>
@@ -28,7 +60,7 @@
 	</div>
 	<div>
 		<p>	
-			Rococo S-Expression is a standard based on Lisp S-Expressions, It was first used as the syntax of Rococo's Sexy Script language.
+			Rococo S-Expression is a standard based on Lisp S-Expressions, It was first used as the syntax of Rococo's Sexy script language.
 		</p>
 	</div>
 	<div>
@@ -36,28 +68,31 @@
 	</div>
 	<div>
 		<p>	
-			A Rococo S-Expression is an ascii string with codes 32-127 plus line feed 9 (code 14), return (code 15) and tab (code 11). 
-			Every code outside this range from 1-31 is permitted, and ANSI characters 127-255 are also permitted, but in both cases should be avoided.
-			Generally human programmers should not use characters outside the basic ascii range, but lexical processing should not report them as errors.
+			A Rococo S-Expression is an ASCII string with legal codes in the range codes 32-127 plus line feed (code 12), return (code 13) and horizontal tab
+			(code 9). Every code inside the range from 1-31 is permitted, and ANSI characters 128-255 are also permitted, but in both cases should be avoided.
+			Generally human programmers should not use characters outside the basic ASCII range, but lexical analyzers should not report them as errors.
 			S-Expressions are limited to 2^31-1 bytes, or 1 byte short of 2 gigabytes. This allows a 32-bit signed integer to hold the length of any
 			legitimate S-Expression. It also sanitizes the length of files - file editors can assume any file >= 2GB should not be parsed as an S-Expression.
 		</p>
 		<p>
-			Space (32), line feed (code 14), return (code 15) and tab (code 11) define the complete set of blank-space characters. They are used to separate 
-			tokens.
-			Parenthesis characters '(' and ')' are used to demarkate the beginning and end of compound expressions.
+			Space (code 32), line feed (code 12), return (code 13) and horizontal tab (code 9) define the complete set of blank-space characters. They are used to
+			separate tokens. Parenthesis characters '(' and ')' are used to demarkate the beginning and end of compound expressions.
 			There is a single quotation character - the double quote: ".
 		</p>
 		<p>
 			<h2>Comments, Line and Block</h2>
 		</p>
 		<p>
-			Comments are inspired by C++. Sexy Script was designed to script C++ programs, so inherits some of its characteristics to make it easier for C++
-			programmers to work with it.
+			Comments are follow C++ rules. Sexy Script was designed to script C++ programs, so inherits some of its characteristics to make it easier for C++
+			programmers to work with both.
 		</p>
 		<p>
-			The comment character '/' can be used to start either a line-comment or a block comment. If doubled, as in '//', then it begins a line-comment,
-			and everything that follows is skipped by lexical analysis; analysis continues once a line feed or return character is hit. If the
+			The comment character '/' can be used to start either a line-comment or a block-comment.
+		</p>
+		<p>If doubled, as in '//', then it begins a line-comment, and everything that follows is skipped by lexical analysis; analysis continues once a line feed
+		or return character is hit.
+		</p>
+		<p> If the
 			comment character is followed by an asterix as in '/*', then a block comment begins. Lexical analysis skips characters until the sequence '*/' is 
 			read. Blank-space characters do not terminate a block-comment, so block-comments are generally used either for a paragraph of comment text, or to mark
 			a comment within a line.
@@ -70,8 +105,8 @@
 		<p>	
 			A compound expression is defined recursively as a sequence of tokens of at least one token in length, separated by blank-space, with each token 
 			either being an atomic expression, a null expression, a string literal expression or a compound expression. The tokens are termed the children of the
-			compound expression, with counting begining from zero, so all compound expressions will have a child 0. If a token is a compound-expression, then it 
-			is demarkated with opening and closing parenthesis.
+			compound expression, with counting begining from zero and incrementing from left to right, so all compound expressions will have a child 0 as its 
+			left-most token. If a token is a compound-expression, then it is demarkated with opening and closing parenthesis.
 		</p>
 		<p><b>
 			(this is a (compound) expression with (8) children) /* A compound expression with eight children, two of which are compound expressions */
@@ -82,11 +117,11 @@
 	</div>
 	<div>
 		<p>	
-			An atomic expression is a sequence of ascii characters, at least one character in length, none of which is blank-space, comment characters,
+			An atomic expression is a sequence of ASCII characters, at least one character in length, none of which is blank-space, comment characters,
 			parenthesis characters or quotation characters.
 		</p>	
 		<p><b>
-		(this-is-atomic-expression) // A compound expression with one child that is an atomic expression
+		(this-is-an-atomic-expression) // A compound expression with one child that is an atomic expression
 		</b></p>
 		</p>
 	</div>
@@ -97,10 +132,10 @@
 		<p>	
 			An expression that has no children is like a compound-expression with notionally no tokens, but it is not a legitimate compound-expression, it is
 			called the null expression. There is only one way to define a null expression, by using opening and closing parenthesis with at most blank-space
-			between either character, like this: ()
+			between either character, like this: ( )
 		</p>
 		<p>	<b>
-			(This is a null expression: ()) /* A compound expression with 6 children, the final one is the null expression */
+			(This is a null expression: ( )) /* A compound expression with 6 children, the final one is the null expression */
 		</b></p>	
 	</div>
 	<div>
@@ -117,59 +152,71 @@
 		</p>
 	</div>
 	<div>
-		<table>
-			<tr>
+		<table id="escape_table">
+			<tr id="escape_header">
 				<td>Escape Sequence</td>
-				<td>Decimal Ascii Value<td>
+				<td>Decimal Ascii Value</td>
 				<td>Value</td>
 			</tr>
-			<tr>
-				<td>&amp;&amp;</td>
-				<td>38</td><td>ampersand: &amp;</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;&amp;</td>
+				<td id="escape_ascii">38</td>
+				<td id="escape_value">ampersand: &amp;</td>
+			</tr>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;a</td>
+				<td id="escape_ascii">7</td>
+				<td id="escape_value">alert</td>
 			</tr>
 			<tr>
-				<td>&amp;a</td>
-				<td>7</td><td>alert</td>
+				<td id="escape_sequence">&amp;b</td>
+				<td id="escape_ascii">8</td>
+				<td id="escape_value">backspace</td>
 			</tr>
-			<tr>
-				<td>&amp;b</td>
-				<td>8</td><td>backspace</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;e</td>
+				<td id="escape_ascii">38</td>
+				<td id="escape_value">ampersand: &amp;</td>
 			</tr>
-			<tr>
-				<td>&amp;e</td>
-				<td>38</td><td>ampersand: &amp;</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;f</td>
+				<td id="escape_ascii">12</td>
+				<td id="escape_value">form-feed</td>
 			</tr>
-			<tr>
-				<td>&amp;f</td>
-				<td>12</td><td>form-feed</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;r</td>
+				<td id="escape_ascii">13</td>
+				<td id="escape_value">carriage return</td>
 			</tr>
-			<tr>
-				<td>&amp;r</td>
-				<td>13</td><td>carriage return</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;n</td>
+				<td id="escape_ascii">10</td>
+				<td id="escape_value">line feed</td>
 			</tr>
-			<tr>
-				<td>&amp;n</td>
-				<td>10</td><td>line feed</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;t</td>
+				<td id="escape_ascii">9</td>
+				<td id="escape_value">horizontal tab</td>
 			</tr>
-			<tr>
-				<td>&amp;t</td>
-				<td>9</td><td>horizontal tab</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;v</td>
+				<td id="escape_ascii">11</td>
+				<td id="escape_value">vertical tab</td>
 			</tr>
-			<tr>
-				<td>&amp;v</td>
-				<td>11</td><td>vertical tab</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;'</td>
+				<td id="escape_ascii">39</td>
+				<td id="escape_value">single quote: '</td>
 			</tr>
-			<tr>
-				<td>&amp;'</td>
-				<td>39</td><td>single quote: '</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;"</td>
+				<td id="escape_ascii">34</td>
+				<td id="escape_value">double quote: "</td>
 			</tr>
-			<tr>
-				<td>&amp;"</td>
-				<td>34</td><td>double quote: "</td>
-			</tr>
-			<tr>
-				<td>&amp;xAB</td>
-				<td>N/A</td><td>hexcode AB, where A and B are hexadecimcal digits giving the character code</td>
+			<tr id="escape_row">
+				<td id="escape_sequence">&amp;xAB</td>
+				<td id="escape_ascii">N/A</td>
+				<td id="escape_value">hexcode AB, where A and B are hexadecimcal digits giving the character code</td>
 			</tr>
 		</table>			
 	</div>
