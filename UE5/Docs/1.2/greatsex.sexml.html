@@ -1,0 +1,329 @@
+<html>
+	<head>
+		<title>SEXML 1.0 Specification</title>
+		<style>
+			body {
+				background-color: lightyellow;
+				margin-left: 128px;
+			}
+			h1 {
+				color: blue;
+				text-align: center;
+			}
+			p {
+				font-size: 18px;
+				color: gray;
+				max-width: 920
+			}
+			img {
+				margin-top: 20px;
+				margin-bottom: 80px;
+			}
+			#colour_name
+			{
+				width: 120px;
+				background-color: white;
+				border: 1px solid black;
+			}
+			#colour_surface
+			{
+				width: 360px;
+				background-color: lightgray;
+				border: 1px solid black;
+			}
+			#colour_comment
+			{
+				background-color: white;
+				border: 1px solid black;
+			}
+			#colour_table
+			{
+				border: 1px solid black;
+				border-collapse: collapse;
+				background-color: lightgreen;
+			}
+			#colour_row
+			{
+				border: 1px solid black;
+			}
+		</style>
+	</head>
+  <body>
+	<h1>GreatSex SEXML 1.0 Specification</h1>
+	<div>
+		<h2>Introduction</h2>
+	</div>
+	<div>
+		<p>
+		GreatSex is the SEXML file-format for specifying the widget layout in the Rococo GUI system. Familiarity with the <a href="s.html">SEXML specification</a> is required.
+		</p>		
+	</div>
+	<div>
+		<h2>Colour Attributes</h2>
+	</div>
+	<div>
+		<table id="colour_table">
+			<tr>
+				<td><b>Attribute Name</b></td>
+				<td><b>EGRSchemeColourSurface</b></td>
+				<td><b>Comment</b></td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Background</td>
+				<td id = "colour_surface">BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Button</td>
+				<td id = "colour_surface">BUTTON</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Button.Edge.Top.Left</td>
+				<td id = "colour_surface">BUTTON_EDGE_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Button.Edge.Bottom.Right</td>
+				<td id = "colour_surface">BUTTON_EDGE_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Button.Image.Fog</td>
+				<td id = "colour_surface">BUTTON_IMAGE_FOG</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Button.Shadow</td>
+				<td id = "colour_surface">BUTTON_SHADOW</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Button.Text</td>
+				<td id = "colour_surface">BUTTON_TEXT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Menu.Button</td>
+				<td id = "colour_surface">MENU_BUTTON</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Menu.Button.Edge.Top.Left</td>
+				<td id = "colour_surface">MENU_BUTTON_EDGE_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Menu.Button.Edge.Bottom.Right</td>
+				<td id = "colour_surface">MENU_BUTTON_EDGE_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Container.Background</td>
+				<td id = "colour_surface">CONTAINER_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Container.Top.Left"</td>
+				<td id = "colour_surface">CONTAINER_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Container.Bottom.Right</td>
+				<td id = "colour_surface">CONTAINER_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Button.Background</td>
+				<td id = "colour_surface">SCROLLER_BUTTON_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Button.Top.Left</td>
+				<td id = "colour_surface">SCROLLER_BUTTON_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Button.Bottom.Right</td>
+				<td id = "colour_surface">SCROLLER_BUTTON_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Bar.Background</td>
+				<td id = "colour_surface">SCROLLER_BAR_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Bar.Top.Left"</td>
+				<td id = "colour_surface">SCROLLER_BAR_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Bar.Bottom.Right</td>
+				<td id = "colour_surface">SCROLLER_BAR_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Slider.Background</td>
+				<td id = "colour_surface">SCROLLER_SLIDER_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Slider.Top.Left"</td>
+				<td id = "colour_surface">SCROLLER_SLIDER_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Scroller.Slider.Bottom.Right</td>
+				<td id = "colour_surface">SCROLLER_SLIDER_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Editor</td>
+				<td id = "colour_surface">EDITOR</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Text"</td>
+				<td id = "colour_surface">TEXT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Focus</td>
+				<td id = "colour_surface">FOCUS_RECTANGLE</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.EditText</td>
+				<td id = "colour_surface">FOCUS_RECTANGLE</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Label</td>
+				<td id = "colour_surface">LABEL_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Label.Shadow</td>
+				<td id = "colour_surface">LABEL_SHADOW</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Splitter.Background</td>
+				<td id = "colour_surface">SPLITTER_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Splitter.Edge</td>
+				<td id = "colour_surface">SPLITTER_EDGE</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Carousel.Text</td>
+				<td id = "colour_surface">CAROUSEL_TEXT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Carousel.Background</td>
+				<td id = "colour_surface">CAROUSEL_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Carousel.Top.Left</td>
+				<td id = "colour_surface">CAROUSEL_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Carousel.Bottom.Right</td>
+				<td id = "colour_surface">CAROUSEL_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.GameOption.Background</td>
+				<td id = "colour_surface">GAME_OPTION_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.GameOption.Disabled.Background</td>
+				<td id = "colour_surface">GAME_OPTION_DISABLED_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.GameOption.Disabled.Text</td>
+				<td id = "colour_surface">GAME_OPTION_DISABLED_TEXT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.GameOption.Top.Left</td>
+				<td id = "colour_surface">GAME_OPTION_TOP_LEFT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.GameOption.Bottom.Right</td>
+				<td id = "colour_surface">GAME_OPTION_BOTTOM_RIGHT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.GameOption.ChildSpacer</td>
+				<td id = "colour_surface">GAME_OPTION_CHILD_SPACER</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Carousel.DropDown</td>
+				<td id = "colour_surface">CAROUSEL_DROP_DOWN_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Carousel.DropDown.Text</td>
+				<td id = "colour_surface">CAROUSEL_DROP_DOWN_TEXT</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Portrait.Band</td>
+				<td id = "colour_surface">PORTRAIT_BAND_COLOUR</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Slider.Guage</td>
+				<td id = "colour_surface">SLIDER_GUAGE</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Slider</td>
+				<td id = "colour_surface">SLIDER_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Slider.Slot</td>
+				<td id = "colour_surface">SLIDER_SLOT_BACKGROUND</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Slider.Slot.Edge.1</td>
+				<td id = "colour_surface">SLIDER_SLOT_EDGE_1</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>			
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Slider.Slot.Edge.2</td>
+				<td id = "colour_surface">SLIDER_SLOT_EDGE_2</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+			<tr id = "colour_row">
+				<td id = "colour_name">Colour.Occlusion.Surface</td>
+				<td id = "colour_surface">OCCLUSION_SURFACE</td>
+				<td id = "colour_comment">Comment</td>
+			</tr>
+		</table>
+	</div>
+  </body>
+ </html>
