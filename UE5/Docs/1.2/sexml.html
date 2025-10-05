@@ -55,7 +55,7 @@
 		</style>
 	</head>
   <body>
-	<h1>SEXML 1.0 Specification</h1>
+	<h1>Rococo SEXML 1.0 Specification</h1>
 	<div>
 		<h2>Introduction</h2>
 	</div>
@@ -74,15 +74,15 @@
 	<div>
 		<p>	
 		A directive is a compound S-Expression that is recursively defined as a sequence of attributes followed by the subdirective indicator (the colon character ':')  and then subdirectives. As you
-		may have guessed each subdirective is... a directive. The root S-expression of a file is defined as the root directive. In the case that there are no subdirectives
-		then it is permissible to omit the subdirective indicator.
+		may have guessed each subdirective is... a directive. In the case that there are no subdirectives then it is permissible to omit the subdirective indicator.
+		The root S-expression of a SEXML file has as its members root directive, otherwise known as top-level directives.
 		</p>
 		<p> The first token of a directive is a dotted namespace name, each subspace and must start with a capital letter A-Z. Following the capital are any number of alphanumeric characters
 		A-Z, a-z and 0-9. Names do not have to be unique, so you can have more than one directive with the same name. This convention for subspaces is known as Pascal
 		case. We can define a <i>Pascal Namespace</i> as a sequence of Pascal case subspaces separated by single period characters (.). All subspaces must have at least 
 		one character and the namespace must not have a leading period nor a trailing period. There must be at least one subspace, i.e empty namespaces are prohibited.
 		</p><pre><code>
-		/* Example: an SEXML file describing a couple of carts with four attributes:
+		/* Example: a SEXML file describing a couple of carts with four attributes:
 			Weight, Length, Width and Depth, 
 		   with the first cart having three subdirectives Apple, Pear, Banana
 		   and the second card being empty
@@ -127,7 +127,7 @@
 		of the attribute is deemed to mark the directive as being void of the property. Thus they can be interpreted as boolean properties.
 		</p>
 		</p><pre><code>
-		/* Example: an SEXML file describing a public employee. All of the attributes are existential:
+		/* Example: a SEXML file describing a public employee. All of the attributes are existential:
 		*/
 		(CivilServant.V1
 			(Fistname John)
@@ -150,7 +150,7 @@
 		atomic expression or a string literal. String literals are required when values contain blank-space
 		</p>
 		</p><pre><code>
-		/* Example: an SEXML file describing a public employee. All of the attributes are name-value pairs:
+		/* Example: a SEXML file describing a public employee. All of the attributes are name-value pairs:
 		*/
 		(CivilServant.V2
 			(Fistname John)

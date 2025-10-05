@@ -65,8 +65,199 @@
 		</p>		
 	</div>
 	<div>
-		<h2>Colour Attributes</h2>
+		<h2>Top Level Directives</h2>
 	</div>
+	<div>
+		<ul id="directive_list">
+			<li id="directive_item">
+				<h3>Insert</h3>	- analagous to a #include directive in C and C++.
+				<ul id="attribute_types">
+					<li id="attribute_type">
+						<h4>Name-Value Attributes</h4>
+						<ul id="attribute_list">
+							<li id="attribute_item">
+								<p>
+								<b>Path</b> - the string argument gives the ping path to another SEXML script, 
+									the expression tree of such is inserted into the SEXML expression
+									tree at the corresponding point of definition of the Insert statement.
+								</p>
+								<p>
+									<pre><code>Example: (Path "!tests/greatsex.scheme.sexml")</code></pre>
+								</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li id="directive_item">
+				<h3>Zoom</h3> - there may be a number of competing zoom directives. The directive which defines the highest minimum resolution defines GUI zoom levels			
+				<ul id="attribute_types">
+					<li id="attribute_type">
+						<h4>Name-Value Attributes</h4>
+						<ul id="attribute_list">
+							<li id="attribute_item">
+								<p>
+								<b>MinWidth</b> - integer argument that defines the minimum horizontal pixel resolution for the zoom directive to apply.
+								</p>
+							</li>
+							<li id="attribute_item">
+								<p>
+								<b>MinHeight</b> - integer argument that defines the minimum vertical pixel resolution for the zoom directive to apply.
+								</p>
+							</li>
+						</ul>
+					</li>
+					<li id="attribute_type">
+						<h4>Type-Name-Value Attributes</h4>
+						<ul id="attribute_list">
+							<li id="attribute_item">
+								<p>
+								<b>#List Levels</b> - with a floating point list that gives legal zoom scales. Range is 1.0 to 100.0. Values must increase left to right.
+								</p>
+								<p>
+									<pre><code>Example: ([] Levels 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5)</code></pre>
+								</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li id="directive_item">
+				<h3>Scheme</h3>	- defines a colour scheme that applies for a set of user-input states on a hierarchy of GUI widget panels		
+				<ul id="attribute_types">
+					<li id="attribute_type">
+						<h4>Optional Subdirectives</h4>
+						<ul id="attribute_list">
+							<li id="attribute_item">
+								<p>
+								<b>ApplyTo</b> 
+								</p>
+								<ul>
+									<li id="attribute_type">
+										<h4>Type-Name-Value Attributes</h4>
+										<ul id="attribute_list">
+											<li id="attribute_item">
+												<p>
+												<b>#List RenderStates</b> - combination of boolean flags represented by strings 'pressed', 'focused', 'hovered'. If none apply use 'default'
+												The combination determine whether the scheme applies for a given focus and cursor state.
+												</p>
+												<p>
+													<pre><code>Example: (ApplyTo ([] RenderStates pressed focused))</code></pre>
+												</p>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li id="attribute_item">
+								<p>
+								<b>{colour-name}</b> - where {colour-name} is any of the text items in the AttributeName coloum of the colour table below in this HTML
+								</p>
+								<ul>
+									<li id="attribute_type">
+										<h4>Name-Value Attributes</h4>
+										<ul id="attribute_list">
+											<li id="attribute_item">
+												<p>
+													<b>Red</b> - integer between 0 and 255, giving the red intensity of the colour
+												</p>
+											</li>
+											<li id="attribute_item">
+												<p>
+													<b>Green</b> - integer between 0 and 255, giving the green intensity of the colour
+												</p>
+											</li>
+											<li id="attribute_item">
+												<p>
+													<b>Blue</b> - integer between 0 and 255, giving the blue intensity of the colour
+												</p>
+											</li>
+											<li id="attribute_item">
+												<p>
+													<b>Alpha</b> - integer between 0 and 255, giving the alpha intensity of the colour
+												</p>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li id="directive_item">
+				<h3>Colour</h3>	- defines a colour, keyed by its Id mandatory attribute
+				<ul id="attribute_types">
+					<li id="attribute_type">
+						<h4>Attributes</h4>
+						<ul id="attribute_list">
+							<li id="attribute_item">
+								<p>
+								<b>Id [name]</b> - the string argument gives the unique name of the colour. Some widget directives can take such a name as a string attribute to determine which colours apply
+								</p>
+							</li>
+							<li id="attribute_item">
+								<p>
+									<b>#List Unform.RGBA [red] [green] [blue] [alpha]</b> - arguments are 4 integers ranging 0-255, red, green, blue and alpha that apply for all GUI states. Note that if present, then subdirective Spec is superfluous													
+								</p>
+							</li>
+						</ul>
+					</li>
+					<li id="attribute_type">
+					<h4>Optional Subdirectives</h4>
+						<ul id="attribute_list">
+							<li id="attribute_item">
+								<p>
+								<b>Spec</b> - defines what colour applies and under what circumstances
+								</p>
+								<ul>
+									<li id="attribute_type">
+										<h4>Name-Value Attributes</h4>
+										<ul id="attribute_list">
+											<li id="attribute_item">
+												<p>
+													<b>Red</b> - integer between 0 and 255, giving the red intensity of the colour
+												</p>
+											</li>
+											<li id="attribute_item">
+												<p>
+													<b>Green</b> - integer between 0 and 255, giving the green intensity of the colour
+												</p>
+											</li>
+											<li id="attribute_item">
+												<p>
+													<b>Blue</b> - integer between 0 and 255, giving the blue intensity of the colour
+												</p>
+											</li>
+											<li id="attribute_item">
+												<p>
+													<b>Alpha</b> - integer between 0 and 255, giving the alpha intensity of the colour
+												</p>
+											</li>
+										</ul>
+									</li>
+									<li id="attribute_type">
+										<h4>Type-Name-Value Attributes</h4>
+										<ul id="attribute_list">
+											<li id="attribute_item">
+												<p>
+													<b>#List For</b> - combination of boolean flags 'pressed', 'focused' and 'hovered' with 'default' meaning no flags													
+												</p>
+												<p>
+													<pre><code>(For pressed focused))</code></pre>
+												</p>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</div>	
+			
 	<div>
 		<table id="colour_table">
 			<tr>
