@@ -311,24 +311,114 @@
 	
 	<div>
 		<h2>Widget Directives</h2>
-		<p> All widgets serve as parent containers to child widgets, and thus all widget directives may have an arbitrary number of widget directives in their subdirective list.</p>
-		<p> The exception is the Frame widget, defined at the top-level, which may have children, but no widget may have a Frame as a child. Frames are root widgets only.</p>
+		<p> Widgets serve as parent containers to child widgets, and thus all widget directives are allowed an arbitrary number of widget directives in their subdirective list, with each such defining a child widget.</p>
+		<p> Any widget may have any widget type as a child, the exception is the frame widget, which hosts the widget-tree. The frame widget's client area, may have children, but no widget may have a frame as a child. Frames are root widgets only.</p>
 		<p> All widgets also have an arbirary list of panel and colour attributes. Panel attribute names begin with the subspace 'Panel'. Colour attribute names begin with the subspace 'Colour'. </p>
 		<p> Colour attributes are all name-value pairs with the second argument being the colour id. The id must match the id of top-level-directive (Colour ...) defined in the SEXML or at an insert point.</p>
 		<p> A list of all legal 'Colour' names is in the table at the bottom of this HTML document </p>
 	</div>
 	<div>
-		<ul>
-			<li id="directive_item">
-				<h3>Frame</h3>	- The frame element navigates up the owner branch until the frame is found and then sets the attributes specified in the sexml
-				<ul id="attribute_types">
-					<li id="attribute_type">
-						<h4>Attributes and Subdirectives</h4>	
-						- frames are Widgets, and have the all the base widget attributes and subdirectives
-					</li>
-				</ul>
-			</li>
-		</ul>
+		<h2>Panel Attributes</h2>
+		
+		<table id="colour_table">
+			<tr>
+				<td id="colour_coldesc"><b>Attribute Format</b></td>
+				<td id="colour_coldesc"><b>Definition and Commentary</b></td>
+			</tr>
+			<tr>
+				<td id="colour_name">#Vec2i Panel.Offset [dx] [dy]</td>
+				<td id="colour_comment">The delta offset [dx,dy] from the parent's top left position to the panel's top left position</td>
+			</tr>
+			<tr>
+				<td id="colour_name">#Vec2i Panel.Span [dx] [dy]</td>
+				<td id="colour_comment">The constant span [dx,dy] of the widget panel</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.FixedWidth [width]</td>
+				<td id="colour_comment">[width] is an integer. If it ends with a % sign, specifies with as the fraction of the parent's x-span, otherwise specifies widget co-ordinate x-span</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.FixedHeight [height]</td>
+				<td id="colour_comment">[height] is an integer. If it ends with a % sign, specifies with as the fraction of the parent's y-span, otherwise specifies widget co-ordinate y-span</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.Description [text]</td>
+				<td id="colour_comment">At a minimum provides a debugging string for the widget, but also gives a key for navigation and other logic to identify a purpose for the widget</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.TabsCycle [boolValue]</td>
+				<td id="colour_comment">Pass true for [boolValue] to mark a panel to cycle tabs endlessly</td>
+			</tr>
+			<tr>
+				<td id="colour_name">#Reci Panel.Padding [left] [top] [right] [bottom]</td>
+				<td id="colour_comment">Set's the panel's padding on all four of its bounds. If any end with % symbol, the value specifies the faction of the parent's span across the appropriate axis. See ExpandH and ExpandV.</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.Layout [layout]</td>
+				<td id="colour_comment">Where layout is one of LeftToRight|RightToLeft|TopToBottom|BottomToTop|None. This determines the direction across which child widgets are laid out. 'None' is used when children geometries are micromanaged elsewhere </td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.ExpandH</td>
+				<td id="colour_comment">An existential attribute that specifies that a widget to expand horizontally to match its parent geometry, and then shrink according to the Padding for the panel. See Panel.Padding</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.ExpandV</td>
+				<td id="colour_comment">An existential attribute that specifies that a widget to expand vertically to match its parent geometry, and then shrink according to the Padding for the panel. See Panel.Padding.</td>
+			</tr>
+			<tr>
+				<td id="colour_name">#Recti Panel.ChildPadding [top] [left] [right] [bottom]</td>
+				<td id="colour_comment">Behaviour dependendent on the layout algorithm - but specifies gaps between children when laid out by their parent</td>
+			</tr>
+			<tr>
+				<td id="colour_name">#List Panel.Fit ... </td>
+				<td id="colour_comment">Arguments can be any of H|Horizontal|V|Vertical. Prescence of H|Horizontal specifies a widget shrinks to fit its children horizontally; ditto - V|Vertical specifies vertically.</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.RectStyle [style]</td>
+				<td id="colour_comment">Where style is one of SHARP|ROUNDED|BLUR. Specifies the rectangle perimeter used to render the widget background. See Panel.CornerRadius</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.CornerRadius</td>
+				<td id="colour_comment">In the case of a ROUNDED rectangle style, specifies the radius of the corner arcs. Typically 1-10. See Panel.RectStyle</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.AcceptFocus</td>
+				<td id="colour_comment">An existential attribute that marks a panel as having the potential for keyboard focus</td>
+			</tr>
+			<tr>
+				<td id="colour_name">#List Panel.Navigate ...</td>
+				<td id="colour_comment">The items form a string list of Panel.Description text that is used to define a tabbed navigation sequence for the panel. The argument order specifies the navigation order.</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.Hint [hint]</td>
+				<td id="colour_comment">Specifies the [hint] that is registered when keyboard focus applies to the panel. The [hint] may appear in a hint widget.</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.Collapsed</td>
+				<td id="colour_comment">An existential attribute that marks a panel as being collapsed - invisible, disabled and taking up no span. All descendants are also invisible, disabled and take no span.</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.NavLeft [desc]</td>
+				<td id="colour_comment">Specifies the panel description for the panel that takes the next focus when a left action is taken (gamepad or cursor left). See Panel.Description</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.NavRight</td>
+				<td id="colour_comment">Specifies the panel description for the panel that takes the next focus when a right action is taken (gamepad or cursor right). See Panel.Description</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.NavUp</td>
+				<td id="colour_comment">Specifies the panel description for the panel that takes the next focus when an up action is taken (gamepad or cursor up). See Panel.Description</td>
+			</tr>
+			<tr>
+				<td id="colour_name">Panel.NavDown</td>
+				<td id="colour_comment">Specifies the panel description for the panel that takes the next focus when an up action is taken (gamepad or cursor down). See Panel.Description</td>
+			</tr>
+				<tr>
+				<td id="colour_name">Panel.OcclusionSurface [boolValue]</td>
+				<td id="colour_comment">The boolean value true|false determines whether a panel should be painted over with an occlusion surface in the rendering of an occluding GUI object (such as a popup menu). This creates
+				a visual cue for the modality of a popup.</td>
+			</tr>
+		</table>
 	</div>
 	<div>
 		<table id="colour_table">

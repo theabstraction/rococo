@@ -611,21 +611,12 @@ namespace Rococo::GreatSex
 				if (desc.length > 0) panel.SetDesc(desc);
 			}
 
-			void OnAttribute_CanFocus(IGRPanel& panel, const ISEXMLAttributeValue& value)
-			{
-				bool canFocus = AsBool(value);
-				if (canFocus)
-				{
-					panel.Add(EGRPanelFlags::AcceptsFocus);
-				}
-			}
-
 			void OnAttribute_TabsCycle(IGRPanel& panel, const ISEXMLAttributeValue& value)
 			{
-				bool canFocus = AsBool(value);
-				if (canFocus)
+				bool tabsCycle = AsBool(value);
+				if (tabsCycle)
 				{
-					panel.Add(EGRPanelFlags::AcceptsFocus);
+					panel.Add(EGRPanelFlags::CycleTabsEndlessly);
 				}
 			}
 
@@ -882,7 +873,6 @@ namespace Rococo::GreatSex
 					attributeHandlers["Panel.FixedWidth"] = &GreatSexGenerator::OnAttribute_FixedWidth;
 					attributeHandlers["Panel.FixedHeight"] = &GreatSexGenerator::OnAttribute_FixedHeight;
 					attributeHandlers["Panel.Description"] = &GreatSexGenerator::OnAttribute_Description;
-					attributeHandlers["Panel.CanFocus"] = &GreatSexGenerator::OnAttribute_CanFocus;
 					attributeHandlers["Panel.TabsCycle"] = &GreatSexGenerator::OnAttribute_TabsCycle;
 					attributeHandlers["Panel.Padding"] = &GreatSexGenerator::OnAttribute_Padding;
 					attributeHandlers["Panel.Layout"] = &GreatSexGenerator::OnAttribute_Layout;
