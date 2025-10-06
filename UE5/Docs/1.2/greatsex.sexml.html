@@ -387,33 +387,247 @@
 			</li>
 			<li>
 				<h3>Div</h3>
-			</li>
-			<li>
-				<h3>GameOptions</h3>
-			</li>
-			<li>
-				<h3>VerticalList</h3>
+					- Construct a DivisionWidget, the Tabula Rasa of widgets, they exist to layout children and display a backround and little else. They have no unique attributes.
 			</li>
 			<li>
 				<h3>Label</h3>
-			</li>
-			<li>
-				<h3>Viewport</h3>
+					- Create a TextWidget. They display a text string. Generally they are not expected to have children.
+				<ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>Text [text]</p>
+								<p> - Specifies the [text] to render. It is centred horizontally and vertically.</p>
+							</li>
+							<li>
+								<p>Font [id]</p>
+								<p> - Specifies the [id] of the font to render. The font must have been defined by a top-level Font directive</p>
+							</li>
+							<li>
+								<p>FitH [boolValue]</p>
+								<p> - Specifies whether to shrink the widget to fit the text horizontally</p>
+							</li>
+							<li>
+								<p>FitV [boolValue]</p>
+								<p> -  Specifies whether to shrink the widget to fit the text vertically</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
 			</li>
 			<li>
 				<h3>Portrait</h3>
-			</li>
-			<li>
-				<h3>GradientFill</h3>
+				<p> - Typically defined as the first and only child of the Frame's child area, renders a background portrait that may is rendered with the image aspect ratio.
+				
+				<ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>Image [pingPath]</p>
+								<p> - Specifies the [pingPath] of the image to render. It is centred horizontally and vertically and anything outside the render area is drawn using the Colour.Portrait.Band for the panel</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
 			</li>
 			<li>
 				<h3>HintBox</h3>
+				<p> - Creates a box that receives notification when the keyboard focus changes to render a string from the focus widget panel's hint property</p>
+				
+				<ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>#Vec2i Text.Spacing [dx] [dy]</p>
+								<p> - Defines the spacing between the hint text and its bounding rectangle. Behaviour depends on text alignment.</p>
+							</li>
+							<li>
+								<p>Text.Alignment [alignment]</p>
+								<p> - Defines the text alignment. Must be one of Left|Right|Top|Bottom|TopLeft|TopRight|BottomLeft|BottomRight|Centre]</p>
+							</li>
+							<li>
+								<p>Test.Font [id]</p>
+								<p> - Defines the id of the font, which must have been defined in a top-level Font directive.</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<h3>GradientFill</h3>
+				<ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>TopLeft [colourId]</p>
+								<p> - Defines the top left colour of the gradient zone. The colour must have been defined in a top-level Colour directive</p>
+							</li>
+							<li>
+								<p>TopRight [colourId]</p>
+								<p> - Defines the top right colour of the gradient zone. The colour must have been defined in a top-level Colour directive</p>
+							</li>
+							<li>
+								<p>BottomLeft [colourId]</p>
+								<p> - Defines the bottom left colour of the gradient zone. The colour must have been defined in a top-level Colour directive</p>
+							</li>
+							<li>
+								<p>BottomRight [colourId]</p>
+								<p> - Defines the bottom right colour of the gradient zone. The colour must have been defined in a top-level Colour directive</p>
+							</li>
+							<li>
+								<p>Fill [fillType]</p>
+								<p> - Defines the gradient fill type. Must be one of Banner|Smooth|Solid|Default. 
+								<ul>
+									<li>
+										<b>Default|Solid</b> fill uses the top left colour for the entire fill.
+									</li>
+									<li>
+										<b>Banner</b> creates a horizontally symmetrical fill.
+									</li>
+									<li>
+										<b>Smooth</b> renders two triangles, split from top left to bottom right, using all four colour definitions.
+									</li>
+								</ul>
+							</li>
+							<li>
+								<p>FitV FirstChild</p>
+								<p> - Shrinks the gradient fill to match the height of the first child</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
 			</li>
 			<li>
 				<h3>RadioButtons</h3>
+				- defines a group of buttons in which activation of any one button deactivates the other. Navigation between buttons is automatically handled.
+				<ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>#List Group ...</p>
+								<p> - Specifies a list of button panel descriptions that identify which buttons are part of the radio collection. See Panel.Description</p>
+							</li>
+							<li>
+								<p>Navigate [direction]</p>
+								<p> - Specifies whether up-down or left-right gui events change the radio focus. [direction] must be one of H|V|Horizontal|Vertical. H|Horizontal => left-right, V|Vertical => up-down</p>
+							</li>
+							<li>
+								<p>Default [description]</p>
+								<p> - Specifies the button by description that is considered the default button</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<h3>VerticalList</h3>
+				- defines a top-down layout widget. Tab events automatically advance through the children. If the end of the children is reached tab returns focus to the top child if Panel.TabsCycle is defined. This widget factory has no unique
+				attributes or subdirectives.
+			</li>
+			<li>
+				<h3>Viewport</h3>
+				- defines a vertically scrolling region and renders a vertical scroll bar if needs be.
+				<ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>Viewport.RectStyle.Scrollable [style]</p>
+								<p> - Specifies the viewport panel rectangle style when a scroller in visible. [style] can be one of SHARP|ROUNDED|BLUR</p>
+							</li>
+							<li>
+								<p>Viewport.Rectstyle.NotScrollable [style]</p>
+								<p> - Specifies the viewport panel rectangle style when a scroller in hidden. [style] can be one of SHARP|ROUNDED|BLUR</p>
+							</li>
+							<li>
+								<p>Viewport.SyncDomainToChildren</p>
+								<p> - An existential attribute, when present sets the scroller domain height to the sum of the heights of the client area children. /p>
+							</li>
+						</ul>
+						<h3>Subdirectives</h3>
+						<ul>
+							<li>
+								<p>Viewport.ClientArea</p>
+								<p> - Provides configuration for the viewport's client area panel attributes. It has no unique attributes nor subdirectives.</p>
+							</li>
+						</ul>
+						<ul>
+							<li>
+								<p>Viewport.Offset</p>
+								<p> - Provides configuration for the viewport's offset area panel attributes. It has no unique attributes nor subdirectives..</p>
+							</li>
+						</ul>
+					</li>
+				</ul>
 			</li>
 			<li>
 				<h3>ControlPrompt</h3>
+				 - defines a widget that displays control prompts, either for Keyboard or an XBOX controller. The device responsible for input just before a render cycle determines which icon set is used.
+				 <ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>Font [id]</p>
+								<p> - Specifies the font by id for rendering text prompts. The id must match a font that has been defined by a top-level Font directive.</p>
+							</li>
+							<li>
+								<p>AlignRight</p>
+								<p> - An existential attribute: if present, aligns the control prompts on the right hand side of the widget panel.</p>
+							</li>
+						</ul>
+						<h3>Subdirectives</h3>
+						<ul>
+							<li>
+								<p>DefIcon</p>
+								<p> - defines an icon for a particular device and control</p>
+								<h3>Attributes</h3>
+								<ul>
+									<li>
+										<p>Icon [iconId]</p>
+										<p> - gives a unique name to the icon. For use in the Prompt subdirective (see below)</p>
+									</li>
+									<li>
+										<p>For [controlType]</p>
+										<p> - One of Keyboard|XBOX. For keyboard, a mouse or keyboard event will activate this icon. For XBOX, then XBOX game controllers will activate the icon.</p>
+									</li>
+									<li>
+										<p>Path [pingPath]</p>
+										<p> - Ping path to the image file for the icon</p>
+									</li>
+									<li>
+										<p>VPadding [vPadding]</p>
+										<p> - vertical padding above and below image</p>
+									</li>
+								</ul>
+							</li>
+							<li>
+								<p>Prompt</p>
+								<p> - specifies which icon to use and the associated text. The order of prompt directives determines the order of icons in the control prompt</p>
+								<h3>Attributes</h3>
+								<ul>
+									<li>
+										<p>Icon [iconId]</p>
+										<p> - gives a unique name to the icon. Must match one of the icon ids defined in the DefIcon's Icon subdirective (see above)</p>
+									</li>
+									<li>
+										<p>Text [text]</p>
+										<p> - gives a text message to display to the left of the icon</p>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<h3>GameOptions</h3>
+				 - This is the most complex of the widget directives and has its own <a href="gameoptions.html">Game Options Web Page.</a>
 			</li>
 		</ul>
 	</div>

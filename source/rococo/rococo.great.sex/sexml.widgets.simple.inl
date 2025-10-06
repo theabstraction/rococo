@@ -401,15 +401,15 @@ namespace Rococo::GreatSex
 			}
 
 			cstr navigate = AsString(rbDirective["Navigate"]).c_str();
-			if (Eq(navigate, "None"))
+			if (EqI(navigate, "None"))
 			{
 				radio.SetNavigation(EGRRadioNavigation::None);
 			}
-			else if (Eq(navigate, "H") || Eq(navigate, "Horizontal"))
+			else if (EqI(navigate, "H") || EqI(navigate, "Horizontal"))
 			{
 				radio.SetNavigation(EGRRadioNavigation::Horizontal);
 			}
-			else if (Eq(navigate, "V") || Eq(navigate, "Vertical"))
+			else if (EqI(navigate, "V") || EqI(navigate, "Vertical"))
 			{
 				radio.SetNavigation(EGRRadioNavigation::Vertical);
 			}
