@@ -1,0 +1,191 @@
+<html>
+	<head>
+		<title>Game Options Widget Spec</title>
+		<style>
+			body {
+				background-color: lightyellow;
+				margin-left: 128px;
+			}
+			h1 {
+				color: blue;
+				text-align: center;
+			}
+			p {
+				font-size: 18px;
+				color: gray;
+				max-width: 920
+			}
+			img {
+				margin-top: 20px;
+				margin-bottom: 80px;
+			}
+			#attribute_coldesc
+			{
+				padding-right: 10px;
+				border: 1px solid black;
+			}
+			#attribute_type
+			{
+				padding-right: 20px;
+				background-color: white;
+				border: 1px solid black;
+			}
+			#attribute_format
+			{
+				padding-right: 20px;
+				background-color: lightgray;
+				border: 1px solid black;
+			}
+			#attribute_comment
+			{
+				padding-right: 20px;
+				background-color: white;
+				border: 1px solid black;
+			}
+			#attribute_table
+			{
+				border: 1px solid black;
+				border-collapse: collapse;
+				background-color: lightgreen;
+			}
+			#attribute_row
+			{
+				border: 1px solid black;
+			}
+		</style>
+	</head>
+  <body>
+	<h1>Rococo GreatSex Game Options Widget 1.0 Specification</h1>
+	<div>
+		<h2>Introduction</h2>
+	</div>
+	<div>
+		<p>This is part of the Rococo GreatSex specification. Click <a href="GreatSex.Sexml.html">here</a> to return to the main documentation</p>		
+	</div>
+	<div>
+		<h2>Game Options Widget</h2>
+	</div>
+	<div>
+		<p>	
+		The directive <b>GameOptions</b> as a subdirective of any widget creates a game options meta widget - a set of suboptions that are generated procedurally by reflection. As with all widget directives it accepts
+		any of the Panel attributes and any of the Colour attributes. The Panel and Colour tables are at the end of the <a href="GreatSex documentation"> GreatSex documentation</a>. The Generate attribute
+		acts a string key, tying the GameOptions widget to a GameOptions interface supplied to the GreatSex widget tree generator. If no such interface matches, the game option widget is populated by an error description
+		that will list known option names and also point the developer to the C++ source line in which the error is raised.
+		</p>
+		</p><pre><code>
+		/* Example: 
+		(GameOptions 
+			(Panel.Description GameOptions.Gameplay)
+			(Title.Style TitlesOnLeft)
+			(Title.Alignment Left)
+			(Title.Font SubOptionTitleFont)
+			(SubscribeToCommitButtons) 
+			
+			// Multiplies the title font height to yield the title control height. (For TitleOnLeft this will define the row height)
+			(Title.HeightMultiplier 1.75)
+			
+			// Multiplies the title font height to yield the title x spacing.
+			(Title.XSpacingMultiplier 0.25)
+			
+			// Gives the padding of the carousel controls to their interior rectangle
+			(#Recti Carousel.Padding 40 2 40 4)
+			
+			// Gives the padding of the carousel drop-down controls to their interior rectangle
+			(#Recti Carousel.Button.Padding 4 4 4 4)
+			
+			// Determine which side of the control the numeric feedback is rendered at
+			(Scalar.Guage.Alignment Centre)
+			
+			// Offset from alignment edge to guage
+			(#Vec2i Scalar.Guage.Spacing 12 4)
+			
+			// Gives the padding of the slider control slot to the slider control edges
+			(#Recti Scalar.Slot.Padding 40 4 40 4)
+			
+			// Gives the padding of the string control slot to the string control edges
+			(#Recti String.Slot.Padding 40 4 40 4)
+			
+			
+			(Carousel.Font CarouselFont)
+			(Carousel.Button.Font CarouselFont)
+			(Slider.Font SliderFont)
+		
+			// The Generate attribute determines which options are used to generate the children
+			(Generate GameplayOptions)
+		)
+		</code></pre><p>
+	</div>
+	<div>
+		<h2>Attributes</h2>
+	</div>
+	<div>
+		<ul>
+			<li>
+				<h4>Title.Style TitlesOnLeft</h4>
+					- Display suboption titles on the left side of the corresponding control widgets, rather than over head. With the first release version of 1.2 of GreatSex, this is the most tested scenario.
+			</li>
+			<li>
+				<h4>Title.Alignment [alignment]</h4>
+					- Set the title text alignment. Must be one of Left|Right|Top|Bottom|TopLeft|TopRight|BottomLeft|BottomRight|Centre.
+			</li>
+			<li>
+				<h4>Title.Font [fontId]</h4>
+					- Set the title text font id. Must match the id of a Font top-level directive.
+			</li>
+			<li>
+				<h4>SubscribeToCommitButtons</h4>
+					- An existential attribute that when present links any commit buttons in the GUI to the commit method of the game option widget's underlying C++ interface. It allows one to distinguish between
+					  potential/pending changes and committed/accepted changes. It is up to the C++ implementor to ensure the distinction is implemented.
+			</li>
+			<li>
+				<h4>Title.HeightMultiplier [scale]</h4>
+					- Multiplies the Title.Font height by the scale factor to create the title control height. Valid range is 1.0 to 10.0
+			</li>
+			<li>
+				<h4>Title.XSpacingMultiplier [scale]</h4>
+					- Multiplies the title font height to yield the title x spacing of the title text. The effect of the spacing depends on the Title.Alignment. Valid range is 0.0 to 10.0.
+			</li>
+			<li>
+				<h4>#Recti Carousel.Padding [Left] [Top] [Right] [Bottom]</h4>
+					- Pads carousel controls. Carousels in an options widget loop through choice options and can expand to a drop-down list.
+			</li>
+			<li>
+				<h4>#Recti Carousel.ButtonPadding [Left] [Top] [Right] [Bottom]</h4>
+					- Pads carousel drop-down buttons.
+			</li>
+			<li>
+				<h4>Scalar.Guage.Alignment [alignment]</h4>
+					- Sets the position of the guage in a scalar slider control. Must be one of Left|Right|Top|Bottom|TopLeft|TopRight|BottomLeft|BottomRight|Centre.
+			</li>
+			<li>
+				<h4>#Vec2i Scalar.Guage.Spacing 12 4</h4>
+					- Sets the guage text spacing. The effect of the spacing depends on Guage.Alignment.
+			</li>
+			<li>
+				<h4>#Recti Scalar.Slot.Padding [Left] [Top] [Right] [Bottom]</h4>
+					- Sets the slider slot padding, that positions and scales the slider slot withing the slider widget.
+			</li>
+			<li>
+				<h4>#Recti String.Slot.Padding [Left] [Top] [Right] [Bottom]</h4>
+					- Sets the string slot padding, that positions and scales the string slot withing the string editor widget.
+			</li>
+			<li>
+				<h4>Carousel.Font [id]</h4>
+					- Sets the font id of the carousel font. The id must match that of a Font top-level directive.
+			</li>
+			<li>
+				<h4>Carousel.Button.Font [id]</h4>
+					- Sets the font id of the carousel's drop down buttons. The id must match that of a Font top-level directive.
+			</li>
+			<li>
+				<h4>Slider.Font [id]</h4>
+					- Sets the font id of the slider value font. The id must match that of a Font top-level directive.
+			</li>
+			<li>
+				<h4>Generate [id]</h4>
+					- Sets the C++ option interface that links to the widget. Read the first paragraph of this documentation for more info.
+			</li>
+		</ul>
+	</div>
+  </body>
+ </html>
