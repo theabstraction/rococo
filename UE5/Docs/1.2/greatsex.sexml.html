@@ -514,11 +514,31 @@
 							</li>
 							<li>
 								<p>Navigate [direction]</p>
-								<p> - Specifies whether up-down or left-right gui events change the radio focus. [direction] must be one of H|V|Horizontal|Vertical. H|Horizontal => left-right, V|Vertical => up-down</p>
+								<p> - Specifies whether up-down or left-right gui events change the radio focus. [direction] must be one of H|V|Horizontal|Vertical.<br>H|Horizontal => left-right, V|Vertical => up-down</p>
 							</li>
 							<li>
 								<p>Default [description]</p>
 								<p> - Specifies the button by description that is considered the default button</p>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<h3>Subdirectives</h3>
+						<ul>
+							<li>
+								<p>Tab</p>
+								- specifies that a radio button toggles a widget panel's collapsed state, so that only one tab is visible at a time
+								<h3>Attributes</h3>
+								<ul>
+									<li>
+										<p>For [meta]</p>
+										<p> - Specifies the Meta string of the radio-button that controls toggling of the target widget</p>
+									</li>
+									<li>
+										<p>Toggles [description]</p>
+										<p> - Specifies the Panel.Description of the target widget panel, the collapse state of which is to be toggled by the associated button</p>
+									</li>
+								</ul>	
 							</li>
 						</ul>
 					</li>
@@ -620,6 +640,32 @@
 										<p> - gives a text message to display to the left of the icon</p>
 									</li>
 								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<h3>Toolbar</h3>
+				<p>- creates a widget with a layout optimized for displaying button image controls.</p> 
+				<p>- experimental: there is a hidden toolbar in the root frame widget that is normally invisible for most GUI applications. While the toobar widget has been proven to work, 
+					its usefulness in the context of a SEXML specified context is questionable - a division widget may be more flexible and serve much the same purpose.				
+				</p>
+				<ul>
+					<li>
+						<h3>Attributes</h3>
+						<ul>
+							<li>
+								<p>Content.Padding.Cell [padding]</p>
+								<p> - [padding] integer specifies the space between child widgets</p>
+							</li>
+							<li>
+								<p>Content.Padding.Border [padding]</p>
+								<p> - [padding] integer specifies the space between the border of the toolbar and the contentss</p>
+							</li>
+							<li>
+								<p>ChildrenContent.Alignment [alignment]</p>
+								<p> - where [alignment] is one of top|right|bottom|hcentre|vcentre</p>
 							</li>
 						</ul>
 					</li>

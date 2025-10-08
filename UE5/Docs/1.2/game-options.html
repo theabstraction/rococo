@@ -57,16 +57,11 @@
   <body>
 	<h1>Rococo GreatSex Game Options Widget 1.0 Specification</h1>
 	<div>
-		<h2>Introduction</h2>
-	</div>
-	<div>
-		<p>This is part of the Rococo GreatSex specification. Click <a href="GreatSex.Sexml.html">here</a> to return to the main documentation</p>		
-	</div>
-	<div>
 		<h2>Game Options Widget</h2>
 	</div>
 	<div>
 		<p>	
+		This is part of the Rococo GreatSex specification. Click <a href="GreatSex.Sexml.html">here</a> to return to the main documentation.
 		The directive <b>GameOptions</b> as a subdirective of any widget creates a game options meta widget - a set of suboptions that are generated procedurally by reflection. As with all widget directives it accepts
 		any of the Panel attributes and any of the Colour attributes. The Panel and Colour tables are at the end of the <a href="GreatSex documentation"> GreatSex documentation</a>. The Generate attribute
 		acts a string key, tying the GameOptions widget to a GameOptions interface supplied to the GreatSex widget tree generator. If no such interface matches, the game option widget is populated by an error description
@@ -158,16 +153,16 @@
 					- Sets the position of the guage in a scalar slider control. Must be one of Left|Right|Top|Bottom|TopLeft|TopRight|BottomLeft|BottomRight|Centre.
 			</li>
 			<li>
-				<h4>#Vec2i Scalar.Guage.Spacing 12 4</h4>
+				<h4>#Vec2i Scalar.Guage.Spacing [X] [Y]</h4>
 					- Sets the guage text spacing. The effect of the spacing depends on Guage.Alignment.
 			</li>
 			<li>
 				<h4>#Recti Scalar.Slot.Padding [Left] [Top] [Right] [Bottom]</h4>
-					- Sets the slider slot padding, that positions and scales the slider slot withing the slider widget.
+					- Sets the slider slot padding that positions and scales the slider slot within the slider widget.
 			</li>
 			<li>
 				<h4>#Recti String.Slot.Padding [Left] [Top] [Right] [Bottom]</h4>
-					- Sets the string slot padding, that positions and scales the string slot withing the string editor widget.
+					- Sets the string slot padding that positions and scales the string slot within the string editor widget.
 			</li>
 			<li>
 				<h4>Carousel.Font [id]</h4>
@@ -183,7 +178,7 @@
 			</li>
 			<li>
 				<h4>Generate [id]</h4>
-					- Sets the C++ option interface that links to the widget. Read the first paragraph of this documentation for more info.
+					- Selects the C++ option interface that links to the widget. The first paragraph of this documentation has more information.
 			</li>
 		</ul>
 	</div>

@@ -71,9 +71,10 @@
 	</div>
 	<div>
 		<p>	
+		<p>	
 		A directive is a compound S-Expression that is recursively defined as a sequence of attributes followed by the subdirective indicator (the colon character ':')  and then subdirectives. As you
 		may have guessed each subdirective is... a directive. In the case that there are no subdirectives then it is permissible to omit the subdirective indicator.
-		The root S-expression of a SEXML file has as its members root directive, otherwise known as top-level directives.
+		Any directive that is not the descandant of another directive is known as top-level directive. In a SEXML file, the top-level directives form the children of the root S-Expression directive.
 		</p>
 		<p> The first token of a directive is a dotted namespace name, each subspace and must start with a capital letter A-Z. Following the capital are any number of alphanumeric characters
 		A-Z, a-z and 0-9. Names do not have to be unique, so you can have more than one directive with the same name. This convention for subspaces is known as Pascal
@@ -121,7 +122,7 @@
 	</div>
 	<div>
 		<p>	
-		An attribute that is merely one atomic expression, a name, is deemed an <i>existential attribute</i>. It marks a directive of having a property. Absence
+		An attribute that is merely one atomic expression, a name, is deemed an <i>existential attribute</i>. It marks a directive of having a property - in mathematical logic, it is what we call a <i>predicate</i>. Absence
 		of the attribute is deemed to mark the directive as being void of the property. Thus they can be interpreted as boolean properties.
 		</p>
 		</p><pre><code>
@@ -173,7 +174,8 @@
 		For typed values, parsers are expected to interpret integers, where expected, as 32-bit signed values. 
 		Integers are either decimal or hexadecimal. In the latter case they are prefixed with the 0x characters. If no such prefix is found the expectation is 
 		that the sequences are decimals. Floating point numbers are expected to be converted to 64-bit IEEE 754 numbers by any SEXML parser. Parsers may raise an error state
-		in the event that arguments cannot be converted to these numeric types.
+		in the event that arguments cannot be converted to these numeric types. The suffix of an integer expression will be skipped by numeric conversion, allowing physical units and other markings
+		such as the percentage sign to trail the values.
 		</p>
 		<p>
 		The format is (<code>[type] [name] ...</code>).
@@ -182,6 +184,9 @@
 		(Box
 			// Define a box with span 10x5x2 units, #Vec3 is a type with 3 integer elements, X, Y and Z
 			(#Vec3i span 10 5 2)
+			
+			// Define a ratio vector, with X and Y giving the ratio of padding to some containing object
+			(#Vec2i padding 35% 25%)
 		)
 		</code></pre><p>
 	</div>
@@ -252,9 +257,10 @@
 		where [name] is the dotted namespace name of the attribute, and value is any legal S-expression. Designers of SEXML should generally
 		avoid using raw attributes, and instead represent complex data with other attributes and subdirectives. The main motivation for raw 
 		attributes is to permit embedding S-Expression scripting code within a document. The converse is also true, SEXML may be embedded in
-		any S-Expression scripting code that permits raw expressions. This is an example of code-as-data and data-as-code.
+		any S-Expression scripting code that permits raw expressions. LISP programmers often say some such as 'With S-Expressions code-is-data and data-is-code.'
 		</p>
 		<pre><code>
+		// Example:
 		// An attribute 'OnClick' with a value of an S-Expression of 3 elements.
 		(' OnClick ( (Int32 i = 1) (RegisterFriend i "John Paul" "Smith") (i += 1) )
 		</code></pre>
