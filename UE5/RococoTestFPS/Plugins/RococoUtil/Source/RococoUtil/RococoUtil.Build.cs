@@ -26,7 +26,6 @@ public class RococoUtil : ModuleRules
             throw new Exception("Expecting Rococo-Include@Env to have been defined by RococoBuild.Build.cs");
         }
 
-
         string sexyInclude = Environment.GetEnvironmentVariable("Sexy-Include");
         if (sexyInclude == null)
         {
