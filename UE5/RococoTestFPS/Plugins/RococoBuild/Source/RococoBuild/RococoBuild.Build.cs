@@ -384,6 +384,91 @@ public class RococoBuild : ModuleRules
         );
     }
 
+    private void CreateJPEGBundles()
+    {
+        string jpegSourceDirectory = MakePluginSourceFolder("RococoJPEGLib");
+
+        var items = new List<string>()
+        {
+            "jcapimin.c",
+            "jcapistd.c",
+            "jccoefct.c",
+            "jccolor.c",
+            "jcdctmgr.c",
+            "jchuff.c",
+            "jcinit.c",
+            "jcmainct.c",
+            "jcmarker.c",
+            "jcmaster.c",
+            "jcomapi.c",
+            "jcphuff.c",
+            "jcprepct.c",
+            "jcsample.c",
+            "jctrans.c",
+            "jdapimin.c",
+            "jdatafromem.c",
+            "jdatasrc.c",
+            "jdatadst.c",
+            "jdatastream.h",
+            "jdcoefct.c",
+            "jdcolor.c",
+            "jddctmgr.c",
+            "jdhuff.c",
+            "jdinput.c",
+            "jdmainct.c",
+            "jdmarker.c",
+            "jdmaster.c",
+            "jdmerge.c",
+            "jdphuff.c",
+            "jdpostct.c",
+            "jdsample.c",
+            "jdtrans.c",
+            "jerror.c",
+            "jfdctflt.c",
+            "jfdctfst.c",
+            "jfdctint.c",
+            "jidctflt.c",
+            "jidctint.c",
+            "jidctfst.c",
+            "jidctred.c",
+            "jmemmgr.c",
+            "jmemnobs.c",
+            "jquant1.c",
+            "jquant2.c",
+            "jutils.c",
+            "rdbmp.c",
+            "rdcolmap.c",
+            "rdgif.c",
+            "rdppm.c",
+            "rdrle.c",
+            "rdswitch.c",
+            "rdtarga.c",
+            "wrbmp.c",
+            "wrgif.c",
+            "wrppm.c",
+            "wrrle.c",
+            "wrtarga.c"
+        };
+
+        CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.dll.h", "rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
+               new List<string>()
+               {
+                    "jcparam.c",
+                    "jdapistd.c",
+                    "transupp.c"
+               }
+        );
+
+        CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b", items);
+
+        CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
+            new List<string>()
+            {
+                "readimage.cpp",
+                "writeimage.cpp"
+            }
+        );
+    }
 
     public RococoBuild(ReadOnlyTargetRules Target) : base(Target)
 	{
@@ -393,6 +478,7 @@ public class RococoBuild : ModuleRules
         CreatePluginUtilBundles();
         CreateZLIBBundles();
         CreateTiffBundles();
+        CreateJPEGBundles();
 
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
