@@ -196,11 +196,67 @@ public class RococoBuild : ModuleRules
         );
     }
 
+    private void CreatePluginUtilBundles()
+    {
+        string utilSourceDirectory = MakePluginSourceFolder("RococoUtil");
+        CreateBundleDirect(utilSourceDirectory, "wrap.s-parser.cpp", "rococo.UE5.h", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/sexy/SP/sexy.s-parser",
+            new List<string>()
+            {
+                "sexy.s-parser.cpp",
+                "sexy.s-builder.cpp",
+                "sexy.s-parser.s-block.cpp"
+            }
+        );
+
+        CreateBundleDirect(utilSourceDirectory, "wrap.s-utils.cpp", "rococo.UE5.h", null, null, "rococo/sexy/Utilities",
+            new List<string>()
+            {
+                "sexy.util.cpp"
+            }
+        );
+
+        CreateBundleDirect(utilSourceDirectory, "wrap.sexml.cpp", "rococo.UE5.h", null, null, "rococo/rococo.sexml",
+          new List<string>()
+          {
+                "rococo.sexml.builder.cpp",
+                "rococo.sexml.parser.cpp",
+                "rococo.sexml.user.cpp"
+          }
+        );
+
+        CreateBundleByMatch(utilSourceDirectory, "wrap.gui-retained.cpp", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/rococo.gui.retained",
+          new List<string>()
+          {
+                "rococo.gr.*.cpp"
+          }
+        );
+
+        CreateBundleDirect(utilSourceDirectory, "wrap.maths.cpp", "rococo.UE5.h", null, null, "rococo/rococo.maths",
+          new List<string>()
+          {
+                "rococo.integer.formatting.cpp",
+                "rococo.maths.cpp",
+                "rococo.collisions.cpp",
+          }
+        );
+
+        CreateBundleDirect(utilSourceDirectory, "wrap.greatsex.cpp", "rococo.UE5.h", null, null, "rococo/rococo.great.sex",
+            new List<string>()
+            {
+                "great.sex.colour.cpp",
+                "great.sex.scheme.cpp",
+                "great.sex.main.cpp",
+                "great.sex.test-data.cpp"
+            }
+        );
+    }
+
     public RococoBuild(ReadOnlyTargetRules Target) : base(Target)
 	{
         PrepRococoDirectories();
 
         CreatePluginOSBundles();
+        CreatePluginUtilBundles();
 
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
