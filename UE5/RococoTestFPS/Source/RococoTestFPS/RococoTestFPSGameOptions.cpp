@@ -1316,7 +1316,7 @@ namespace RococoTestFPS
 
 		for (auto* object : context)
 		{
-			if (object->Implements<URococoGameOptionBuilder>())
+			if (object && object->Implements<URococoGameOptionBuilder>())
 			{
 				auto builder = TScriptInterface<IRococoGameOptionBuilder>(object);
 				FString optionCategory = builder->Execute_GetOptionId(object);

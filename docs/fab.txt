@@ -1,0 +1,15 @@
+I specialize in RAD tools for Unreal - it needs them! This is my first plugin and utilizes the GUI widget system I wrote for an independent library - the 'Rococo library.' The GUI is driven by a mark-up language SEXML - 'S-Expression Markup Language', which is similar to XML or HTML, but uses the faster and more efficient S-Expression syntax, meaning less boiler-plate and easier parsing.
+
+The proof of concept is a SEXML sheet that implements a fully-functional options menu including Shift+MouseWheel GUI scaling, gamepad and keyboard navigation. The graphics options allow the user to choose fullscreen mode, target monitor, max refresh rate and fullscreen resolution. The audio functions are used in the demo to attenuate narration and background music.
+
+The consumer-developer can write options in C++ or Blueprints and readily populate the UI controls without touching the SEXML. This is an inversion of data driven development, it is what you may call reflection driven development.
+
+The background image in the demo was generated with AI, my apologies!
+
+Note - professional license is currently set at $5600. Negotiation with FAB is underway to enable this through the FAB website. The professional price is currently $1499.99 while the negotiation takes place, so get it now while it is cheap!
+
+Source is available at rococo on GitHub
+
+The current locked and tested branch is 1.2. Documentation is imminent.
+
+
