@@ -8,11 +8,11 @@ public class RococoTestFPSEditorTarget : TargetRules
 {
     public RococoTestFPSEditorTarget(TargetInfo Target) : base(Target)
 	{
-        BuildEnvironment = TargetBuildEnvironment.Unique;
-        bUseLoggingInShipping = true;
+    //    BuildEnvironment = TargetBuildEnvironment.Unique;
+    //    bUseLoggingInShipping = true;
         Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
-		ExtraModuleNames.Add("RococoTestFPS");
+        ExtraModuleNames.Add("RococoTestFPS");
     }
 }

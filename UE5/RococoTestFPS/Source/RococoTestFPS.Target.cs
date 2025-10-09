@@ -10,12 +10,12 @@ public class RococoTestFPSTarget : TargetRules
 {
     public RococoTestFPSTarget(TargetInfo Target) : base(Target)
 	{
-        BuildEnvironment = TargetBuildEnvironment.Unique;
-        bUseLoggingInShipping = true;
+       // BuildEnvironment = TargetBuildEnvironment.Unique;
+        //bUseLoggingInShipping = true;
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
-		ExtraModuleNames.Add("RococoTestFPS");
-		// PreBuildSteps.Add("copy-rococo-files.bat");
+        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
+        ExtraModuleNames.Add("RococoTestFPS");
     }
 }
