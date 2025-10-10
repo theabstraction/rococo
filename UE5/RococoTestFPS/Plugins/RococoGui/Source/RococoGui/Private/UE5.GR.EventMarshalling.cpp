@@ -5,6 +5,15 @@
 #include <rococo.ui.h>
 #include <Components/SlateWrapperTypes.h>
 
+void CopySpatialInfo(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry);
+void CopySpatialInfo_NoFullscreenCorrection(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry);
+Rococo::Gui::GRKeyContextFlags ToContext(const FPointerEvent& ev);
+
+namespace Rococo
+{
+	ROCOCO_API void LogExceptionAndContinue(Rococo::IException& ex, const char* prelude, const char* postlude);
+}
+
 DECLARE_LOG_CATEGORY_EXTERN(RococoEvents, Error, All);
 DEFINE_LOG_CATEGORY(RococoEvents);
 

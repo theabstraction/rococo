@@ -123,9 +123,19 @@
 		</a>
   </div>
   <div>
+  <p>The key selling point for the Rococo Gui is a drop-in solution for a game's options screen. For this the GUI has to be linked to the objects that persist option states.
+  Once functions corresponding to those illustrated below are added to your project, options can be implemented in C++ or in Blueprints, or a combination of both.
+  A little C++ is needed to register C++ interfaces with the Rococo GUI Plugin. In the demonstration <b>InitGlobalOptions</b> is invoked by the setting of the flag on the BP_RococoGuiHost with the same name.
+  </p?
+  </div>
+  <div>
+		<a href="Images/GlobalOptions-C++.png">
+		<img src="Images/GlobalOptions-C++.png" width=960 />
+		</a>
+  </div>
+  <div>
   <p>
-  The key selling point for the Rococo Gui is a drop-in solution for a game's options screen. For this the GUI has to be linked to the objects that persist option states.
-  These can be implemented in C++ or in Blueprints, or a combination of both. An example below is the blueprint for PlutoNinjaOptions (the name was chosen to avoid naming conflicts!).
+  An example below is the blueprint for PlutoNinjaOptions (the name was chosen to avoid naming conflicts!).
   Options are defined as pairs of functions, prefixed Add and On. An example is in the screenshot, AddOption_Deathstrike. The elements of the local variable it uses are to the right, in 
   the Details panel. The Rococo GUI system populates an option tab from a blueprint by enumerating its methods and looking for a function signature match. AddOption_XXX
   methods populate a drop-down list. The suffix XXX in such a method gives the option id. If a matching function exists - OnChoice_XXX with XXX matching the id - it will be

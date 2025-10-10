@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{B1518EEC-45FE-B308-4356-3BA86261093B}",
+	"EngineAssociation": "5.6",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -11,6 +11,10 @@
 		}
 	],
 	"Plugins": [
+		{
+			"Name": "RococoBuild",
+			"Enabled": true
+		},
 		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true

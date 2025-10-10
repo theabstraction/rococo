@@ -6,9 +6,6 @@ using UnrealBuildTool;
 
 public class RococoTestFPS : ModuleRules
 {
-    private string rococoIncludeDirectory;
-    private string rococoHomeDirectory;
-
     private static string RococoConfigPath
     {
         get
@@ -36,25 +33,18 @@ public class RococoTestFPS : ModuleRules
         return null;
     }
 
-    private void InitPathFromRococoHome(string _rococoHomeDirectory)
+    private void InitPathFromRococoHome(string rococoHomeDirectory)
     {
-        rococoHomeDirectory = _rococoHomeDirectory;
         rococoIncludeDirectory = Path.Combine(rococoHomeDirectory, "source/rococo/include/").Replace('/', Path.DirectorySeparatorChar);
     }
 
-    private string PrivateSourceRelPath
-    {
-        get
-        {
-            return "Source/RococoGui/Private".Replace('/', Path.DirectorySeparatorChar);
-        }
-    }
+    string rococoIncludeDirectory;
 
     private void PrepRococoDirectories()
     {
         if (rococoIncludeDirectory == null)
         {
-            string dir = PrivateSourceRelPath;
+            string dir = ModuleDirectory;
             string fullPath = dir;
             string lastFullPath;
 
@@ -84,23 +74,14 @@ public class RococoTestFPS : ModuleRules
             throw new System.Exception("Could not find rococo directory from either " + RococoConfigPath + " or  enumerating ancestors of " + dir);
         }
     }
-    public string RococoIncludeDirectory
-    {
-        get { return rococoIncludeDirectory; }
-    }
-
-    public string RococoHomeDirectory
-    {
-        get { return rococoHomeDirectory; }
-    }
 
     public RococoTestFPS(ReadOnlyTargetRules Target) : base(Target)
 	{
+        PrepRococoDirectories();
+
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SlateCore", "Slate", "EnhancedInput", "RHI", "ApplicationCore", "RococoOS", "RococoGui" });
-
-        PrepRococoDirectories();
 
         System.Console.WriteLine("rococoIncludeDirectory: {0}", rococoIncludeDirectory);
 

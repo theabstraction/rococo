@@ -107,7 +107,7 @@ int MainProtected(cstr commandLine)
 		{
 			U8FilePath sexmlPath;
 			OS::GetUserSEXMLFullPath(OUT sexmlPath, nullptr, section);
-			Throw(0, "No command line arguments given and %s does not exist", sexmlPath.buf);
+			Throw(0, "No command line arguments given and %s does not exist.\r\n Example:\r\n\t(GreatSex (Sexml !tests/greatsex.test.sexml))", sexmlPath.buf);
 		}
 	}
 

@@ -1,5 +1,20 @@
 #pragma once
 #include <CoreMinimal.h>
+#include <Components\SlateWrapperTypes.h>
+
+class IRococoEmittedUIEventHandler;
+
+namespace Rococo
+{
+	struct MouseEvent;
+	struct IException;
+}
+
+namespace Rococo::Gui
+{
+	struct IUE5_GRCustodianSupervisor;
+	struct GRKeyContextFlags;
+}
 
 FEventReply RouteMouseButtonDown(TScriptInterface<IRococoEmittedUIEventHandler>& handler, Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent);
 FEventReply RouteMouseButtonUp(TScriptInterface<IRococoEmittedUIEventHandler>& handler, Rococo::Gui::IUE5_GRCustodianSupervisor* custodian, const FGeometry& geometry, const FPointerEvent& ue5MouseEvent);
