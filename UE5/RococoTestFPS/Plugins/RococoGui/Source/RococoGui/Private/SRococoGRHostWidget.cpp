@@ -135,6 +135,8 @@ void SRococoGRHostWidget::LoadFrame(const char* sexmlPingPath, Rococo::IEventCal
 		return;
 	}
 
+	custodian->ClearLastLoadFrameError();
+
 	Rococo::AutoFree<Rococo::IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(128, 0, "sexml-allocator");
 	
 	struct ErrorHandler : Rococo::IEventCallback<Rococo::GreatSex::LoadFrameException>

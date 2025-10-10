@@ -984,7 +984,7 @@ namespace Rococo::GreatSex
 
 			installation.LoadResource(sexmlPath, *buffer, 16_megabytes);
 
-			Auto<ISourceCode> src = sParser->ProxySourceBuffer((cstr)buffer->GetData(), (int)buffer->Length(), { 0,0 }, sexmlPath, nullptr);
+			Auto<ISourceCode> src = sParser->ProxySourceBuffer((cstr)buffer->GetData(), (int)buffer->Length(), { 1,1 }, sexmlPath, nullptr);
 
 			try
 			{

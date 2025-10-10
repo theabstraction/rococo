@@ -968,6 +968,15 @@ namespace Rococo::GreatSex
 			if (aTextSpacing)
 			{
 				alignmentSpacing = AsVec2i(aTextSpacing->Value());
+				try
+				{
+					GRAlignmentFlags alignCentre;
+					button.SetAlignment(alignCentre, alignmentSpacing);
+				}
+				catch (IException& ex)
+				{
+					Throw(aTextSpacing->S(), ex.Message());
+				}
 			}
 
 			auto* aTextAlignment = buttonDirective.FindAttributeByName("Text.Alignment");

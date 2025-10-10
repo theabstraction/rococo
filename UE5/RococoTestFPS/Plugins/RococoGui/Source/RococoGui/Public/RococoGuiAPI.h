@@ -24,6 +24,7 @@ namespace Rococo::Gui
 		// If invoked this will make the custodian render the error than the widget system
 		virtual void AddLoadError(Rococo::GreatSex::LoadFrameException& err) = 0;
 		virtual void Bind(IGRSystemSupervisor& grSystem) = 0;
+		virtual void ClearLastLoadFrameError() = 0;
 		virtual void FocusDefaultTab() = 0;
 		virtual IO::IInstallation& Installation() = 0;
 		virtual void Render(SlateRenderContext& rc) = 0;

@@ -266,6 +266,9 @@ namespace Rococo::Gui::UE5::Implementation
 		else
 		{
 			y = (rect.top + rect.bottom - innerRectSpan.y) >> 1;
+			// A slight difference here between UE5 and GDI rendering. 
+			// The UE5 fonts in small buttons look too high, so allow padding to shift them, even when centred
+			y += spacing.y;
 		}
 
 		return GuiRect{ x, y, x + innerRectSpan.x, y + innerRectSpan.y };
@@ -1236,14 +1239,22 @@ namespace Rococo::Gui::UE5::Implementation
 
 		ErrorCapture errCapture;
 
-
-		void AddLoadError(Rococo::GreatSex::LoadFrameException& err)
+		void AddLoadError(Rococo::GreatSex::LoadFrameException& err) override
 		{
 			errCapture.startPos = err.startPos;
 			errCapture.endPos = err.endPos;
 			errCapture.filename = err.filename;
 			errCapture.message = err.message;
 			errCapture.errorCode = err.errorCode;
+		}
+
+		void ClearLastLoadFrameError() override
+		{
+			errCapture.startPos = { 0,0 };
+			errCapture.endPos = { 0,0 };
+			errCapture.filename = "";
+			errCapture.message = "";
+			errCapture.errorCode = 0;
 		}
 
 		void Bind(IGRSystemSupervisor& _grSystem)
