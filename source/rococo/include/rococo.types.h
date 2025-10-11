@@ -1,3 +1,4 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 // For copyright, see copyright.txt in the Rococo root folder. All files in the Rococo repo that include this header are covered by it.
 #pragma once
 

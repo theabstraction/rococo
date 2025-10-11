@@ -1,3 +1,4 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #pragma once
 
 // N.B not for inclusion in other headers. Since we include STL we don't want to propagate

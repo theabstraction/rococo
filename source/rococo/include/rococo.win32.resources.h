@@ -1,3 +1,5 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
+#pragma once
 #define IDD_EXCEPTION_DIALOG 27000
 #define IDC_STACKVIEW 27001
 #define IDC_LOGVIEW 27002
