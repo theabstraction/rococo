@@ -1,3 +1,4 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #include <rococo.compiler.options.h>
 #include <rococo.types.h>
 #include <rococo.strings.h>

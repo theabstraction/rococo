@@ -1,3 +1,4 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.great.sex.h>
 #include <sexy.types.h>
