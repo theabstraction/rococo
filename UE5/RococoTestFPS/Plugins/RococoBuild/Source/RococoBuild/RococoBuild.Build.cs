@@ -189,11 +189,24 @@ public class RococoBuild : ModuleRules
 
     string MakePluginSourceFolder(string pluginName)
     {
-        string dir = Path.Join(PluginDirectory, "..", pluginName, "Source", pluginName, "Private");
+        string dir;
+
+        string envPluginDirectory = Environment.GetEnvironmentVariable("PLUGIN_BUILD_HOME");
+        if (envPluginDirectory != null)
+        {
+            // Used in a batch file for exporting from the development directory, as PluginDirectory\..\pluginName will not have source code until the appropriate project is built.
+            dir = Path.Join(envPluginDirectory, pluginName, "Source", pluginName, "Private");
+        }
+        else
+        {
+            dir = Path.Join(PluginDirectory, "..", pluginName, "Source", pluginName, "Private");
+        }
+
         if (!Directory.Exists(dir))
         {
-            throw new System.Exception("Expecting directory to exist: " + dir);
+            throw new Exception("Expecting directory to exist: " + dir);
         }
+
         return dir;
     }
 
@@ -219,7 +232,7 @@ public class RococoBuild : ModuleRules
 
                 fullPath = Path.GetFullPath(Path.Combine(fullPath, ".."));
 
-                string candidateIncludeDirectory = Path.Combine(fullPath, "source/rococo/include/").Replace('/', Path.DirectorySeparatorChar);
+                string candidateIncludeDirectory = Path.Join(fullPath, "source", "rococo", "include");
                 if (Directory.Exists(candidateIncludeDirectory))
                 {
                     InitPathFromRococoHome(fullPath);
@@ -234,7 +247,7 @@ public class RococoBuild : ModuleRules
 
     private void CreatePluginOSBundles()
     {
-       string osSourceDirectory = MakePluginSourceFolder("RococoOS");
+        string osSourceDirectory = MakePluginSourceFolder("RococoOS");
 
         CreateBundleDirect(osSourceDirectory, "wrap.rococo_util.cpp", "rococo.os.UE5.h", "rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
             new List<string>()

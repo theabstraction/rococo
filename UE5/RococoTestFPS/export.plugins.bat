@@ -1,10 +1,21 @@
-@echo off
-cd %~dp0
-set UE="C:\Program Files\Epic Games\UE_5.6\"
-%UE%Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin=Plugins\RococoBuild\RococoBuild.uplugin     -Package=Exported\RococoBuild    -Rocket
-%UE%Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin=Plugins\RococoOS\RococoOS.uplugin           -Package=Exported\RococoOS       -Rocket
-%UE%Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin=Plugins\RococoGui\RococoGui.uplugin         -Package=Exported\RococoGui      -Rocket
-%UE%Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin=Plugins\RococoJPEGLib\RococoJPEGLib.uplugin -Package=Exported\RococoJPEGLib  -Rocket
-%UE%Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin=Plugins\RococoTiffLib\RococoTiff.uplugin    -Package=Exported\RococoTiff     -Rocket
-%UE%Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin=Plugins\RococoUtil\RococoUtil.uplugin       -Package=Exported\RococoUtil     -Rocket
-%UE%Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin=Plugins\RococoZLib\RococoZLib.uplugin       -Package=Exported\RococoZLib     -Rocket
+echo off
+SET PLUGIN_BUILD_HOME=%~dp0Plugins\
+set RococoHome=%~dp0..\..\
+set "UE=C:\Program Files\Epic Games\UE_5.6\Engine\Build\BatchFiles\"
+::set UE=..\..\..\UE\Engine\Build\BatchFiles\
+echo %UE%
+cd /d "%UE%"
+dir -p
+CALL RunUAT.bat BuildPlugin -Plugin=%~dp0Plugins\RococoBuild\RococoBuild.uplugin     -Package=%~dp0Exported  -Rocket
+set  Rococo-Include=%RococoHome%source\rococo\include\
+set  Sexy-Include=%RococoHome%source\rococo\sexy\Common\
+echo "*************************************************"
+echo %Rococo-Include%
+echo "*************************************************
+CALL RunUAT.bat BuildPlugin -Plugin=%~dp0Plugins\RococoOS\RococoOS.uplugin           -Package=%~dp0Exported  -Rocket
+CALL RunUAT.bat BuildPlugin -Plugin=%~dp0Plugins\RococoUtil\RococoUtil.uplugin       -Package=%~dp0Exported  -Rocket
+CALL RunUAT.bat BuildPlugin -Plugin=%~dp0Plugins\RococoZLib\RococoZLib.uplugin       -Package=%~dp0Exported  -Rocket
+CALL RunUAT.bat BuildPlugin -Plugin=%~dp0Plugins\RococoJPEGLib\RococoJPEGLib.uplugin -Package=%~dp0Exported  -Rocket
+CALL RunUAT.bat BuildPlugin -Plugin=%~dp0Plugins\RococoTiffLib\RococoTiff.uplugin    -Package=%~dp0Exported  -Rocket
+CALL RunUAT.bat BuildPlugin -Plugin=%~dp0Plugins\RococoGui\RococoGui.uplugin         -Package=%~dp0Exported  -Rocket
+
