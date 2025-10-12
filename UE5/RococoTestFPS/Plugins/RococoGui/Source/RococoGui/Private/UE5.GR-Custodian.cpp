@@ -18,7 +18,7 @@
 #include "../Public/RococoFontSet.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-#include <../rococo.gui.retained/rococo.gr.image-loading.inl>
+#include <rococo.gr.image-loading.inl>
 
 namespace Rococo
 {

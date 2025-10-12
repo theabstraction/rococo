@@ -21,16 +21,9 @@ public class RococoTiffLib : ModuleRules
 
         PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
 
-        string rococoInclude = Environment.GetEnvironmentVariable("Rococo-Include");
-        if (rococoInclude == null)
-        {
-            throw new Exception("Expecting Rococo-Include@Env to have been defined by RococoBuild.Build.cs");
-        }
-
         PublicIncludePaths.AddRange(
 			    new string[] 
                 {
-                     rococoInclude
                 }
 			);
 				

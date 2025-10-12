@@ -22,19 +22,8 @@ public class RococoJPEGLib : ModuleRules
 
         PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
 
-        string rococoInclude = Environment.GetEnvironmentVariable("Rococo-Include");
-        if (rococoInclude == null)
-        {
-            throw new Exception("Expecting Rococo-Include@Env to have been defined by RococoBuild.Build.cs");
-        }
-
-		// Include directory will be in $(rococo)source/rococo/include and we want $(rococo)source/3rd-Party...
-		string jpeg6 = Path.Combine(rococoInclude, "..", "..", "3rd-Party", "libjpg", "jpeg-6b");
-
         PublicIncludePaths.AddRange(
 			new string[] {
-                rococoInclude,
-                jpeg6
             }
 			);
 				

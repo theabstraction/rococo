@@ -24,9 +24,5 @@
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "RococoBuild",
-			"Enabled": true
-		}
 	]
 }
