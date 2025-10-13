@@ -1,6 +1,7 @@
 #pragma once
 
-#include "CoreMinimal.h"
+#include <Input/Events.h>
+#include "Kismet/KismetSystemLibrary.h"
 #include "rococo.UE5.h"
 #include "RococoBP_Util_Lib.generated.h"
 

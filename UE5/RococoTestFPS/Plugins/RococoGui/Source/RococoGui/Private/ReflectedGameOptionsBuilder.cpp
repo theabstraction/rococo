@@ -899,7 +899,7 @@ namespace Rococo::GreatSex
 		};
 	}
 
-	ROCOCOGUI_API IReflectedGameOptionsBuilder* CreateReflectedGameOptionsBuilder()
+	ROCOCO_GUI_API IReflectedGameOptionsBuilder* CreateReflectedGameOptionsBuilder()
 	{
 		return new Implementation::ReflectedGameOptionsBuilder();
 	}

@@ -1,6 +1,7 @@
 #pragma once
 #include <CoreMinimal.h>
 #include <Engine/Font.h>
+#include <Engine/DataAsset.h>
 #include "RococoFontSet.generated.h"
 
 // Rococo Font Set, links to a UFont and adds mapping of typeface names to other typefaces
@@ -9,18 +10,18 @@
 // For example, we may want to use Arial fonts on Windows, protected by Microsoft's copyright,  but on a Playstation Console use a bespoke font PSfont
 // In this case we would map 'Arial' to 'PSFont'
 UCLASS(Blueprintable, BlueprintType)
-class ROCOCOGUI_API URococoFontSet: public UDataAsset
+class ROCOCO_GUI_API URococoFontSet: public UDataAsset
 {
 public:
 	GENERATED_BODY()
 
 protected:
 	// The font asset our font set uses to search for fonts
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Rococo Fonts")
 	TObjectPtr<UFont> _FontAsset;
 
 	// Map of typefaces requested by Rococo, to those available in the font asset above
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Rococo Fonts")
 	TMap<FName, FName> _RequestedTypeFaceToResultantTypeFace;
 
 public:

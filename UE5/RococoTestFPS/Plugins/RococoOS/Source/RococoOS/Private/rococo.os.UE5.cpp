@@ -12,6 +12,11 @@
 #include <rococo.strings.h>
 #include <HAL/PlatformMisc.h>
 #include <HAL/PlatformApplicationMisc.h>
+#include <HAL/PlatformFileManager.h>
+#include <HAL/PlatformFile.h>
+#include <HAL/PlatformProcess.h>
+#include <HAL/PlatformTime.h>
+#include <Misc/FileHelper.h>
 #include <Logging/LogMacros.h>
 #include <Misc/CommandLine.h>
 #include <rococo.hashtable.h>

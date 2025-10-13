@@ -15,13 +15,13 @@ struct FRococoGameOptionChoiceQuantum
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Hint;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Id;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Text;
 };
 
@@ -31,16 +31,16 @@ struct FRococoGameOptionChoice
 	GENERATED_BODY()
 
 	// Gives the sort order, or priority of the choice.
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	int SortOrder = 0;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Hint;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Title;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	TArray<FRococoGameOptionChoiceQuantum> Items;
 };
 
@@ -50,13 +50,13 @@ struct FRococoGameOptionBool
 	GENERATED_BODY()
 
 	// Gives the sort order, or priority of the choice.
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	int SortOrder = 0;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Hint;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Title;
 };
 
@@ -66,27 +66,27 @@ struct FRococoGameOptionScalar
 	GENERATED_BODY()
 
 	// Gives the sort order, or priority of the choice.
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	int SortOrder = 0;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Hint;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	FString Title;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	double MinValue = 0.0;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	double MaxValue = 200.0;
 
 	// The smallest increment or decrement
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Rococo Options")
 	double QuantumDelta = 1.0;
 
 	// The number of digits after the decimal point to display
-	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0, UIMax = 9))
+	UPROPERTY(EditAnywhere, Meta = (ClampMin = 0, UIMax = 9), Category = "Rococo Options")
 	int DecimalPlaces = 2;
 };
 
@@ -96,27 +96,27 @@ class ROCOCO_GUI_API IRococoGameOptionBuilder
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Options")
 	void OnError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg);
 
 	virtual void RaiseError(const FString& methodMsg, const FString& propertyMsg, const FString& errMsg);
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Options")
 	FString GetOptionId();
 
 	virtual FString RaiseGetOptionId();
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Options")
 	void OnRevert();
 
 	virtual void Revert();
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Options")
 	void OnAccept();
 
 	virtual void Accept();
 
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Rococo Options")
 	void InitOptions();
 
 	virtual void InvokeInitOptions();

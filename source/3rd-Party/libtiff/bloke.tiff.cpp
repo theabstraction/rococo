@@ -19,7 +19,7 @@
 #define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.strings.h>
 
-#include "..\libtiff\libtiff\tiffiop.h"
+#include "tiffiop.h"
 #include <vector>
 
 #ifndef _WIN32

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <Runtime\Core\Public\HAL\Platform.h>
-
+#include <CoreMinimal.h>
 #include <rococo.gui.retained.ex.h>
+
+class UTexture2D;
 
 namespace Rococo
 {
@@ -41,9 +43,9 @@ namespace Rococo::Gui
 		virtual int GetUE5PointSize(int rococoPointSize) = 0;
 	};
 
-	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& globalFontMetrics);
+	ROCOCO_GUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& globalFontMetrics);
 
 	typedef void (*FN_GlobalPrepGenerator)(GreatSex::IReflectedGameOptionsBuilder& optionsBuilder, const TArray<UObject*>& context, Rococo::GreatSex::IGreatSexGenerator& generator);
 
-	ROCOCOGUI_API void SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator);
+	ROCOCO_GUI_API void SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator);
 }

@@ -17,7 +17,15 @@
 #include <rococo.vkeys.h>
 #include "../Public/RococoFontSet.h"
 #include "Kismet/KismetSystemLibrary.h"
-
+#include "Layout/Clipping.h"
+#include "Layout/Geometry.h"
+#include "Engine/Texture2D.h"
+#include "Brushes/SlateImageBrush.h"
+#include "Brushes/SlateColorBrush.h"
+#include "Rendering/RenderingCommon.h"
+#include "Rendering/DrawElementTypes.h"
+#include "Rendering/DrawElements.h"
+#include <Framework/Application/SlateApplication.h>
 #include <rococo.gr.image-loading.inl>
 
 namespace Rococo
@@ -1784,7 +1792,7 @@ namespace Rococo::Gui::UE5::Implementation
 
 namespace Rococo::Gui
 {
-	ROCOCOGUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& fontMetrics)
+	ROCOCO_GUI_API IUE5_GRCustodianSupervisor* Create_UE5_GRCustodian(UObject* worldObject, TMap<FString, UTexture2D*>& mapPathToImageTexture, const FSoftObjectPath& font, IUE5_GlobalFontMetrics& fontMetrics)
 	{
 		return new Rococo::Gui::UE5::Implementation::UE5_GR_Custodian(worldObject, mapPathToImageTexture, font, fontMetrics);
 	}

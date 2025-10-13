@@ -1,7 +1,6 @@
 #pragma once
 
 #include <CoreMinimal.h>
-#include <CoreUObject.h>
 
 namespace Rococo::GreatSex
 {
@@ -14,5 +13,5 @@ namespace Rococo::GreatSex
 		virtual void ReflectIntoGenerator(UObject& object, const FString& optionCategory, IGreatSexGenerator& generator) = 0;
 	};
 
-	ROCOCOGUI_API IReflectedGameOptionsBuilder* CreateReflectedGameOptionsBuilder();
+	ROCOCO_GUI_API IReflectedGameOptionsBuilder* CreateReflectedGameOptionsBuilder();
 }
