@@ -1,4 +1,5 @@
 #pragma once
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include <CoreMinimal.h>
 #include <Engine/Font.h>
 #include <Engine/DataAsset.h>

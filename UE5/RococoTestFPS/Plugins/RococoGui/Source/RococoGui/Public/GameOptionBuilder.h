@@ -1,5 +1,5 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #pragma once
-
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "GameOptionBuilder.generated.h"

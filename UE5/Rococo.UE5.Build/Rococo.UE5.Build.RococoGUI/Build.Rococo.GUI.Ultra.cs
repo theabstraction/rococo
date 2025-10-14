@@ -13,9 +13,8 @@ namespace Rococo
     {
         public RococoGUIUltraBuilder()
         {
-           
+            AppendFileByLink = false;
         }
-
 
         public void Build()
         {
@@ -95,11 +94,11 @@ namespace Rococo
                     "sexy.vm.cpu.h",
                     "sexy.script.h",
                     "sexy.util.exports.h",
-                    "sexy.stdstrings.h"
-    }
+                    "sexy.stdstrings.h",
+                }
             );
 
-            CreateBundleDirect(ultraDirectory, "wrap.rococo_util.cpp", "rococo.os.UE5.h", "rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.rococo_util.cpp", "rococo.os.UE5.h", "rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
                 new List<string>()
                 {
                     "rococo.strings.cpp",
@@ -110,7 +109,7 @@ namespace Rococo
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "wrap.s-parser.cpp", "rococo.UE5.cpp.h", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/sexy/SP/sexy.s-parser",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.s-parser.cpp", "rococo.UE5.cpp.h", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/sexy/SP/sexy.s-parser",
                 new List<string>()
                 {
                       "sexy.s-parser.cpp",
@@ -119,14 +118,14 @@ namespace Rococo
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "wrap.s-utils.cpp", "rococo.UE5.cpp.h", null, null, "rococo/sexy/Utilities",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.s-utils.cpp", "rococo.UE5.cpp.h", null, null, "rococo/sexy/Utilities",
                 new List<string>()
                 {
                     "sexy.util.cpp"
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "wrap.sexml.cpp", "rococo.UE5.cpp.h", null, null, "rococo/rococo.sexml",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.sexml.cpp", "rococo.UE5.cpp.h", null, null, "rococo/rococo.sexml",
                 new List<string>()
                 {
                     "rococo.sexml.builder.cpp",
@@ -135,14 +134,14 @@ namespace Rococo
                 }
             );
 
-            CreateBundleByMatch(ultraDirectory, "wrap.gui-retained.cpp", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/rococo.gui.retained",
+            CreateBundleByMatch(ultraDirectory, "rococo-bundle.gui-retained.cpp", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/rococo.gui.retained",
                 new List<string>()
                 {
                     "rococo.gr.*.cpp",
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "wrap.maths.cpp", "rococo.UE5.cpp.h", null, null, "rococo/rococo.maths",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.maths.cpp", "rococo.UE5.cpp.h", null, null, "rococo/rococo.maths",
                 new List<string>()
                 {
                     "rococo.integer.formatting.cpp",
@@ -151,7 +150,7 @@ namespace Rococo
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "wrap.greatsex.cpp", "rococo.UE5.cpp.h", null, null, "rococo/rococo.great.sex",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.greatsex.cpp", "rococo.UE5.cpp.h", null, null, "rococo/rococo.great.sex",
                 new List<string>()
                 {
                     "great.sex.colour.cpp",
@@ -161,7 +160,7 @@ namespace Rococo
                 }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "wrap.", "rococo.zlib.UE5.h", "rococo.zlib.prelude.h", "rococo.zlib.postlude.h", Path.Join("3rd-Party", "zlib"),
+            CreateSeparateFilesDirect(ultraDirectory, "zlib.", "rococo.zlib.UE5.h", "rococo.zlib.prelude.h", "rococo.zlib.postlude.h", Path.Join("3rd-Party", "zlib"),
                new List<string>()
                 {
                     "adler32.c",
@@ -177,23 +176,7 @@ namespace Rococo
                 }
              );
 
-            CreateSeparateFilesDirect(ultraDirectory, "wrap.", "rococo.zlib.UE5.h", "rococo.zlib.prelude.h", "rococo.zlib.postlude.h", Path.Join("3rd-Party", "zlib"),
-              new List<string>()
-               {
-                    "adler32.c",
-                    "crc32.c",
-                    "deflate.c",
-                    "infback.c",
-                    "inffast.c",
-                    "inflate.c",
-                    "inftrees.c",
-                    "trees.c",
-                    "uncompr.c",
-                    "zutil.c"
-               }
-            );
-
-            CreateSeparateFilesDirect(ultraDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.h", "rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff", "libtiff"),
+            CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.h", "rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff", "libtiff"),
                 new List<string>()
                 {
                     "tif_aux.c",
@@ -241,7 +224,7 @@ namespace Rococo
                 }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.cpp.h", "rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff"),
+            CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.cpp.h", "rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff"),
                 new List<string>()
                 {
                     "bloke.tiff.cpp"
@@ -257,8 +240,17 @@ namespace Rococo
                 }
             );
 
-            var items = new List<string>()
-            {
+            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.dll.h", "rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
+                new List<string>()
+                {
+                    "jcparam.c",
+                    "jdapistd.c",
+                    "transupp.c"
+                }
+            );
+
+            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
+                new List<string> {
                 "jcapimin.c",
                 "jcapistd.c",
                 "jccoefct.c",
@@ -317,20 +309,10 @@ namespace Rococo
                 "wrppm.c",
                 "wrrle.c",
                 "wrtarga.c"
-            };
-
-            CreateSeparateFilesDirect(ultraDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.dll.h", "rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
-                new List<string>()
-                {
-                    "jcparam.c",
-                    "jdapistd.c",
-                    "transupp.c"
-                }
+            }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b", items);
-
-            CreateSeparateFilesDirect(ultraDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.cpp.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
+            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.cpp.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
                 new List<string>()
                 {
                     "readimage.cpp",
@@ -396,23 +378,26 @@ namespace Rococo
                 }
             );
 
-            CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "libtiff\\libtiff"), new List<string>
+            CopyFilesToSource(ultraDirectory, Path.Join(rococoSourceDirectory, "rococo\\sexy\\SP\\sexy.s-parser"), new List<string>
                 {
-                    "uvcode.h",
-                    "tiffvers.h",
-                    "tiffiop.h",
-                    "tiffio.hxx",
-                    "tiffio.h",
-                    "tiffconf.h",
-                    "tiff.h",
-                    "tif_dir.h",
-                    "tif_predict.h",
-                    "tif_hash_set.h",
-                    "tif_config.h",
-                    "t4.h",
-                    "tif_fax3.h"
+                     "sexy.s-parser.stdafx.h",
+                     "sexy.s-parser.source.inl",
+                     "sexy.s-parser.symbols.inl"
                 }
-          );
+            );
+
+            CopyFilesToSource(ultraDirectory, Path.Join(rococoSourceDirectory, "rococo\\rococo.great.sex"), new List<string>
+                {
+                    "sexml.widgets.simple.inl"
+                }
+            );
+
+            CopyFilesToSource(ultraDirectory, Path.Join(rococoSourceDirectory, "rococo\\rococo.util"), new List<string>
+                {
+                    "rococo.char16.inl",
+                    "xxhash.hpp"
+                }
+             );
         } // RococoGuiUltra 
     }
 }

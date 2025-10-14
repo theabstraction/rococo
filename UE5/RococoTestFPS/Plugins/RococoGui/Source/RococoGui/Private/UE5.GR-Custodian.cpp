@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include "rococo.GR.UE5.h"
 #include "RococoGuiAPI.h"
 #include <rococo.gui.retained.ex.h>

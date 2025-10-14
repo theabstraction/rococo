@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include "UE5.GR.EventMarshalling.h"
 #include <Widgets/SWidget.h>
 #include "RococoGuiAPI.h"

@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include "SRococoGRHostWidget.h"
 #include "SlateRenderContext.h"
 

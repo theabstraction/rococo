@@ -43,7 +43,7 @@ namespace Rococo
     {
         public RococoGUIBuilder()
         {
-           
+            AppendFileByLink = true;
         }
 
 

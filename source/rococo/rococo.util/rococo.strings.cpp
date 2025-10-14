@@ -4,7 +4,7 @@
 #define _CRT_NONSTDC_NO_WARNINGS
 
 #ifdef ROCOCO_WIDECHAR_IS_CHAR_16_T
-#include "../rococo.strings.ex/rococo.char16.cpp"
+#include "rococo.char16.inl"
 #endif
 
 #include <stdarg.h>

@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include "RococoGRHostWidget.h"
 #include "rococo.GR.UE5.h"
 #include <rococo.great.sex.h>
