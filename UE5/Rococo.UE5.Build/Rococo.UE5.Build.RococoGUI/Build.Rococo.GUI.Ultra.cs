@@ -98,7 +98,7 @@ namespace Rococo
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "rococo-bundle.rococo_util.cpp", "rococo.os.UE5.h", "UE5.CodeGen\rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.rococo_util.cpp", "rococo.os.UE5.h", "UE5.CodeGen/rococo.os.UE5.prelude.h", "UE5.CodeGen/rococo.os.UE5.postlude.h", "rococo/rococo.util",
                 new List<string>()
                 {
                     "rococo.strings.cpp",
@@ -109,7 +109,7 @@ namespace Rococo
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "rococo-bundle.s-parser.cpp", "rococo.UE5.cpp.h", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/sexy/SP/sexy.s-parser",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.s-parser.cpp", "rococo.UE5.cpp.h", "UE5.CodeGen/rococo.UE5.prelude.h", "UE5.CodeGen/rococo.UE5.postlude.h", "rococo/sexy/SP/sexy.s-parser",
                 new List<string>()
                 {
                       "sexy.s-parser.cpp",
@@ -134,7 +134,7 @@ namespace Rococo
                 }
             );
 
-            CreateBundleByMatch(ultraDirectory, "rococo-bundle.gui-retained.cpp", "rococo.UE5.prelude.h", "rococo.UE5.postlude.h", "rococo/rococo.gui.retained",
+            CreateBundleByMatch(ultraDirectory, "rococo-bundle.gui-retained.cpp", "UE5.CodeGen/rococo.UE5.prelude.h", "UE5.CodeGen/rococo.UE5.postlude.h", "rococo/rococo.gui.retained",
                 new List<string>()
                 {
                     "rococo.gr.*.cpp",
@@ -160,7 +160,7 @@ namespace Rococo
                 }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "zlib.", "rococo.zlib.UE5.h", "rococo.zlib.prelude.h", "rococo.zlib.postlude.h", Path.Join("3rd-Party", "zlib"),
+            CreateSeparateFilesDirect(ultraDirectory, "zlib.", "rococo.zlib.UE5.h", "UE5.CodeGen/rococo.zlib.prelude.h", "UE5.CodeGen/rococo.zlib.postlude.h", Path.Join("3rd-Party", "zlib"),
                new List<string>()
                 {
                     "adler32.c",
@@ -176,7 +176,7 @@ namespace Rococo
                 }
              );
 
-            CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.h", "rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff", "libtiff"),
+            CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "UE5.CodeGen/rococo.tiff.prelude.h", "UE5.CodeGen/rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff", "libtiff"),
                 new List<string>()
                 {
                     "tif_aux.c",
@@ -224,7 +224,7 @@ namespace Rococo
                 }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.cpp.h", "rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff"),
+            CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "UE5.CodeGen/rococo.tiff.prelude.decl.cpp.h", "UE5.CodeGen/rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff"),
                 new List<string>()
                 {
                     "bloke.tiff.cpp"
@@ -240,7 +240,7 @@ namespace Rococo
                 }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.dll.h", "rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
+            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "UE5.CodeGen/rococo.jpg.prelude.dll.h", "UE5.CodeGen/rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
                 new List<string>()
                 {
                     "jcparam.c",
@@ -249,7 +249,7 @@ namespace Rococo
                 }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
+            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "UE5.CodeGen/rococo.jpg.prelude.h", "UE5.CodeGen/rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b",
                 new List<string> {
                 "jcapimin.c",
                 "jcapistd.c",
@@ -312,7 +312,7 @@ namespace Rococo
             }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.cpp.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
+            CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "UE5.CodeGen/rococo.jpg.prelude.decl.cpp.h", "UE5.CodeGen/rococo.jpg.postlude.h", "3rd-Party/libjpg/",
                 new List<string>()
                 {
                     "readimage.cpp",
@@ -361,6 +361,24 @@ namespace Rococo
                     "gzguts.h"
                 }
             );
+
+            CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "libtiff\\libtiff"), new List<string>
+                {
+                    "tif_config.h",
+                    "tif_dir.h",
+                    "tif_fax3.h",
+                    "tif_hash_set.h",
+                    "tif_predict.h",
+                    "tiff.h",
+                    "tiffconf.h",
+                    "tiffio.h",
+                    "tiffio.hxx",
+                    "tiffiop.h",
+                    "tiffvers.h",
+                    "uvcode.h",
+                    "t4.h"
+                }
+           );
 
             CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "libjpg\\jpeg-6b"), new List<string>
                 {

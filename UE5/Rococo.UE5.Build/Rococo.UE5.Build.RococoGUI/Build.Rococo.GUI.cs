@@ -397,7 +397,16 @@ namespace Rococo
                 }
             );
 
-            var items = new List<string>()
+            CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.dll.h", "rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
+                   new List<string>()
+                   {
+                    "jcparam.c",
+                    "jdapistd.c",
+                    "transupp.c"
+                   }
+            );
+
+            CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b", new List<string>()
             {
                 "jcapimin.c",
                 "jcapistd.c",
@@ -457,18 +466,7 @@ namespace Rococo
                 "wrppm.c",
                 "wrrle.c",
                 "wrtarga.c"
-            };
-
-            CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.dll.h", "rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
-                   new List<string>()
-                   {
-                    "jcparam.c",
-                    "jdapistd.c",
-                    "transupp.c"
-                   }
-            );
-
-            CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/jpeg-6b", items);
+            });
 
             CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
                 new List<string>()

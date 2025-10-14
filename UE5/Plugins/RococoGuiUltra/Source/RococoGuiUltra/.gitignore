@@ -3,3 +3,4 @@ Private/*.cpp
 Private/*.inl
 Private/*.h
 Private/allocators/*.h
+Private/*.hpp
