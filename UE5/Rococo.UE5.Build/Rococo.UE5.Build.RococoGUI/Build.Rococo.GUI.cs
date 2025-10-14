@@ -23,17 +23,13 @@ namespace Rococo
         }
         static void Main(string[] args)
         {
-            bool isUltra = HasArg("-ultra", args);
-            if (isUltra)
-            {
-                RococoGUIUltraBuilder builder = new RococoGUIUltraBuilder();
-                builder.Build();
-            }
-            else
-            {
-                RococoGUIBuilder builder = new RococoGUIBuilder();
-                builder.Build();
-            }
+            // bool isUltra = HasArg("-ultra", args);
+            // if (isUltra)
+            RococoGUIUltraBuilder builderUltra = new RococoGUIUltraBuilder();
+            builderUltra.Build();
+           
+            RococoGUIBuilder builder = new RococoGUIBuilder();
+            builder.Build();
         }
     }
 

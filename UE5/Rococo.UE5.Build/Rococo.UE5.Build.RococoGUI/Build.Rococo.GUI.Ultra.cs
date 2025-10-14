@@ -21,7 +21,8 @@ namespace Rococo
             Console.WriteLine("\nCreating RococoGuiUltra");
             CreateGuiUltraBundles();
 
-            Console.WriteLine("\nCompleted");
+            Console.WriteLine("Completed RococoGuiUltra");
+            Console.WriteLine();
         }
 
         private void CreateGuiUltraBundles()
