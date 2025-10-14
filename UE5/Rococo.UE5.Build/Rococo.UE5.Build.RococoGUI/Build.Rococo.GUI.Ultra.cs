@@ -98,7 +98,7 @@ namespace Rococo
                 }
             );
 
-            CreateBundleDirect(ultraDirectory, "rococo-bundle.rococo_util.cpp", "rococo.os.UE5.h", "rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
+            CreateBundleDirect(ultraDirectory, "rococo-bundle.rococo_util.cpp", "rococo.os.UE5.h", "UE5.CodeGen\rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
                 new List<string>()
                 {
                     "rococo.strings.cpp",
