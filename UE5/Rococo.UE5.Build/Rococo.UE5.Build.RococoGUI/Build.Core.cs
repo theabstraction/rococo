@@ -273,7 +273,7 @@ namespace Rococo
 
             WriteUpdated(sb, wrappedPath);
         }
-        protected void WrapHeaders(string pluginSourceDirectory, string? headerRoot, List<string> srcHeaderPath)
+        protected void WrapPrivateHeaders(string pluginSourceDirectory, string? headerRoot, List<string> srcHeaderPath)
         {
             string includeRoot;
 
@@ -289,6 +289,25 @@ namespace Rococo
             foreach (string srcHeader in srcHeaderPath)
             {
                 WrapHeader(pluginSourceDirectory, includeRoot, srcHeader);
+            }
+        }
+
+        protected void WrapPublicHeaders(string pluginSourceDirectory, string? headerRoot, List<string> srcHeaderPath)
+        {
+            string includeRoot;
+
+            if (headerRoot == null)
+            {
+                includeRoot = rococoIncludeDirectory;
+            }
+            else
+            {
+                includeRoot = headerRoot;
+            }
+
+            foreach (string srcHeader in srcHeaderPath)
+            {
+                WrapHeader(Path.Join(pluginSourceDirectory, "..", "Public"), includeRoot, srcHeader);
             }
         }
 
@@ -322,10 +341,10 @@ namespace Rococo
             WriteUpdated(sb, targetFile);
         }
 
-        protected void CopyOtherPluginFileToSourceAndTransform(string sourceDirectory, string pluginName, string filename, string srcToken, string trgToken)
+        protected void CopyOtherPluginFileToSourceAndTransform(string sourceDirectory, string pluginName, string srcFilename, string trgFilename, string srcToken, string trgToken)
         {
-            string targetFile = Path.Join(sourceDirectory, filename);
-            string sourceFile = Path.Combine(pluginDirectory, pluginName, "Source", pluginName, "Private", filename);
+            string targetFile = Path.Join(sourceDirectory, trgFilename);
+            string sourceFile = Path.Combine(pluginDirectory, pluginName, "Source", pluginName, "Private", srcFilename);
 
             StringBuilder sb = new StringBuilder();
             AppendBanner(sb);
@@ -335,10 +354,10 @@ namespace Rococo
 
             WriteUpdated(sb, targetFile);
         }
-        protected void CopyOtherPluginFileToHeaderAndTransform(string sourceDirectory, string pluginName, string filename, string srcToken, string trgToken)
+        protected void CopyOtherPluginFileToHeaderAndTransform(string sourceDirectory, string pluginName, string srcFilename, string trgFilename, string srcToken, string trgToken)
         {
-            string targetFile = Path.Join(sourceDirectory, "..", "Public", filename);
-            string sourceFile = Path.Combine(pluginDirectory, pluginName, "Source", pluginName, "Public", filename);
+            string targetFile = Path.Join(sourceDirectory, "..", "Public", trgFilename);
+            string sourceFile = Path.Combine(pluginDirectory, pluginName, "Source", pluginName, "Public", srcFilename);
 
             StringBuilder sb = new StringBuilder();
             AppendBanner(sb);

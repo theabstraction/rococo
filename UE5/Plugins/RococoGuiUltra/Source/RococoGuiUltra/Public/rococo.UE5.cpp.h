@@ -38,4 +38,7 @@
 #define ROCOCO_JPEG_API
 #define ROCOCO_TIFF_API
 #define ROCOCO_USE_SAFE_V_FORMAT
-#define ROCOCO_GUI_API
+
+#ifndef ROCOCO_GUI_API
+# define ROCOCO_GUI_API
+#endif

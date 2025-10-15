@@ -11,7 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ROCOCO_API
+#ifndef ROCOCO_API
+# define ROCOCO_API
+#endif
+
 #include <rococo.api.h>
 #include <rococo.os.h>
 #include <rococo.imaging.h>

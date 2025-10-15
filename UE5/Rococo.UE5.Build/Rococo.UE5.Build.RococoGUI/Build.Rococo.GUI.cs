@@ -70,7 +70,7 @@ namespace Rococo
         {
             string osSourceDirectory = MakePluginSourceFolder("RococoOS");
 
-            WrapHeaders(osSourceDirectory, null, new List<string>()
+            WrapPrivateHeaders(osSourceDirectory, null, new List<string>()
                 {
                     "rococo.types.h",
                     "rococo.io.h",
@@ -103,7 +103,7 @@ namespace Rococo
                 }
             );
 
-            WrapHeaders(osSourceDirectory, rococoSexyIncludeDirectory, new List<string>()
+            WrapPrivateHeaders(osSourceDirectory, rococoSexyIncludeDirectory, new List<string>()
                 {
                     "sexy.types.h",
                     "sexy.strings.h",
@@ -132,7 +132,7 @@ namespace Rococo
         {
             string utilSourceDirectory = MakePluginSourceFolder("RococoUtil");
 
-            WrapHeaders(utilSourceDirectory, null, new List<string>()
+            WrapPrivateHeaders(utilSourceDirectory, null, new List<string>()
                 {
                     "rococo.types.h",
                     "rococo.io.h",
@@ -172,7 +172,7 @@ namespace Rococo
                 }
             );
 
-            WrapHeaders(utilSourceDirectory, rococoSexyIncludeDirectory, new List<string>()
+            WrapPrivateHeaders(utilSourceDirectory, rococoSexyIncludeDirectory, new List<string>()
                 {
                     "sexy.types.h",
                     "Sexy.S-Parser.h",
@@ -259,7 +259,7 @@ namespace Rococo
         {
             string guiSourceDirectory = MakePluginSourceFolder("RococoGui");
 
-            WrapHeaders(Path.Join(guiSourceDirectory, "..", "Public"), null, new List<string>()
+            WrapPrivateHeaders(Path.Join(guiSourceDirectory, "..", "Public"), null, new List<string>()
                 {
                     "rococo.types.h",
                     "rococo.compiler.options.h",
@@ -293,7 +293,7 @@ namespace Rococo
                 }
             );
 
-            WrapHeaders(guiSourceDirectory, Path.Join(rococoHomeDirectory, "source", "rococo", "rococo.gui.retained"), new List<string>()
+            WrapPrivateHeaders(guiSourceDirectory, Path.Join(rococoHomeDirectory, "source", "rococo", "rococo.gui.retained"), new List<string>()
                 {
                    "rococo.gr.image-loading.inl"
                 }
@@ -304,7 +304,7 @@ namespace Rococo
         {
             string tiffSourceDirectory = MakePluginSourceFolder("RococoTiffLib");
 
-            WrapHeaders(tiffSourceDirectory, null, new List<string>()
+            WrapPrivateHeaders(tiffSourceDirectory, null, new List<string>()
                 {
                     "rococo.api.h",
                     "rococo.types.h",
@@ -377,7 +377,7 @@ namespace Rococo
         {
             string jpegSourceDirectory = MakePluginSourceFolder("RococoJPEGLib");
 
-            WrapHeaders(jpegSourceDirectory, null, new List<string>()
+            WrapPrivateHeaders(jpegSourceDirectory, null, new List<string>()
                 {
                     "rococo.types.h",
                     "rococo.compiler.options.h",
@@ -385,7 +385,7 @@ namespace Rococo
                 }
             );
 
-            WrapHeaders(jpegSourceDirectory, Path.Join(rococoHomeDirectory, "source", "3rd-Party", "libjpg", "jpeg-6b"), new List<string>()
+            WrapPrivateHeaders(jpegSourceDirectory, Path.Join(rococoHomeDirectory, "source", "3rd-Party", "libjpg", "jpeg-6b"), new List<string>()
                 {
                     "jinclude.h",
                     "jpeglib.h",

@@ -20,7 +20,9 @@
 # define ROCOCO_WIDECHAR_IS_WCHAR_T
 #endif
 
-#define ROCOCO_API
+#ifndef ROCOCO_API
+# define ROCOCO_API
+#endif
 #define ROCOCO_UTIL_API
 #define ROCOCO_WINDOWS_API
 #define SEXYUTIL_API

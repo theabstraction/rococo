@@ -34,7 +34,7 @@ namespace Rococo
                 throw new Exception("Expecting directory to exist: " + ultraDirectory);
             }
 
-            WrapHeaders(ultraDirectory, null, new List<string>()
+            WrapPublicHeaders(ultraDirectory, null, new List<string>()
                 {
                     "rococo.types.h",
                     "rococo.io.h",
@@ -49,26 +49,19 @@ namespace Rococo
                     "rococo.reflector.h",
                     "rococo.strings.reflection.h",
                     "rococo.ids.h",
-                    Path.Join("allocators", "rococo.allocator.malloc.h"),
-                    Path.Join("allocators", "rococo.allocator.via.interface.h"),
                     "rococo.map.h",
                     "rococo.allocators.h",
-                    "rococo.os.win32.h",
-                    "rococo.win32.target.win7.h",
                     "rococo.parse.h",
                     "rococo.game.options.h",
                     "rococo.gui.retained.ex.h",
                     "rococo.gui.retained.h",
                     "rococo.game.options.ex.h",
-                    "rococo.os.win32.h",
-                    "rococo.win32.target.win7.h",
                     "rococo.parse.h",
                     "rococo.impressario.inl",
                     "rococo.ringbuffer.h",
                     "rococo.SI.h",
                     "rococo.API.h",
                     "rococo.parse.h",
-                    "rococo.sexy.allocators.h",
                     "sexy.unordered_map.h",
                     "sexy.vector.h",
                     "rococo.imaging.h",
@@ -79,12 +72,22 @@ namespace Rococo
                     "rococo.sexml.h",
                     "rococo.ui.h",
                     "rococo.vkeys.h",
-                    "rococo.vkeys.win32.h",
                     "rococo.vector.ex.h"
                 }
-          );
+            );
 
-            WrapHeaders(ultraDirectory, rococoSexyIncludeDirectory, new List<string>()
+            WrapPrivateHeaders(ultraDirectory, null, new List<string>()
+                {
+                    Path.Join("allocators", "rococo.allocator.malloc.h"),
+                    Path.Join("allocators", "rococo.allocator.via.interface.h"),
+                    "rococo.os.win32.h",
+                    "rococo.win32.target.win7.h",
+                    "rococo.sexy.allocators.h",
+                    "rococo.vkeys.win32.h",
+                }
+            );
+
+            WrapPrivateHeaders(ultraDirectory, rococoSexyIncludeDirectory, new List<string>()
                 {
                     "sexy.types.h",
                     "sexy.strings.h",
@@ -232,7 +235,7 @@ namespace Rococo
                 }
             );
 
-            WrapHeaders(ultraDirectory, Path.Join(rococoHomeDirectory, "source", "3rd-Party", "libjpg", "jpeg-6b"), new List<string>()
+            WrapPrivateHeaders(ultraDirectory, Path.Join(rococoHomeDirectory, "source", "3rd-Party", "libjpg", "jpeg-6b"), new List<string>()
                 {
                     "jinclude.h",
                     "jpeglib.h",
@@ -337,7 +340,7 @@ namespace Rococo
 
             CopyFileToSource(ultraDirectory, Path.Join(rococoSourceDirectory, "rococo/rococo.gui.retained"), "rococo.gr.image-loading.inl");
 
-            CopyOtherPluginFileToSourceAndTransform(ultraDirectory, "RococoGui", "RococoGui.cpp", "RococoGui", "RococoGuiUltra");
+            CopyOtherPluginFileToSourceAndTransform(ultraDirectory, "RococoGui", "RococoGui.cpp", "RococoGuiUltra.cpp", "RococoGui", "RococoGuiUltra");
 
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoUtil", "RococoBP_Util_Lib.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "GameOptionBuilder.h");
@@ -349,7 +352,7 @@ namespace Rococo
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SlateRenderContext.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SRococoGRHostWidget.h");
 
-            CopyOtherPluginFileToHeaderAndTransform(ultraDirectory, "RococoGui", "RococoGui.h", "RococoGui", "RococoGuiUltra");
+            CopyOtherPluginFileToHeaderAndTransform(ultraDirectory, "RococoGui", "RococoGui.h", "RococoGuiUltra.h", "RococoGui", "RococoGuiUltra");
 
             CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "zlib"), new List<string> 
                 {
