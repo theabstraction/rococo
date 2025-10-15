@@ -337,6 +337,8 @@ namespace Rococo
 
             CopyFileToSource(ultraDirectory, Path.Join(rococoSourceDirectory, "rococo/rococo.gui.retained"), "rococo.gr.image-loading.inl");
 
+            CopyOtherPluginFileToSourceAndTransform(ultraDirectory, "RococoGui", "RococoGui.cpp", "RococoGui", "RococoGuiUltra");
+
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoUtil", "RococoBP_Util_Lib.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "GameOptionBuilder.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "ReflectedGameOptionsBuilder.h");
@@ -346,6 +348,8 @@ namespace Rococo
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "RococoGuiAPI.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SlateRenderContext.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SRococoGRHostWidget.h");
+
+            CopyOtherPluginFileToHeaderAndTransform(ultraDirectory, "RococoGui", "RococoGui.h", "RococoGui", "RococoGuiUltra");
 
             CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "zlib"), new List<string> 
                 {

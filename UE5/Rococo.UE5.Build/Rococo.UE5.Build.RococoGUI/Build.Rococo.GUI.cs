@@ -63,7 +63,7 @@ namespace Rococo
             Console.WriteLine("\nCreating RococoGui");
             CreateGuiBundles();
 
-            Console.WriteLine("\nCompleted");
+            Console.WriteLine("\nCompleted RococoGui and its requisites.");
         }
 
         private void CreatePluginOSBundles()
@@ -259,7 +259,7 @@ namespace Rococo
         {
             string guiSourceDirectory = MakePluginSourceFolder("RococoGui");
 
-            WrapHeaders(guiSourceDirectory, null, new List<string>()
+            WrapHeaders(Path.Join(guiSourceDirectory, "..", "Public"), null, new List<string>()
                 {
                     "rococo.types.h",
                     "rococo.compiler.options.h",
@@ -288,7 +288,8 @@ namespace Rococo
                     "rococo.vkeys.win32.h",
                     "rococo.vector.ex.h",
                     "rococo.imaging.h",
-                    "rococo.game.options.h"
+                    "rococo.game.options.h",
+                    "rococo.game.options.ex.h"
                 }
             );
 
