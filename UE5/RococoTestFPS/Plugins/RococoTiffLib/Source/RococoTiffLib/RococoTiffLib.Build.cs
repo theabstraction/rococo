@@ -50,8 +50,9 @@ public class RococoTiffLib : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-                "RococoJPEGLib",
-                "RococoZLib"
+				"LibTiff",
+				"zlib",
+				"RococoJPEGLib"
 			}
 			);
 		

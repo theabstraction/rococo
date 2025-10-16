@@ -51,8 +51,10 @@ namespace Rococo
             Console.WriteLine("\nCreating RococoUtil");
             CreateUtilBundles();
 
+            /* Disabled for now, as Unreal found to carry zlib in its Engine/Source/ThirdParty/ folder
             Console.WriteLine("\nCreating RococoZLIB");
             CreateZLIBBundles();
+            */
 
             Console.WriteLine("\nCreating RococoTiff");
             CreateTiffBundles();
@@ -317,6 +319,7 @@ namespace Rococo
                 }
             );
 
+            /* Disable LibTiff main code, as Unreal appears to carry the full library
             CreateSeparateFilesDirect(tiffSourceDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/libtiff",
                 new List<string>()
                 {
@@ -364,6 +367,7 @@ namespace Rococo
                 "tif_zstd.c"
                 }
             );
+            */
 
             CreateSeparateFilesDirect(tiffSourceDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/",
                 new List<string>()
@@ -468,8 +472,8 @@ namespace Rococo
             CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
                 new List<string>()
                 {
-                "readimage.cpp",
-                "writeimage.cpp"
+                    "readimage.cpp",
+                    "writeimage.cpp"
                 }
             );
         }
