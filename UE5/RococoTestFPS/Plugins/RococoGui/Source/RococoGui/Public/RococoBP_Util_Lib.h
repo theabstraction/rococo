@@ -2,7 +2,7 @@
 
 #include <Input/Events.h>
 #include "Kismet/KismetSystemLibrary.h"
-#include "rococo.UE5.h"
+#include "rococo.GR.UE5.h"
 #include "RococoBP_Util_Lib.generated.h"
 
 UENUM(BlueprintType, Category = "Rococo")
@@ -14,7 +14,7 @@ enum class ERococoVirtualKey : uint8
 };
 
 UCLASS(meta = (ScriptName = "RococoUtilLibrary"))
-class ROCOCO_BPUTIL_API URococoUtilLibrary : public UBlueprintFunctionLibrary
+class ROCOCO_GUI_API URococoUtilLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:

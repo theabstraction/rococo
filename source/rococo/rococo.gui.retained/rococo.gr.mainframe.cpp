@@ -377,6 +377,9 @@ namespace GRANON
 
 			switch (ke.osKeyEvent.VKey)
 			{
+			case Rococo::IO::VirtualKeys::VKCode_ESCAPE:
+				// We trap Escape Is Up above, so we don't want other GUI elements consuming the down event
+				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_TAB:
 				OnTab(ke.context.isCtrlHeld);
 				return EGREventRouting::Terminate;
