@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class RococoGuiUltra : ModuleRules
+public class RococoGui : ModuleRules
 {
-	public RococoGuiUltra(ReadOnlyTargetRules Target) : base(Target)
+	public RococoGui(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 

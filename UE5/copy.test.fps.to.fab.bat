@@ -1,6 +1,6 @@
 @echo off
 set source=%~dp0RococoTestFPS\
-set target=%~dp0..\..\Rococo.Plugins\RococoTestFPS\
+set target=%~dp0..\..\Rococo.Plugins\RococoGuiUltra.Test\
 set ultra=RococoTestFPS
 echo source=%source%
 echo target=%target%

@@ -27,7 +27,7 @@ namespace Rococo
 
         private void CreateGuiUltraBundles()
         {
-            string ultraDirectory = Path.Join(rococoHomeDirectory, @"UE5\Plugins\RococoGuiUltra\Source\RococoGuiUltra\Private".Replace('\\', Path.DirectorySeparatorChar));
+            string ultraDirectory = Path.Join(rococoHomeDirectory, @"UE5\Plugins\RococoGuiUltra\Source\RococoGui\Private");
 
             if (!Directory.Exists(ultraDirectory))
             {
@@ -327,7 +327,7 @@ namespace Rococo
             string ultraHeaderDirectory = Path.Join(ultraDirectory, "..", "public");
 
             CopyOtherPluginFileToSource(ultraDirectory, "RococoOS", "rococo.OS.UE5.cpp");
-            CopyOtherPluginFileToSource(ultraDirectory, "RococoUtil", "RococoBP_Util_Lib.cpp");
+            CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "RococoBP_Util_Lib.cpp");
             CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "GameOptionBuilder.cpp");
             CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "ReflectedGameOptionsBuilder.cpp");
             CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "RococoFontSet.cpp");
@@ -337,12 +337,11 @@ namespace Rococo
             CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "UE5.GR.EventMarshalling.cpp");
             CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "UE5.GR.EventMarshalling.h");
             CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "UE5.GR-Custodian.cpp");
+            CopyOtherPluginFileToSource(ultraDirectory, "RococoGui", "RococoGui.cpp");
 
             CopyFileToSource(ultraDirectory, Path.Join(rococoSourceDirectory, "rococo/rococo.gui.retained"), "rococo.gr.image-loading.inl");
 
-            CopyOtherPluginFileToSourceAndTransform(ultraDirectory, "RococoGui", "RococoGui.cpp", "RococoGuiUltra.cpp", "RococoGui", "RococoGuiUltra");
-
-            CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoUtil", "RococoBP_Util_Lib.h");
+            CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "RococoBP_Util_Lib.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "GameOptionBuilder.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "ReflectedGameOptionsBuilder.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "RococoFontSet.h");
@@ -351,8 +350,7 @@ namespace Rococo
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "RococoGuiAPI.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SlateRenderContext.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SRococoGRHostWidget.h");
-
-            CopyOtherPluginFileToHeaderAndTransform(ultraDirectory, "RococoGui", "RococoGui.h", "RococoGuiUltra.h", "RococoGui", "RococoGuiUltra");
+            CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "RococoGui.h");
 
             CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "zlib"), new List<string> 
                 {

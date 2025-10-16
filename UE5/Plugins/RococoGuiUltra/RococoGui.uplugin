@@ -10,12 +10,13 @@
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"SupportURL": "",
-	"EngineVersion": "5.6.0",
-	"CanContainContent": true,
-	"Installed": true,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
 	"Modules": [
 		{
-			"Name": "RococoGuiUltra",
+			"Name": "RococoGui",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
