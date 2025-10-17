@@ -1,3 +1,4 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #ifndef SEXY_WINDOWS_H
 #define SEXY_WINDOWS_H
 

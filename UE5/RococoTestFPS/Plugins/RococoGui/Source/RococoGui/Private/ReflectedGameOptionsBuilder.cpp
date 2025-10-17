@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include "ReflectedGameOptionsBuilder.h"
 
 #include <rococo.great.sex.h>
@@ -899,7 +900,7 @@ namespace Rococo::GreatSex
 		};
 	}
 
-	ROCOCOGUI_API IReflectedGameOptionsBuilder* CreateReflectedGameOptionsBuilder()
+	ROCOCO_GUI_API IReflectedGameOptionsBuilder* CreateReflectedGameOptionsBuilder()
 	{
 		return new Implementation::ReflectedGameOptionsBuilder();
 	}

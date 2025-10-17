@@ -49,7 +49,7 @@
 	<div>
 	<p>
 	In order to reduce the memory footprint of the images in this documentation, we will make the background easier to compress. This also demonstrates how SEXML can be used to 
-	modify the appearance of a screen without having to restart the game session. We must edit $(rococo)/content/tests/greatsex.test.sexml. In notepad++ the shipped file is presented below
+	modify the appearance of a screen without having to restart the game session. We must edit $(rococo-content)/tests/greatsex.test.sexml. In notepad++ the shipped file is presented below
 	and line 116 is what we must edit:
 	this:
 	</p>
@@ -61,7 +61,7 @@
 	</div>
 	<div>
 	<p>
-	We change the line to so that our background image is replaced with the image file  $(rococo)/content/textures/test/pure_blue.jpg:
+	We change the line to so that our background image is replaced with the image file  $(rococo-content)/textures/test/pure_blue.jpg:
 	</p>
 	</div>	
 	<div>
@@ -163,7 +163,7 @@
   <div>
   <p>
   C++ options are generally static instances of option classes. An example audio implementation exposes volume control for background music and background narration
-  and exposes them to blueprints via a blueprint function library. (See $(rococo)/UE5/RococoTestFPS/Source/RococoTestFPS/RococoTestFPSGameOptions.h). The audio library
+  and exposes them to blueprints via a blueprint function library. (See RococoTestFPSGameOptions.h). The audio library
   is picked up by the FirstPersonMap blueprint's audio implementation (the bottom two nodes in green):
   </p>
   </div>

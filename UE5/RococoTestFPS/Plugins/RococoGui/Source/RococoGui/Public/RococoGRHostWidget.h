@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #pragma once
 
 #include <CoreMinimal.h>
@@ -32,7 +33,7 @@ enum class RococoSelectionChangeOrigin : uint8
 
 // The basic Rococo Gui Retained host widget. Needs C++ to get anywhere. For a blueprint driven system use URococoGRHostWidgetBuilder
 UCLASS(BlueprintType, meta = (DisplayName = "RococoGRHostWidget (Object)"))
-class ROCOCOGUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics, public Rococo::Gui::IGRSelectionChangeHandler, public Rococo::Gui::IGREventHandler
+class ROCOCO_GUI_API URococoGRHostWidget : public UUserWidget, public Rococo::Gui::IUE5_GlobalFontMetrics, public Rococo::Gui::IGRSelectionChangeHandler, public Rococo::Gui::IGREventHandler
 {
 public:
 	GENERATED_BODY()
@@ -127,7 +128,7 @@ typedef void (*FN_GlobalPrepGenerator)(Rococo::GreatSex::IReflectedGameOptionsBu
 
 // Rococo Gui retained host widget. Designed to be scripted in Blueprints 
 UCLASS(BlueprintType, Blueprintable, meta = (DisplayName = "RococoGRHostWidgetBuilder (Object)"))
-class ROCOCOGUI_API URococoGRHostWidgetBuilder : public URococoGRHostWidget
+class ROCOCO_GUI_API URococoGRHostWidgetBuilder : public URococoGRHostWidget
 {
 public:
 	GENERATED_BODY()

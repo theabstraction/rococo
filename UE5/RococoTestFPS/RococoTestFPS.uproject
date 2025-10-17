@@ -12,10 +12,6 @@
 	],
 	"Plugins": [
 		{
-			"Name": "RococoBuild",
-			"Enabled": true
-		},
-		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true
 		},

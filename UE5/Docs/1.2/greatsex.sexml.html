@@ -88,8 +88,17 @@
 	</div>
 	<div>
 		<p>
-		GreatSex is the SEXML file-format for specifying the widget layout in the Rococo GUI system. Familiarity with the <a href="sexml.html">SEXML specification</a> is required.
+		GreatSex is the SEXML file-format for specifying the widget layout in the Rococo GUI system. Familiarity with the <a href="sexml.html">SEXML specification</a> is required. Widgets exist in a tree, with a root widget that has no parent. The root is always a
+		Frame widget. Frame widgets have two sub-widgets, a toolbar, which is usually collapsed, but can be used to create a regular OS style UI toolbar for fullscreen mode, and a client-area where children widgets are placed. In GreatSex SEXML, top-level Widget directives
+		append new children to the frame's client-area. The client-area matches the area of the frame less the area of the toolbar. So without a toolbar, the default for GreatSEX SEXML, client-area spans the entire frame.
 		</p>		
+		
+		<p>
+		Every widget has a number of colours used in its rendering (see the Colour Table at the bottom of this document), and if they are not explicitly defined, then the rendering algorithm will search ancestors for a definition, so this means you can set such
+		colours in a parent widget, and have all the children use the scheme. If no widget explicitly defines a particular colour, then the rendering algorithm will look at the frame's scheme, which is set with the top-level <b>Scheme</b> directives. The particular scheme
+		that will be that which matches the control state of the UI. The control state consists of 3 flags - <i>Hovered, Focused and Pressed</i>. <i>Hovered</i> means the UI cursor is within the bounds of the widget, while <i>Focused</i> means the keyboard sends
+		default input to the widget and <i>Pressed</i> means the the widget is in some pressed state, such as with a button.
+		</p>
 	</div>
 	<div>
 		<h2>Top Level Directives</h2>
@@ -271,7 +280,7 @@
 													<b>#List For ...</b> - combination of boolean flags 'pressed', 'focused' and 'hovered' with 'default' meaning no flags													
 												</p>
 												<p>
-													<pre><code>(For pressed focused))</code></pre>
+													<pre><code>([] For pressed focused))</code></pre>
 												</p>
 											</li>
 										</ul>
@@ -290,7 +299,7 @@
 						<ul id="attribute_list">
 							<li id="attribute_item">
 								<p>
-								<b>Id [name]</b>  - the string argument gives the unique name of the font. Some widget directives can take such a name as a string attribute to determine which f apply
+								<b>Id [name]</b>  - the string argument gives the unique name of the font. Some widget directives can take such a name as a string attribute to determine which font applies
 								</p>
 							</li>
 							<li id="attribute_item">
@@ -387,7 +396,7 @@
 			</li>
 			<li>
 				<h3>Div</h3>
-					- Construct a DivisionWidget, the Tabula Rasa of widgets, they exist to layout children and display a backround and little else. They have no unique attributes.
+					- Construct a DivisionWidget, the <i>tabula rasa</i> of widgets, they exist to layout children and display a backround and little else. They have no unique attributes.
 			</li>
 			<li>
 				<h3>Label</h3>
@@ -418,7 +427,7 @@
 			</li>
 			<li>
 				<h3>Portrait</h3>
-				<p> - Typically defined as the first and only child of the Frame's child area, renders a background portrait that may is rendered with the image aspect ratio.
+				<p> - Typically defined as the first and only child of the Frame's child area, draws a background portrait that preserve's the texture's aspect ratio.
 				
 				<ul>
 					<li>
@@ -503,7 +512,7 @@
 			</li>
 			<li>
 				<h3>RadioButtons</h3>
-				- defines a group of buttons in which activation of any one button deactivates the other. Navigation between buttons is automatically handled.
+				- defines a group of buttons in which activation of any one button deactivates the other. Keyboard and gamepad navigation between buttons is automatically handled.
 				<ul>
 					<li>
 						<h3>Attributes</h3>
@@ -566,7 +575,7 @@
 							</li>
 							<li>
 								<p>Viewport.SyncDomainToChildren</p>
-								<p> - An existential attribute, when present sets the scroller domain height to the sum of the heights of the client area children. /p>
+								<p> - An existential attribute, when present sets the scroller domain height to the sum of the heights of the client area children.</p>
 							</li>
 						</ul>
 						<h3>Subdirectives</h3>
@@ -673,7 +682,7 @@
 			</li>
 			<li>
 				<h3>GameOptions</h3>
-				 - This is the most complex of the widget directives and has its own <a href="gameoptions.html">Game Options Web Page.</a>
+				 - This is the most complex of the widget directives and has its own <a href="game-options.html">Game Options Web Page.</a>
 			</li>
 		</ul>
 	</div>

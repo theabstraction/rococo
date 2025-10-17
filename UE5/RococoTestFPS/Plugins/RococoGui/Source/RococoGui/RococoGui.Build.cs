@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 
 using System;
 using System.Collections.Generic;
@@ -18,27 +18,6 @@ public class RococoGui : ModuleRules
         {
             PublicDefinitions.Add("ROCOCO_BUILD_IS_MONOLITHIC");
         }
-
-        string rococoInclude = Environment.GetEnvironmentVariable("Rococo-Include");
-        if (rococoInclude == null)
-        {
-            throw new Exception("Expecting Rococo-Include@Env to have been defined by RococoBuild.Build.cs");
-        }
-
-
-        string sexyInclude = Environment.GetEnvironmentVariable("Sexy-Include");
-        if (sexyInclude == null)
-        {
-            throw new Exception("Expecting Sexy-Include@Env to have been defined by RococoBuild.Build.cs");
-        }
-
-        PublicIncludePaths.AddRange(
-            new string[] {
-                rococoInclude,
-                sexyInclude
-            }
-        );
-
 
         this.ForceIncludeFiles.Add("rococo.GR.UE5.h");
 

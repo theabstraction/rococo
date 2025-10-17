@@ -1,9 +1,11 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include "UE5.GR.EventMarshalling.h"
 #include <Widgets/SWidget.h>
 #include "RococoGuiAPI.h"
 #include <RococoGui_BPEvents.h>
 #include <rococo.ui.h>
 #include <Components/SlateWrapperTypes.h>
+#include <Framework/Application/SlateApplication.h>
 
 void CopySpatialInfo(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry);
 void CopySpatialInfo_NoFullscreenCorrection(Rococo::MouseEvent& dest, const FPointerEvent& src, const FGeometry& geometry);
@@ -167,7 +169,7 @@ bool IsAsciiFunctionName(const char* s)
 	return true;
 }
 
-ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)
+ROCOCO_GUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr)
 {
 	if (!handler)
 	{

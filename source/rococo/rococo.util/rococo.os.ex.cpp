@@ -1,3 +1,4 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #include <rococo.api.h>
 #include <rococo.os.win32.h>
 #include <rococo.functional.h>

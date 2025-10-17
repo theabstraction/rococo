@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,7 +16,7 @@ class ROCOCO_GUI_API IRococoReflectionEventHandler
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Reflection Event")
 	void OnBadMethod(const FString& errMsg, const FString& methodMsg, const FString& propertyMsg);
 
 	virtual void RaiseBadMethod(const FString& errMsg, const FString& methodMsg, const FString& propertyMsg);
@@ -50,27 +51,27 @@ struct FRococoGREvent
 	GENERATED_BODY()
 
 	// Gives the cause of the event.
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Rococo Event")
 	RococoGREventCode EventCode = RococoGREventCode::USER_DEFINED;
 
 	// An integer version of the event code. In the event of USER_DEFINED codes, the value is 1025 + offset
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Rococo Event")
 	int extendedEventCode = 0;
 
 	// An integer id of the widget sending the event
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Rococo Event")
 	int PanelId = -1;
 
 	// Some numeric data associated with the event
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Rococo Event")
 	int MetaDataInt = 0;
 
 	// Gives the sender's panel description
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Rococo Event")
 	FString SenderDesc;
 
 	// Some meta data string associated with the event
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Rococo Event")
 	FString MetaDataString;
 };
 
@@ -87,26 +88,26 @@ class ROCOCO_GUI_API IRococoEmittedUIEventHandler
 
 public:
 	// A RococoGUI widget tree did not handle a mouse down event
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Event")
 	FEventReply OnEmittedMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a mouse up event
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Event")
 	FEventReply OnEmittedMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a mouse move event
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Event")
 	FEventReply OnEmittedMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a mouse wheel event
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Event")
 	FEventReply OnEmittedMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent);
 
 	// A RococoGUI widget tree did not handle a key-press or key-repeat event
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Event")
 	FEventReply OnEmittedKeyDown(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
 
 	// A RococoGUI widget tree did not handle a key-release
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rococo Event")
 	FEventReply OnEmittedKeyUp(const FGeometry& MyGeometry, FKeyEvent InKeyEvent);
 };

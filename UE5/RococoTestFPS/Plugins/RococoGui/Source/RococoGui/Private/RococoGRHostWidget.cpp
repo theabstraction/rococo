@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com.
 #include "RococoGRHostWidget.h"
 #include "rococo.GR.UE5.h"
 #include <rococo.great.sex.h>
@@ -5,6 +6,10 @@
 #include <rococo.ui.h>
 #include "ReflectedGameOptionsBuilder.h"
 #include <GameFramework/GameUserSettings.h>
+#include <Engine/Engine.h>
+#include <Framework/Application/SlateApplication.h>
+
+extern ENGINE_API UEngine* GEngine;
 
 DECLARE_LOG_CATEGORY_EXTERN(RococoGUI, Error, All);
 DEFINE_LOG_CATEGORY(RococoGUI);
@@ -13,7 +18,7 @@ static FN_GlobalPrepGenerator s_fnGlobalPrepGenerator = nullptr;
 
 namespace Rococo::Gui
 {
-	ROCOCOGUI_API void SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator)
+	ROCOCO_GUI_API void SetGlobalPrepGenerator(FN_GlobalPrepGenerator fnGlobalPrepGenerator)
 	{
 		s_fnGlobalPrepGenerator = fnGlobalPrepGenerator;
 	}
@@ -118,7 +123,7 @@ void URococoGRHostWidget::GRPumpMessages()
 	gr->DispatchMessages();
 }
 
-ROCOCOGUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr);
+ROCOCO_GUI_API void RouteGREventViaReflection(UObject* handler, Rococo::Gui::GRWidgetEvent& ev, Rococo::Gui::IGRSystem& gr);
 
 Rococo::Gui::EGREventRouting URococoGRHostWidget::OnGREvent(Rococo::Gui::GRWidgetEvent& ev)
 {
@@ -272,7 +277,7 @@ void LoadGlobalOptions(Rococo::GreatSex::IReflectedGameOptionsBuilder& builder, 
 {
 	if (!s_fnGlobalPrepGenerator)
 	{
-		UE_LOG(RococoGUI, Error, TEXT("ROCOCOGUI_API void SetGlobalPrepGenerator(...) not invoked. Falling back on demo options"));
+		UE_LOG(RococoGUI, Error, TEXT("ROCOCO_GUI_API void SetGlobalPrepGenerator(...) not invoked. Falling back on demo options"));
 		Rococo::GreatSex::AddTestOptions(generator);
 	}
 	else

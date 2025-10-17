@@ -1,3 +1,4 @@
+// Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.i32.h>
 #include <rococo.ui.h>
@@ -376,6 +377,9 @@ namespace GRANON
 
 			switch (ke.osKeyEvent.VKey)
 			{
+			case Rococo::IO::VirtualKeys::VKCode_ESCAPE:
+				// We trap Escape Is Up above, so we don't want other GUI elements consuming the down event
+				return EGREventRouting::Terminate;
 			case Rococo::IO::VirtualKeys::VKCode_TAB:
 				OnTab(ke.context.isCtrlHeld);
 				return EGREventRouting::Terminate;

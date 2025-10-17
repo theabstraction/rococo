@@ -6,102 +6,15 @@ using UnrealBuildTool;
 
 public class RococoTestFPS : ModuleRules
 {
-    private static string RococoConfigPath
-    {
-        get
-        {
-            string userLocalApps = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string rococoConfig = Path.Combine(userLocalApps, "19th-Century-Software", "Rococo.cfg");
-            return rococoConfig;
-        }
-    }
-
-    private static string ReadRococoHomeFromConfig()
-    {
-        if (File.Exists(RococoConfigPath))
-        {
-            string rococoPath = File.ReadAllText(RococoConfigPath);
-            rococoPath = rococoPath.Trim();
-            if (!Directory.Exists(rococoPath))
-            {
-                throw new Exception(RococoConfigPath + " exists, but the directory name within did not match a directory: " + rococoPath);
-            }
-
-            return rococoPath;
-        }
-
-        return null;
-    }
-
-    private void InitPathFromRococoHome(string rococoHomeDirectory)
-    {
-        rococoIncludeDirectory = Path.Combine(rococoHomeDirectory, "source/rococo/include/").Replace('/', Path.DirectorySeparatorChar);
-    }
-
-    string rococoIncludeDirectory;
-
-    private void PrepRococoDirectories()
-    {
-        if (rococoIncludeDirectory == null)
-        {
-            string dir = ModuleDirectory;
-            string fullPath = dir;
-            string lastFullPath;
-
-            string rococoHomeFromConfig = ReadRococoHomeFromConfig();
-
-            if (rococoHomeFromConfig != null)
-            {
-                InitPathFromRococoHome(rococoHomeFromConfig);
-                return;
-            }
-
-            do
-            {
-                lastFullPath = fullPath;
-
-                fullPath = Path.GetFullPath(Path.Combine(fullPath, ".."));
-
-                string candidateIncludeDirectory = Path.Combine(fullPath, "source/rococo/include/").Replace('/', Path.DirectorySeparatorChar);
-                if (Directory.Exists(candidateIncludeDirectory))
-                {
-                    InitPathFromRococoHome(fullPath);
-                    return;
-                }
-
-            } while (lastFullPath != fullPath);
-
-            throw new System.Exception("Could not find rococo directory from either " + RococoConfigPath + " or  enumerating ancestors of " + dir);
-        }
-    }
-
     public RococoTestFPS(ReadOnlyTargetRules Target) : base(Target)
 	{
-        PrepRococoDirectories();
-
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+       	PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SlateCore", "Slate", "EnhancedInput", "RHI", "ApplicationCore", "RococoOS", "RococoGui" });
-
-        System.Console.WriteLine("rococoIncludeDirectory: {0}", rococoIncludeDirectory);
 
         if (Target.LinkType == TargetLinkType.Monolithic)
         {
             PublicDefinitions.Add("ROCOCO_BUILD_IS_MONOLITHIC");
         }
-
-        PublicIncludePaths.AddRange(
-            new string[] 
-            {
-                rococoIncludeDirectory
-            }
-        );
-
-        PrivateIncludePaths.AddRange(
-          new string[]
-          {
-                rococoIncludeDirectory
-          }
-        );
     }
 }
