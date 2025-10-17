@@ -51,11 +51,6 @@ namespace Rococo
             Console.WriteLine("\nCreating RococoUtil");
             CreateUtilBundles();
 
-            /* Disabled for now, as Unreal found to carry zlib in its Engine/Source/ThirdParty/ folder
-            Console.WriteLine("\nCreating RococoZLIB");
-            CreateZLIBBundles();
-            */
-
             Console.WriteLine("\nCreating RococoTiff");
             CreateTiffBundles();
 
@@ -236,27 +231,6 @@ namespace Rococo
             );
         }
 
-        private void CreateZLIBBundles()
-        {
-            string zlibSourceDirectory = MakePluginSourceFolder("RococoZLib");
-
-            CreateSeparateFilesDirect(zlibSourceDirectory, "wrap.", "rococo.zlib.UE5.h", "rococo.zlib.prelude.h", "rococo.zlib.postlude.h", "3rd-Party/zlib",
-                new List<string>()
-                {
-                "adler32.c",
-                "crc32.c",
-                "deflate.c",
-                "infback.c",
-                "inffast.c",
-                "inflate.c",
-                "inftrees.c",
-                "trees.c",
-                "uncompr.c",
-                "zutil.c"
-                }
-            );
-        }
-
         private void CreateGuiBundles()
         {
             string guiSourceDirectory = MakePluginSourceFolder("RococoGui");
@@ -318,56 +292,6 @@ namespace Rococo
                     "rococo.win32.target.win7.h"
                 }
             );
-
-            /* Disable LibTiff main code, as Unreal appears to carry the full library
-            CreateSeparateFilesDirect(tiffSourceDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/libtiff",
-                new List<string>()
-                {
-                "tif_aux.c",
-                "tif_close.c",
-                "tif_codec.c",
-                "tif_color.c",
-                "tif_compress.c",
-                "tif_dir.c",
-                "tif_dirinfo.c",
-                "tif_dirread.c",
-                "tif_dirwrite.c",
-                "tif_dumpmode.c",
-                "tif_error.c",
-                "tif_extension.c",
-                "tif_fax3.c",
-                "tif_fax3sm.c",
-                "tif_flush.c",
-                "tif_getimage.c",
-                "tif_hash_set.c",
-                "tif_jbig.c",
-                "tif_jpeg.c",
-                "tif_jpeg_12.c",
-                "tif_lerc.c",
-                "tif_luv.c",
-                "tif_lzma.c",
-                "tif_lzw.c",
-                "tif_next.c",
-                "tif_ojpeg.c",
-                "tif_open.c",
-                "tif_packbits.c",
-                "tif_pixarlog.c",
-                "tif_predict.c",
-                "tif_print.c",
-                "tif_read.c",
-                "tif_strip.c",
-                "tif_swab.c",
-                "tif_thunder.c",
-                "tif_tile.c",
-                "tif_version.c",
-                "tif_warning.c",
-                "tif_webp.c",
-                "tif_write.c",
-                "tif_zip.c",
-                "tif_zstd.c"
-                }
-            );
-            */
 
             CreateSeparateFilesDirect(tiffSourceDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/",
                 new List<string>()

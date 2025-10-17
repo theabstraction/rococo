@@ -164,70 +164,6 @@ namespace Rococo
                 }
             );
 
-            CreateSeparateFilesDirect(ultraDirectory, "zlib.", "rococo.zlib.UE5.h", "UE5.CodeGen/rococo.zlib.prelude.h", "UE5.CodeGen/rococo.zlib.postlude.h", Path.Join("3rd-Party", "zlib"),
-               new List<string>()
-                {
-                    "adler32.c",
-                    "crc32.c",
-                    "deflate.c",
-                    "infback.c",
-                    "inffast.c",
-                    "inflate.c",
-                    "inftrees.c",
-                    "trees.c",
-                    "uncompr.c",
-                    "zutil.c"
-                }
-             );
-
-            CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "UE5.CodeGen/rococo.tiff.prelude.h", "UE5.CodeGen/rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff", "libtiff"),
-                new List<string>()
-                {
-                    "tif_aux.c",
-                    "tif_close.c",
-                    "tif_codec.c",
-                    "tif_color.c",
-                    "tif_compress.c",
-                    "tif_dir.c",
-                    "tif_dirinfo.c",
-                    "tif_dirread.c",
-                    "tif_dirwrite.c",
-                    "tif_dumpmode.c",
-                    "tif_error.c",
-                    "tif_extension.c",
-                    "tif_flush.c",
-                    "tif_getimage.c",
-                    "tif_hash_set.c",
-                    "tif_jbig.c",
-                    "tif_jpeg.c",
-                    "tif_jpeg_12.c",
-                    "tif_lerc.c",
-                    "tif_luv.c",
-                    "tif_lzma.c",
-                    "tif_lzw.c",
-                    "tif_next.c",
-                    "tif_ojpeg.c",
-                    "tif_open.c",
-                    "tif_packbits.c",
-                    "tif_pixarlog.c",
-                    "tif_predict.c",
-                    "tif_print.c",
-                    "tif_read.c",
-                    "tif_strip.c",
-                    "tif_swab.c",
-                    "tif_thunder.c",
-                    "tif_tile.c",
-                    "tif_version.c",
-                    "tif_warning.c",
-                    "tif_webp.c",
-                    "tif_write.c",
-                    "tif_zip.c",
-                    "tif_zstd.c",
-                    "tif_fax3.c",
-                    "tif_fax3sm.c"
-                }
-            );
-
             CreateSeparateFilesDirect(ultraDirectory, "tiff-lib.", "rococo.tiff.UE5.h", "UE5.CodeGen/rococo.tiff.prelude.decl.cpp.h", "UE5.CodeGen/rococo.tiff.postlude.h", Path.Join("3rd-Party", "libtiff"),
                 new List<string>()
                 {
@@ -351,40 +287,6 @@ namespace Rococo
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SlateRenderContext.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "SRococoGRHostWidget.h");
             CopyOtherPluginFileToHeader(ultraHeaderDirectory, "RococoGui", "RococoGui.h");
-
-            CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "zlib"), new List<string> 
-                {
-                    "zutil.h",
-                    "deflate.h",
-                    "inflate.h",
-                    "zlib.h",
-                    "zconf.h",
-                    "crc32.h",
-                    "inftrees.h",
-                    "inffast.h",
-                    "inffixed.h",
-                    "trees.h",
-                    "gzguts.h"
-                }
-            );
-
-            CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "libtiff\\libtiff"), new List<string>
-                {
-                    "tif_config.h",
-                    "tif_dir.h",
-                    "tif_fax3.h",
-                    "tif_hash_set.h",
-                    "tif_predict.h",
-                    "tiff.h",
-                    "tiffconf.h",
-                    "tiffio.h",
-                    "tiffio.hxx",
-                    "tiffiop.h",
-                    "tiffvers.h",
-                    "uvcode.h",
-                    "t4.h"
-                }
-           );
 
             CopyFilesToSource(ultraDirectory, Path.Join(thirdPartyPath, "libjpg\\jpeg-6b"), new List<string>
                 {

@@ -45,6 +45,8 @@ public class RococoGui : ModuleRules
 				"InputCore",
 				"ApplicationCore",
 				"UMG",
+				"LibTiff",
+				"zlib"
 			}
 			);
 		
