@@ -25,6 +25,11 @@ public class RococoGui : ModuleRules
 			
 		this.ForceIncludeFiles.Add("rococo.UE5.h");
 		
+		if (Target.LinkType == TargetLinkType.Monolithic)
+        {
+            PublicDefinitions.Add("ROCOCO_BUILD_IS_MONOLITHIC");
+        }
+		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{

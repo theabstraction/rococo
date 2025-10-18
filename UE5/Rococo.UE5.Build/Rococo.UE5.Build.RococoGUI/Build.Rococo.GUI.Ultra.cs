@@ -180,6 +180,7 @@ namespace Rococo
                 }
             );
 
+            // These 3 files have versions in Unreal and create competing link issues when a monolithic build is compiled
             CreateSeparateFilesDirect(ultraDirectory, "jpeg-lib.", "rococo.jpg.UE5.h", "UE5.CodeGen/rococo.jpg.prelude.dll.h", "UE5.CodeGen/rococo.jpg.postlude.dll.h", "3rd-Party/libjpg/jpeg-6b",
                 new List<string>()
                 {
