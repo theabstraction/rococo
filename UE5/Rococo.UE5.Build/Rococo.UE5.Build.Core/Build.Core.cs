@@ -382,22 +382,23 @@ namespace Rococo
             WriteUpdated(sb, targetFile);
         }
 
-        protected void CopyFilesToSource(string sourceDirectory, string targetAbsDirectory, List<string> filenames)
+        protected void CopyFilesToSource(string destinationDirectory, string targetAbsDirectory, List<string> filenames)
         {
             foreach (string f in filenames)
             {
-                CopyFileToSource(sourceDirectory, targetAbsDirectory, f);
+                CopyFileToSource(destinationDirectory, targetAbsDirectory, f);
             }
         }
 
-        protected void CopyFilesToSourceMatching(string sourceDirectory, string targetAbsDirectory, string filter)
+        protected void CopyFilesToSourceMatching(string destinationDirectory, string targetAbsDirectory, string filter)
         {
-            foreach (var file in Directory.EnumerateFiles(sourceDirectory, filter))
+            string destinationSourcePath = Path.GetFullPath(destinationDirectory);
+            foreach (var file in Directory.EnumerateFiles(targetAbsDirectory, filter))
             {
                 if (file != null)
                 {
                     string filename = Path.GetFileName(file);
-                    CopyFileToSource(sourceDirectory, targetAbsDirectory, filename);
+                    CopyFileToSource(destinationSourcePath, targetAbsDirectory, filename);
                 }
             }
         }
