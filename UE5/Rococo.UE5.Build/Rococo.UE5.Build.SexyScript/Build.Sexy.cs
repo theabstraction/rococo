@@ -86,6 +86,9 @@ namespace Rococo.UE5.Build.SexyScript
             string rococoPluginHeaders = Path.Join(sexyPluginPrivateSrcCode, "RococoAPI");
             base.CopyFilesToSourceMatching(rococoPluginHeaders, rococoIncludeDirectory, "*.h");
 
+            string rococoAllocationPluginHeaders = Path.Join(sexyPluginPrivateSrcCode, "RococoAPI", "allocators");
+            base.CopyFilesToSourceMatching(rococoAllocationPluginHeaders, Path.Join(rococoIncludeDirectory, "allocators"), "*.h");
+
             string rococoPluginBase = Path.Join(sexyPluginPrivateSrcCode, "RococoBase");
 
             CreateBundleDirect(rococoPluginBase, "wrap.s-utils.cpp", "rococo.UE5.h", null, null, "rococo/sexy/Utilities",
@@ -111,13 +114,6 @@ namespace Rococo.UE5.Build.SexyScript
             CopyFilesToSource(sexyPluginPrivateSrcCode, Path.Join(guiPath, "Private"), new List<string>
                 {
                     "rococo.os.UE5.cpp"
-                }
-            );
-
-            CopyFilesToSource(sexyPluginPublicSrcCode, Path.Join(guiPath, "Public"), new List<string>
-                {
-                    "rococo.UE5.h",
-                    "rococo.OS.UE5.h"
                 }
             );
         }

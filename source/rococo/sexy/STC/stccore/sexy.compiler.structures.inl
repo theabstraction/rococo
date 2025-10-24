@@ -517,7 +517,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 		}
 		
-		return member.SizeOfMember();
+		return member.SizeOfMember() > 0;
 	}
 
 	bool TryResolve(ILog& log, Structure& s, bool reportErrors, const void** pErrSrc)

@@ -34,7 +34,7 @@
 #include "sexy.script.stdafx.h"
 #include "sexy.compiler.public.h"
 #include "sexy.debug.types.h"
-#include "..\STC\stccore\sexy.compiler.helpers.h"
+#include "sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"

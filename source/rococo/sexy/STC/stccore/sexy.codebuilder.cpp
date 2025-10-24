@@ -1300,16 +1300,16 @@ namespace Anon
 		return offset;
 	}
 
-	bool CodeBuilder::IsVariableDefinedAtLevel(int32 sectionIndex, cstr name)
+	bool CodeBuilder::IsVariableDefinedAtLevel(int32 givenSectionIndex, cstr name)
 	{
 		for(TVariables::const_reverse_iterator i = variables.rbegin(); i != variables.rend(); ++i)
 		{
 			Variable* v = *i;
-			if (v->SectionIndex() > sectionIndex)
+			if (v->SectionIndex() > givenSectionIndex)
 			{
 				continue;
 			}
-			else if (v->SectionIndex() < sectionIndex)
+			else if (v->SectionIndex() < givenSectionIndex)
 			{
 				return false;
 			}

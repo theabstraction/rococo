@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#ifdef EXPERIMENTAL_MAC
+
 #include "sexy.vm.stdafx.h"
 #include "sexy.vm.os.h"
 
@@ -181,3 +183,5 @@ namespace Rococo {
 		}
 	}
 } // Rococo::VM::OS
+
+#endif // EXPERIMENTAL_MAC

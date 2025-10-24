@@ -322,7 +322,7 @@ namespace Rococo
 				}
 			}
 
-			CompileParsedLambda(ce, s, inputType, archetype, argName, bodyIndicatorIndex);
+			CompileParsedLambda(ce, s, inputType, archetype, ce.Builder.Owner().GetArgumentByName(argName) == NULL, bodyIndicatorIndex);
 		}
 
 		void CompilePushLambda(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, const IArchetype& archetype, cstr argName)

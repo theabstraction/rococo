@@ -139,7 +139,7 @@ namespace Anon
 			if (i != functions.end())
 			{
 				const FunctionDef& fd = i->second;
-				return fd.isImmutable;
+				return fd.isImmutable != 0;
 			}
 
 			Throw(0, "No such function: ID_BYTECODE #%lld", id);
@@ -165,7 +165,7 @@ namespace Anon
 			if (i != functions.end())
 			{
 				const FunctionDef& fd = i->second;
-				isImmutable = fd.isImmutable;
+				isImmutable = fd.isImmutable != 0;
 				return fd.StartIndex;
 			}
 			else

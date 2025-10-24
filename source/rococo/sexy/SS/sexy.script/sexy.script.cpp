@@ -34,7 +34,7 @@
 #include "sexy.script.stdafx.h"
 
 #include <rococo.strings.h>
-#include "..\stc\stccore\sexy.compiler.helpers.h"
+#include "sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
 #include <sexy.vector.h>
 

@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#ifdef EXPERIMENTAL_MAC
+
 #include "sexy.script.stdafx.h"
 
 #include "sexy.debug.types.h"
@@ -137,3 +139,5 @@ namespace Rococo { namespace OS
 		return GetLibCreateFunction(filename, throwOnError);
 	}
 }} // Rococo::OS
+
+#endif // EXPERIMENTAL_MAC

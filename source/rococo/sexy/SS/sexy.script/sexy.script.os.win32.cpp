@@ -161,7 +161,7 @@ namespace Rococo
 				return nullptr;
 			}
 
-			Rococo::Script::FN_CreateLib createFn = (Rococo::Script::FN_CreateLib) fp;
+			Rococo::Script::FN_CreateLib createFn = reinterpret_cast<Rococo::Script::FN_CreateLib>(fp);
 			return createFn;
 		}
 
@@ -205,7 +205,7 @@ namespace Rococo
 				}
 				operator HANDLE() { return hFile; }
 			} hFile = {
-				CreateFile(tempFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)
+				CreateFileA(tempFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)
 			};
 
 			if (hFile == INVALID_HANDLE_VALUE)
@@ -222,7 +222,7 @@ namespace Rococo
 
 			hFile.Close();
 
-			HMODULE lib = LoadLibrary(tempFile);
+			HMODULE lib = LoadLibraryA(tempFile);
 			if (lib == nullptr)
 			{
 				Rococo::Throw(GetLastError(), "Could not load %hs", origin);
