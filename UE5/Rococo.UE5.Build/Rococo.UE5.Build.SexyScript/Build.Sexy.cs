@@ -76,6 +76,7 @@ namespace Rococo.UE5.Build.SexyScript
             string rococoSexySTCPath = Path.Join(sexyDirectory, "STC", "stccore");
             base.CopyFilesToSourceMatching(sexyPluginSTCSrcCode, rococoSexySTCPath, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSTCSrcCode, rococoSexySTCPath, "*.inl");
+            base.CopyFilesToSourceMatching(sexyPluginHeaders, rococoSexySTCPath, "*.h");
 
             string sexyPluginSVMSrcCode = Path.Join(sexyPluginPrivateSrcCode, "SVM");
             string rococoSexySVMPath = Path.Join(sexyDirectory, "SVM", "svmcore");

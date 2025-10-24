@@ -35,7 +35,7 @@
 #include <Sexy.S-Parser.h>
 
 #include <sexy.compiler.public.h>
-#include <../STC/stccore/sexy.compiler.helpers.h>
+#include <sexy.compiler.helpers.h>
 #include <rococo.api.h>
 #include <sexy.security.h>
 #include "sexy.internal.api.h"

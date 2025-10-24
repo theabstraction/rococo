@@ -13,7 +13,7 @@
 #include <sexy.script.exports.h>
 #include "sexy.native.sys.type.h"
 
-#include "../STC/stccore/sexy.compiler.h"
+#include "sexy.compiler.h"
 
 #ifdef char_IS_WIDE
 # define UNICODE

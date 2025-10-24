@@ -612,10 +612,10 @@ namespace Rococo
 			SafeFormat(mapInfo, "Address %p", m);
 			tree->AddChild(node, mapInfo, CheckState_NoCheckBox);
 
-			int index = -1;
+			int i = -1;
 			for (auto* p = m->Head; p != nullptr; p = p->Next)
 			{
-				index++;
+				i++;
 
 				auto* keyType = m->KeyType;
 				if (keyType && keyType->InterfaceCount() == 1 && IsIString(keyType->GetInterface(0)))
@@ -624,7 +624,7 @@ namespace Rococo
 					if (s != nullptr)
 					{
 						auto* value = Rococo::Script::GetValuePointer(p);
-						SafeFormat(mapInfo, "[%d] '%s' -> %p", index, s->buffer ? s->buffer : "<null>", value);
+						SafeFormat(mapInfo, "[%d] '%s' -> %p", i, s->buffer ? s->buffer : "<null>", value);
 						tree->AddChild(node, mapInfo, CheckState_NoCheckBox);
 					}
 				}

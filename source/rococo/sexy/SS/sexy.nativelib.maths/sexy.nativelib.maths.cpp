@@ -9,7 +9,7 @@
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
 #include "sexy.native.sys.type.h"
-#include "../STC/stccore/sexy.compiler.h"
+#include "sexy.compiler.h"
 #include "sexy.strings.h"
 
 #ifdef char_IS_WIDE
