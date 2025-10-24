@@ -43,7 +43,7 @@ namespace
 	{
 		void* vCastToInterface;
 		ReadInput(0, vCastToInterface, e);
-		const IInterface& castToInterf = *(const IInterface*) vCastToInterface;
+		const IObjectInterface& castToInterf = *(const IObjectInterface*) vCastToInterface;
 
 		InterfacePointer pSrcInterface;
 		ReadInput(1, pSrcInterface, e);
@@ -58,7 +58,7 @@ namespace
 
 		for(int i = 0; i < interfCount; ++i)
 		{
-			const IInterface& I = typeInfo.GetInterface(i);
+			const IObjectInterface& I = typeInfo.GetInterface(i);
 			if (&I == &castToInterf || (I.Base() != NULL && I.Base() == &castToInterf))
 			{
 				InterfacePointer pCastedInterface = (InterfacePointer) ( (i * sizeof(void*) + GetInterfacePtr(*obj)));

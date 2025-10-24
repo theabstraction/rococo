@@ -405,7 +405,7 @@ namespace Rococo::Script
 
 			ObjectStub* object = ReadExceptionFromInput(0, po, function);
 			const IStructure& underlyingType = GetType(object);
-			const IInterface& iexc = po.Common().SysTypeIException();
+			const IObjectInterface& iexc = po.Common().SysTypeIException();
 
 			po.IncrementRefCount((InterfacePointer)object);
 			

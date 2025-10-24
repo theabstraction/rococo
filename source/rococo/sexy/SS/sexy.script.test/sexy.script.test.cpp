@@ -3616,7 +3616,7 @@ R"((namespace EntryPoint)
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 		UNUSED(vm);
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
-		const IInterface* i = ns->FindInterface("IPlayer");
+		const IObjectInterface* i = ns->FindInterface("IPlayer");
 		validate(i != NULL);		
 		validate(i->MethodCount() == 2);
 		const IArchetype& a1 = i->GetMethod(0);
@@ -3669,11 +3669,11 @@ R"((namespace EntryPoint)
 
 		validate(s != NULL);
 		validate(s->InterfaceCount() == 1);
-		const IInterface& i1 = s->GetInterface(0);
+		const IObjectInterface& i1 = s->GetInterface(0);
 		validate(&i1 != NULL);
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
-		const IInterface* i2 = ns->FindInterface("IPlayer");
+		const IObjectInterface* i2 = ns->FindInterface("IPlayer");
 
 		validate(i2 != NULL);
 		validate(&i1 == i2);

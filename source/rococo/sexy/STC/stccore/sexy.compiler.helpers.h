@@ -49,7 +49,7 @@ namespace Rococo
 	{
 		struct INamespaceBuilder;
 		struct IStructure;
-		struct IInterface;
+		struct IObjectInterface;
 		struct IProgramObject;
 
 		class CommonStructures
@@ -73,9 +73,9 @@ namespace Rococo
 			IStructure* typeStringLiteral;
 			IStructure* typeExpression;
 
-			IInterface* sysTypeIString;
-			IInterface* sysTypeIException;
-			IInterface* sysTypeIExpression;
+			IObjectInterface* sysTypeIString;
+			IObjectInterface* sysTypeIException;
+			IObjectInterface* sysTypeIExpression;
 
 		public:
 			CommonStructures(IProgramObject& obj);
@@ -101,9 +101,9 @@ namespace Rococo
 
 			const IStructure& SysReflectionExpression() const { return *typeExpression; }
 
-			const IInterface& SysTypeIString() const { return *sysTypeIString; }
-			const IInterface& SysTypeIException() const { return *sysTypeIException; }			
-			const IInterface& SysTypeIExpression() const { return *sysTypeIExpression; }	
+			const IObjectInterface& SysTypeIString() const { return *sysTypeIString; }
+			const IObjectInterface& SysTypeIException() const { return *sysTypeIException; }			
+			const IObjectInterface& SysTypeIExpression() const { return *sysTypeIExpression; }	
 		};
 
 		SEXYCOMPILER_API const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset);

@@ -191,7 +191,7 @@ namespace Rococo::Compiler
 		virtual IProgramObject& Object() = 0;
 	};
 
-	ROCOCO_INTERFACE IInterfaceBuilder : public IInterface
+	ROCOCO_INTERFACE IInterfaceBuilder : public IObjectInterface
 	{
 		virtual IAttributes & Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
@@ -371,7 +371,7 @@ namespace Rococo::Compiler
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32),
 		   returns pointer to object in D4 (vPtr)
 		*/
-		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface) = 0;
+		virtual void AddDynamicAllocateObject(const IStructure& structType, const IObjectInterface& interface) = 0;
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;

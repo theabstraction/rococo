@@ -474,7 +474,7 @@ namespace Rococo
          return NULL;
       }
 
-      IInterface& GetRequiredInterface(cr_sex s, ICodeBuilder& builder, cstr fullyQualifiedName)
+      IObjectInterface& GetRequiredInterface(cr_sex s, ICodeBuilder& builder, cstr fullyQualifiedName)
       {
          IInterfaceBuilder* i = GetInterface(builder.Module().Object(), fullyQualifiedName);
          if (i == NULL)

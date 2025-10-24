@@ -540,7 +540,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		void AddAttribute(Rococo::Sex::cr_sex sourceDef, bool isCustom) override;
 		void AddInterface(cstr interfaceFullName) override;
 		int InterfaceCount() const override;
-		const IInterface& GetInterface(int index) const override;
+		const IObjectInterface& GetInterface(int index) const override;
 		IInterfaceBuilder& GetInterface(int index) override;
 		bool HasInterfaceMembers() const override;
 
@@ -646,7 +646,7 @@ namespace Rococo { namespace Compiler { namespace Impl
             delete this;
         }
 		//IInterface
-		virtual const IInterface* Base() const  { return base; }
+		virtual const IObjectInterface* Base() const  { return base; }
 		virtual const IAttributes& Attributes() const { return attributes; }
 		virtual const IArchetype& GetMethod(int index) const {	return *archetypes[index];	}
 		virtual const int MethodCount() const 	{ return methodCount;	}
@@ -700,7 +700,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		virtual cstr Name() const {	return name.c_str();	}
 		virtual const IFunction& Constructor() const	{	return constructor;	}
 		virtual IFunctionBuilder& Constructor()			{	return constructor;	}
-		virtual const IInterface& ThisInterface() const { return interf; }
+		virtual const IObjectInterface& ThisInterface() const { return interf; }
 		virtual sexstring InterfaceType() const { return interfType; }
 		virtual const IFunction* InlineConstructor() const { return inlineConstructor; }
 		virtual const IStructure* InlineClass() const { return inlineClass; }
@@ -817,11 +817,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		virtual IInterfaceBuilder* DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base);
 		virtual IInterfaceBuilder* FindInterface(cstr name);
-		virtual const IInterface* FindInterface(cstr name) const;
+		virtual const IObjectInterface* FindInterface(cstr name) const;
 
 		virtual int InterfaceCount() const { return (int32) interfaceEnum.size(); }
 		virtual IInterfaceBuilder& GetInterface(int index) { return *interfaceEnum[index]; }
-		virtual const IInterface& GetInterface(int index) const { return *interfaceEnum[index]; }
+		virtual const IObjectInterface& GetInterface(int index) const { return *interfaceEnum[index]; }
 
 		virtual IMacroBuilder* FindMacro(cstr name);
 		virtual const IFactory* FindFactory(cstr name) const;

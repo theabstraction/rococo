@@ -143,7 +143,7 @@ namespace Rococo
          CompileTryCatchFinally(ce, exNameExpr.c_str(), body, handler, cleanup);
       }
 
-      bool HasInterface(const IInterface& interface, const IStructure& classSpec)
+      bool HasInterface(const IObjectInterface& interface, const IStructure& classSpec)
       {
          for (int i = 0; i < classSpec.InterfaceCount(); ++i)
          {
@@ -172,7 +172,7 @@ namespace Rococo
             Throw(ex, ("Expecting local exception identifier"));
          }
 
-         const IInterface& interfExc = ce.Object.Common().SysTypeIException();
+         const IObjectInterface& interfExc = ce.Object.Common().SysTypeIException();
          if (!HasInterface(interfExc, *def.ResolvedType))
          {
             Throw(ex, ("The variable does not implement the Sys.Type.IException interface"));

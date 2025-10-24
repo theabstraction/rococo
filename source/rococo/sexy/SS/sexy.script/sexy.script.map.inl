@@ -910,7 +910,7 @@ namespace Rococo::Script
 		AppendInvoke(ce, GetMapCallbacks(ce).MapNodePop, s);
 	}
 
-	bool HasInterface(const IInterface& interface, const IStructure& classspec);
+	bool HasInterface(const IObjectInterface& interface, const IStructure& classspec);
 
 	void CompileAsKeyToTemp(CCompileEnvironment& ce, cr_sex keyExpr, const MapDef& mapDef, int tempIndex)
 	{

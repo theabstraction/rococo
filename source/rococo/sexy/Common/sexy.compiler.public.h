@@ -74,7 +74,7 @@ namespace Rococo {
 		DECLARE_ROCOCO_INTERFACE IStructure;
 		DECLARE_ROCOCO_INTERFACE IStructureSet;
 		DECLARE_ROCOCO_INTERFACE IMember;
-		DECLARE_ROCOCO_INTERFACE IInterface;
+		DECLARE_ROCOCO_INTERFACE IObjectInterface;
 		DECLARE_ROCOCO_INTERFACE IArchetype;
 
 		struct FunctionPrototype;
@@ -87,7 +87,7 @@ namespace Rococo {
 			FunctionPrototype(cstr _name, bool _isMethod) : Name(_name), IsMethod(_isMethod) {}
 		};
 
-		bool IsDerivedFrom(const IInterface& sub, const IInterface& super);
+		bool IsDerivedFrom(const IObjectInterface& sub, const IObjectInterface& super);
 
 		struct ProgramInitParameters
 		{
@@ -417,7 +417,7 @@ namespace Rococo {
 			virtual const IArchetype* Archetype() const = 0;
 			virtual bool IsResolved() const = 0;
 			virtual int InterfaceCount() const = 0;
-			virtual const IInterface& GetInterface(int index) const = 0;
+			virtual const IObjectInterface& GetInterface(int index) const = 0;
 
 			virtual const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const = 0;
 			virtual ID_BYTECODE GetDestructorId() const = 0;
@@ -514,10 +514,10 @@ namespace Rococo {
 			virtual cstr GetAttribute(int index, OUT const void*& value) const = 0;
 		};
 
-		ROCOCO_INTERFACE IInterface
+		ROCOCO_INTERFACE IObjectInterface
 		{
 			virtual const IAttributes& Attributes() const = 0;
-			virtual const IInterface* Base() const = 0;
+			virtual const IObjectInterface* Base() const = 0;
 			virtual const IArchetype& GetMethod(int index) const = 0;
 			virtual const int MethodCount() const = 0;
 			virtual cstr Name() const = 0;
@@ -525,7 +525,7 @@ namespace Rococo {
 			virtual ObjectStub* UniversalNullInstance() const = 0;
 		};
 
-		inline bool operator == (const IInterface& a, const IInterface& b)
+		inline bool operator == (const IObjectInterface& a, const IObjectInterface& b)
 		{
 			return &a == &b;
 		}
@@ -534,7 +534,7 @@ namespace Rococo {
 		{
 			virtual cstr Name() const = 0;
 			virtual const IFunction& Constructor() const = 0;
-			virtual const IInterface& ThisInterface() const = 0;
+			virtual const IObjectInterface& ThisInterface() const = 0;
 			virtual sexstring InterfaceType() const = 0;
 			virtual const IFunction* InlineConstructor() const = 0; // if not NULL indicates the factory trivially calls a constructor with matching parameters
 			virtual const IStructure* InlineClass() const = 0; // if not NULL indicates the concrete class of the inline constructor
@@ -558,7 +558,7 @@ namespace Rococo {
 
 			virtual const IFactory* FindFactory(cstr name) const = 0;
 
-			virtual const IInterface* FindInterface(cstr name) const = 0;
+			virtual const IObjectInterface* FindInterface(cstr name) const = 0;
 			virtual const IMacro* FindMacro(cstr name) const = 0;
 
 		    virtual const INamespace& GetChild(size_t index) const = 0;
@@ -569,7 +569,7 @@ namespace Rococo {
 			virtual IPublicProgramObject& Object() const = 0;
 
 			virtual int InterfaceCount() const = 0;
-			virtual const IInterface& GetInterface(int index) const = 0;
+			virtual const IObjectInterface& GetInterface(int index) const = 0;
 
 			virtual void EnumerateFactories(ICallback<const IFactory, cstr>& onFactory) const = 0;
 			virtual void EnumerateStrutures(ICallback<const IStructure, cstr>& onStructure) const = 0;
@@ -637,7 +637,7 @@ namespace Rococo {
 		};
 
 		SEXYUTIL_API const IFunction* GetFunctionForBytecode(IPublicProgramObject& obj, ID_BYTECODE id);
-		SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IInterface& testInterf);
+		SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IObjectInterface& testInterf);
 
 		enum ERRORCODE
 		{

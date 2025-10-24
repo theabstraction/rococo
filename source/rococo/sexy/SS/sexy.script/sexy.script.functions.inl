@@ -1065,7 +1065,7 @@ namespace Rococo
 			ce.Builder.PopLastVariables(callee.NumberOfInputs() + callee.NumberOfOutputs() + extraArgs, true);
 		}
 
-		int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
+		int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IObjectInterface& interfaceRef)
 		{
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(def, instanceName);
@@ -1224,7 +1224,7 @@ namespace Rococo
 			ce.Builder.AssignClosureParentSFtoD6();
 		}
 
-		void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IInterface& interfaceRef)
+		void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IObjectInterface& interfaceRef)
 		{
 			cstr calleeName = callee.Name();
 			cstr callerName = ce.Builder.Owner().Name();
@@ -1311,7 +1311,7 @@ namespace Rococo
 
 			for (int i = 0; i < s->InterfaceCount(); ++i)
 			{
-				const IInterface& interf = s->GetInterface(i);
+				const IObjectInterface& interf = s->GetInterface(i);
 
 				const ISExpression* src;
 				if (interf.Attributes().FindAttribute("indexed", (const void*&)src))
@@ -1774,7 +1774,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
 			{
-				const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = instanceStruct->GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 
 				CompileVirtualCallAndReturnValue(ce, false, method, s, interfaceIndex, methodIndex, instance, returnType, returnTypeStruct, returnArchetype, interf);
@@ -1835,7 +1835,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
 			{
-				const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = instanceStruct->GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 
 				if (!IsGetAccessor(method))
@@ -1888,7 +1888,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
 			{
-				const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = instanceStruct->GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 
 				if (!IsGetAccessor(method))
@@ -1940,7 +1940,7 @@ namespace Rococo
 			}
 		}
 
-		void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s, cstr localName)
+		void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IObjectInterface& interf, cr_sex s, cstr localName)
 		{
 			MemberDef refDef;
 			builder.TryGetVariableByName(OUT refDef, instanceName);
@@ -2046,7 +2046,7 @@ namespace Rococo
 			sb << ")";
 		}
 
-		void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
+		void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IObjectInterface& interfaceRef)
 		{
 			// (<instance.method-name> input1 input2 input3.... inputN -> output1...output2...outputN)
 			cstr calleeName = callee.Name();
@@ -2315,7 +2315,7 @@ namespace Rococo
 					return NULL;
 				}
 
-				const IInterface& interf = s->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = s->GetInterface(interfaceIndex);
 				const IArchetype& methodArch = interf.GetMethod(methodIndex);
 
 				if (methodArch.NumberOfOutputs() == 0) Throw(arg, ("The method has no output"));
@@ -2405,7 +2405,7 @@ namespace Rococo
 					return NULL;
 				}
 
-				const IInterface& interf = st->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = st->GetInterface(interfaceIndex);
 				const IArchetype& methodArch = interf.GetMethod(methodIndex);
 
 				if (methodArch.NumberOfOutputs() == 0) Throw(tokenExpr, ("The method has no output"));
@@ -2434,7 +2434,7 @@ namespace Rococo
 		// If it is used to call a method not part of the interface, then type info is used to route to the correct method
 		// Generally very useful for writing strongly typed eventing interfaces.
 		// Since an interface ref can be dynamically assigned to different objects, we have to determine whether methods exist at runtime
-		void CompileDynamicDispatch(CCompileEnvironment& ce, cr_sex s, const IInterface& dispatcher, cstr instanceName, cstr methodName)
+		void CompileDynamicDispatch(CCompileEnvironment& ce, cr_sex s, const IObjectInterface& dispatcher, cstr instanceName, cstr methodName)
 		{
 			if (s.NumberOfElements() != 2)
 			{
@@ -2618,7 +2618,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, c, methodName))
 			{
-				const IInterface& interf = c.GetInterface(interfaceIndex);
+				const IObjectInterface& interf = c.GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 				CompileVirtualCall(ce, method, s, interfaceIndex, methodIndex, instanceName, interf);
 				return true;
@@ -2773,7 +2773,7 @@ namespace Rococo
 			{
 				if (IsNullType(*type))
 				{
-					const IInterface& interf = type->GetInterface(0);
+					const IObjectInterface& interf = type->GetInterface(0);
 					if (s.NumberOfElements() == 2)
 					{
 						const ISExpression* attr;

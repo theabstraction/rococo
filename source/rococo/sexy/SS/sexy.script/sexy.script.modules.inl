@@ -1051,7 +1051,7 @@ namespace Rococo::Script
 	{
 		for(int j = 0; j < s.InterfaceCount(); ++j)
 		{
-			const IInterface& interf = s.GetInterface(j);
+			const IObjectInterface& interf = s.GetInterface(j);
 			for(int i = 0; i < interf.MethodCount(); ++i)
 			{
 				const IArchetype& a = interf.GetMethod(i);
@@ -1537,10 +1537,10 @@ namespace Rococo::Script
 
 	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype);
 
-	void CompileNullMethod_Throws(IScriptSystem& ss, const IInterface& interface, IFunctionBuilder& f)
+	void CompileNullMethod_Throws(IScriptSystem& ss, const IObjectInterface& interface, IFunctionBuilder& f)
 	{
 		VariantValue v;
-		v.vPtrValue = (IInterface*) &interface;
+		v.vPtrValue = (IObjectInterface*) &interface;
 		f.Builder().Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER);
 
 		v.vPtrValue = (IFunction*) &f;
@@ -1689,7 +1689,7 @@ namespace Rococo::Script
 	VM_CALLBACK(ThrowNullRef)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
-		auto* i = (const IInterface*) registers[4].vPtrValue;
+		auto* i = (const IObjectInterface*) registers[4].vPtrValue;
 		auto *f = (const IFunction*) registers[5].vPtrValue;
 
 		NamespaceSplitter splitter(f->Name());
@@ -1936,7 +1936,7 @@ namespace Rococo::Script
 		CompileSetOutputToNull(f);
 	}
 
-	void CompileNullMethod(IScriptSystem& ss, const IArchetype& nullMethod, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
+	void CompileNullMethod(IScriptSystem& ss, const IArchetype& nullMethod, IObjectInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
 	{
 		TokenBuffer qualifiedMethodName;
 		StringPrint(qualifiedMethodName, ("%s.%s"), nullObject.Name(), nullMethod.Name());
@@ -1986,7 +1986,7 @@ namespace Rococo::Script
 		f.Builder().Assembler().Clear();
 	}
 
-	void CompileNullObject(IScriptSystem& ss, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
+	void CompileNullObject(IScriptSystem& ss, IObjectInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
 	{
 		for(int i = 0; i < interf.MethodCount(); ++i)
 		{
@@ -2520,7 +2520,7 @@ namespace Rococo::Script
 
 		bool TryInlineIString()
 		{		
-			const IInterface& istring = programObject.Common().SysTypeIString();
+			const IObjectInterface& istring = programObject.Common().SysTypeIString();
 
 			for(auto k = scripts.begin(); k != scripts.end(); ++k)
 			{
@@ -3470,7 +3470,7 @@ namespace Rococo::Script
 		nullObject.AddMember(NameString::From(("_refCount")), TypeString::From(("Int64")));
 		nullObject.AddMember(NameString::From(("_vTable1")), TypeString::From(("Pointer")));
 
-		for (const IInterface* z = interf; z != NULL; z = z->Base())
+		for (const IObjectInterface* z = interf; z != NULL; z = z->Base())
 		{
 			if (AreEqual(z->NullObjectType().Name(), ("_Null_Sys_Type_IString")))
 			{
@@ -3984,7 +3984,7 @@ namespace Rococo::Script
 		ValidateArchetypeMatchesArchetype(src, *f, method, dottedName);
 	}
 
-	void ValidateClassImplementsInterface(const IInterface& interf, const IStructure& classType, cr_sex src)
+	void ValidateClassImplementsInterface(const IObjectInterface& interf, const IStructure& classType, cr_sex src)
 	{
 		for(int i = 0; i < interf.MethodCount(); ++i)
 		{

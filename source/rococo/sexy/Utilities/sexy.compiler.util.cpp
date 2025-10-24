@@ -115,7 +115,7 @@ namespace Rococo::Compiler
 
 		for(int i = 0; i < s.InterfaceCount(); ++i)
 		{
-			const IInterface& interf = s.GetInterface(i);
+			const IObjectInterface& interf = s.GetInterface(i);
 			if (AreEqual(interf.Name(), interfaceName))
 			{
 				for(int j = 0; j < interf.MethodCount(); ++j)
@@ -140,7 +140,7 @@ namespace Rococo::Compiler
 
 		for(int i = 0; i < s.InterfaceCount(); ++i)
 		{
-			const IInterface& interf = s.GetInterface(i);
+			const IObjectInterface& interf = s.GetInterface(i);
 				
 			for(int j = 0; j < interf.MethodCount(); ++j)
 			{
@@ -227,12 +227,12 @@ namespace Rococo::Compiler
 		return NULL;
 	}
 
-	SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IInterface& testInterf)
+	SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IObjectInterface& testInterf)
 	{
 		for(int i = 0; i < s.InterfaceCount(); ++i)
 		{
-			const IInterface& interf = s.GetInterface(i);
-			for(const IInterface* z = &interf; z != NULL; z = z->Base())
+			const IObjectInterface& interf = s.GetInterface(i);
+			for(const IObjectInterface* z = &interf; z != NULL; z = z->Base())
 			{
 				if (&testInterf == z)
 				{

@@ -35,7 +35,7 @@ namespace Rococo::Script
 {
 	size_t GetAlignmentPadding(int alignment, int objectSize);
 	
-	SCRIPTEXPORT_API bool IsIString(const IInterface& i)
+	SCRIPTEXPORT_API bool IsIString(const IObjectInterface& i)
 	{
 		if (Eq(i.NullObjectType().Name(), "_Null_Sys_Type_IString"))
 		{

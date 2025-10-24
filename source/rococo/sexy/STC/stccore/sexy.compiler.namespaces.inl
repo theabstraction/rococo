@@ -244,7 +244,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return NULL;
 	}
 
-	const IInterface* Namespace::FindInterface(cstr publicName) const
+	const IObjectInterface* Namespace::FindInterface(cstr publicName) const
 	{
 		auto i = interfaces.find(publicName);
 		if (i != interfaces.end())

@@ -651,9 +651,9 @@ namespace Rococo
 		   }
 	   }
 
-	   bool TryFormatIString(REF VariableDesc& desc, IN const ObjectStub& object, IN const IInterface& refInterf)
+	   bool TryFormatIString(REF VariableDesc& desc, IN const ObjectStub& object, IN const IObjectInterface& refInterf)
 	   {
-		   for (const Rococo::Compiler::IInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
+		   for (const Rococo::Compiler::IObjectInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
 		   {
 			   if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
 			   {

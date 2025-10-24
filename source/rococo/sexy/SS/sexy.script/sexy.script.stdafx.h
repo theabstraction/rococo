@@ -448,7 +448,7 @@ namespace Rococo
         void GetVariableByName(Compiler::ICodeBuilder& builder, OUT Compiler::MemberDef& def, cstr name, Sex::cr_sex src);
         void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end);
         Compiler::IModuleBuilder& GetModule(CScript& script);
-        void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, Compiler::ICodeBuilder& builder, const Compiler::IInterface& interf, Sex::cr_sex s, cstr localName);
+        void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, Compiler::ICodeBuilder& builder, const Compiler::IObjectInterface& interf, Sex::cr_sex s, cstr localName);
         int GetFirstOutputOffset(Compiler::ICodeBuilder& builder);
         Compiler::IModule& GetSysTypeMemoModule(CScript& script);
         Compiler::INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, cstr ns, Sex::cr_sex s);

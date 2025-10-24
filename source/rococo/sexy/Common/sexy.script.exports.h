@@ -19,7 +19,7 @@ namespace Rococo::Script
 	};
 #pragma pack(pop)
 
-	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IInterface& i);
+	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IObjectInterface& i);
 	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IStructure& typeDesc);
 	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(crwstr pathname);
 	SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(VM::CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss);

@@ -74,7 +74,7 @@ namespace Rococo
 {
 	namespace Script
 	{
-		int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf)
+		int GetIndexOfInterface(const IStructure& concreteClass, const IObjectInterface& interf)
 		{
 			for (int i = 0; i < concreteClass.InterfaceCount(); ++i)
 			{
@@ -94,9 +94,9 @@ namespace Rococo
 
 namespace Rococo::Compiler
 {
-	bool IsDerivedFrom(const IInterface& sub, const IInterface& super)
+	bool IsDerivedFrom(const IObjectInterface& sub, const IObjectInterface& super)
 	{
-		for (const IInterface* i = &sub; i != nullptr; i = i->Base())
+		for (const IObjectInterface* i = &sub; i != nullptr; i = i->Base())
 		{
 			if (i == &super) return true;
 		}
@@ -358,7 +358,7 @@ namespace Anon
 		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData) override;
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) override;
 
-		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface) override;
+		virtual void AddDynamicAllocateObject(const IStructure& structType, const IObjectInterface& interface) override;
 
 		bool TryAssignClassInterfaceToInterface(cstr source, cstr target, const IStructure* srcType, const IStructure*trgType);
 
@@ -421,7 +421,7 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface)
+	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType, const IObjectInterface& interface)
 	{
 		char sym[256];
 
@@ -1791,7 +1791,7 @@ namespace Anon
 				}
 			}
 
-			const IInterface& interf = def.ResolvedType->GetInterface(0);
+			const IObjectInterface& interf = def.ResolvedType->GetInterface(0);
 
 			if (!AreEqual("0", literalValue))
 			{

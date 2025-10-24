@@ -167,7 +167,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return (int) interfaceNames.size();
 	}
 
-	const IInterface& Structure::GetInterface(int index) const
+	const IObjectInterface& Structure::GetInterface(int index) const
 	{
 		return *interfaces[index];
 	}
@@ -423,7 +423,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			cstr body, publicName;
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
-				IInterface* interf = TryResolveInterfaceUsingPrefix(log, *this, name, reportErrors);
+				IObjectInterface* interf = TryResolveInterfaceUsingPrefix(log, *this, name, reportErrors);
 				if (interf == NULL)
 				{
 					*pSrcError = this->Definition();
@@ -865,7 +865,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	void Structure::FillVirtualTable(int interfaceIndex)
 	{
-		const IInterface& interf = GetInterface(interfaceIndex);
+		const IObjectInterface& interf = GetInterface(interfaceIndex);
 
 		auto& obj = module.Object();
 		auto* programStart = obj.ProgramMemory().StartOfMemory();
@@ -929,7 +929,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 			else
 			{
-				const IInterface& interf = GetInterface(interfaceIndex - 1);
+				const IObjectInterface& interf = GetInterface(interfaceIndex - 1);
 				virtualTables[interfaceIndex] = (ID_BYTECODE*) AllocateSexyMemory(sizeof ID_BYTECODE * (interf.MethodCount() + 1));
 
 				const int offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * (interfaceIndex - 1);

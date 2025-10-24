@@ -63,7 +63,7 @@ namespace Rococo::Domme
 		} scriptContext;
 
 		const Rococo::Compiler::IStructure* concreteType = nullptr;
-		const Rococo::Compiler::IInterface* interface0 = nullptr;
+		const Rococo::Compiler::IObjectInterface* interface0 = nullptr;
 
 		Rococo::Compiler::ObjectStub* objectStub = nullptr;
 

@@ -35,7 +35,7 @@ namespace Rococo
 {
    namespace Script
    {
-	  int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf);
+	  int GetIndexOfInterface(const IStructure& concreteClass, const IObjectInterface& interf);
 
       const IFactory* GetFactoryInModuleByFQN(cr_sex factoryExpr, cstr ns, cstr shortName, IModule& module, bool throwIfNotFound = false)
       {
@@ -126,7 +126,7 @@ namespace Rococo
 		  }
 	  }
 
-      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfaceRefName, cr_sex args, const IInterface& interf)
+      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfaceRefName, cr_sex args, const IObjectInterface& interf)
       {
          const IFunction& factoryFunction = factory.Constructor();
 
@@ -217,7 +217,7 @@ namespace Rococo
 
       void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, cstr interfaceRefName, cr_sex args)
       {
-         // This function turns (<IInterface> id (<Factory> <arg1>...<argN>)) into assembly
+         // This function turns (<IObjectInterface> id (<Factory> <arg1>...<argN>)) into assembly
 
          AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(nullType), interfaceRefName);
 

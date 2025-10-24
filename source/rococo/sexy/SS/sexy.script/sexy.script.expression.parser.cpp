@@ -118,11 +118,11 @@ namespace Rococo
 
 			if (argType.InterfaceCount() == 0) return -1; // -1 incompatable types
 
-			const IInterface& argInterf = argType.GetInterface(0);
+			const IObjectInterface& argInterf = argType.GetInterface(0);
 
 			for(int i = 0; i < object.InterfaceCount(); ++i)
 			{
-				const IInterface& objectInterf = object.GetInterface(i);
+				const IObjectInterface& objectInterf = object.GetInterface(i);
 
 				for (auto* I = &objectInterf; I != nullptr; I = I->Base())
 				{
@@ -2102,7 +2102,7 @@ namespace Rococo
 			const IStructure* st = MatchStructure(typeExpr, source);
 			if (st == NULL)
 			{
-				const IInterface* interf = MatchInterface(typeExpr, source);
+				const IObjectInterface* interf = MatchInterface(typeExpr, source);
 				if (interf != NULL)
 				{
 					st = &interf->NullObjectType();
@@ -2440,7 +2440,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileConstructInterfaceCall(CCompileEnvironment& ce, const IFunction& constructor, const IInterface& targetInterface, const IStructure& classType, cr_sex s)
+		void CompileConstructInterfaceCall(CCompileEnvironment& ce, const IFunction& constructor, const IObjectInterface& targetInterface, const IStructure& classType, cr_sex s)
 		{
 			// (construct class-name arg1 arg2 ... argN)
 			// D4 contained InterfacePointer*, the effective output variable
@@ -2475,7 +2475,7 @@ namespace Rococo
 			ce.Builder.AssignClosureParentSFtoD6();
 		}
 
-		int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf);
+		int GetIndexOfInterface(const IStructure& concreteClass, const IObjectInterface& interf);
 
 		void CompileConstructInterfaceCall(CCompileEnvironment& ce, cr_sex s)
 		{
@@ -2491,7 +2491,7 @@ namespace Rococo
 			sexstring className = classNameExpr.String();
 		
 			const IStructure& classType = GetClass(classNameExpr, ce.Script);	
-			const IInterface& thisInterf = ce.factory->ThisInterface();
+			const IObjectInterface& thisInterf = ce.factory->ThisInterface();
 			const IFunction& constructor = GetConstructor(classType, classNameExpr);
 
 			int index = Rococo::Script::GetIndexOfInterface(classType, thisInterf);
@@ -2521,7 +2521,7 @@ namespace Rococo
 
 			IFunction& fnDynCast = GetFunctionByFQN(ce, *toNameExpr.Parent(), ("Sys.Native._DynamicCast"));
 
-			const IInterface& castToInterf = toType.GetInterface(0);
+			const IObjectInterface& castToInterf = toType.GetInterface(0);
 			cstr castToInterfName = castToInterf.Name();
 
 			VariantValue v;
@@ -3089,7 +3089,7 @@ namespace Rococo
 		void ReturnVariableInterface(CCompileEnvironment& ce, const MemberDef& def, cr_sex exceptionSource, cstr sourceName, cstr outputName, const MemberDef& output)
 		{
 			const IStructure& src = *def.ResolvedType;
-			const IInterface& outputInterface = src.GetInterface(0);
+			const IObjectInterface& outputInterface = src.GetInterface(0);
 
 			if (!IsNullType(src))
 			{
@@ -3338,7 +3338,7 @@ namespace Rococo
 				Throw(s, "String assign failed: cannot find %s", variableName);
 			}
 
-			const IInterface& istring = ce.Object.Common().SysTypeIString();
+			const IObjectInterface& istring = ce.Object.Common().SysTypeIString();
 			if (def.ResolvedType != &istring.NullObjectType())
 			{
 				Throw(s, "Cannot assign a string to %s - not a Sys.Type.IString", variableName);
