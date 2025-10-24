@@ -7,7 +7,7 @@
 #include <sexy.script.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
-#include <..\STC\stccore\Sexy.Compiler.h>
+#include <Sexy.Compiler.h>
 #include <sexy.compiler.public.h>
 #include <rococo.sexy.api.h>
 

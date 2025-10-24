@@ -1,5 +1,5 @@
 #include "sexy.script.stdafx.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include "Sexy.Compiler.h"
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 

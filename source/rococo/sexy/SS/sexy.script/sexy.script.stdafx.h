@@ -51,7 +51,7 @@
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 #include <sexy.unordered_map.h>
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include "Sexy.Compiler.h"
 #include <rococo.hashtable.h>
 #include <sexy.vector.h>
 #include <sexy.compiler.public.h>

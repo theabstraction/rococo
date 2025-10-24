@@ -260,7 +260,7 @@ namespace Anon
 		TSexyHashMap<size_t, cstr, std::hash<size_t>, std::equal_to<size_t>> mapGotoStatementsToLabels;
 	public:
 		CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF);
-		~CodeBuilder(void);
+		virtual ~CodeBuilder(void);
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 

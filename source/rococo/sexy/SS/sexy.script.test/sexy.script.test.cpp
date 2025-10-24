@@ -63,7 +63,7 @@
 #include "sexy.script.h"
 #include "sexy.script.exports.h"
 #include "Sexy.S-Parser.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include "Sexy.Compiler.h"
 #include <rococo.api.h>
 #include <sexy.dispatch.inl>
 #include <rococo.package.h>
