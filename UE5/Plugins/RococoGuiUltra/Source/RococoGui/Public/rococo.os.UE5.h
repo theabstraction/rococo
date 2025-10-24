@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Mark Anthony Taylor. All rights reserved. Email: mark.anthony.taylor@gmail.com
+
 #pragma once
 
 #ifndef ROCOCO_UE5_EXPORT

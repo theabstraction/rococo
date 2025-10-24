@@ -252,7 +252,7 @@
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\uvcode.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\3rd-Party\libtiff\bloke.tiff.cpp" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\tiff.readimage.cpp" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_aux.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_close.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_codec.c" />

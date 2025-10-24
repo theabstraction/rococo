@@ -4,10 +4,11 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using static System.Net.WebRequestMethods;
 
 namespace Rococo
 {
-    internal class RococoBuilder
+    public class RococoBuilder
     {
         protected readonly string rococoIncludeDirectory;
         protected readonly string rococoSexyIncludeDirectory;
@@ -17,14 +18,14 @@ namespace Rococo
         protected readonly string rococoConfigPath;
         protected readonly string thirdPartyPath;
 
-        public RococoBuilder()
+        public RococoBuilder(string homeToPlugins)
         {
             string userLocalApps = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             rococoConfigPath = Path.Combine(userLocalApps, "19th-Century-Software", "Rococo.cfg");
 
-            if (File.Exists(rococoConfigPath))
+            if (System.IO.File.Exists(rococoConfigPath))
             {
-                rococoHomeDirectory = File.ReadAllText(rococoConfigPath);
+                rococoHomeDirectory = System.IO.File.ReadAllText(rococoConfigPath);
                 rococoHomeDirectory = rococoHomeDirectory.Trim();
                 if (!Directory.Exists(rococoHomeDirectory))
                 {
@@ -57,7 +58,7 @@ namespace Rococo
                 throw new System.Exception("Could not find rococo include directory" + rococoIncludeDirectory);
             }
 
-            pluginDirectory = Path.Join(rococoHomeDirectory, "UE5", "RococoTestFPS", "Plugins");
+            pluginDirectory = Path.Join(rococoHomeDirectory, homeToPlugins);
 
             if (!Directory.Exists(pluginDirectory))
             {
@@ -105,14 +106,14 @@ namespace Rococo
 
             if (prelude != null)
             {
-                sb.AppendLine(File.ReadAllText(Path.Combine(pluginSourceDirectory, prelude)));
+                sb.AppendLine(System.IO.File.ReadAllText(Path.Combine(pluginSourceDirectory, prelude)));
             }
 
             foreach (var sourceName in sourceNames)
             {
                 string fullPath = Path.Combine(rococoSourceDirectory, sourceDirectory, sourceName);
                 fullPath = fullPath.Replace("\\", "/");
-                if (!File.Exists(fullPath))
+                if (!System.IO.File.Exists(fullPath))
                 {
                     throw new System.Exception("Could not find bundle file " + fullPath);
                 }
@@ -122,7 +123,7 @@ namespace Rococo
 
             if (postlude != null)
             {
-                sb.AppendLine(File.ReadAllText(Path.Combine(pluginSourceDirectory, postlude)));
+                sb.AppendLine(System.IO.File.ReadAllText(Path.Combine(pluginSourceDirectory, postlude)));
             }
 
             string fullBundlePath = Path.Combine(pluginSourceDirectory, bundleName);
@@ -178,7 +179,7 @@ namespace Rococo
             {
                 sb.AppendFormat("// Origin: {0}", fullpath);
                 sb.AppendLine();
-                sb.AppendLine(File.ReadAllText(fullpath));
+                sb.AppendLine(System.IO.File.ReadAllText(fullpath));
             }
         }
 
@@ -197,12 +198,12 @@ namespace Rococo
 
                 if (prelude != null)
                 {
-                    sb.AppendLine(File.ReadAllText(Path.Combine(pluginSourceDirectory, prelude)));
+                    sb.AppendLine(System.IO.File.ReadAllText(Path.Combine(pluginSourceDirectory, prelude)));
                 }
 
                 string fullPath = Path.Combine(rococoSourceDirectory, sourceDirectory, sourceName);
                 fullPath = fullPath.Replace("\\", "/");
-                if (!File.Exists(fullPath))
+                if (!System.IO.File.Exists(fullPath))
                 {
                     throw new System.Exception("Could not find bundle file " + fullPath);
                 }
@@ -211,7 +212,7 @@ namespace Rococo
 
                 if (postlude != null)
                 {
-                    sb.AppendLine(File.ReadAllText(Path.Combine(pluginSourceDirectory, postlude)));
+                    sb.AppendLine(System.IO.File.ReadAllText(Path.Combine(pluginSourceDirectory, postlude)));
                 }
 
                 string wrappedPath = Path.Combine(pluginSourceDirectory, root + sourceName);
@@ -241,19 +242,19 @@ namespace Rococo
         {
             string textToWrite = GetStringWithNormalizeLineEndings(sb);
 
-            if (File.Exists(filePath))
+            if (System.IO.File.Exists(filePath))
             {
-                string existingText = File.ReadAllText(filePath);
+                string existingText = System.IO.File.ReadAllText(filePath);
                 if (textToWrite != existingText)
                 {
                     Console.WriteLine("Overwrite: {0}", filePath);
-                    File.WriteAllText(filePath, textToWrite);
+                    System.IO.File.WriteAllText(filePath, textToWrite);
                 }
             }
             else
             {
                 Console.WriteLine("Add:       {0}", filePath);
-                File.WriteAllText(filePath, textToWrite);
+                System.IO.File.WriteAllText(filePath, textToWrite);
             }
         }
 
@@ -349,7 +350,7 @@ namespace Rococo
             StringBuilder sb = new StringBuilder();
             AppendBanner(sb);
 
-            string srcText = File.ReadAllText(sourceFile);
+            string srcText = System.IO.File.ReadAllText(sourceFile);
             sb.AppendLine(srcText.Replace(srcToken, trgToken));
 
             WriteUpdated(sb, targetFile);
@@ -362,7 +363,7 @@ namespace Rococo
             StringBuilder sb = new StringBuilder();
             AppendBanner(sb);
 
-            string srcText = File.ReadAllText(sourceFile);
+            string srcText = System.IO.File.ReadAllText(sourceFile);
             sb.AppendLine(srcText.Replace(srcToken, trgToken));
 
             WriteUpdated(sb, targetFile);
@@ -381,11 +382,23 @@ namespace Rococo
             WriteUpdated(sb, targetFile);
         }
 
-        protected void CopyFilesToSource(string sourceDirectory, string absDirectory, List<string> filenames)
+        protected void CopyFilesToSource(string sourceDirectory, string targetAbsDirectory, List<string> filenames)
         {
             foreach (string f in filenames)
             {
-                CopyFileToSource(sourceDirectory, absDirectory, f);
+                CopyFileToSource(sourceDirectory, targetAbsDirectory, f);
+            }
+        }
+
+        protected void CopyFilesToSourceMatching(string sourceDirectory, string targetAbsDirectory, string filter)
+        {
+            foreach (var file in Directory.EnumerateFiles(sourceDirectory, filter))
+            {
+                if (file != null)
+                {
+                    string filename = Path.GetFileName(file);
+                    CopyFileToSource(sourceDirectory, targetAbsDirectory, filename);
+                }
             }
         }
     }

@@ -4,6 +4,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rococo.UE5.Build.RococoGUI", "Rococo.UE5.Build.RococoGUI\Rococo.UE5.Build.RococoGUI.csproj", "{C4ABAF90-A4F0-487F-8319-3F3BF8EAF4E6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE78D7D6-4F89-444F-B7A2-BE84000A007D} = {FE78D7D6-4F89-444F-B7A2-BE84000A007D}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rococo.UE5.Build.SexyScript", "Rococo.UE5.Build.SexyScript\Rococo.UE5.Build.SexyScript.csproj", "{6498C3A1-34D4-4F6A-A32A-BCFD93B2D38B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rococo.UE5.Build.Core", "Rococo.UE5.Build.Core\Rococo.UE5.Build.Core.csproj", "{FE78D7D6-4F89-444F-B7A2-BE84000A007D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +22,14 @@ Global
 		{C4ABAF90-A4F0-487F-8319-3F3BF8EAF4E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4ABAF90-A4F0-487F-8319-3F3BF8EAF4E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4ABAF90-A4F0-487F-8319-3F3BF8EAF4E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6498C3A1-34D4-4F6A-A32A-BCFD93B2D38B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6498C3A1-34D4-4F6A-A32A-BCFD93B2D38B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6498C3A1-34D4-4F6A-A32A-BCFD93B2D38B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6498C3A1-34D4-4F6A-A32A-BCFD93B2D38B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE78D7D6-4F89-444F-B7A2-BE84000A007D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE78D7D6-4F89-444F-B7A2-BE84000A007D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE78D7D6-4F89-444F-B7A2-BE84000A007D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE78D7D6-4F89-444F-B7A2-BE84000A007D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

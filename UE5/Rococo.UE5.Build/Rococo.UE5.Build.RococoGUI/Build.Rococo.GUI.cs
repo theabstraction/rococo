@@ -37,7 +37,7 @@ namespace Rococo
 
     internal class RococoGUIBuilder: RococoBuilder
     {
-        public RococoGUIBuilder()
+        public RococoGUIBuilder() : base(Path.Join("UE5", "RococoTestFPS", "Plugins"))
         {
             AppendFileByLink = true;
         }
@@ -296,7 +296,7 @@ namespace Rococo
             CreateSeparateFilesDirect(tiffSourceDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/",
                 new List<string>()
                 {
-                "bloke.tiff.cpp"
+                    "tiff.readimage.cpp"
                 }
             );
         }
@@ -396,8 +396,8 @@ namespace Rococo
             CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
                 new List<string>()
                 {
-                    "readimage.cpp",
-                    "writeimage.cpp"
+                    "jpg.readimage.cpp",
+                    "jpg.writeimage.cpp"
                 }
             );
         }

@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+using System.IO;
 using UnrealBuildTool;
 
 public class RococoGui : ModuleRules
@@ -12,15 +13,17 @@ public class RococoGui : ModuleRules
 
         PublicIncludePaths.AddRange(
 			new string[] {
-				// ... add public include paths required here ...
-			}
+				}
 			);
+			
+		var jpegDir = new EpicGames.Core.DirectoryReference(Path.Join(PluginDirectory, "Source/ThirdParty/jpeg-6b"));
 				
+		ConditionalAddModuleDirectory(jpegDir);				
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				// ... add other private include paths required here ...
-			}
+				"ThirdParty/jpeg-6b"
+				}
 			);
 			
 		this.ForceIncludeFiles.Add("rococo.UE5.h");
