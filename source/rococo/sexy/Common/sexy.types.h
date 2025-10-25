@@ -411,4 +411,15 @@ namespace Rococo::Debugger
 	DECLARE_ROCOCO_INTERFACE IRegisterEnumerationCallback;
 }
 
+namespace Rococo::Script
+{
+	struct ExceptionHandler
+	{
+		ID_BYTECODE FunctionId;
+		size_t Start;
+		size_t End;
+		size_t HandlerOffset;
+	};
+}
+
 #endif

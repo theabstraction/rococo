@@ -41,8 +41,6 @@
 #define THIS_IS_THE_SEXY_CORE_LIBRARY
 #define IS_SCRIPT_DLL 1
 
-#define SEXY_SPARSER_API
-
 #include <sexy.types.h>
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>

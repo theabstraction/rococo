@@ -31,6 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
+#ifndef SUPPRESS_ROCOCO_MODULE_ALLOCATORS
 #include <allocators/rococo.allocators.dll.inl>
 
 DEFINE_DLL_IALLOCATOR(utilsAllocator)
@@ -41,3 +42,4 @@ DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(utilsAllocator, 128, SexyUtils)
 DeclareAllocator(TrackingAllocator, SexyUtils, g_allocator)
 Rococo::Memory::AllocatorMonitor<SexyUtils> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
+#endif

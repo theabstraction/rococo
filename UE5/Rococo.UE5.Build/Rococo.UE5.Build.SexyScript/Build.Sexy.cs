@@ -45,6 +45,7 @@ namespace Rococo.UE5.Build.SexyScript
         {
             string sexyPluginPrivateSrcCode = Path.Join(sexyPluginDirectory, "Source", "RococoScript", "Private");
             string sexyPluginPublicSrcCode = Path.Join(sexyPluginDirectory, "Source", "RococoScript", "Public");
+            string sexyThirdPartyRococoSrcCode = Path.Join(sexyPluginDirectory, "Source", "ThirdParty", "Rococo");
 
             string sexyPluginSSSrcCode = Path.Join(sexyPluginPrivateSrcCode, "SS");
 
@@ -61,16 +62,16 @@ namespace Rococo.UE5.Build.SexyScript
             base.CopyFilesToSourceMatching(sexyPluginSPSrcCode, rococoSexySParserPath, "*.inl");
 
             string rococoSexyCoroutinesPath = Path.Join(sexyDirectory, "SS", "sexy.nativelib.coroutines");
-            base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, rococoSexyCoroutinesPath, "*.cpp");
-            base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, rococoSexyCoroutinesPath, "*.inl");
+            base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Coroutines"), rococoSexyCoroutinesPath, "*.cpp");
+            base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Coroutines"), rococoSexyCoroutinesPath, "*.inl");
 
             string rococoSexyMathsPath = Path.Join(sexyDirectory, "SS", "sexy.nativelib.maths");
-            base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, rococoSexyMathsPath, "*.cpp");
-            base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, rococoSexyMathsPath, "*.inl");
+            base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Maths"), rococoSexyMathsPath, "*.cpp");
+            base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Maths"), rococoSexyMathsPath, "*.inl");
 
             string rococoSexyReflectionPath = Path.Join(sexyDirectory, "SS", "sexy.nativelib.reflection");
-            base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, rococoSexyReflectionPath, "*.cpp");
-            base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, rococoSexyReflectionPath, "*.inl");
+            base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Reflection"), rococoSexyReflectionPath, "*.cpp");
+            base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Reflection"), rococoSexyReflectionPath, "*.inl");
 
             string sexyPluginSTCSrcCode = Path.Join(sexyPluginPrivateSrcCode, "STC");
             string rococoSexySTCPath = Path.Join(sexyDirectory, "STC", "stccore");
@@ -91,12 +92,7 @@ namespace Rococo.UE5.Build.SexyScript
 
             string rococoPluginBase = Path.Join(sexyPluginPrivateSrcCode, "RococoBase");
 
-            CreateBundleDirect(rococoPluginBase, "wrap.s-utils.cpp", "rococo.UE5.h", null, null, "rococo/sexy/Utilities",
-                new List<string>()
-                {
-                    "sexy.util.cpp"
-                }
-            );
+            CopyFilesToSourceMatching(Path.Join(sexyPluginPrivateSrcCode, "SexyUtils"), Path.Join(sexyDirectory, "Utilities"), "*.cpp");
 
             CreateBundleDirect(rococoPluginBase, "wrap.rococo_util.cpp", "rococo.os.UE5.h", CodeGenPath("rococo.os.UE5.prelude.h"), CodeGenPath("rococo.os.UE5.postlude.h"), "rococo/rococo.util",
                 new List<string>()

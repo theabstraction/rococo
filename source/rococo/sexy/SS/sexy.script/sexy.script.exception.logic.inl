@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#pragma once
+
 namespace Rococo::Script
 {
 	void ReleaseMap(MapImage* m, IScriptSystem& ss);
@@ -39,14 +41,6 @@ namespace Rococo::Script
 	{
 		uint8* ContainerPtr;
 		int32 locMemberOffset;
-	};
-
-	struct ExceptionHandler
-	{
-		ID_BYTECODE FunctionId;
-		size_t Start;
-		size_t End;
-		size_t HandlerOffset;
 	};
 
 #pragma pack(push,1)
@@ -66,7 +60,7 @@ namespace Rococo::Script
 		int size = type.SizeOfStruct();
 		for(int i = 0; i < type.InterfaceCount(); ++i)
 		{
-			size = std::max(type.GetInterface(i).NullObjectType().SizeOfStruct(), size);
+			size = Rococo::max(type.GetInterface(i).NullObjectType().SizeOfStruct(), size);
 		}
 
 		return size;
