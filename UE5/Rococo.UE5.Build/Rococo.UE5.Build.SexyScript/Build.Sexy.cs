@@ -47,16 +47,16 @@ namespace Rococo.UE5.Build.SexyScript
             string sexyPluginPublicSrcCode = Path.Join(sexyPluginDirectory, "Source", "RococoScript", "Public");
             string sexyThirdPartyRococoSrcCode = Path.Join(sexyPluginDirectory, "Source", "ThirdParty", "Rococo");
 
-            string sexyPluginSSSrcCode = Path.Join(sexyPluginPrivateSrcCode, "SS");
+            string sexyPluginSSSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "SS");
 
             string ssDirectory = Path.Join(sexyDirectory, "SS" , "sexy.script");
             base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, ssDirectory, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, ssDirectory, "*.inl");
 
-            string sexyPluginHeaders = Path.Join(sexyPluginPrivateSrcCode, "SexyAPI");
+            string sexyPluginHeaders = Path.Join(sexyThirdPartyRococoSrcCode, "SexyAPI");
             base.CopyFilesToSourceMatching(sexyPluginHeaders, rococoSexyIncludeDirectory, "*.h");
 
-            string sexyPluginSPSrcCode = Path.Join(sexyPluginPrivateSrcCode, "SP");
+            string sexyPluginSPSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "SP");
             string rococoSexySParserPath = Path.Join(sexyDirectory, "SP", "sexy.s-parser");
             base.CopyFilesToSourceMatching(sexyPluginSPSrcCode, rococoSexySParserPath, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSPSrcCode, rococoSexySParserPath, "*.inl");
@@ -73,28 +73,28 @@ namespace Rococo.UE5.Build.SexyScript
             base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Reflection"), rococoSexyReflectionPath, "*.cpp");
             base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Reflection"), rococoSexyReflectionPath, "*.inl");
 
-            string sexyPluginSTCSrcCode = Path.Join(sexyPluginPrivateSrcCode, "STC");
+            string sexyPluginSTCSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "STC");
             string rococoSexySTCPath = Path.Join(sexyDirectory, "STC", "stccore");
             base.CopyFilesToSourceMatching(sexyPluginSTCSrcCode, rococoSexySTCPath, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSTCSrcCode, rococoSexySTCPath, "*.inl");
             base.CopyFilesToSourceMatching(sexyPluginHeaders, rococoSexySTCPath, "*.h");
 
-            string sexyPluginSVMSrcCode = Path.Join(sexyPluginPrivateSrcCode, "SVM");
+            string sexyPluginSVMSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "SVM");
             string rococoSexySVMPath = Path.Join(sexyDirectory, "SVM", "svmcore");
             base.CopyFilesToSourceMatching(sexyPluginSVMSrcCode, rococoSexySVMPath, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSVMSrcCode, rococoSexySVMPath, "*.inl");
 
-            string rococoPluginHeaders = Path.Join(sexyPluginPrivateSrcCode, "RococoAPI");
+            string rococoPluginHeaders = Path.Join(sexyThirdPartyRococoSrcCode, "RococoAPI");
             base.CopyFilesToSourceMatching(rococoPluginHeaders, rococoIncludeDirectory, "*.h");
 
-            string rococoAllocationPluginHeaders = Path.Join(sexyPluginPrivateSrcCode, "RococoAPI", "allocators");
+            string rococoAllocationPluginHeaders = Path.Join(sexyThirdPartyRococoSrcCode, "RococoAPI", "allocators");
             base.CopyFilesToSourceMatching(rococoAllocationPluginHeaders, Path.Join(rococoIncludeDirectory, "allocators"), "*.h");
 
-            string rococoPluginBase = Path.Join(sexyPluginPrivateSrcCode, "RococoBase");
+            string rococoPluginOS = Path.Join(sexyThirdPartyRococoSrcCode, "RococoOS");
 
-            CopyFilesToSourceMatching(Path.Join(sexyPluginPrivateSrcCode, "SexyUtils"), Path.Join(sexyDirectory, "Utilities"), "*.cpp");
+            CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyUtils"), Path.Join(sexyDirectory, "Utilities"), "*.cpp");
 
-            CreateBundleDirect(rococoPluginBase, "wrap.rococo_util.cpp", "rococo.os.UE5.h", CodeGenPath("rococo.os.UE5.prelude.h"), CodeGenPath("rococo.os.UE5.postlude.h"), "rococo/rococo.util",
+            CreateBundleDirect(rococoPluginOS, "wrap.rococo_util.cpp", "rococo.os.UE5.h", CodeGenPath("rococo.os.UE5.prelude.h"), CodeGenPath("rococo.os.UE5.postlude.h"), "rococo/rococo.util",
                 new List<string>()
                 {
                     "rococo.strings.cpp",
