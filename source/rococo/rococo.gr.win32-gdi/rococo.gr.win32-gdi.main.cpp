@@ -1842,14 +1842,14 @@ namespace GRANON
 			static_assert(sizeof(GRCursorClick) == sizeof(uint16));
 
 			history.clear();
-			if (me.buttonFlags != 0)
+			if (me.data.buttonFlags != 0)
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData, context };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.data.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.data.buttonData, context };
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0, context };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.data.buttonFlags, EGRCursorIcon::Arrow, 0, context };
 				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)

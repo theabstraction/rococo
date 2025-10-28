@@ -142,7 +142,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.util.lib</ImportLibrary>
@@ -227,7 +228,8 @@
       <AdditionalDependencies>;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.util.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.util.lib</ImportLibrary>
@@ -251,7 +253,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.package.zip.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.parsering.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.reflection.cpp" />
@@ -261,6 +263,9 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.throw.cr_sex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.windows.ide.stdout.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\sha256.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.util\rococo.os.win32.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

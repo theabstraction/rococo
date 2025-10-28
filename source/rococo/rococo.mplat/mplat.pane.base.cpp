@@ -135,7 +135,7 @@ void BasePane::AppendEventToChildren(IPublisher& publisher, const MouseEvent& me
 				}
 				else
 				{
-					int dz = ((int32)(short)me.buttonData) / 120;
+					int dz = ((int32)(short)me.data.buttonData) / 120;
 					populate.renderElement->OnMouseMove(me.cursorPos, { me.dx, me.dy }, dz);
 				}
 			}

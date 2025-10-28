@@ -17,8 +17,9 @@ namespace Rococo::Memory
 	public:
 		size_t totalFreed = 0;
 		AllocatorMetrics stats;
+		AllocatorFunctions& allocatorFunctions;
 
-		DeepTrackingAllocator()
+		DeepTrackingAllocator(AllocatorFunctions& _allocatorFunctions): allocatorFunctions(_allocatorFunctions)
 		{
 			Rococo::Debugging::Log("Constructed deep tracking allocator: %s\n", __FUNCSIG__);
 		}
@@ -176,7 +177,7 @@ namespace Rococo::Memory
 				AddProblemTracker(nBytes);
 			}
 
-			auto* data = moduleAllocatorFunctions.Allocate(nBytes);
+			auto* data = allocatorFunctions.Allocate(nBytes);
 			
 			// We could add a test for logFlags.LogLeaks here, but the use of this template implies the developer is looking at leaks anyway, so skip the test
 			AddTrackingData(data, nBytes, true);
@@ -235,7 +236,7 @@ namespace Rococo::Memory
 				}
 
 				stats.usefulFrees++;
-				moduleAllocatorFunctions.Free(buffer);
+				allocatorFunctions.Free(buffer);
 			}
 			else
 			{

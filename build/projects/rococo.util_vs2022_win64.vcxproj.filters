@@ -9,7 +9,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.observer.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.ex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.mac.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.win32.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.package.zip.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.parsering.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.reflection.cpp" />
@@ -25,5 +25,8 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\source\rococo\rococo.util\rococo.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\rococo.util\rococo.os.win32.inl" />
   </ItemGroup>
 </Project>

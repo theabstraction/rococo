@@ -623,10 +623,10 @@ namespace Rococo
 			}
 
 			uint64 high = ((uint64)data.nFileSizeHigh) & 0x00000000FFFFFFFF;
-			uint64 low  = ((uint64)data.nFileSizeLow) & 0x00000000FFFFFFFF;
+			uint64 low = ((uint64)data.nFileSizeLow) & 0x00000000FFFFFFFF;
 			uint64 len = (high << 32) + low;
 			attr.fileLength = len;
-			
+
 			FILETIME ft = data.ftLastWriteTime;
 
 			SYSTEMTIME t;
@@ -673,14 +673,14 @@ namespace Rococo
 
 namespace
 {
-	class CriticalSection: public Rococo::OS::ICriticalSection
+	class CriticalSection : public Rococo::OS::ICriticalSection
 	{
 	private:
 		Rococo::OS::CriticalSectionMemorySource src;
 		CRITICAL_SECTION cs;
 
 	public:
-		CriticalSection(Rococo::OS::CriticalSectionMemorySource _src): src(_src)
+		CriticalSection(Rococo::OS::CriticalSectionMemorySource _src) : src(_src)
 		{
 			InitializeCriticalSection(&cs);
 		}
@@ -875,7 +875,7 @@ namespace Rococo::OS
 			}
 		}
 
-		auto result = (INT_PTR) ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
+		auto result = (INT_PTR)ShellExecuteA(NULL, "open", documentFilePath, NULL, NULL, SW_SHOW);
 		if (result < 32)
 		{
 			Throw(GetLastError(), "%s: '%s'", __ROCOCO_FUNCTION__, documentFilePath);
@@ -896,7 +896,7 @@ namespace Rococo::OS
 
 	ROCOCO_API IdThread GetCurrentThreadIdentifier()
 	{
-		return (IdThread) GetCurrentThreadId();
+		return (IdThread)GetCurrentThreadId();
 	}
 
 	ROCOCO_API ICriticalSection* CreateCriticalSection(CriticalSectionMemorySource src)
@@ -945,7 +945,7 @@ namespace Rococo::OS
 
 			void QueueAPC(FN_APC apc, void* context) override
 			{
-				QueueUserAPC((PAPCFUNC) apc, (HANDLE)hThread, (ULONG_PTR) context); 
+				QueueUserAPC((PAPCFUNC)apc, (HANDLE)hThread, (ULONG_PTR)context);
 			}
 
 			cstr GetErrorMessage(int& err) const override
@@ -1097,7 +1097,7 @@ namespace Rococo::OS
 
 	ROCOCO_API cstr GetAsciiCommandLine()
 	{
-		auto line =  GetCommandLineA();
+		auto line = GetCommandLineA();
 		return line;
 	}
 
@@ -1166,7 +1166,7 @@ namespace Rococo::OS
 
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode)
 	{
-		if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, (DWORD) sizeofBuffer, nullptr))
+		if (!FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, 0, message, (DWORD)sizeofBuffer, nullptr))
 		{
 			SafeFormat(message, sizeofBuffer, "Unknown error");
 		}
@@ -1177,7 +1177,7 @@ namespace Rococo::OS
 			{
 			}
 
-			if (s > message+1 && s[-1] == '\n')
+			if (s > message + 1 && s[-1] == '\n')
 			{
 				s[-1] = 0;
 				s[-2] = 0;
@@ -1247,7 +1247,7 @@ namespace WIN32_ANON
 	{
 		enum { CAPACITY = 260 };
 		char data[CAPACITY];
-		operator char*() { return data; }
+		operator char* () { return data; }
 		operator cstr() const { return data; }
 	};
 
@@ -1488,7 +1488,7 @@ namespace WIN32_ANON
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
 			size_t contentDirLength = wcslen(contentDirectory);
-			
+
 			if (0 != _wcsnicmp(sysPath, contentDirectory, wcslen(contentDirectory)))
 			{
 				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with the content folder %ls", sysPath, contentDirectory.buf);
@@ -1513,7 +1513,7 @@ namespace WIN32_ANON
 
 			ConvertSysPathToPingPath(wSysPath, OUT REF pingPath);
 		}
-		
+
 		bool TryExpandMacro(cstr macroPrefixPlusPath, U8FilePath& expandedPath) override
 		{
 			auto slash = GetFirstSlash(macroPrefixPlusPath + 1);
@@ -1707,12 +1707,12 @@ namespace WIN32_ANON
 			if (isRunning)
 			{
 				isRunning = false;
-				struct wake 
-				{ 
-					static VOID CALLBACK me(ULONG_PTR param) 
+				struct wake
+				{
+					static VOID CALLBACK me(ULONG_PTR param)
 					{
 						UNUSED(param);
-					} 
+					}
 				};
 				QueueUserAPC(wake::me, HANDLE(hThread), 0);
 				WaitForSingleObject(HANDLE(hThread), 5000);
@@ -1727,7 +1727,7 @@ namespace WIN32_ANON
 			delete this;
 		}
 
-		void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs> &cb) override
+		void EnumerateModifiedFiles(IEventCallback<FileModifiedArgs>& cb) override
 		{
 			int64 timeoutInSeconds = 1;
 			auto timeout = Rococo::Time::TickHz() * timeoutInSeconds;
@@ -1742,7 +1742,7 @@ namespace WIN32_ANON
 				// N.B the Windows API for scanning file changes will typically send multiple events
 				// for the same file change, so we ignore the superfluous notifications in the same period
 
-				auto i = lastModifiedList.insert(std::pair<const std::wstring, Rococo::Time::ticks>(f, Rococo::Time::TickCount() ) );
+				auto i = lastModifiedList.insert(std::pair<const std::wstring, Rococo::Time::ticks>(f, Rococo::Time::TickCount()));
 				if (i.second == false)
 				{
 					// already in list
@@ -1849,7 +1849,7 @@ namespace WIN32_ANON
 				int QueueScan()
 				{
 					DWORD dwNotifyFilter = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE;
-					if (!ReadDirectoryChangesW(hMonitorDirectory, raw.data(), (DWORD) raw.size(), TRUE, dwNotifyFilter, &bytesReturned, &ovl, OnScan))
+					if (!ReadDirectoryChangesW(hMonitorDirectory, raw.data(), (DWORD)raw.size(), TRUE, dwNotifyFilter, &bytesReturned, &ovl, OnScan))
 					{
 						return GetLastError();
 					}
@@ -1880,7 +1880,7 @@ namespace WIN32_ANON
 			return c.exitCode;
 		}
 
-		static unsigned _stdcall thread_monitor_directory(void *context)
+		static unsigned _stdcall thread_monitor_directory(void* context)
 		{
 			Win32OS* This = (Win32OS*)context;
 			return This->MonitorDirectory();
@@ -1999,13 +1999,13 @@ namespace WIN32_ANON
 
 		bool TryLoadAbsolute(crwstr absPath, ILoadEventsCallback& cb, ErrorCode& sysErrorCode) const override
 		{
-			sysErrorCode = (ErrorCode) 0;
+			sysErrorCode = (ErrorCode)0;
 
 			FileHandle hFile = CreateFileW(absPath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 			if (hFile == INVALID_HANDLE_VALUE)
 			{
 				sysErrorCode = (ErrorCode)HRESULT_FROM_WIN32(GetLastError());
-				return false; 
+				return false;
 			}
 
 			try
@@ -2022,7 +2022,7 @@ namespace WIN32_ANON
 				{
 					int code;
 
-					LoadError(int _code): code(_code)
+					LoadError(int _code) : code(_code)
 					{
 
 					}
@@ -2034,7 +2034,7 @@ namespace WIN32_ANON
 
 					int32 ErrorCode() const override
 					{
-						return (int32) code;
+						return (int32)code;
 					}
 
 					Debugging::IStackFrameEnumerator* StackFrames() override
@@ -2403,7 +2403,7 @@ namespace Rococo::IO
 		{
 			Throw(hr, "Failed to identify user documents folder. Win32 issue?");
 		}
-		
+
 		std::vector<wchar_t> fullPath;
 		fullPath.resize(wcslen(path) + 2 + wcslen(subdirectory));
 		wnsprintfW(fullPath.data(), MAX_PATH, L"%ws\\%ws", path, subdirectory);
@@ -2738,9 +2738,9 @@ namespace Rococo::IO
 				return hr;
 			}
 
-			DialogEventHandler() : _cRef(1) { };
+			DialogEventHandler() : _cRef(1) {};
 		private:
-			~DialogEventHandler() { };
+			~DialogEventHandler() {};
 			long _cRef;
 		};
 
@@ -3221,7 +3221,7 @@ namespace Rococo::IO
 		{
 			PopulateResults();
 
-			std::sort(results.begin(), results.end(), 
+			std::sort(results.begin(), results.end(),
 				[](cstr a, cstr b)
 				{
 					return strcmp(a, b) < 0;
@@ -3281,7 +3281,7 @@ namespace Rococo::IO
 				Throw(GetLastError(), "LoadBinaryFile: Cannot determine file size %ls", filename);
 			}
 
-			if (maxLength != 0 && len.QuadPart >= (LONGLONG) maxLength)
+			if (maxLength != 0 && len.QuadPart >= (LONGLONG)maxLength)
 			{
 				Throw(GetLastError(), "LoadBinaryFile: File too large - length must be less than %llu bytes.\n%ls", filename);
 			}
@@ -3290,7 +3290,7 @@ namespace Rococo::IO
 
 			try
 			{
-				f.ReadBuffer((DWORD)len.QuadPart, (char*) startOfBuffer);
+				f.ReadBuffer((DWORD)len.QuadPart, (char*)startOfBuffer);
 				loader.Unlock();
 			}
 			catch (IException& ex)
@@ -3301,7 +3301,7 @@ namespace Rococo::IO
 
 		} // File is no longer locked
 	}
-	
+
 	ROCOCO_API void LoadAsciiTextFile(Strings::IStringPopulator& onLoad, crwstr filename)
 	{
 		std::vector<char> asciiData;
@@ -3754,15 +3754,15 @@ namespace Rococo::OS
 		}
 
 		auto readValue = [textBuffer, lenBytes, section, organization, root](HKEY hConfigRoot)
-		{
-			DWORD dwType = REG_SZ;
-			DWORD sizeofBuffer = (DWORD)lenBytes;
-			LSTATUS status = RegGetValueA(hConfigRoot, NULL, section.sectionName, RRF_RT_REG_SZ, &dwType, textBuffer, &sizeofBuffer);
-			if (status != ERROR_SUCCESS)
 			{
-				Throw(status, "Cannot open or get registry value 'Software/%s/%s' section", organization, root.rootName);
-			}
-		};
+				DWORD dwType = REG_SZ;
+				DWORD sizeofBuffer = (DWORD)lenBytes;
+				LSTATUS status = RegGetValueA(hConfigRoot, NULL, section.sectionName, RRF_RT_REG_SZ, &dwType, textBuffer, &sizeofBuffer);
+				if (status != ERROR_SUCCESS)
+				{
+					Throw(status, "Cannot open or get registry value 'Software/%s/%s' section", organization, root.rootName);
+				}
+			};
 
 		try
 		{
@@ -3780,21 +3780,21 @@ namespace Rococo::OS
 	ROCOCO_API void SetConfigVariable(cstr value, ConfigSection section, ConfigRootName root, cstr organization)
 	{
 		auto writeValue = [value, section](HKEY hConfigRoot)
-		{
-			size_t len = strlen(value) + 1;
-			if (len < 1_megabytes)
 			{
-				LSTATUS status = RegSetKeyValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, value, (DWORD)len);
-				if (status != ERROR_SUCCESS)
+				size_t len = strlen(value) + 1;
+				if (len < 1_megabytes)
 				{
-					Throw(status, "%s: RegSetValueA(..., %s, ...) returned an error code", __ROCOCO_FUNCTION__, section.sectionName);
+					LSTATUS status = RegSetKeyValueA(hConfigRoot, NULL, section.sectionName, REG_SZ, value, (DWORD)len);
+					if (status != ERROR_SUCCESS)
+					{
+						Throw(status, "%s: RegSetValueA(..., %s, ...) returned an error code", __ROCOCO_FUNCTION__, section.sectionName);
+					}
 				}
-			}
-			else
-			{
-				Throw(0, "%s: maximum string length is 1 megabytes", __ROCOCO_FUNCTION__);
-			}
-		};
+				else
+				{
+					Throw(0, "%s: maximum string length is 1 megabytes", __ROCOCO_FUNCTION__);
+				}
+			};
 
 		RunInConfig(root, organization, writeValue);
 	}
@@ -3821,7 +3821,7 @@ namespace Rococo::Windows
 			wheelDelta = wheelDelta / 120;
 		}
 
-		return wheelDelta * (int32) scrollLines;
+		return wheelDelta * (int32)scrollLines;
 	}
 
 	ROCOCO_API void MinimizeApp(IWindow& window)
@@ -3904,7 +3904,7 @@ namespace Rococo::Strings::CLI
 		}
 
 		const char lastChar = fullArg[option.prefix.length];
-		switch(lastChar)
+		switch (lastChar)
 		{
 		case 0:
 		case ' ':
@@ -3929,7 +3929,7 @@ namespace Rococo::Time
 
 	ROCOCO_API double ToMilliseconds(ticks dt)
 	{
-		double seconds = dt / (double) TickHz();
+		double seconds = dt / (double)TickHz();
 		return seconds * 1000.0;
 	}
 
@@ -3967,7 +3967,7 @@ namespace Rococo::Time
 		ctime_s(str, 26, &t);
 	}
 
-	ROCOCO_API Timer::Timer(const char * const _name):
+	ROCOCO_API Timer::Timer(const char* const _name) :
 		name(_name), start(0), end(0)
 	{
 

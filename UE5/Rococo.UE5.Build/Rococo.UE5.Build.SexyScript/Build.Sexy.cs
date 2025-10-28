@@ -102,9 +102,12 @@ namespace Rococo.UE5.Build.SexyScript
                     "rococo.base.cpp",
                     "rococo.heap.string.cpp",
                     "rococo.allocators.cpp",
-                    "rococo.throw.cr_sex.cpp"
+                    "rococo.throw.cr_sex.cpp",
+                    "rococo.os.cpp"
                 }
             );
+
+            CopyFileToSource(rococoPluginOS, "rococo/rococo.util", "rococo.os.win32.inl");
 
             string guiPath = Path.Join(rococoHomeDirectory, "UE5", "Plugins", "RococoGuiUltra", "Source", "RococoGui");
 
