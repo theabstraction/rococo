@@ -192,6 +192,7 @@ namespace Rococo
 				cr_sex child = **ppExpr;
 
 				const auto s = child.String();
+				UNUSED(s);
 
 				if (!IsAtomic(child))
 				{
@@ -306,8 +307,10 @@ namespace Rococo
 
 			}
 
-			virtual void AddLogSection(RGBAb colour, cstr format, ...)
+			void AddLogSection(RGBAb colour, cstr format, ...) override
 			{
+				UNUSED(colour);
+
 				va_list args;
 				va_start(args, format);
 
@@ -317,13 +320,13 @@ namespace Rococo
 				sb << section;
 			}
 
-			virtual void ClearLog()
+			void ClearLog() override
 			{
 				buf[0] = 0;
 				sb.Clear();
 			}
 
-			virtual int Log(cstr format, ...)
+			int Log(cstr format, ...) override
 			{
 				va_list args;
 				va_start(args, format);
@@ -365,6 +368,7 @@ namespace Rococo
 
 			cstr ResourceName(size_t index) const override
 			{
+				UNUSED(index);
 				return nullptr;
 			}
 		};

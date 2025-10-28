@@ -656,12 +656,14 @@ namespace Rococo::Script
 
 	VM_CALLBACK(NodeHasNext)
 	{
+		UNUSED(context);
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
 		registers[VM::REGISTER_D12].int32Value = (int32)(n->Next != NULL);
 	}
 
 	VM_CALLBACK(NodeHasPrevious)
 	{
+		UNUSED(context);
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
 		registers[VM::REGISTER_D7].int32Value = (int32)(n->Previous != NULL);
 	}
@@ -699,6 +701,7 @@ namespace Rococo::Script
 	VM_CALLBACK(ListGetLength)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 		ListImage* l = (ListImage*)registers[VM::REGISTER_D7].vPtrValue;
 		registers[VM::REGISTER_D7].int32Value = l ? l->NumberOfElements : 0;
 	}
@@ -730,6 +733,7 @@ namespace Rococo::Script
 	VM_CALLBACK(NodeGet32)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
 		registers[VM::REGISTER_D7].int32Value = *(int32*)n->Element;
@@ -738,6 +742,7 @@ namespace Rococo::Script
 	VM_CALLBACK(NodeGet64)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
 		registers[VM::REGISTER_D7].int64Value = *(int64*)n->Element;
 	}
@@ -745,6 +750,7 @@ namespace Rococo::Script
 	VM_CALLBACK(NodeGetInterface)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D4].vPtrValue;
 		auto pInterface = *(InterfacePointer*)n->Element;
 		ss.ProgramObject().IncrementRefCount(pInterface);
@@ -753,6 +759,7 @@ namespace Rococo::Script
 
 	VM_CALLBACK(NodeGetElementRef)
 	{
+		UNUSED(context);
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
 		registers[VM::REGISTER_D7].vPtrValue = n->Element;
 	}
@@ -1170,6 +1177,7 @@ namespace Rococo::Script
 		AssertLocalIdentifier(listNameExpr);
 
 		const IStructure& listStruct = ce.StructList();
+		UNUSED(listStruct);
 
 		const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
 		if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.c_str(), ce.Builder.Module().Name(), "type");

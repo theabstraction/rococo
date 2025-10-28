@@ -59,6 +59,10 @@ using namespace Rococo::Strings;
 #ifndef SCRIPT_IS_LIBRARY
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
+	UNUSED(hinstDLL);
+	UNUSED(fdwReason);
+	UNUSED(lpvReserved);
+
 	return TRUE;
 }
 #endif

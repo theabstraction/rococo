@@ -358,12 +358,11 @@ namespace Rococo
 		   IPublicProgramObject& po = ss.PublicProgramObject();
 		   IVirtualMachine& vm = po.VirtualMachine();
 
-		   //size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
+		   UNUSED(vm);
 
 		   size_t functionStartAddress = po.ProgramMemory().GetFunctionAddress(section.Id);
-
-		   //const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
-
+		   UNUSED(functionStartAddress);
+		  
 		   size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
 
 		   const Rococo::Sex::ISExpression* s = (const Rococo::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
@@ -901,28 +900,26 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callDepth)
 	   {
-		   const uint8* sf;
-		   const uint8* pc;
-		   const IFunction* f;
-		   size_t fnOffset;
-		   size_t pcOffset;
-		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset)) return;
+			const uint8* sf;
+			const uint8* pc;
+			const IFunction* f;
+			size_t fnOffset;
+			size_t pcOffset;
+			if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset)) return;
 
-		   const Rococo::Compiler::IStructure* lastPseudo = nullptr;
-		   cstr lastPseudoName = nullptr;
+			const Rococo::Compiler::IStructure* lastPseudo = nullptr;
+			cstr lastPseudoName = nullptr;
 
-		   VariableDesc variable = { 0 };
+			VariableDesc variable = { 0 };
 
-		   MemberDef registerDef = { 0 };
+			MemberDef registerDef = { 0 };
 
-		   AddSFToVarEnum(variable, sf);
-		   variableEnum.OnVariable(0, variable, registerDef);
-		   AddReturnAddressToVarEnum(variable, sf);
-		   variableEnum.OnVariable(1, variable, registerDef);
-		   AddOldSFToVarEnum(variable, sf);
-		   variableEnum.OnVariable(2, variable, registerDef);
-
-		   size_t count = 3;
+			AddSFToVarEnum(variable, sf);
+			variableEnum.OnVariable(0, variable, registerDef);
+			AddReturnAddressToVarEnum(variable, sf);
+			variableEnum.OnVariable(1, variable, registerDef);
+			AddOldSFToVarEnum(variable, sf);
+			variableEnum.OnVariable(2, variable, registerDef);
 
 			for (int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 			{
@@ -934,7 +931,7 @@ namespace Rococo
 				{
 				}
 			}
-	   }
+		}
 
 	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth)
 	   {

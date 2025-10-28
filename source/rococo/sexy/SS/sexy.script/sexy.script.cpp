@@ -288,6 +288,7 @@ namespace Rococo {
 
 VM_CALLBACK(TestD4neqD5_retBoolD7)
 {
+	UNUSED(context);
 	auto diff = registers[4].int64Value - registers[5].int64Value;
 	registers[7].int64Value = diff != 0 ? 1 : 0;
 }
@@ -359,6 +360,13 @@ namespace Rococo::Script
 
 	void CopyStringTochar(char* output, size_t bufferCapacity, const char* input, size_t inputLength)
 	{
+		UNUSED(bufferCapacity);
+
+		if (inputLength > bufferCapacity)
+		{
+			Throw(0, __FUNCTION__ ": bad bufferCapacity %llu vs inputLength %llu", bufferCapacity, inputLength);
+		}
+
 		for (size_t i = 0; i < inputLength; ++i)
 		{
 			output[i] = input[i];
@@ -367,6 +375,11 @@ namespace Rococo::Script
 #ifdef char_IS_WIDE
 	void CopyStringTochar(char* output, size_t bufferCapacity, cstr input, size_t inputLength)
 	{
+		if (inputLength > bufferCapacity)
+		{
+			Throw(0, __FUNCTION__ ": bad bufferCapacity %llu vs inputLength %llu", bufferCapacity, inputLength);
+		}
+
 		for (size_t i = 0; i < inputLength; ++i)
 		{
 			output[i] = (char)input[i];
@@ -412,6 +425,7 @@ namespace Rococo::Script
 
 	void CALLTYPE_C RouteToNative(VariantValue* registers, void* context)
 	{
+		UNUSED(registers);
 		NativeFunction* nf = (NativeFunction*)context;
 		nf->NativeCallback(nf->e);
 	}
@@ -424,6 +438,8 @@ namespace Rococo::Script
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
 			cstr fqName = i->first.c_str();
+			UNUSED(fqName);
+
 			NativeFunction& nf = *i->second;
 
 			if (!nf.declaredSomewhere)
@@ -466,6 +482,7 @@ namespace Rococo::Script
 			}
 
 			INamespaceBuilder& ns = rootNS.AddNamespace(body, ADDNAMESPACEFLAGS_CREATE_ROOTS);
+			UNUSED(ns);
 		}
 	}
 
@@ -607,6 +624,7 @@ namespace Rococo::Script
 
 	void CALLTYPE_C OnCallbackInvoked(VariantValue* registers, void* context)
 	{
+		UNUSED(registers);
 		NativeFunction* nf = (NativeFunction*)context;
 		nf->NativeCallback(nf->e);
 	}
@@ -1491,10 +1509,15 @@ namespace Rococo::Script
 
 		void* DynamicCreateClass(const IStructure& s, int interfaceIndex)
 		{
+			if (interfaceIndex != 0)
+			{
+				Rococo::Throw(0, "This function was only ever tested with interfaceIndex of 0");
+			}
+
 			int nBytes = s.SizeOfStruct();
 			if (nBytes <= 0)
 			{
-				Rococo::Throw(0, ("The structure size was not postive"));
+				Rococo::Throw(0, "The structure size was not postive");
 			}
 
 			ObjectStub* instance = (ObjectStub*) new char[nBytes];
@@ -1780,6 +1803,8 @@ namespace Rococo::Script
 						int nOutputs = f.NumberOfOutputs();
 						int nArgs = nInputs + nOutputs;
 
+						UNUSED(nArgs);
+
 						for (int i = 0; i < nInputs; i++)
 						{
 							cstr argName = f.GetArgName(i + nOutputs);
@@ -1828,6 +1853,8 @@ namespace Rococo::Script
 					int nInputs = m.NumberOfInputs();
 					int nOutputs = m.NumberOfOutputs();
 					int nArgs = nInputs + nOutputs;
+
+					UNUSED(nArgs);
 
 					for (int k = 0; k < nInputs - 1; k++)
 					{
@@ -2080,6 +2107,8 @@ namespace Rococo::Script
 
 		void BeginPartialCompilation(StringBuilder* declarationBuilder) override
 		{
+			UNUSED(declarationBuilder); // We currently does not declare anything here, the nativecall map built here is later used in PartialCompile(...)
+
 			Clear();
 
 			for (auto i : nsToSecurity)
@@ -2472,10 +2501,12 @@ namespace Rococo::Script
 				if (i != hashes.end())
 				{
 					auto& hashes = i->second;
+					UNUSED(hashes);
+
 					SecureHashInfo forBuffer;
 					Strings::GetSecureHashInfo(forBuffer, source, length);
 
-					if (forBuffer == i->second)
+					if (forBuffer == hashes)
 					{
 						// Dandy
 						return;
@@ -2584,7 +2615,7 @@ namespace Rococo::Script
 		void ThrowNative(int errorNumber, cstr source, cstr message) override
 		{
 			char msg[1024];
-			SafeFormat(msg, sizeof(msg), "Native Error (%s): %s", source, message);
+			SafeFormat(msg, sizeof(msg), "Native Error %d (%s): %s", errorNumber, source, message);
 			progObjProxy->Log().Write(msg);
 			progObjProxy->VirtualMachine().Throw();
 		}

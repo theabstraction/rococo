@@ -95,6 +95,7 @@ namespace Rococo
          IFunction& f = ce.Builder.Owner();
 
          cstr macroName = f.Name();
+         UNUSED(macroName);
 
          ce.Builder.Begin();
 

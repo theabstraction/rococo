@@ -253,6 +253,8 @@ namespace Rococo::Script
 
 		cstr publicFunctionName = tail;
 
+		UNUSED(publicFunctionName);
+
 		cstr name = localName.c_str();
 
 		IFunctionBuilder* f = module.FindFunction(name);
@@ -314,6 +316,8 @@ namespace Rococo::Script
 
 	void AppendAliases(IScriptSystem& ss, IModuleBuilder& module, IN const ISParserTree& tree)
 	{
+		UNUSED(ss);
+
 		cr_sex sSequence = tree.Root();
 
 		for(int i = 0; i < sSequence.NumberOfElements(); i++)
@@ -461,6 +465,7 @@ namespace Rococo::Script
 
 	void AddChildConstructor(cr_sex childConstruct)
 	{
+		UNUSED(childConstruct);
 		// bang();
 	}
 
@@ -677,6 +682,7 @@ namespace Rococo::Script
 		// ArgN+4...N' = constructor body
 		
 		cstr name = constructor.Name();
+		UNUSED(name);
 
 		IStructureBuilder* type = (IStructureBuilder*) constructor.GetType();
 		type->SetConstructor(&constructor);
@@ -701,6 +707,9 @@ namespace Rococo::Script
 
 		int childConstructorStart = childConstructIndex+1;
 		int childConstructorEnd = bodyIndex-1;
+
+		UNUSED(childConstructorStart);
+		UNUSED(childConstructorEnd);
 
 		AddInputs(constructor, constructorDef, 2, childConstructIndex-1, script);
 		AddThisPointer(constructor, constructorDef, script);
@@ -796,6 +805,8 @@ namespace Rococo::Script
 		}
 
 		cstr name = f.Name();
+
+		UNUSED(name);
 
 		AssertNotTooFewElements(fdef, 4);
 	
@@ -1141,9 +1152,15 @@ namespace Rococo::Script
 					auto& member0 = def.ResolvedType->GetMember(0);
 					auto& member1 = def.ResolvedType->GetMember(0);
 
+					UNUSED(member0);
+					UNUSED(member1);
+
 					VariantValue nullValue;
 					nullValue.int64Value = 0;
 					auto bitcount = GetBitCount(argType.VarType());
+
+					UNUSED(bitcount);
+
 					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullValue, BITCOUNT_POINTER);
 					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset + sizeof(size_t), nullValue, BITCOUNT_POINTER);
 				}
@@ -1271,6 +1288,8 @@ namespace Rococo::Script
 
 	void CompileMapConstruct(CCompileEnvironment& ce, cr_sex def, const IMember& member, cstr fullName)
 	{
+		UNUSED(def);
+
 		ce.Builder.AssignVariableRefToTemp(fullName, Rococo::ROOT_TEMPDEPTH); // Map goes to D7
 
 		VariantValue key;
@@ -1403,6 +1422,9 @@ namespace Rococo::Script
 
 	void Disassemble(VM::IDisassembler& disassembler, const IFunction& f, IPublicScriptSystem& ss)
 	{
+		UNUSED(disassembler);
+		UNUSED(f);
+		UNUSED(ss);
 		// Disassemble2(disassembler, f, ss);
 	}
 
@@ -1440,6 +1462,8 @@ namespace Rococo::Script
 
 	void CompileProxyFunction(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
 	{
+		UNUSED(fdef);
+
 		CodeSection section;
 		f.Builder().GetCodeSection(OUT section);
 
@@ -1482,6 +1506,8 @@ namespace Rococo::Script
 		// First stack the outputs, then the inputs
 
 		cstr fname = f.Name();
+
+		UNUSED(fname);
 
 		if (IsConstructor(f))
 		{
@@ -1658,6 +1684,8 @@ namespace Rococo::Script
 
 		IFunctionBuilder* f = *(IFunctionBuilder**)pc;
 
+		UNUSED(f);
+
 		auto& mem = ss.ProgramObject().ProgramMemory();
 
 		bool isImmutable;
@@ -1670,6 +1698,9 @@ namespace Rococo::Script
 			auto* sp = registers[REGISTER_SP].uint8PtrValue;
 			InterfacePointer ip = *(InterfacePointer*)(sp - 24);
 			ObjectStub* stub = InterfaceToInstance(ip);
+
+			UNUSED(stub);
+
 			auto* methods = &ip[0]->FirstMethodId;
 			for (int i = 0; i < 10; i++)
 			{
@@ -1701,6 +1732,8 @@ namespace Rococo::Script
 
 	VM_CALLBACK(IsDifferentObject)
 	{
+		UNUSED(context);
+
 		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
 		sp -= sizeof(InterfacePointer);
 		auto* rightArg = (InterfacePointer*)sp;
@@ -1716,6 +1749,8 @@ namespace Rococo::Script
 
 	VM_CALLBACK(IsSameObject)
 	{
+		UNUSED(context);
+
 		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
 		sp -= sizeof(InterfacePointer);
 		auto* rightArg = (InterfacePointer*)sp;
@@ -1948,6 +1983,9 @@ namespace Rococo::Script
 		{
 			const IStructure& argStruct = nullMethod.GetArgument(i);
 			cstr argType = GetFriendlyName(argStruct);
+
+			UNUSED(argType);
+
 			cstr argName = nullMethod.GetArgName(i);
 			f.AddOutput(NameString::From(argName), argStruct, (void*)&source);
 		}
@@ -2103,8 +2141,9 @@ namespace Rococo::Script
 				struct : IGlobalEnumerator
 				{
 					uint8* global;
-					virtual void operator()(cstr name, const GlobalValue& variable)
+					void operator()(cstr name, const GlobalValue& variable) override
 					{
+						UNUSED(name);
 						BITCOUNT variableLen = GetBitCount(variable.type);
 						size_t offset = variable.offset;
 

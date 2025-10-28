@@ -431,6 +431,7 @@ namespace Rococo
 
 	   VM_CALLBACK(ArrayUpdateRefCounts)
 	   {
+		   UNUSED(context);
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   uint8* pValue = registers[VM::REGISTER_D7].uint8PtrValue;
 		   auto& elementType = *a->ElementType;
@@ -827,6 +828,8 @@ namespace Rococo
 
 	   VM_CALLBACK(ArrayGetRefUnchecked)
 	   {
+		   UNUSED(context);
+
 		   ArrayImage* a = (ArrayImage*) registers[VM::REGISTER_D13].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D12].int32Value;
 		   uint8* pElement = ((uint8*) a->Start) + index * a->ElementLength;
@@ -852,30 +855,35 @@ namespace Rococo
 
 	   VM_CALLBACK(ArrayGetLength)
 	   {
+		   UNUSED(context);
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   registers[VM::REGISTER_D6].int32Value = a ? a->NumberOfElements : 0;
 	   }
 
 	   VM_CALLBACK(ArrayReturnLength)
 	   {
+		   UNUSED(context);
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   registers[VM::REGISTER_D7].int32Value = a ? a->NumberOfElements : 0;
 	   }
 
 	   VM_CALLBACK(ArrayReturnCapacity)
 	   {
+		   UNUSED(context);
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D4].vPtrValue;
 		   registers[VM::REGISTER_D7].int32Value = a ? a->ElementCapacity : 0;
 	   }
 
 	   VM_CALLBACK(ArrayGetLastIndex)
 	   {
+		   UNUSED(context);
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D13].vPtrValue;
 		   registers[VM::REGISTER_D11].int32Value = (a ? a->NumberOfElements : 0) - 1;
 	   }
 
 	   VM_CALLBACK(ArrayGetInterfaceUnchecked)
 	   {
+		   UNUSED(context);
 		   ArrayImage* a = (ArrayImage*)registers[VM::REGISTER_D13].vPtrValue;
 		   int32 index = registers[VM::REGISTER_D12].int32Value;
 		   uint8* pElement = ((uint8*)a->Start) + index * a->ElementLength;
@@ -1489,6 +1497,7 @@ namespace Rococo
 
 		   int offset;
 		   const IMember* member = FindMember(ce.StructArray(), "_lock", OUT offset);
+		   UNUSED(member);
 
 		   VariantValue lockMemberOffsetValue;
 		   lockMemberOffsetValue.int32Value = offset;
@@ -1556,6 +1565,7 @@ namespace Rococo
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock); // Prevent popping of the array during enumeration
 
 		   int lockSize = AddVariableArrayLock(ce, 9);
+		   UNUSED(lockSize);
 
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetRefUnchecked); // returns pointer to element in D7, D12 is element index and D11 is array ref
 				
@@ -1651,6 +1661,7 @@ namespace Rococo
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock);
 
 		   int lockSize = AddVariableArrayLock(ce, 9);
+		   UNUSED(lockSize);
 
 		   struct ConditionSection : public ICompileSection
 		   {
@@ -1660,6 +1671,8 @@ namespace Rococo
 
 			   void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
 			   {
+				   UNUSED(controlFlowData);
+				   UNUSED(object);
 				   ce.Builder.AddSymbol("while (endIndex > currentIndex)");
 				   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D11, BITCOUNT_32, VM::REGISTER_D12);
 				   builder.Assembler().Append_Test(VM::REGISTER_D10, BITCOUNT_32);
@@ -1679,6 +1692,8 @@ namespace Rococo
 
 			   void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
 			   {
+				   UNUSED(object);
+
 				   ce.Builder.AddSymbol("while..{ ");
 				   builder.PushControlFlowPoint(*controlFlowData);
 
@@ -1711,6 +1726,9 @@ namespace Rococo
 		   {
 			   void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
 			   {
+				   UNUSED(builder);
+				   UNUSED(object);
+				   UNUSED(controlFlowData);
 			   }
 		   } noFinalSection;
 
@@ -1794,6 +1812,7 @@ namespace Rococo
 		   AssertLocalIdentifier(arrayName);
 
 		   const IStructure& arrayStruct = ce.StructArray();
+		   UNUSED(arrayStruct);
 
 		   const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
 		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.c_str(), ce.Builder.Module().Name(), ("type"));
@@ -1844,6 +1863,7 @@ namespace Rococo
 
 		   // (array <element-type-name> <array-name> <capacity>
 		   const IStructure& arrayStruct = ce.StructArray();
+		   UNUSED(arrayStruct);
 
 		   const IStructure* elementStruct = MatchStructure(typeName, ce.Builder.Module());
 		   if (elementStruct == NULL) ThrowTokenNotFound(s, typeName.c_str(), ce.Builder.Module().Name(), ("type"));

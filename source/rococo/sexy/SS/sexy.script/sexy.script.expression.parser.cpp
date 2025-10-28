@@ -64,23 +64,6 @@ namespace Rococo
 		void AppendInvokeCallDestructor(CCompileEnvironment& ce, const IStructure& s, cstr name, int SFoffset);
 		void AppendDeconstructAll(CCompileEnvironment& ce, cr_sex sequence);
 
-		size_t GetOffsetTo(cstr memberName, const IStructure& s)
-		{
-			size_t offset = 0;
-			for(int i = 0; i < s.MemberCount(); i++)
-			{
-				const IMember& member = s.GetMember(i);
-				if (Rococo::AreEqual(member.Name(), ("_refCount")))
-				{
-					break;							
-				}
-
-				offset += member.SizeOfMember();
-			}
-
-			return offset;
-		}
-
 		int GetStackRequirement(const IStructure& str, cr_sex s)
 		{
 			SexyVarType outputType = str.VarType();
@@ -100,6 +83,8 @@ namespace Rococo
 
 		void PushVariableRef(cr_sex s, ICodeBuilder& builder, const MemberDef& def, cstr name, int interfaceIndex)
 		{
+			UNUSED(s);
+
 			if (IsNullType(*def.ResolvedType) || (def.ResolvedType->VarType() == SexyVarType_Array && def.IsContained))
 			{
 				MemberDef refDef;
@@ -381,6 +366,7 @@ namespace Rococo
 			cr_sex targetExpr = GetAtomicArg(directive, 1 + offset);
 			cstr targetVariable = targetExpr.c_str();
 			cr_sex assignmentChar = GetAtomicArg(directive, 2 + offset);
+			UNUSED(assignmentChar);
 			cr_sex sourceValue = directive.GetElement(3 + offset);
 			SexyVarType targetType = varStruct.VarType();
 
@@ -775,6 +761,10 @@ namespace Rococo
 
 		void CompileAssignToStringMember(CCompileEnvironment& ce, cstr variableName, const IStructure& st, const IMember& member, cr_sex src)
 		{
+			// We retain [member] for debugging, but variableName contains enough info for the function to work
+			UNUSED(member);
+			UNUSED(st);
+
 			// Assume member underlying type is null-string
 			if (IsStringLiteral(src))
 			{
@@ -953,7 +943,10 @@ namespace Rococo
 
 	   void CompileUnaryOperatorOverload(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, int offset)
 	   {
-		  Throw(directive, ("Unary operator not implemented"));
+			UNUSED(offset);
+			UNUSED(ce);
+			UNUSED(varStruct);
+			Throw(directive, ("Unary operator not implemented"));
 	   }
 
 	   const IFunction* FindFunction(cr_sex origin, cstr shortName, const IModule& module)
@@ -1007,41 +1000,42 @@ namespace Rococo
 
 	   int PushBinaryOperatorInputs(CCompileEnvironment& ce, cr_sex s, const IStructure& type, const IArchetype& callee, int firstArgIndex, const IStructure& atype, const IStructure& btype)
 	   {
-		  // (vec3 f = a + b) -> (AddVec3toVec3 a b f)
-		  // 
-		  int inputStackAllocCount = 0;
+			UNUSED(type);
+			// (vec3 f = a + b) -> (AddVec3toVec3 a b f)
+			// 
+			int inputStackAllocCount = 0;
 
-		  if (callee.NumberOfInputs() != 3)
-		  {
-			 Throw(s, ("Binary operator %s must have three arguments"), callee.Name());
-		  }
+			if (callee.NumberOfInputs() != 3)
+			{
+				Throw(s, ("Binary operator %s must have three arguments"), callee.Name());
+			}
 
-		  if (callee.NumberOfOutputs() != 0)
-		  {
-			 Throw(s, ("Binary operator %s must not return output"), callee.Name());
-		  }
+			if (callee.NumberOfOutputs() != 0)
+			{
+				Throw(s, ("Binary operator %s must not return output"), callee.Name());
+			}
 
-		  if (&callee.GetArgument(0) != &atype)
-		  {
-			 Throw(s, ("First input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(0).Name());
-		  }
+			if (&callee.GetArgument(0) != &atype)
+			{
+				Throw(s, ("First input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(0).Name());
+			}
 
-		  if (&callee.GetArgument(1) != &btype)
-		  {
-			 Throw(s, ("Second input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(1).Name());
-		  }
+			if (&callee.GetArgument(1) != &btype)
+			{
+				Throw(s, ("Second input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(1).Name());
+			}
      
-		  int indices[] { 2 + firstArgIndex, 4 + firstArgIndex, 0 + firstArgIndex };
+			int indices[] { 2 + firstArgIndex, 4 + firstArgIndex, 0 + firstArgIndex };
 
-		  for(int i = 0; i < 3; i++)
-		  {
-			 cstr inputName = callee.GetArgName(i);
-			 const IStructure& argType = callee.GetArgument(i);
+			for(int i = 0; i < 3; i++)
+			{
+				cstr inputName = callee.GetArgName(i);
+				const IStructure& argType = callee.GetArgument(i);
          
-			 int inputStackCost = PushInput(ce, s, indices[i], argType, nullptr, inputName, callee.GetGenericArg1(i), callee.GetDefaultValue(i));
-			 inputStackAllocCount += inputStackCost;
-		  }
-		  return inputStackAllocCount;
+				int inputStackCost = PushInput(ce, s, indices[i], argType, nullptr, inputName, callee.GetGenericArg1(i), callee.GetDefaultValue(i));
+				inputStackAllocCount += inputStackCost;
+			}
+			return inputStackAllocCount;
 	   }
 
 	   const IStructure* GetFirstMemberWithLiteralType(const IStructure& s)
@@ -1073,26 +1067,27 @@ namespace Rococo
 
 	   const IStructure& GetModuleDisposition(CCompileEnvironment& ce, IModule& module)
 	   {
-		  for (int i = 0; i < ce.Builder.Module().PrefixCount(); i++)
-		  {
-			 auto& prefix = ce.Builder.Module().GetPrefix(i);
-			 if (AreEqual(prefix.Name(), ("F32")))
-			 {
+			UNUSED(module);
+			for (int i = 0; i < ce.Builder.Module().PrefixCount(); i++)
+			{
+				auto& prefix = ce.Builder.Module().GetPrefix(i);
+				if (AreEqual(prefix.Name(), ("F32")))
+				{
 				return ce.Object.Common().TypeFloat32();
-			 }
-			 else if (AreEqual(prefix.Name(), ("F64")))
-			 {
+				}
+				else if (AreEqual(prefix.Name(), ("F64")))
+				{
 				return ce.Object.Common().TypeFloat64();
-			 }
-			 else if (AreEqual(prefix.Name(), ("I32")))
-			 {
+				}
+				else if (AreEqual(prefix.Name(), ("I32")))
+				{
 				return ce.Object.Common().TypeInt32();
-			 }
-			 else if (AreEqual(prefix.Name(), ("I64")))
-			 {
+				}
+				else if (AreEqual(prefix.Name(), ("I64")))
+				{
 				return ce.Object.Common().TypeInt64();
-			 }
-		  }
+				}
+			}
 
 		  return ce.Object.Common().TypeFloat32();
 	   }
@@ -1258,6 +1253,7 @@ namespace Rococo
 			   }
 
 			   auto& interf0 = typeDef.ResolvedType->GetInterface(0);
+			   UNUSED(interf0);
 
 			   AddSymbol(ce.Builder, "interface ref '%s'", fqTypeName);
 			   ce.Builder.PushVariable(typeDef);
@@ -1415,6 +1411,8 @@ namespace Rococo
 
 		int CompileThisToInstancePointerArg(CCompileEnvironment& ce, cr_sex s, cstr classInstance)
 		{
+			UNUSED(s);
+
 			MemberDef refDef;
 			ce.Builder.TryGetVariableByName(OUT refDef, classInstance);
 
@@ -1773,6 +1771,8 @@ namespace Rococo
 
 		void CompileCreateStringConstant(CCompileEnvironment& ce, cstr id, cr_sex decl, cr_sex value)
 		{
+			UNUSED(decl);
+
 			sexstring valueStr = value.String();
 
 			CStringConstant* sc = CreateStringConstant(ce.Script, valueStr->Length, valueStr->Buffer, &value);
@@ -1885,7 +1885,7 @@ namespace Rococo
 
 		void* GetInterfacePtrFromNullInstancePtr(void* instancePtr);
 
-		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl, bool initializeValues)
+		void CompileClassAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& st, cstr id, cr_sex decl)
 		{
 			if (st.Name()[0] != '_')
 			{
@@ -1913,7 +1913,7 @@ namespace Rococo
 		{	
 			if (type.Prototype().IsClass)
 			{
-				 CompileClassAsDefaultVariableDeclaration(ce, type, id, sDef, initializeValues);
+				 CompileClassAsDefaultVariableDeclaration(ce, type, id, sDef);
 			}
 			else
 			{
@@ -2081,6 +2081,8 @@ namespace Rococo
 
 		void ValidateLocalDeclarationVariable(const IStructure& st, cr_sex idExpr)
 		{
+			UNUSED(st);
+
 			if (!IsAtomic(idExpr))
 			{
 				Throw(idExpr, ("Expecting a local identifier variable name in this position"));
@@ -2389,6 +2391,8 @@ namespace Rococo
 	
 		void MarkStackRollback(CCompileEnvironment& ce, cr_sex invokeExpression)
 		{
+			UNUSED(invokeExpression);
+
 			const ISExpression* tryCatchBlock = GetTryCatchExpression(ce.Script);
 
 			int stackCorrection = 0;
@@ -2683,6 +2687,8 @@ namespace Rococo
 
 		void CompileSerializeFromInterface(cr_sex s, CCompileEnvironment& ce, const MemberDef& srcDef, const MemberDef& trgDef)
 		{
+			UNUSED(srcDef);
+
 			if (trgDef.ResolvedType->VarType() != SexyVarType_Derivative)
 			{
 				Throw(s, "(serialize <src> -> <targets>): The target was not a class or struct");
@@ -2856,6 +2862,7 @@ namespace Rococo
 
 		void CompileTrip(CCompileEnvironment& ce, cr_sex s)
 		{
+			UNUSED(s);
 			ce.Builder.Assembler().Append_TripDebugger();
 		}
 
@@ -3256,6 +3263,8 @@ namespace Rococo
 				NamespaceSplitter splitter(rhs);
 
 				cstr member = rhs;
+
+				UNUSED(member);
 
 				cstr body, tail;
 				if (splitter.SplitHead(body, tail))

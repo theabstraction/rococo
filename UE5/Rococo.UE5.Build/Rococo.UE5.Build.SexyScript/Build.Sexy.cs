@@ -89,12 +89,13 @@ namespace Rococo.UE5.Build.SexyScript
 
             string rococoAllocationPluginHeaders = Path.Join(sexyThirdPartyRococoSrcCode, "RococoAPI", "allocators");
             base.CopyFilesToSourceMatching(rococoAllocationPluginHeaders, Path.Join(rococoIncludeDirectory, "allocators"), "*.h");
+            base.CopyFilesToSourceMatching(rococoAllocationPluginHeaders, Path.Join(rococoIncludeDirectory, "allocators"), "*.inl");
 
             string rococoPluginOS = Path.Join(sexyThirdPartyRococoSrcCode, "RococoOS");
 
             CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyUtils"), Path.Join(sexyDirectory, "Utilities"), "*.cpp");
 
-            CreateBundleDirect(rococoPluginOS, "wrap.rococo_util.cpp", "rococo.os.UE5.h", CodeGenPath("rococo.os.UE5.prelude.h"), CodeGenPath("rococo.os.UE5.postlude.h"), "rococo/rococo.util",
+            CreateBundleDirect(rococoPluginOS, "wrap.rococo_util.cpp", null, CodeGenPath("rococo.os.UE5.prelude.h"), CodeGenPath("rococo.os.UE5.postlude.h"), "rococo/rococo.util",
                 new List<string>()
                 {
                     "rococo.strings.cpp",

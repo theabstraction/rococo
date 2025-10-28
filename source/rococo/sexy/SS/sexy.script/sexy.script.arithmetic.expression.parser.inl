@@ -281,6 +281,8 @@ namespace Rococo
 
 		void ValidateArithmeticVariable(cr_sex parent, cstr token, ICodeBuilder& builder, SexyVarType type, cstr helper)
 		{
+			UNUSED(helper);
+
 			SexyVarType rType = builder.GetVarType(token);
 			if (rType == SexyVarType_Bad)
 			{
@@ -712,6 +714,8 @@ namespace Rococo
 		{
 			cstr value = valueExpr.c_str();
 
+			UNUSED(value);
+
 			IStructure* s = MatchStructure(valueExpr, ce.Builder.Module());
 
 			if (s == NULL)
@@ -794,6 +798,8 @@ namespace Rococo
 
 		VM_CALLBACK(StringIndexToChar)
 		{
+			UNUSED(context);
+
 			int32 index = registers[7].int32Value;
 
 			auto interf = (InterfacePointer)registers[4].vPtrValue;
@@ -908,6 +914,7 @@ namespace Rococo
 			}
 
 			cr_sex firstItem = s.GetElement(0);
+			UNUSED(firstItem);
 			
 			if (s.NumberOfElements() == 1)
 			{

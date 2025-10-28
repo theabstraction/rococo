@@ -141,6 +141,8 @@ namespace Rococo::Domme
 
 		scriptContext.ip = (Rococo::Compiler::InterfacePointer) pNullInterface;
 
+		// Investigate the function below, because it ignores section.Id
+		OS::TripDebugger();
 		ExecuteFunctionUntilYield(section.Id, *ss, scripting.debuggerWindow, false);
 
 		objectStub = InterfaceToInstance(scriptContext.ip);

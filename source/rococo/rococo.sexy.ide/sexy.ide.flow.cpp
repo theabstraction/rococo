@@ -110,7 +110,7 @@ namespace
 						Rococo::Throw(0, "Failed to create script system -> probably an environment problem");
 					}
 					tree = sources.GetSource(resourcePath);
-					InitSexyScript(*tree, debugger, *ss, sources, implicitIncludes, onCompile, nullptr);
+					InitSexyScript(*tree, *ss, sources, implicitIncludes, onCompile, nullptr);
 					break;
 				}
 				catch (ParseException& ex)

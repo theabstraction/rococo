@@ -41,7 +41,7 @@ namespace Rococo
 
 namespace Rococo
 {
-	ISourceCode* DuplicateSourceCode(IOS& os, IExpandingBuffer& rbuffer, ISParser& parser, const IBuffer& rawData, const char* resourcePath)
+	ISourceCode* DuplicateSourceCode(ISParser& parser, const IBuffer& rawData, const char* resourcePath)
 	{
 		const char* utf8data = (const char*)rawData.GetData();
 		size_t rawLength = rawData.Length();
@@ -92,7 +92,7 @@ namespace Rococo
 		TSexyStringMap<Binding> sources;
 		// TODO -> allocator using the SourceCache allocator
 		AutoFree<IExpandingBuffer> fileBuffer;
-		// TODO -> allocator using the SourceCache allocator
+
 		AutoFree<IExpandingBuffer> dataBuffer;
 		IInstallation& installation;
 		IAllocator& allocator;
@@ -278,7 +278,7 @@ namespace Rococo
 			bool success = installation.TryLoadResource(pingName, *fileBuffer, 64_megabytes);
 			if (success)
 			{
-				src = DuplicateSourceCode(installation.OS(), *dataBuffer, *parser, *fileBuffer, pingName);
+				src = DuplicateSourceCode(*parser, *fileBuffer, pingName);
 			}
 			else
 			{
@@ -388,6 +388,8 @@ namespace Rococo
 
 	void ApplyFluffle(ISourceCache& sourceCache, Rococo::Script::IPublicScriptSystem& ss, cstr fluffleName, cr_sex sFluffleDirective)
 	{
+		UNUSED(fluffleName);
+
 		// (Fluffle <fluffle-name> "<first source...>" ... "<last_source>")
 		for (int i = 2; i < sFluffleDirective.NumberOfElements(); ++i)
 		{
@@ -616,7 +618,7 @@ namespace Rococo
 		}
 	}
 
-	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
+	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
 	{
 		ScriptCompileArgs args{ ss };
 		onCompile.OnCompile(args);

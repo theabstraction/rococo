@@ -128,6 +128,7 @@ namespace Rococo
 
       void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfaceRefName, cr_sex args, const IObjectInterface& interf)
       {
+         UNUSED(interf);
          const IFunction& factoryFunction = factory.Constructor();
 
 		 MemberDef instancedef;
@@ -146,6 +147,7 @@ namespace Rococo
          if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, ("Too many arguments to factory call"));
 
          int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
+         UNUSED(inputStackAllocCount);
 
 		 AddArgVariable("instancePtr", ce, ce.Object.Common().TypePointer());
 

@@ -68,6 +68,7 @@ namespace Rococo::Script
 
 	void InitObjectStubAsNullLength(ObjectStub& stub, const IStructure& type, int allocSize)
 	{
+		UNUSED(allocSize);
 		stub.refCount = ObjectStub::NO_REF_COUNT; // prevent ref count hitting zero.
 		stub.Desc = (ObjectDesc*) type.GetVirtualTable(0);
 		stub.pVTables[0] = (VirtualTable*) type.GetVirtualTable(1);
@@ -114,10 +115,15 @@ namespace Rococo::Script
 
 	void DeconstructCallArguments(const IFunction& f, const uint8* pc, const uint8* sf, IProgramObject& programObject, REF int& totalStackCorrection)
 	{
+		UNUSED(programObject);
+		UNUSED(sf);
+		UNUSED(pc);
+
 		for(int i = 0; i < ArgCount(f); ++i)
 		{
 			const IArgument& arg = f.Arg(i);
 			cstr name = arg.Name();
+			UNUSED(name);
 
 			const IStructure& s = *arg.ResolvedType();
 			int sizeOfArg = (s.VarType() == SexyVarType_Derivative) ? sizeof(size_t) : s.SizeOfStruct();
@@ -368,6 +374,8 @@ namespace Rococo::Script
 
 	ObjectStub* ReadExceptionFromInput(int inputNumber, IPublicProgramObject& po, const IFunction& f)
 	{
+		UNUSED(inputNumber);
+
 		void* ex;
 		ReadInput(0, ex, po, f);
 
@@ -400,6 +408,9 @@ namespace Rococo::Script
 			ObjectStub* object = ReadExceptionFromInput(0, po, function);
 			const IStructure& underlyingType = GetType(object);
 			const IObjectInterface& iexc = po.Common().SysTypeIException();
+
+			UNUSED(underlyingType);
+			UNUSED(iexc);
 
 			po.IncrementRefCount((InterfacePointer)object);
 			
@@ -474,6 +485,8 @@ namespace Rococo::Script
 			const IStructure& nativeExType = *module.FindStructure(("NativeException"));
 			
 			int size = GetNullSize(nativeExType);
+
+			UNUSED(size);
 
 			char buf[2048];
 			SafeVFormat(buf, sizeof buf, format, args);
