@@ -127,12 +127,13 @@ namespace Rococo::Strings
 	{
 		void* AllocateObject(size_t nBytes) override
 		{
+			UNUSED(nBytes);
 			return nullptr;
 		}
 
 		void FreeObject(void* pMemory) override
 		{
-			
+			UNUSED(pMemory);
 		}
 
 		refcount_t AddRef() override
@@ -147,6 +148,7 @@ namespace Rococo::Strings
 
 		size_t FreeAll(IEventCallback<LeakArgs>* leakCallback) override
 		{
+			UNUSED(leakCallback);
 			return 0;
 		}
 	};
@@ -598,8 +600,6 @@ namespace Rococo::Strings
 	void AlignedMalloc(NativeCallEnvironment& e)
 	{
 		IScriptSystem& ss = *(IScriptSystem*) e.context;
-
-		TAllocationMap& allocMap = *(TAllocationMap*) e.context;
 
 		int32 capacity;
 		ReadInput(0, capacity, e); 

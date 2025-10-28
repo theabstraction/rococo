@@ -56,6 +56,8 @@ namespace
 
 		int offset = sizeof(ObjectStub) - sizeof(void*); // Gives us the firstvTable
 
+		UNUSED(offset);
+
 		for(int i = 0; i < interfCount; ++i)
 		{
 			const IObjectInterface& I = typeInfo.GetInterface(i);
