@@ -5,9 +5,7 @@
 # define INCLUDED_ROCOCO_STRINGS
 #endif
 
-#ifdef ROCOCO_USE_SAFE_V_FORMAT
 # include <stdarg.h>
-#endif
 
 #ifdef __APPLE__
 #define _stricmp strcasecmp
@@ -43,7 +41,6 @@ namespace Rococo::Strings
 
 	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
 
-#ifdef ROCOCO_USE_SAFE_V_FORMAT
 	ROCOCO_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
 	ROCOCO_API int SafeVFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, va_list args);
 	ROCOCO_INTERFACE IVarArgStringFormatter
@@ -57,7 +54,6 @@ namespace Rococo::Strings
 # ifndef _WIN32
 	ROCOCO_API int sscanf_s(const char* buffer, const char* format, ...);
 # endif
-#endif
 
 #ifdef USE_VSTUDIO_SAL
 	template<size_t CAPACITY, typename... Args>

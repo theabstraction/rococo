@@ -2,7 +2,7 @@
 #include <rococo.visitors.h>
 #include <stdio.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #include <rococo.ide.h>

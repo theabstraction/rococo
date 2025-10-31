@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/sysctl.h>
 #include <rococo.io.h>
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.hashtable.h>
 #include <errno.h>
 #include <mach-o/dyld.h>

@@ -33,7 +33,7 @@
 
 #include "sexy.s-parser.stdafx.h"
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 

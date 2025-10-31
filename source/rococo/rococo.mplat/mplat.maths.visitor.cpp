@@ -1,6 +1,6 @@
 #include <rococo.mplat.h>
 #include <vector>
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 #include <stdarg.h>
 #include <rococo.ui.h>

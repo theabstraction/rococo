@@ -39,7 +39,7 @@
 #include "sexy.types.h"
 #include <sexy.util.exports.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #include <algorithm>

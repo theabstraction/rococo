@@ -2,7 +2,7 @@
 #include <rococo.os.win32.h>
 #include <rococo.window.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.hashtable.h>
 #include <rococo.variable.editor.h>
 #include <rococo.file.browser.h>

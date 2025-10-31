@@ -4,7 +4,7 @@
 
 #include <rococo.gr.win32-gdi.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.vector.ex.h>
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.h>

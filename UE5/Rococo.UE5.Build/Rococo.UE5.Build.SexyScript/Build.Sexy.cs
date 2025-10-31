@@ -47,7 +47,7 @@ namespace Rococo.UE5.Build.SexyScript
             string sexyPluginPublicSrcCode = Path.Join(sexyPluginDirectory, "Source", "RococoScript", "Public");
             string sexyThirdPartyRococoSrcCode = Path.Join(sexyPluginDirectory, "Source", "ThirdParty", "Rococo");
 
-            string sexyPluginSSSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "SS");
+            string sexyPluginSSSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "RococoSexySS");
 
             string ssDirectory = Path.Join(sexyDirectory, "SS" , "sexy.script");
             base.CopyFilesToSourceMatching(sexyPluginSSSrcCode, ssDirectory, "*.cpp");
@@ -56,7 +56,7 @@ namespace Rococo.UE5.Build.SexyScript
             string sexyPluginHeaders = Path.Join(sexyThirdPartyRococoSrcCode, "SexyAPI");
             base.CopyFilesToSourceMatching(sexyPluginHeaders, rococoSexyIncludeDirectory, "*.h");
 
-            string sexyPluginSPSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "SP");
+            string sexyPluginSPSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "RococoSexySP");
             string rococoSexySParserPath = Path.Join(sexyDirectory, "SP", "sexy.s-parser");
             base.CopyFilesToSourceMatching(sexyPluginSPSrcCode, rococoSexySParserPath, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSPSrcCode, rococoSexySParserPath, "*.inl");
@@ -73,13 +73,13 @@ namespace Rococo.UE5.Build.SexyScript
             base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Reflection"), rococoSexyReflectionPath, "*.cpp");
             base.CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyNativeLib_Reflection"), rococoSexyReflectionPath, "*.inl");
 
-            string sexyPluginSTCSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "STC");
+            string sexyPluginSTCSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "RococoSexySTC");
             string rococoSexySTCPath = Path.Join(sexyDirectory, "STC", "stccore");
             base.CopyFilesToSourceMatching(sexyPluginSTCSrcCode, rococoSexySTCPath, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSTCSrcCode, rococoSexySTCPath, "*.inl");
             base.CopyFilesToSourceMatching(sexyPluginHeaders, rococoSexySTCPath, "*.h");
 
-            string sexyPluginSVMSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "SVM");
+            string sexyPluginSVMSrcCode = Path.Join(sexyThirdPartyRococoSrcCode, "RococoSexySVM");
             string rococoSexySVMPath = Path.Join(sexyDirectory, "SVM", "svmcore");
             base.CopyFilesToSourceMatching(sexyPluginSVMSrcCode, rococoSexySVMPath, "*.cpp");
             base.CopyFilesToSourceMatching(sexyPluginSVMSrcCode, rococoSexySVMPath, "*.inl");
@@ -93,7 +93,9 @@ namespace Rococo.UE5.Build.SexyScript
 
             string rococoPluginOS = Path.Join(sexyThirdPartyRococoSrcCode, "RococoOS");
 
-            CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "SexyUtils"), Path.Join(sexyDirectory, "Utilities"), "*.cpp");
+            CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "RococoSexyUtils"), Path.Join(sexyDirectory, "Utilities"), "*.cpp");
+
+            CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "RococoSexyIDE"), Path.Join(rococoSourceDirectory, "Rococo", "rococo.sexy.ide"), "*.cpp");
 
             CreateBundleDirect(rococoPluginOS, "wrap.rococo_util.cpp", null, CodeGenPath("rococo.os.UE5.prelude.h"), CodeGenPath("rococo.os.UE5.postlude.h"), "rococo/rococo.util",
                 new List<string>()
@@ -103,19 +105,23 @@ namespace Rococo.UE5.Build.SexyScript
                     "rococo.heap.string.cpp",
                     "rococo.allocators.cpp",
                     "rococo.throw.cr_sex.cpp",
-                    "rococo.os.cpp"
+                    "rococo.parsering.cpp",
+                    "rococo.os.cpp",
+                    "sha256.cpp"
                 }
             );
 
-            CopyFileToSource(rococoPluginOS, "rococo/rococo.util", "rococo.os.win32.inl");
+            CopyFileToSource(rococoPluginOS, Path.Join(rococoSourceDirectory, "rococo", "rococo.util"), "rococo.os.win32.inl");
 
             string guiPath = Path.Join(rococoHomeDirectory, "UE5", "Plugins", "RococoGuiUltra", "Source", "RococoGui");
 
+            /* TODO - delete this if its not in use
             CopyFilesToSource(sexyPluginPrivateSrcCode, Path.Join(guiPath, "Private"), new List<string>
                 {
                     "rococo.os.UE5.cpp"
                 }
             );
+            */
         }
     }
 }

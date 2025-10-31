@@ -4,7 +4,7 @@
 #include <rococo.window.h>
 #include <rococo.sexy.ide.h>
 #include <rococo.win32.rendering.h>
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 #include <rococo.imaging.h>
 #include <rococo.strings.h>

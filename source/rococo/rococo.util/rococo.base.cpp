@@ -6,7 +6,7 @@
 #define ROCOCO_ID_API ROCOCO_API
 #include <rococo.debugging.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #include <stdio.h>

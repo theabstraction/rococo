@@ -42,17 +42,6 @@ namespace Rococo
 {
 	namespace Variants
 	{
-		inline VariantValue FromValue(int32 value)
-		{
-			VariantValue v;
-			v.int32Value = value;
-			return v;
-		}
-
-		inline VariantValue Zero() { return FromValue(0);	}
-		inline VariantValue ValueTrue() { return FromValue(1); }
-		inline VariantValue ValueFalse() { return FromValue(0); }
-
 		bool IsAssignableToBoolean(SexyVarType type)
 		{
 			return type == SexyVarType_Bool;

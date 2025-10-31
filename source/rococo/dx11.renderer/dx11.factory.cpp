@@ -11,7 +11,7 @@
 #include <dxgi.h>
 #include <d3d11.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #include "dx11.factory.h"

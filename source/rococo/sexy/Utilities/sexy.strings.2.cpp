@@ -66,7 +66,7 @@
 
 #include <sexy.types.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #ifdef _WIN32

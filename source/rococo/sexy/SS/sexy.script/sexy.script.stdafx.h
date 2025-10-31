@@ -45,7 +45,7 @@
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 #include <sexy.unordered_map.h>

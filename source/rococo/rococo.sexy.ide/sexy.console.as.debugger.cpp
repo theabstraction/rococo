@@ -6,7 +6,7 @@
 #include <rococo.os.h>
 #include <rococo.sexy.ide.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #include <rococo.visitors.h>
