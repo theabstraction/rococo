@@ -1,7 +1,10 @@
 #include <rococo.types.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <rococo.target.h>
+#include <Windows.h>
 #include <rococo.strings.h>
 #include <vector>
 #include <rococo.sexml.h>

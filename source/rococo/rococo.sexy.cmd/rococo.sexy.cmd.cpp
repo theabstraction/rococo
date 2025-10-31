@@ -11,7 +11,10 @@
 #include "sexy.compiler.public.h"
 #include "sexy.script.exports.h"
 
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <rococo.target.h>
+#include <Windows.h>
 #include <rococo.window.h>
 
 #include <limits>

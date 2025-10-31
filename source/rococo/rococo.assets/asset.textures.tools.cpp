@@ -1,4 +1,6 @@
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
 # define ROCOCO_ASSETS_API ROCOCO_API_EXPORT
 #include <assets/assets.texture.h>
 #include <rococo.win32.rendering.h>

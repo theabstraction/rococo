@@ -249,11 +249,13 @@ void SeedRandom(int seedValue)
 
 #ifdef _WIN32
 
-BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
+using namespace MSWindows;
+
+BOOL DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
 {
 	UNUSED(reserved);
 
-	BOOLEAN bSuccess = TRUE;
+	BOOL bSuccess = TRUE;
 
 	switch (nReason)
 	{

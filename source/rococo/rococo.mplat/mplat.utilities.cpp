@@ -1,5 +1,7 @@
 #include "rococo.mplat.h"
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
 #include <rococo.window.h>
 
 
@@ -30,6 +32,25 @@ namespace Rococo::MPlatImpl
 	// Note - implicityIncludes is NULL, MPlat defaults are used, which may conflict with security.
 	void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder);
 }
+
+class FileHandle
+{
+	HANDLE hFile;
+public:
+	FileHandle(HANDLE _hFile) : hFile(_hFile)
+	{
+	}
+
+	operator HANDLE()
+	{
+		return hFile;
+	}
+
+	~FileHandle()
+	{
+		if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
+	}
+};
 
 class Utilities :
 	public IUtilitiesSupervisor,

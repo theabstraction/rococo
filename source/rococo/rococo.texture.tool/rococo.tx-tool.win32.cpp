@@ -1,4 +1,6 @@
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <Windows.h>
 #include <rococo.window.h>
 #include <assets/assets.texture.h>
 #include <rococo.io.h>
@@ -259,7 +261,7 @@ Strings::CLI::CommandLineOption allOptions[] =
 	SWITCH_extractTxBakes
 };
 
-int CALLBACK WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR lpCmdLine, int /* nCmdShow */)
+int WinMain(HINSTANCE _hInstance, HINSTANCE /* hPrevInstance */, LPSTR lpCmdLine, int /* nCmdShow */)
 {
 	try
 	{

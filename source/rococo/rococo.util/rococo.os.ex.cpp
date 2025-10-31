@@ -6,18 +6,19 @@
 #include <vector>
 
 using namespace Rococo;
+using namespace MSWindows;
 
 namespace
 {
 	struct AutoFile
 	{
-		HANDLE hFile = INVALID_HANDLE_VALUE;
+		HANDLE hFile;
 
 		AutoFile(HANDLE l_hFile) : hFile(l_hFile) {}
 
 		~AutoFile()
 		{
-			if (hFile != INVALID_HANDLE_VALUE)
+			if (hFile.IsValidHandleValue())
 			{
 				CloseHandle(hFile);
 			}
@@ -81,9 +82,9 @@ namespace Rococo::OS
 		std::vector<char> asciiData;
 
 		{ // File is locked in this codesection
-			AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+			AutoFile f{ CreateFileW(filename, (DWORD) GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, HANDLE {0}) };
 
-			if (f.hFile == INVALID_HANDLE_VALUE)
+			if (!f.hFile.IsValidHandleValue())
 			{
 				Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %ls", filename);
 			}
@@ -121,9 +122,9 @@ namespace Rococo::OS
 		std::vector<char> asciiData;
 
 		{ // File is locked in this codesection
-			AutoFile f{ CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+			AutoFile f{ CreateFileA(filename, (DWORD) GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, {0})};
 
-			if (f.hFile == INVALID_HANDLE_VALUE)
+			if (!f.hFile.IsValidHandleValue())
 			{
 				Throw(GetLastError(), "LoadAsciiTextFile: Cannot open file %s", filename);
 			}
@@ -161,9 +162,9 @@ namespace Rococo::OS
 		std::vector<uint8> binData;
 
 		{ // File is locked in this codesection
-			AutoFile f{ CreateFileW(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+			AutoFile f{ CreateFileW(filename, (DWORD)GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, {0}) };
 
-			if (f.hFile == INVALID_HANDLE_VALUE)
+			if (!f.hFile.IsValidHandleValue())
 			{
 				Throw(GetLastError(), "LoadBinaryFile: Cannot open file %ls", filename);
 			}
@@ -200,9 +201,9 @@ namespace Rococo::OS
 		std::vector<uint8> binData;
 
 		{ // File is locked in this codesection
-			AutoFile f{ CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL) };
+			AutoFile f{ CreateFileA(filename, (DWORD) GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, {0}) };
 
-			if (f.hFile == INVALID_HANDLE_VALUE)
+			if (!f.hFile.IsValidHandleValue())
 			{
 				Throw(GetLastError(), "LoadBinaryFile: Cannot open file %s", filename);
 			}

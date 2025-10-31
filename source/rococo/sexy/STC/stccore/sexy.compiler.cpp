@@ -755,7 +755,7 @@ namespace Rococo
 			}
 		}
 
-		__declspec(dllexport) const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset)
+		SEXYCOMPILER_API const IFunction* GetCurrentFunction(IPublicProgramObject& po, size_t& programOffset, size_t& pcOffset)
 		{
 			IVirtualMachine& vm = po.VirtualMachine();
 			IProgramMemory& mem = po.ProgramMemory();

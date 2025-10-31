@@ -1,4 +1,7 @@
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <rococo.window.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
@@ -6,7 +9,7 @@
 #include <rococo.sexystudio.api.h>
 #include <rococo.functional.h>
 #include <rococo.auto-complete.h>
-#include <rococo.window.h>
+
 
 using namespace Rococo;
 using namespace Rococo::Strings;

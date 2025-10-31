@@ -2,9 +2,6 @@
 
 #define ROCOCO_GR_GDI_API ROCOCO_API_EXPORT
 
-#include <rococo.gr.win32-gdi.h>
-
-
 #include <rococo.vector.ex.h>
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.h>
@@ -13,7 +10,6 @@
 #include <rococo.io.h>
 #include <rococo.ui.h>
 #include <rococo.os.h>
-#include <rococo.window.h>
 #include <rococo.imaging.h>
 #include <rococo.hashtable.h>
 #include <rococo.time.h>
@@ -26,6 +22,10 @@
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
 
 #pragma comment(lib, "Msimg32.lib")
+
+#include <rococo.gr.win32-gdi.h>
+
+#include <rococo.window.h>
 
 #include <gdiplus.h>
 #pragma comment (lib,"Gdiplus.lib")

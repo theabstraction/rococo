@@ -3,8 +3,8 @@
 #define WIN32_LEAN_AND_MEAN 
 #define NOMINMAX
 
-#include <rococo.os.win32.h>
-#include <rococo.window.h>
+#include <windows.h>
+
 #include <Psapi.h>
 #include <rococo.api.h>
 
@@ -64,6 +64,25 @@ OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
 
 namespace Rococo
 {
+	class FileHandle
+	{
+		HANDLE hFile;
+	public:
+		FileHandle(HANDLE _hFile) : hFile(_hFile)
+		{
+		}
+
+		operator HANDLE()
+		{
+			return hFile;
+		}
+
+		~FileHandle()
+		{
+			if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
+		}
+	};
+
 	class AutoHKEY
 	{
 		HKEY hKey = nullptr;

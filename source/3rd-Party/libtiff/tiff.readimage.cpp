@@ -19,10 +19,10 @@
 #include <rococo.os.h>
 #include <rococo.imaging.h>
 
-
 #include <rococo.strings.h>
 
 #include "tiffiop.h"
+
 #include <vector>
 
 #ifndef _WIN32
@@ -75,7 +75,7 @@ namespace Rococo::OS
 #ifdef _WIN32
 	bool IsDebugging()
 	{
-		return IsDebuggerPresent() == TRUE;
+		return MSWindows::IsDebuggerPresent() == TRUE;
 	}
 
 	void PrintDebug(const char* format, ...)
@@ -85,7 +85,7 @@ namespace Rococo::OS
 		va_start(arglist, format);
 		char line[4096];
 		_vsnprintf_s(line, sizeof(line), _TRUNCATE, format, arglist);
-		OutputDebugStringA(line);
+		MSWindows::OutputDebugStringA(line);
 #else
 		UNUSED(format);
 #endif

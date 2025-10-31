@@ -38,9 +38,7 @@
 # define UNICODE
 #endif
 
-#include <rococo.win32.target.win7.h>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <rococo.os.win32.h>
 
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
@@ -53,11 +51,12 @@
 #include <rococo.io.h>
 
 using namespace Rococo::Strings;
+using namespace MSWindows;
 
 #define BREAK_ON_THROW
 
 #ifndef SCRIPT_IS_LIBRARY
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+BOOL DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 	UNUSED(hinstDLL);
 	UNUSED(fdwReason);
@@ -101,8 +100,8 @@ namespace Rococo
 #ifdef SCRIPT_IS_LIBRARY
 			GetCurrentDirectoryW((DWORD)capacity, data);
 #else
-			HMODULE hModule = GetModuleHandle(nullptr);
-			if (!hModule)
+			HMODULE hModule = GetModuleHandleW(nullptr);
+			if (!hModule.ptrInternal)
 			{
 				Throw(GetLastError(), "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for the sexy script dynamic link library");
 			}
@@ -152,7 +151,7 @@ namespace Rococo
 			WideFilePath linkLib;
 			Format(linkLib, L"%ls.dll", dynamicLinkLibOfNativeCalls);
 			HMODULE lib = LoadLibraryW(linkLib);
-			if (lib == nullptr)
+			if (lib.ptrInternal == 0)
 			{
 				if (throwOnError) Rococo::Throw(GetLastError(), "Could not load %ls", linkLib.buf);
 				return nullptr;
@@ -197,7 +196,7 @@ namespace Rococo
 				HANDLE hFile;
 				~AutoFile()
 				{
-					if (hFile != INVALID_HANDLE_VALUE)
+					if (!hFile.IsValidHandleValue())
 					{
 						CloseHandle(hFile);
 					}
@@ -205,14 +204,14 @@ namespace Rococo
 				void Close()
 				{
 					CloseHandle(hFile);
-					hFile = INVALID_HANDLE_VALUE;
+					hFile.internal = -1;
 				}
 				operator HANDLE() { return hFile; }
 			} hFile = {
-				CreateFileA(tempFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)
+				CreateFileA(tempFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, {0})
 			};
 
-			if (hFile == INVALID_HANDLE_VALUE)
+			if (!hFile.hFile.IsValidHandleValue())
 			{
 				Throw(GetLastError(), "Could not open file for writing: %hs", tempFile.buf);
 			}
@@ -227,7 +226,7 @@ namespace Rococo
 			hFile.Close();
 
 			HMODULE lib = LoadLibraryA(tempFile);
-			if (lib == nullptr)
+			if (lib.ptrInternal == 0)
 			{
 				Rococo::Throw(GetLastError(), "Could not load %hs", origin);
 			}

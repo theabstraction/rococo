@@ -48,7 +48,7 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
-	bool IsPointerValid(const void* ptr);
+	ROCOCO_API bool IsPointerValid(const void* ptr);
 
 	namespace Compiler
 	{

@@ -42,11 +42,6 @@ namespace Rococo
 {
 	namespace Variants
 	{
-		bool IsAssignableToBoolean(SexyVarType type)
-		{
-			return type == SexyVarType_Bool;
-		}
-
 		SEXYUTIL_API SexyVarType GetBestCastType(SexyVarType a, SexyVarType b)
 		{
 			if (a == SexyVarType_Bad || b == SexyVarType_Bad) return SexyVarType_Bad;

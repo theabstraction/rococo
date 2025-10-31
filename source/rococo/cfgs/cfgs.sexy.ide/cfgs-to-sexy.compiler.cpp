@@ -1109,6 +1109,8 @@ namespace Rococo::CFGS
 	ROCOCO_API_IMPORT void LoadDatabase(ICFGSDatabase& db, cstr filename, ICFGSLoader& loader);
 }
 
+using namespace MSWindows;
+
 struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader, ICFGSVariableEnumerator
 {
 	AutoFree<Rococo::Events::IPublisherSupervisor> publisher;
@@ -1135,7 +1137,7 @@ struct CLI_Compiler : ICFGSSexyCLI, ICFGSLoader, ICFGSVariableEnumerator
 		cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";
 
 		int nErr = CreateSexyStudioFactory((void**)&ssFactory, interfaceURL);
-		if FAILED(nErr)
+		if (nErr != 0)
 		{
 			Throw(nErr, "CreateSexyStudioFactory with URL %s failed", interfaceURL);
 		}

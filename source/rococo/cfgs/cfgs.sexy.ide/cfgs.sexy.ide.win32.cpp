@@ -1,6 +1,8 @@
 #include <rococo.types.h>
 #include "cfgs.sexy.navigation.inl"
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <Windows.h>
 #include <rococo.window.h>
 #include <rococo.sexml.h>
 #include <rococo.maths.i32.h>

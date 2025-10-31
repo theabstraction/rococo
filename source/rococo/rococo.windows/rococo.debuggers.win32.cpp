@@ -1,4 +1,6 @@
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
 #include <rococo.window.h>
 #include <rococo.strings.h>
 #include <stdio.h>

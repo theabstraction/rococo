@@ -1,6 +1,32 @@
 #ifdef _WIN32
 #include <rococo.os.win32.h>
-#include <wincon.h>
+
+namespace MSWindows
+{
+	extern "C" __declspec(dllimport) HANDLE GetStdHandle(DWORD nStdHandle);
+	extern "C" __declspec(dllimport) BOOL SetConsoleTextAttribute(HANDLE hConsoleOutput, WORD wAttributes);
+
+	enum Handles
+	{
+		STD_INPUT_HANDLE = -10,
+		STD_OUTPUT_HANDLE = -11,
+		STD_ERROR_HANDLE = -12
+	};
+
+
+	enum Colours
+	{
+		FOREGROUND_BLUE = 0x0001, // text color contains blue. 
+		FOREGROUND_GREEN = 0x0002, // text color contains green.
+		FOREGROUND_RED = 0x0004, // text color contains red.
+		FOREGROUND_INTENSITY = 0x0008, // text color is intensified.
+		BACKGROUND_BLUE = 0x0010, // background color contains blue.
+		BACKGROUND_GREEN = 0x0020, // background color contains green.
+		BACKGROUND_RED = 0x0040, // background color contains red.
+		BACKGROUND_INTENSITY = 0x0080 // background color is intensified.
+	};
+}
+
 #endif
 
 #include <rococo.os.h>
@@ -15,11 +41,14 @@
 using namespace Rococo;
 
 #ifdef _WIN32
+
+using namespace MSWindows;
+
 struct ConsoleColourController : Strings::IColourOutputControl
 {
 	HANDLE hConsole;
 
-	ConsoleColourController(): hConsole(GetStdHandle(STD_OUTPUT_HANDLE))
+	ConsoleColourController(): hConsole(GetStdHandle((DWORD) STD_OUTPUT_HANDLE))
 	{
 	}
 

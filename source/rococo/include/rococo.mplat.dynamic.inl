@@ -1,7 +1,10 @@
 // Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #pragma once
 
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+
 #include <rococo.mplat.h>
 #include <mplat.to.app.events.inl>
 #include <rococo.window.h>
