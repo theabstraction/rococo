@@ -17,30 +17,6 @@ using namespace Rococo::Script;
 
 namespace Rococo
 {
-	SCRIPTEXPORT_API void ThrowSex(cr_sex s, cstr format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		char msg[512];
-		SafeVFormat(msg, sizeof(msg), format, args);
-
-		auto start = s.Start();
-		auto end = s.End();
-
-		char specimen[64];
-		Rococo::Sex::GetSpecimen(specimen, s);
-
-		ParseException ex(start, end, "ParseException", msg, specimen, &s);
-
-		OS::TripDebugger();
-
-		throw ex;
-	}
-}
-
-namespace Rococo
-{
 	ISourceCode* DuplicateSourceCode(ISParser& parser, const IBuffer& rawData, const char* resourcePath)
 	{
 		const char* utf8data = (const char*)rawData.GetData();

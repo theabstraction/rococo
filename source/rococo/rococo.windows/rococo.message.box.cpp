@@ -62,7 +62,7 @@ namespace Rococo::Windows
         vsnprintf_s(caption, _TRUNCATE, captionFormat, args);
         va_end(args);
 
-        HMODULE hRichEditor = LoadLibraryA(TEXT("Riched20.dll"));
+        HMODULE hRichEditor = LoadLibraryA("Riched20.dll");
         if (hRichEditor == NULL)
         {
             ShowMessageBox(parent, ex.Message(), caption, MB_ICONEXCLAMATION);

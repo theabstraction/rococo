@@ -256,11 +256,11 @@ namespace
 			   if (splitterRect.bottom > splitterRect.right)
 			   {
 				   // Vertical
-				   hCursor = LoadCursorA(nullptr, IDC_SIZEWE);
+				   hCursor = LoadCursorA(nullptr, (char*) IDC_SIZEWE);
 			   }
 			   else
 			   {
-				   hCursor = LoadCursorA(nullptr, IDC_SIZENS);
+				   hCursor = LoadCursorA(nullptr, (char*) IDC_SIZENS);
 			   }
 			   
 			   SetCursor(hCursor);

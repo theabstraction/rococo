@@ -153,4 +153,9 @@ namespace Rococo::Sex
 	SEXY_SPARSER_API ISParser* CreateSexParser_2_0(Rococo::IAllocator& allocator, size_t maxStringLength = SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
 }
 
+namespace Rococo
+{
+	SEXY_SPARSER_API void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...);
+}
+
 

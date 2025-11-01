@@ -106,14 +106,27 @@ namespace Rococo.UE5.Build.SexyScript
                     "rococo.allocators.cpp",
                     "rococo.throw.cr_sex.cpp",
                     "rococo.parsering.cpp",
-                    "rococo.os.cpp",
                     "sha256.cpp"
                 }
             );
 
+            CopyFileToSource(rococoPluginOS, Path.Join(rococoSourceDirectory, "rococo", "rococo.util"), "rococo.os.cpp");
             CopyFileToSource(rococoPluginOS, Path.Join(rococoSourceDirectory, "rococo", "rococo.util"), "rococo.os.win32.inl");
 
             string guiPath = Path.Join(rococoHomeDirectory, "UE5", "Plugins", "RococoGuiUltra", "Source", "RococoGui");
+
+            CopyFilesToSource(Path.Join(sexyThirdPartyRococoSrcCode, "RococoMSWindows"), Path.Join(rococoSourceDirectory, "Rococo", "rococo.windows"), 
+                new List<string> 
+                {
+                    "rococo.window.cpp",
+                    "rococo.message.box.cpp",
+                    "rococo.debuggers.win32.cpp",
+                    "rococo.windows.darkmode.cpp",
+                    "rococo.tabbed.ide.cpp"
+                }
+            );
+            CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "RococoMSWindows"), Path.Join(rococoSourceDirectory, "Rococo", "rococo.windows"), "*.inl");
+            CopyFilesToSourceMatching(Path.Join(sexyThirdPartyRococoSrcCode, "RococoMSWindows"), Path.Join(rococoSourceDirectory, "Rococo", "rococo.windows"), "*.rc");
 
             /* TODO - delete this if its not in use
             CopyFilesToSource(sexyPluginPrivateSrcCode, Path.Join(guiPath, "Private"), new List<string>

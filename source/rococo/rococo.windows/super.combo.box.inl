@@ -81,7 +81,7 @@ namespace Rococo::Windows
 		void AddKeyValue(cstr key, cstr value) override
 		{
 			UNUSED(key);
-			LV_ITEM item = { 0 };
+			LV_ITEMA item = { 0 };
 			item.mask = LVIF_TEXT;
 			item.pszText = (char*)value;
 			item.iItem = 0x7FFFFFFF;
@@ -303,7 +303,11 @@ namespace Rococo::Windows
 				return pos;
 			}
 
-			ListView_GetItemText(hWndList, pos, 0, key, (int) sizeofKeyBuffer);
+			LV_ITEMA item; 
+			item.iSubItem = 0;
+			item.cchTextMax = (int)sizeofKeyBuffer;
+			item.pszText = key;
+			SendMessage(hWndList, LVM_GETITEMTEXTA, (WPARAM)(pos), (LPARAM)(LV_ITEM*)&item);
 			return pos;
 		}
 
@@ -406,7 +410,7 @@ namespace Rococo::Windows
 			{
 				Throw(0, "%s: bad key length. Max is %u characters", MAX_KEY_LEN - 1, __ROCOCO_FUNCTION__);
 			}
-			SetWindowText(hWndEditControl, keyName);
+			SetWindowTextA(hWndEditControl, keyName);
 			ListBuilder().Select(keyName);
 		}
 

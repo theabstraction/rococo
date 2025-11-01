@@ -75,7 +75,7 @@ namespace Rococo::Memory
 
 namespace Rococo
 {
-	SCRIPTEXPORT_API void ThrowSex(cr_sex s, cstr format, ...);
+	SEXY_SPARSER_API void ThrowSex(cr_sex s, cstr format, ...);
 	
 	void ValidateArgument(cr_sex s, const char* arg)
 	{

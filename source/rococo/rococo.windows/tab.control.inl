@@ -223,7 +223,7 @@ namespace Rococo::Windows
 					int tabs = TabCtrl_GetItemCount(hWnd);
 					for (int i = 0; i < tabs; ++i)
 					{
-						TC_ITEM item = { 0 };		
+						TC_ITEMA item = { 0 };		
 						item.mask = TCIF_TEXT | TCIF_STATE;
 						item.dwStateMask = TCIS_BUTTONPRESSED | TCIS_HIGHLIGHTED;
 						item.cchTextMax = sizeof tabChars;

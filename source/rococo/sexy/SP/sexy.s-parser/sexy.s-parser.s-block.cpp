@@ -1925,6 +1925,30 @@ namespace Anon
 	};
 } // Anon
 
+namespace Rococo
+{
+	SEXY_SPARSER_API void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		char msg[512];
+		SafeVFormat(msg, sizeof(msg), format, args);
+
+		auto start = s.Start();
+		auto end = s.End();
+
+		char specimen[64];
+		Rococo::Sex::GetSpecimen(specimen, s);
+
+		Rococo::Sex::ParseException ex(start, end, "ParseException", msg, specimen, &s);
+
+		OS::TripDebugger();
+
+		throw ex;
+	}
+}
+
 namespace Rococo::Sex
 {
 	SEXY_SPARSER_API ISParser* CreateSexParser_2_0(IAllocator& allocator, size_t maxStringLength)
