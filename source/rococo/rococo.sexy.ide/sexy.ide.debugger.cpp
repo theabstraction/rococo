@@ -6,7 +6,16 @@
 #include <sexy.script.h>
 #include <Sexy.S-Parser.h>
 
-#include <windows.h>
+#define NOMINMAX // Macros min(a, b) and max(a, b)
+# define NOCOMM // COMM driver routines
+# define NOKANJI // Kanji support stuff.
+# define NOHELP // Help engine interface.
+# define NOPROFILER // Profiler interface.
+# define NODEFERWINDOWPOS // DeferWindowPos routines
+# define NOMCX // Modem Configuration Extensions
+
+# include <Windows.h>
+
 #include <rococo.window.h>
 
 
@@ -994,7 +1003,7 @@ namespace
 				RECT rect;
 				GetClientRect(report->GetListViewSupervisor(), &rect);
 
-				int width = max(rect.right - 120, 256);
+				int width = Rococo::max((int) rect.right - 120, 256);
 				cstr columns[] = { "Function", "Module", nullptr };
 				int widths[] = { 200, width, -1 };
 				ListView_SetExtendedListViewStyle(report->GetListViewSupervisor().ListViewHandle(), LVS_EX_FULLROWSELECT);

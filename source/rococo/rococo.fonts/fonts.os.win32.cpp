@@ -3,8 +3,7 @@
 #include <rococo.api.h>
 #include <rococo.strings.h>
 #include <unordered_map>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.window.h>
 #include <rococo.fonts.hq.h>
 #include <rococo.imaging.h>

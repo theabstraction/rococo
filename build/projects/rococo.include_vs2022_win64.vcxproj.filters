@@ -234,6 +234,7 @@
     <ClInclude Include="..\..\source\rococo\include\third-party\rococo.sal.h">
       <Filter>third-party</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\include\rococo.os.win32.global-ns.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">

@@ -2,9 +2,15 @@
 #ifndef ROCOCO_WIN32_H
 #define ROCOCO_WIN32_H
 
+#ifdef _WIN32
+
 # include <rococo.types.h>
 
-#ifdef _WIN32
+# ifdef _WINDOWS_
+#  error _WINDOWS_ already defined Windows.h already included apparently
+# endif
+
+#define ROCOCO_OS_WIN32_API extern "C" __declspec(dllimport)
 
 namespace MSWindows
 {
@@ -44,6 +50,8 @@ namespace MSWindows
         {
             return ptrInternal != 0;
         }
+
+        static HMODULE Null() { return { 0 }; }
     };
 
     typedef HMODULE HINSTANCE;
@@ -51,6 +59,8 @@ namespace MSWindows
     struct HWND
     {
         HANDLE_INTERNAL ptrInternal = 0;
+
+        static HWND Null() { return  { 0 }; }
     };
 
     typedef unsigned __int64 ULONG_PTR, * PULONG_PTR;
@@ -73,29 +83,29 @@ namespace MSWindows
     };
 #endif
 
-    extern "C" __declspec(dllimport) BOOL IsDebuggerPresent();
-    extern "C" __declspec(dllimport) void OutputDebugStringA(LPCSTR lpOutputString);
-    extern "C" __declspec(dllimport) HMODULE LoadLibraryA(LPCSTR lpLibFileName);
-    extern "C" __declspec(dllimport) HMODULE LoadLibraryW(LPCWSTR lpLibFileName);
-    extern "C" __declspec(dllimport) HMODULE GetModuleHandleA(LPCSTR lpModuleName);
-    extern "C" __declspec(dllimport) HMODULE GetModuleHandleW(LPCWSTR lpModuleName);
-    extern "C" __declspec(dllimport) DWORD GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
-    extern "C" __declspec(dllimport) DWORD GetModuleFileNameW(HMODULE hModule, LPWSTR lpFilename, DWORD nSize);
-    extern "C" __declspec(dllimport) DWORD GetCurrentDirectoryA(DWORD nBufferLength, LPSTR lpBuffer);
-    extern "C" __declspec(dllimport) DWORD GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer);
+    ROCOCO_OS_WIN32_API BOOL IsDebuggerPresent();
+    ROCOCO_OS_WIN32_API void OutputDebugStringA(LPCSTR lpOutputString);
+    ROCOCO_OS_WIN32_API HMODULE LoadLibraryA(LPCSTR lpLibFileName);
+    ROCOCO_OS_WIN32_API HMODULE LoadLibraryW(LPCWSTR lpLibFileName);
+    ROCOCO_OS_WIN32_API HMODULE GetModuleHandleA(LPCSTR lpModuleName);
+    ROCOCO_OS_WIN32_API HMODULE GetModuleHandleW(LPCWSTR lpModuleName);
+    ROCOCO_OS_WIN32_API DWORD GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
+    ROCOCO_OS_WIN32_API DWORD GetModuleFileNameW(HMODULE hModule, LPWSTR lpFilename, DWORD nSize);
+    ROCOCO_OS_WIN32_API DWORD GetCurrentDirectoryA(DWORD nBufferLength, LPSTR lpBuffer);
+    ROCOCO_OS_WIN32_API DWORD GetCurrentDirectoryW(DWORD nBufferLength, LPWSTR lpBuffer);
 
-    extern "C" __declspec(dllimport) DWORD GetEnvironmentVariableA(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize);
-    extern "C" __declspec(dllimport) DWORD GetEnvironmentVariableW(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize);
+    ROCOCO_OS_WIN32_API DWORD GetEnvironmentVariableA(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize);
+    ROCOCO_OS_WIN32_API DWORD GetEnvironmentVariableW(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize);
 
-    extern "C" __declspec(dllimport) DWORD GetFileAttributesA(LPCSTR lpFileName);
-    extern "C" __declspec(dllimport) DWORD GetFileAttributesW(LPCWSTR lpFileName);
+    ROCOCO_OS_WIN32_API DWORD GetFileAttributesA(LPCSTR lpFileName);
+    ROCOCO_OS_WIN32_API DWORD GetFileAttributesW(LPCWSTR lpFileName);
 
-    extern "C" __declspec(dllimport) BOOL SetEnvironmentVariableA(LPCSTR lpName, LPCSTR lpValue);
-    extern "C" __declspec(dllimport) BOOL SetEnvironmentVariableW(LPCWSTR lpName, LPCWSTR lpValue);
+    ROCOCO_OS_WIN32_API BOOL SetEnvironmentVariableA(LPCSTR lpName, LPCSTR lpValue);
+    ROCOCO_OS_WIN32_API BOOL SetEnvironmentVariableW(LPCWSTR lpName, LPCWSTR lpValue);
 
     typedef int (*FARPROC)();
 
-    extern "C" __declspec(dllimport) FARPROC GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+    ROCOCO_OS_WIN32_API FARPROC GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
 
     enum FileAttributes
     {
@@ -110,9 +120,9 @@ namespace MSWindows
         DLL_PROCESS_DETACH = 0
     };
 
-    extern "C" __declspec(dllimport) BOOL DisableThreadLibraryCalls(HMODULE hLibModule);
+    ROCOCO_OS_WIN32_API BOOL DisableThreadLibraryCalls(HMODULE hLibModule);
 
-    extern "C" __declspec(dllimport) DWORD GetTempPathA(DWORD nBufferLength, LPSTR lpBuffer);
+    ROCOCO_OS_WIN32_API DWORD GetTempPathA(DWORD nBufferLength, LPSTR lpBuffer);
 
     struct OVERLAPPED
     {
@@ -171,19 +181,19 @@ namespace MSWindows
 
     typedef struct _SECURITY_ATTRIBUTES* LPSECURITY_ATTRIBUTES;
 
-    extern "C" __declspec(dllimport) BOOL CloseHandle(HANDLE hFile);
-    extern "C" __declspec(dllimport) BOOL ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
-    extern "C" __declspec(dllimport) BOOL WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
-    extern "C" __declspec(dllimport) DWORD GetLastError();
-    extern "C" __declspec(dllimport) HANDLE CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
-    extern "C" __declspec(dllimport) HANDLE CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+    ROCOCO_OS_WIN32_API BOOL CloseHandle(HANDLE hFile);
+    ROCOCO_OS_WIN32_API BOOL ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
+    ROCOCO_OS_WIN32_API BOOL WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
+    ROCOCO_OS_WIN32_API DWORD GetLastError();
+    ROCOCO_OS_WIN32_API HANDLE CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+    ROCOCO_OS_WIN32_API HANDLE CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 
-    extern "C" __declspec(dllimport) BOOL GetFileSizeEx(HANDLE hFile, PLARGE_INTEGER lpFileSize);
-    extern "C" __declspec(dllimport) DWORD GetFileType(HANDLE hFile);
+    ROCOCO_OS_WIN32_API BOOL GetFileSizeEx(HANDLE hFile, PLARGE_INTEGER lpFileSize);
+    ROCOCO_OS_WIN32_API DWORD GetFileType(HANDLE hFile);
 
-    extern "C" __declspec(dllimport) BOOL FreeLibrary(HMODULE hLibModule);
+    ROCOCO_OS_WIN32_API BOOL FreeLibrary(HMODULE hLibModule);
 
-    extern "C" __declspec(dllimport) void Sleep(DWORD dwMilliseconds);
+    ROCOCO_OS_WIN32_API void Sleep(DWORD dwMilliseconds);
 
     struct PROCESS_HEAP_ENTRY
     {
@@ -317,12 +327,106 @@ namespace MSWindows
         HANDLE_INTERNAL pInternal;
     };
 
-    extern "C" __declspec(dllimport) BOOL DestroyWindow(HWND hWnd);
-    extern "C" __declspec(dllimport) BOOL ShowWindow(HWND hWnd, int nCmdShow);
+    ROCOCO_OS_WIN32_API BOOL DestroyWindow(HWND hWnd);
+    ROCOCO_OS_WIN32_API BOOL ShowWindow(HWND hWnd, int nCmdShow);
 
     ROCOCO_API int GetWindowTitle(Rococo::Windows::IWindow& window, char* title, size_t capacity);
     ROCOCO_API Rococo::Windows::IWindow& NullParent();
     ROCOCO_API int ShowMessageBox(Rococo::Windows::IWindow& window, const char* text, const char* caption, Rococo::uint32 type);
+
+    typedef long LSTATUS;
+
+    typedef HANDLE HKEY;
+    typedef HKEY* PHKEY;
+
+    typedef DWORD ACCESS_MASK;
+    typedef ACCESS_MASK* PACCESS_MASK;
+
+    typedef ACCESS_MASK REGSAM;
+
+    typedef BYTE* LPBYTE;
+
+    ROCOCO_OS_WIN32_API LSTATUS RegOpenKeyA(HKEY hKey, LPCSTR lpSubKey, PHKEY phkResult);
+    ROCOCO_OS_WIN32_API LSTATUS RegOpenKeyW(HKEY hKey, LPCWSTR lpSubKey, PHKEY phkResult);
+    ROCOCO_OS_WIN32_API LSTATUS RegOpenKeyExA(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
+    ROCOCO_OS_WIN32_API LSTATUS RegOpenKeyExW(HKEY hKey, LPCWSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
+
+
+# define HKEY_CLASSES_ROOT        ( HKEY { 0x80000000ULL } )
+# define HKEY_CURRENT_USER        ( HKEY { 0x80000001ULL } )
+# define HKEY_LOCAL_MACHINE       ( HKEY { 0x80000002ULL } )
+# define HKEY_USERS               ( HKEY { 0x80000003ULL } )
+# define HKEY_PERFORMANCE_DATA    ( HKEY { 0x80000004ULL } )
+# define HKEY_PERFORMANCE_TEXT    ( HKEY { 0x80000050ULL } )
+# define HKEY_PERFORMANCE_NLSTEXT ( HKEY { 0x80000060ULL } )
+
+    enum EShowWindow
+    {
+        SW_HIDE = 0,
+        SW_SHOWNORMAL = 1,
+        SW_NORMAL = 1,
+        SW_SHOWMINIMIZED = 2,
+        SW_SHOWMAXIMIZED = 3,
+        SW_MAXIMIZE = 3,
+        SW_SHOWNOACTIVATE = 4,
+        SW_SHOW = 5,
+        SW_MINIMIZE = 6,
+        SW_SHOWMINNOACTIVE = 7,
+        SW_SHOWNA = 8,
+        SW_RESTORE = 9,
+        SW_SHOWDEFAULT = 10,
+        SW_FORCEMINIMIZE = 11,
+        SW_MAX = 11,
+    };
+
+    ROCOCO_OS_WIN32_API LSTATUS RegQueryValueExA(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+    ROCOCO_OS_WIN32_API LSTATUS RegQueryValueExW(HKEY hKey, LPCWSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+    ROCOCO_OS_WIN32_API LSTATUS RegCloseKey(HKEY hKey);
+
+    enum ERegTypes
+    {
+        REG_NONE = 0UL,
+        REG_SZ = 1UL,
+        REG_EXPAND_SZ = 2UL,
+        REG_BINARY = 3ul,
+        REG_DWORD = 4ul,
+        REG_DWORD_LITTLE_ENDIAN = 4ul,
+        REG_DWORD_BIG_ENDIAN = 5ul,
+        REG_LINK = 6ul,
+        REG_MULTI_SZ = 7ul,
+        REG_RESOURCE_LIST = 8ul,
+        REG_FULL_RESOURCE_DESCRIPTOR = 9ul,
+        REG_RESOURCE_REQUIREMENTS_LIST = 10ul,
+        REG_QWORD = 11ul,
+        REG_QWORD_LITTLE_ENDIAN = 11ul
+    };
+
+    ROCOCO_OS_WIN32_API HWND GetConsoleWindow();
+
+    typedef unsigned __int32 UINT;
+
+    ROCOCO_OS_WIN32_API int MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
+    ROCOCO_OS_WIN32_API int MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
+
+    enum EMessageBoxCode
+    {
+        MB_OK = 0x00000000L,
+        MB_OKCANCEL = 0x00000001L,
+        MB_ABORTRETRYIGNORE = 0x00000002L,
+        MB_YESNOCANCEL = 0x00000003L,
+        MB_YESNO = 0x00000004L,
+        MB_RETRYCANCEL = 0x00000005L,
+        MB_CANCELTRYCONTINUE = 0x00000006L,
+        MB_ICONHAND = 0x00000010L,
+        MB_ICONQUESTION = 0x00000020L,
+        MB_ICONEXCLAMATION = 0x00000030L,
+        MB_ICONASTERISK = 0x00000040L,
+        MB_USERICON = 0x00000080L,
+        MB_ICONWARNING = MB_ICONEXCLAMATION,
+        MB_ICONERROR = MB_ICONHAND,
+        MB_ICONINFORMATION = MB_ICONASTERISK,
+        MB_ICONSTOP = MB_ICONHAND,
+    };
 }
 
 namespace Rococo
@@ -348,6 +452,14 @@ namespace Rococo
 
    inline MSWindows::HWND ToHWND(Rococo::WindowRef ref) { return MSWindows::HWND{ reinterpret_cast<MSWindows::HANDLE_INTERNAL>(ref.pValue) }; }
    inline WindowRef ToRef(MSWindows::HWND hWnd) { WindowRef ref; ref.pValue = reinterpret_cast<void*>(hWnd.ptrInternal); return ref; }
+}
+
+namespace Rococo::Windows
+{
+    ROCOCO_INTERFACE IWindow
+    {
+        virtual operator MSWindows::HWND() const = 0;
+    };
 }
 
 # endif

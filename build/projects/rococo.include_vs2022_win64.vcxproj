@@ -260,6 +260,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.ninja.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.octree.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.os.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.os.win32.global-ns.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.os.win32.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.package.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.parse.h" />

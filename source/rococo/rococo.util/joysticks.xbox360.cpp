@@ -1,6 +1,6 @@
 // Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #include <rococo.ui.joystick.h>
-#include <windows.h>
+#include <rococo.os.win32.global-ns.h>
 #include <Xinput.h>
 #include <rococo.strings.h>
 #include <rococo.hashtable.h>

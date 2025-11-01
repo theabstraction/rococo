@@ -4,7 +4,7 @@
 #include <sexy.debug.types.h>
 #include <sexy.compiler.public.h>
 #include <sexy.script.h>
-#include <windows.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.window.h>
 #include <rococo.strings.h>
 #include <commctrl.h>

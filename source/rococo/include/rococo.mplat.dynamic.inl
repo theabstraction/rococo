@@ -1,9 +1,16 @@
 // Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
+# define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+# define NOMINMAX // Macros min(a, b) and max(a, b)
+# define NOCOMM // COMM driver routines
+# define NOKANJI // Kanji support stuff.
+# define NOHELP // Help engine interface.
+# define NOPROFILER // Profiler interface.
+# define NODEFERWINDOWPOS // DeferWindowPos routines
+# define NOMCX // Modem Configuration Extensions
+
+# include <Windows.h>
 
 #include <rococo.mplat.h>
 #include <mplat.to.app.events.inl>

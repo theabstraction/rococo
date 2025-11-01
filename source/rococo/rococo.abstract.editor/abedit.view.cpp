@@ -1,5 +1,5 @@
 #include <rococo.mvc.h>
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.abstract.editor.win32.h>
 #include <rococo.strings.h>
 #include <rococo.properties.h>

@@ -1,7 +1,4 @@
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#define NOMINMAX
-#include <rococo.target.h>
-#include <Windows.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.window.h>
 #include <rococo.editors.h>
 #include <rococo.abstract.editor.h>

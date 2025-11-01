@@ -1,9 +1,6 @@
 // Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #include <rococo.types.h>
-
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-// Windows Header Files
-#include <windows.h>
+#include <rococo.os.win32.global-ns.h>
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {

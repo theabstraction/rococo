@@ -2,7 +2,7 @@
 #include <rococo.os.h>
 #include <rococo.io.h>
 #include <initguid.h>
-#include <windows.h>
+#include <rococo.os.win32.global-ns.h>
 #include <Wmcodecdsp.h>
 #include <mftransform.h>
 #include <mfobjects.h>
@@ -563,7 +563,7 @@ namespace AudioAnon
 
 			DWORD nSamplesToRead = currentLen / sizeof(StereoSample_INT16);
 
-			CopyData(output, pPCMData, min(nSamplesToRead, nSamples));
+			CopyData(output, pPCMData, Rococo::min((uint32)nSamplesToRead, nSamples));
 
 			pcmBuffer->Unlock();
 

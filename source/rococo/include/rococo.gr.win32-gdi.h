@@ -2,9 +2,10 @@
 #pragma once
 
 #include <rococo.gr.client.h>
+
 #ifdef _WIN32
 #define NOMINMAX
-#include <Windows.h>
+#include <windows.h>
 #else 
 # error "platform not supported"
 #endif

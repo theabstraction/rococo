@@ -2,9 +2,7 @@
 #include <array>
 #include <rococo.hashtable.h>
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
+#include <rococo.os.win32.global-ns.h>
 
 #include <rococo.strings.h>
 #include <rococo.io.h>
