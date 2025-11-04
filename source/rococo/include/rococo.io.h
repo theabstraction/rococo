@@ -188,7 +188,7 @@ namespace Rococo::IO
 
 	ROCOCO_API bool TryGetFileAttributes(crwstr sysPath, FileAttributes& attr);
 
-	void NormalizePath(WideFilePath& path);
+	ROCOCO_API void NormalizePath(WideFilePath& path);
 
 	ROCOCO_API void ToU8(const U32FilePath& src, U8FilePath& dest);
 	ROCOCO_API void ToWide(const U32FilePath& src, WideFilePath& dest);

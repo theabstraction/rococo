@@ -736,6 +736,16 @@ namespace Rococo::Script
 
 namespace Rococo::Script
 {
+	WideFilePath hashDir;
+
+	SCRIPTEXPORT_API void SetHashDirectory(crwstr _hashDir)
+	{
+		Format(hashDir, L"%s", _hashDir);
+		IO::EndDirectoryWithSlash(hashDir.buf, WideFilePath::CAPACITY);
+		IO::ToSysPath(hashDir.buf);
+		IO::NormalizePath(hashDir);
+	}
+
 	class CScriptSystem : public IScriptSystem, private INativeSecurity
 	{
 	private:
@@ -762,6 +772,7 @@ namespace Rococo::Script
 		ID_API_CALLBACK serializeId;
 
 		WideFilePath srcEnvironment;
+		WideFilePath nativeBinDirectory;
 
 		TMapMethodToMember methodMap;
 
@@ -905,11 +916,10 @@ namespace Rococo::Script
 		TSexyStringMap<NativeSecurityHandler*> nsToSecurity;
 
 		int numberOfNativeSources = 4;
+
+		IScriptSystemFactory& ssFactory;
 	public:
-		CScriptSystem(
-			TMapNameToSTree& _nativeSources, 
-			const ProgramInitParameters& pip, 
-			ILog& _logger) :
+		CScriptSystem(IScriptSystemFactory& _ssFactory, TMapNameToSTree& _nativeSources, const ProgramInitParameters& pip, ILog& _logger) :
 
 			progObjProxy(CreateProgramObject_1_0_0_0(pip, _logger)), 
 			nativeCallIndex(1), 
@@ -919,7 +929,8 @@ namespace Rococo::Script
 			nativeSources(_nativeSources), 
 			sexParserProxy(CreateSexParser_2_0(Memory::GetSexyAllocator())),
 			packager(CreatePackager(*this)),
-			usesSysIO(pip.addIO)
+			usesSysIO(pip.addIO),
+			ssFactory(_ssFactory)
 		{
 			try
 			{
@@ -935,7 +946,22 @@ namespace Rococo::Script
 				{
 					OS::GetEnvVariable(srcEnvironment.buf, _MAX_PATH, L"SEXY_NATIVE_SRC_DIR");
 				}
+
+				IO::NormalizePath(srcEnvironment);
+				IO::ToSysPath(srcEnvironment.buf);
 				AddSlashToDirectory(srcEnvironment.buf);
+
+				if (pip.NativeBinPath == nullptr)
+				{
+					nativeBinDirectory = srcEnvironment;
+				}
+				else
+				{
+					Format(nativeBinDirectory, L"%ls", pip.NativeBinPath);
+					IO::EndDirectoryWithSlash(nativeBinDirectory.buf, WideFilePath::CAPACITY);
+					IO::ToSysPath(nativeBinDirectory.buf);
+					IO::NormalizePath(nativeBinDirectory);
+				}
 			}
 			catch (IException& innerEx)
 			{
@@ -967,19 +993,35 @@ namespace Rococo::Script
 					numberOfNativeSources++;
 				}
 
+				auto* construction = ssFactory.GetSSConstruction();
+				if (!construction)
+				{
 #ifdef _WIN32
-				// bool useDebug = pip.useDebugLibs;
-				bool useDebug = false; // Disabled for now, as we are changing how DLLs are generated and where they are located (via sharpmake)
+					// bool useDebug = pip.useDebugLibs;
+					bool useDebug = false; // Disabled for now, as we are changing how DLLs are generated and where they are located (via sharpmake)
 #else
-				bool useDebug = false; // APPLE build script doesn't generate debug extension, so just use whatever files have been built
+					bool useDebug = false; // APPLE build script doesn't generate debug extension, so just use whatever files have been built
 #endif
 
-				AddNativeLibrary(useDebug ? "sexy.nativelib.reflection.debug" : "sexy.nativelib.reflection");
-				AddNativeLibrary(useDebug ? "sexy.nativelib.maths.debug" : "sexy.nativelib.maths");
+					AddNativeLibrary(useDebug ? "sexy.nativelib.reflection.debug" : "sexy.nativelib.reflection");
+					AddNativeLibrary(useDebug ? "sexy.nativelib.maths.debug" : "sexy.nativelib.maths");
 
-				if (pip.addCoroutineLib)
+					if (pip.addCoroutineLib)
+					{
+						AddNativeLibrary(useDebug ? "sexy.nativelib.coroutines.debug" : "sexy.nativelib.coroutines");
+					}
+				}
+				else
 				{
-					AddNativeLibrary(useDebug ? "sexy.nativelib.coroutines.debug" : "sexy.nativelib.coroutines");
+					for (size_t i = 0;; i++)
+					{
+						cstr nativeName = construction->GetNativeLibName(i, pip.useDebugLibs);
+						if (!nativeName)
+						{
+							break;
+						}
+						AddNativeLibrary(nativeName);
+					}
 				}
 			}
 			catch (ParseException& ex)
@@ -2436,7 +2478,7 @@ namespace Rococo::Script
 		void AddNativeLibrary(const char* dynamicLinkLibOfNativeCalls) override
 		{
 			WideFilePath srcEnvironmentDll;
-			Format(srcEnvironmentDll, L"%ls%hs", srcEnvironment.buf, dynamicLinkLibOfNativeCalls);
+			Format(srcEnvironmentDll, L"%ls%hs", nativeBinDirectory.buf, dynamicLinkLibOfNativeCalls);
 
 			FN_CreateLib create = Rococo::OS::GetLibCreateFunction(srcEnvironmentDll, false);
 			if (!create)
@@ -2534,11 +2576,13 @@ namespace Rococo::Script
 
 			AutoFree<IO::IOSSupervisor> ios = IO::GetIOS();
 
-			WideFilePath wBin;
-			ios->GetBinDirectoryAbsolute(wBin);
+			if (*hashDir == 0)
+			{
+				ios->GetBinDirectoryAbsolute(hashDir);
+			}
 
 			WideFilePath wSecurityFile;
-			Format(wSecurityFile, L"%snative.hashes.sxy", wBin.buf);
+			Format(wSecurityFile, L"%snative.hashes.sxy", hashDir.buf);
 
 			Auto<ISourceCode> src = sexParserProxy().LoadSource(wSecurityFile, Vec2i{ 0,0 });
 			Auto<ISParserTree> tree;
@@ -2845,6 +2889,7 @@ namespace Anon
 {
 	struct SSFactory : public Rococo::Script::IScriptSystemFactory
 	{
+		IScriptSystemConstruction* construction = nullptr;
 		TMapNameToSTree nativeSourceTrees;
 
 		SSFactory()
@@ -2862,10 +2907,20 @@ namespace Anon
 			}
 		}
 
+		IScriptSystemConstruction* GetSSConstruction() override
+		{
+			return construction;
+		}
+
+		void SetSSConstruction(IScriptSystemConstruction* construction) override
+		{
+			this->construction = construction;
+		}
+
 		IPublicScriptSystem* CreateScriptSystem(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger) override
 		{
 			void* data = Memory::AllocateSexyMemory(sizeof(CScriptSystem));
-			CScriptSystem* ss = new (data) CScriptSystem(nativeSourceTrees, pip, logger);
+			CScriptSystem* ss = new (data) CScriptSystem(*this, nativeSourceTrees, pip, logger);
 			ss->PublicProgramObject().VirtualMachine().Core().SetLogger(&logger);
 			return ss;
 		}

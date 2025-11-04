@@ -445,8 +445,20 @@ namespace Rococo {
 			virtual void ValidateSafeToRead(cstr pathname) = 0;
 		};
 
+		ROCOCO_INTERFACE IScriptSystemConstruction
+		{
+			// Get's the name (sans extension and directory-path) of the index-th native library to load at startup, if index >= number of libraries, returns nullptr
+			// If debugMode is true, then debugging DLL filenames should be returned
+			virtual cstr GetNativeLibName(size_t index, bool debugMode) const = 0;
+		};
+
 		ROCOCO_INTERFACE IScriptSystemFactory : public IFreeable
 		{
+			virtual IScriptSystemConstruction* GetSSConstruction() = 0;
+
+			// Override the script system construction. The reference must remain valid for the lifetime of the factory. 
+			// If the construction interface is null then the script system loads default native libraries, for maths, reflection, coroutines and IO
+			virtual void SetSSConstruction(IScriptSystemConstruction * construction) = 0;
 			virtual IPublicScriptSystem* CreateScriptSystem(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger) = 0;
 		};
 

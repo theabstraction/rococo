@@ -527,7 +527,7 @@ namespace Rococo
 			return new Win32ROBinMapping(sysPath);
 		}
 
-		void NormalizePath(WideFilePath& path)
+		ROCOCO_API void NormalizePath(WideFilePath& path)
 		{
 			WideFilePath out;
 			HRESULT hr = PathCchCanonicalizeEx(OUT out.buf, WideFilePath::CAPACITY, path, PATHCCH_NONE);
