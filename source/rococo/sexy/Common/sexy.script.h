@@ -327,6 +327,13 @@ namespace Rococo {
 			virtual void ValidateSafeToRead(IPublicScriptSystem& ss, cstr pathname) = 0;
 			virtual void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname) = 0;
 		};
+
+		// An interface that generalizes fputs
+		ROCOCO_INTERFACE IPutString
+		{
+			// A method that generalized fputs
+			virtual int PutString(cstr text) = 0;
+		};
 		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
@@ -338,6 +345,12 @@ namespace Rococo {
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 
 			virtual void AddRawNativeReflectionCall(cstr functionName, FN_RAW_NATIVE_REFLECTION_CALL, void* context) = 0;
+
+			// Override the script system string writing function, this is used for Sys.Print et al
+			virtual void SetPutString(IPutString* putString) = 0;
+
+			// Invokes IPutString::PutString on the internal putString interface
+			virtual int RawPutString(const char* text) = 0;
 
 			template<class CONTEXT> void AddNativeReflectionCall(cstr functionName, typename TReflectionCall<CONTEXT>::FN_NATIVE_REFLECTION_CALL fnCall, CONTEXT* context)
 			{

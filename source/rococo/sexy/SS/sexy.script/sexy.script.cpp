@@ -414,10 +414,12 @@ namespace Rococo::Script
 		const char* pData;
 		ReadInput(0, (void*&)pData, e);
 
-		if (pData == NULL) pData = ("<null>");
-		int nullLen = StringLength(pData);
-		e.ss.PublicProgramObject().Log().Write(pData);
-		WriteOutput(0, nullLen, e);
+		int len = 0;
+		if (pData != NULL)
+		{
+			len = e.ss.RawPutString(pData);
+		}
+		WriteOutput(0, len, e);
 	}
 
 	typedef TSexyHashMapByStdString<NativeFunction*> TMapFQNToNativeCall;
@@ -746,7 +748,7 @@ namespace Rococo::Script
 		IO::NormalizePath(hashDir);
 	}
 
-	class CScriptSystem : public IScriptSystem, private INativeSecurity
+	class CScriptSystem : public IScriptSystem, private INativeSecurity, public IPutString
 	{
 	private:
 		TMemoAllocator memoAllocator;
@@ -791,6 +793,30 @@ namespace Rococo::Script
 		AutoFree<ISexyPackagerSupervisor> packager;
 
 		bool hasNullFunction = false;
+
+		IPutString* putStringInterface;
+
+		void SetPutString(IPutString* putString) override
+		{
+			this->putStringInterface = putString == nullptr ? this : putString;
+		}
+
+		int PutString(const char* text) override
+		{
+			if (text == nullptr)
+			{
+				return 0;
+			}
+
+			int32 len = StringLength(text);
+			ProgramObject().Log().Write(text);
+			return len;
+		}
+
+		int RawPutString(const char* text) override
+		{
+			return putStringInterface->PutString(text);
+		}
 
 		void InstallNullFunction()
 		{
@@ -930,7 +956,8 @@ namespace Rococo::Script
 			sexParserProxy(CreateSexParser_2_0(Memory::GetSexyAllocator())),
 			packager(CreatePackager(*this)),
 			usesSysIO(pip.addIO),
-			ssFactory(_ssFactory)
+			ssFactory(_ssFactory),
+			putStringInterface(this)
 		{
 			try
 			{
