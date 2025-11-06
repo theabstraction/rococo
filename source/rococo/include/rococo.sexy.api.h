@@ -69,7 +69,7 @@ namespace Rococo
 
 		// Get/Build the tree for the specified resource. If an [owner] is supplied this defines which file & expression specified the GetSource request
 		// Owners are required when the resource name is prefixed with some system macros such as #$/ (which replaces the #$/ with the owning directory of the of the expression file that is the [owner]
-		[[nodiscard]] virtual Rococo::Sex::ISParserTree* GetSource(cstr resourceName, const Sex::ISExpression* owner = nullptr) = 0;
+		[[nodiscard]] virtual Rococo::Sex::ISParserTree& GetSource(cstr resourceName, const Sex::ISExpression* owner = nullptr) = 0;
 
 		virtual int LoadSourceAsTextFileElseReturnErrorCode(cstr resourceName, Strings::IStringPopulator& populator) = 0;
 		virtual void Free() = 0;

@@ -198,7 +198,7 @@ namespace Rococo
 			}
 		}
 
-		ISParserTree* GetSource(cstr pingName, const Sex::ISExpression* owner) override
+		ISParserTree& GetSource(cstr pingName, const Sex::ISExpression* owner) override
 		{
 			constexpr fstring tagOwner = "#$/"_fstring;
 
@@ -219,7 +219,7 @@ namespace Rococo
 
 				try
 				{
-					auto* src = GetSource(ownerPath, nullptr);
+					auto& src = GetSource(ownerPath, nullptr);
 					return src;
 				}
 				catch(ParseException&)
@@ -243,7 +243,7 @@ namespace Rococo
 				}
 				else
 				{
-					return i->second.tree;
+					return *i->second.tree;
 				}
 			}
 
@@ -299,7 +299,7 @@ namespace Rococo
 			ISParserTree* tree = parser->CreateTree(*src);
 			sources[pingName] = Binding{ tree, src, Time::UTCTime() };
 
-			return tree;
+			return *tree;
 		}
 
 		void Release(cstr resourceName) override
@@ -377,8 +377,8 @@ namespace Rococo
 
 			cstr pingPath = s.c_str();
 
-			auto* tree = sourceCache.GetSource(pingPath, &sFluffleDirective);
-			ss.AddTree(*tree);
+			auto& tree = sourceCache.GetSource(pingPath, &sFluffleDirective);
+			ss.AddTree(tree);
 		}
 
 		ss.PartialCompile();
@@ -442,9 +442,9 @@ namespace Rococo
 		U8FilePath flufflePath;
 		Format(flufflePath, "%s%sdefault.fluffle", pingPath, EndsWith(pingPath, "/") ? "" : "/");
 
-		auto* fluffle = sources.GetSource(flufflePath, &s);
+		auto& fluffle = sources.GetSource(flufflePath, &s);
 
-		ApplyFluffleDirectives(sources, ss, fluffle->Root());
+		ApplyFluffleDirectives(sources, ss, fluffle.Root());
 	}
 
 	void PreprocessRawRootDirective(IPublicScriptSystem& ss, ISourceCache& sources, cr_sex sraw)
@@ -492,8 +492,8 @@ namespace Rococo
 
 				try
 				{
-					auto includedModule = sources.GetSource(name->Buffer, &sraw);
-					ss.AddTree(*includedModule);
+					auto& includedModule = sources.GetSource(name->Buffer, &sraw);
+					ss.AddTree(includedModule);
 				}
 				catch (ParseException&)
 				{
@@ -561,11 +561,11 @@ namespace Rococo
 			{
 				try
 				{
-					auto includedModule = sources.GetSource(implicitFile);
+					auto& includedModule = sources.GetSource(implicitFile);
 
-					ss.ValidateSecureFile(implicitFile, includedModule->Source().SourceStart(), includedModule->Source().SourceLength());
+					ss.ValidateSecureFile(implicitFile, includedModule.Source().SourceStart(), includedModule.Source().SourceLength());
 
-					ss.AddTree(*includedModule);
+					ss.AddTree(includedModule);
 
 					if (EndsWith(implicitFile, "partial-compile.sxy"))
 					{

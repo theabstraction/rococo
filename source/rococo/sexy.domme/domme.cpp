@@ -96,7 +96,7 @@ namespace Rococo::Domme
 	DommeObject::DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const _namespace, const char* const _scriptInterfaceName) :
 		logger(_scripting), scripting(_scripting), scriptInterfaceName(_scriptInterfaceName)
 	{
-		sourceTree = scripting.sourceCache.GetSource(sourceName);
+		sourceTree = &scripting.sourceCache.GetSource(sourceName);
 
 		Compiler::ProgramInitParameters pip;
 		pip.addIO = true;

@@ -109,7 +109,7 @@ namespace
 					{
 						Rococo::Throw(0, "Failed to create script system -> probably an environment problem");
 					}
-					tree = sources.GetSource(resourcePath);
+					tree = &sources.GetSource(resourcePath);
 					InitSexyScript(*tree, *ss, sources, implicitIncludes, onCompile, nullptr);
 					break;
 				}
@@ -322,10 +322,10 @@ namespace Rococo
 					try
 					{
 						Time::ticks start = Time::TickCount();
-						auto* tree = sources.GetSource(resourcePath);
+						auto& tree = sources.GetSource(resourcePath);
 						stats.loadTime = Time::TickCount() - start;
 						debugger.ResetJitStatus();
-						int32 exitCode = ExecuteSexyScript(stats, *tree, debugger, ss, sources, implicitIncludes, param, onCompile, trace, declarationBuilder);
+						int32 exitCode = ExecuteSexyScript(stats, tree, debugger, ss, sources, implicitIncludes, param, onCompile, trace, declarationBuilder);
 						return exitCode;
 					}
 					catch (ParseException& ex)

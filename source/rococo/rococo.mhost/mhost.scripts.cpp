@@ -157,11 +157,11 @@ namespace MHost
 				auto* stub = (CStringConstant*) MHost::InterfaceToInstance(pStringInterface);
 				cstr fileName = stub->pointer;
 
-				auto* tree = privateSourceCache->GetSource(fileName);
+				auto& tree = privateSourceCache->GetSource(fileName);
 
 				exprStruct = _nce.ss.GetExpressionType();
 				
-				auto* sExpression = _nce.ss.Represent(*exprStruct, &tree->Root());
+				auto* sExpression = _nce.ss.Represent(*exprStruct, &tree.Root());
 				InterfacePointer pExpr = &sExpression->header.pVTables[0];
 				WriteOutput(0, pExpr, _nce);
 			}
