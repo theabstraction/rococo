@@ -897,6 +897,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
+            conf.VcxprojUserFile.LocalDebuggerCommandArguments = "(GreatSex (Sexml !tests/greatsex.test.sexml))";
         }
     }
 
