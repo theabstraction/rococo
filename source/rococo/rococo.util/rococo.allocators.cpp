@@ -70,8 +70,42 @@ using namespace Rococo::Debugging;
 
 #ifdef _WIN32
 
-namespace MSWindows
+namespace MSWindowsHeap
 {
+    using namespace MSWindows;
+
+    struct PROCESS_HEAP_ENTRY
+    {
+        PROCESS_HEAP_ENTRY() {}
+
+        void* lpData;
+        DWORD cbData;
+        BYTE cbOverhead;
+        BYTE iRegionIndex;
+        WORD wFlags;
+        union Items
+        {
+            struct Block
+            {
+                HANDLE hMem;
+                DWORD dwReserved[3];
+            } block;
+            struct Region
+            {
+                DWORD dwCommittedSize;
+                DWORD dwUnCommittedSize;
+                LPVOID lpFirstBlock;
+                LPVOID lpLastBlock;
+            } region;
+        } items;
+    };
+
+    static_assert(sizeof(PROCESS_HEAP_ENTRY) == 40);
+
+    typedef PROCESS_HEAP_ENTRY* LPPROCESS_HEAP_ENTRY;
+    typedef PROCESS_HEAP_ENTRY* PPROCESS_HEAP_ENTRY;
+
+
     extern "C" __declspec(dllimport) HANDLE HeapCreate(DWORD flOptions, SIZE_T dwInitialSize, SIZE_T dwMaximumSize);
     extern "C" __declspec(dllimport) BOOL HeapDestroy(HANDLE hHeap);
     extern "C" __declspec(dllimport) LPVOID HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
@@ -82,7 +116,7 @@ namespace MSWindows
     extern "C" __declspec(dllimport) BOOL HeapWalk(HANDLE hHeap, LPPROCESS_HEAP_ENTRY lpEntry);
 }
 
-using namespace MSWindows;
+using namespace MSWindowsHeap;
 #endif
 
 namespace Rococo::Memory::ANON
@@ -165,7 +199,7 @@ namespace Rococo::Memory::ANON
         BlockAllocator(size_t kilobytes, size_t _maxkilobytes, const char* const _name) : maxBytes(_maxkilobytes * 1024), name(_name)
         {
             hHeap = HeapCreate(0, kilobytes * 1024, maxBytes);
-            if (hHeap.internal == 0) Throw(GetLastError(), "Error allocating heap");
+            if (IsNull(hHeap)) Throw(GetLastError(), "Error allocating heap");
         }
 
         virtual ~BlockAllocator()

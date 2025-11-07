@@ -67,7 +67,10 @@ namespace Rococo
 }
 
 #ifdef _WIN32
+#ifndef _WINDOWS_
 # include <rococo.os.win32.h>
+using namespace MSWindows;
+# endif
 #endif
 
 namespace Rococo::OS
@@ -75,7 +78,7 @@ namespace Rococo::OS
 #ifdef _WIN32
 	bool IsDebugging()
 	{
-		return MSWindows::IsDebuggerPresent() == TRUE;
+		return IsDebuggerPresent() == TRUE;
 	}
 
 	void PrintDebug(const char* format, ...)

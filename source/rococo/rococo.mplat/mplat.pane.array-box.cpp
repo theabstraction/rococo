@@ -138,7 +138,7 @@ struct PanelArrayBox : BasePane, GUI::IArrayBox, IObserver, IEventCallback<Scrol
 			return;
 		}
 
-		int dz = ((int32)(short)me.data.buttonData) / 120;
+		int dz = ((int32)(short)me.uButtons.data.buttonData) / 120;
 
 		if (dz != 0)
 		{

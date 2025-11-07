@@ -196,7 +196,7 @@ public:
 
 		if (me.HasFlag(me.MouseWheel))
 		{
-			int32 delta = (int32)(((short)me.data.buttonData) / 120);
+			int32 delta = (int32)(((short)me.uButtons.data.buttonData) / 120);
 			value -= rowSize * delta;
 			CapValue(value);
 		}

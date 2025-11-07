@@ -223,17 +223,17 @@ FEventReply RouteMouseButtonDown(TScriptInterface<IRococoEmittedUIEventHandler>&
 		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
 		if (mouseKey == EKeys::RightMouseButton)
 		{
-			me.buttonFlags = MouseEvent::Flags::RDown;
+			me.uButtons.data.buttonFlags = MouseEvent::Flags::RDown;
 			LogRococoControlEvent(custodian, "MouseButtonDown-R");
 		}
 		else if (mouseKey == EKeys::MiddleMouseButton)
 		{
-			me.buttonFlags = MouseEvent::Flags::MDown;
+			me.uButtons.data.buttonFlags = MouseEvent::Flags::MDown;
 			LogRococoControlEvent(custodian, "MouseButtonUp-M");
 		}
 		else if (mouseKey == EKeys::LeftMouseButton)
 		{
-			me.buttonFlags = MouseEvent::Flags::LDown;
+			me.uButtons.data.buttonFlags = MouseEvent::Flags::LDown;
 			LogRococoControlEvent(custodian, "MouseButtonUp-L");
 		}
 		else
@@ -274,17 +274,17 @@ FEventReply RouteMouseButtonUp(TScriptInterface<IRococoEmittedUIEventHandler>& e
 		FKey mouseKey = ue5MouseEvent.GetEffectingButton();
 		if (mouseKey == EKeys::RightMouseButton)
 		{
-			me.buttonFlags = MouseEvent::Flags::RUp;
+			me.uButtons.data.buttonFlags = MouseEvent::Flags::RUp;
 			LogRococoControlEvent(custodian, "MouseButtonUp-R");
 		}
 		else if (mouseKey == EKeys::MiddleMouseButton)
 		{
-			me.buttonFlags = MouseEvent::Flags::MUp;
+			me.uButtons.data.buttonFlags = MouseEvent::Flags::MUp;
 			LogRococoControlEvent(custodian, "MouseButtonUp-M");
 		}
 		else if (mouseKey == EKeys::LeftMouseButton)
 		{
-			me.buttonFlags = MouseEvent::Flags::LUp;
+			me.uButtons.data.buttonFlags = MouseEvent::Flags::LUp;
 			LogRococoControlEvent(custodian, "MouseButtonUp-L");
 		}
 		else
@@ -351,8 +351,8 @@ FEventReply RouteMouseWheel(TScriptInterface<IRococoEmittedUIEventHandler>& even
 		}
 
 		MouseEvent me = { 0 };
-		me.buttonFlags = MouseEvent::Flags::MouseWheel;
-		me.buttonData = (int)(ue5MouseEvent.GetWheelDelta() * 120.0f);
+		me.uButtons.data.buttonFlags = MouseEvent::Flags::MouseWheel;
+		me.uButtons.data.buttonData = (int)(ue5MouseEvent.GetWheelDelta() * 120.0f);
 		// Mouse wheel events do not seem to need to erroneously scale the mouse cursor
 		CopySpatialInfo_NoFullscreenCorrection(me, ue5MouseEvent, geometry);
 		auto result = custodian->RouteMouseEvent(me, ToContext(ue5MouseEvent));

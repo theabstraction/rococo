@@ -1607,16 +1607,16 @@ namespace Rococo::Gui::UE5::Implementation
 			static_assert(sizeof(GRCursorClick) == sizeof(uint16));
 
 			history.clear();
-			if (me.buttonFlags != 0)
+			if (me.uButtons.data.buttonFlags != 0)
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData, context };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.uButtons.data.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.uButtons.data.buttonData, context };
 				lastRoutingStatus = grSystem->RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
 				lastCursorPos = me.cursorPos;
 
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0, context };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.uButtons.data.buttonFlags, EGRCursorIcon::Arrow, 0, context };
 				lastRoutingStatus = grSystem->RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)

@@ -285,7 +285,7 @@ namespace ANON
 		{
 			MouseEvent me = { 0 };
 			me.flags = m.usFlags;
-			me.buttons = m.ulButtons;
+			me.uButtons.buttons = m.ulButtons;
 			me.contextFlags = context;
 
 			POINT p;
