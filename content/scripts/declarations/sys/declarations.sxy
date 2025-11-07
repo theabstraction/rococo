@@ -9,13 +9,13 @@
 (function DestructStringBuilder3  (Sys.Type.IStringBuilder sb)-> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" 102))
 (alias DestructStringBuilder3 Sys.Strings.Native.DestructStringBuilder)
 
-(function AppendCTime4  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2136))
+(function AppendCTime4  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2205))
 (alias AppendCTime4 Sys.Time.AppendCTime)
 
 (function AddVec2iVec2i5 (Sys.Maths.Vec2i a)(Sys.Maths.Vec2i b)(Sys.Maths.Vec2i sum)-> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 420))
 (alias AddVec2iVec2i5 Sys.Maths.I32.AddVec2iVec2i)
 
-(function NativePrint6  (Sys.Type.Pointer s) -> (Int32 charCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1725))
+(function NativePrint6  (Sys.Type.Pointer s) -> (Int32 charCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1794))
 (alias NativePrint6 Sys.Type.NativePrint)
 
 (function ToInt647 (Int32 x) -> (Int64 value) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 411))
@@ -51,7 +51,7 @@
 (function AlignedFree17  (Pointer data)-> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" 97))
 (alias AlignedFree17 Sys.Native.AlignedFree)
 
-(function PublishAPI18  -> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1736))
+(function PublishAPI18  -> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1805))
 (alias PublishAPI18 Sys.Native.PublishAPI)
 
 (function IsMethodInputOfType19 (Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)(Sys.Type.Pointer pStruct)-> (Bool match) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 839))
@@ -225,13 +225,13 @@
 (function IsAlphaNumeric75  (Int32 c)->(Bool isSo) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" 139))
 (alias IsAlphaNumeric75 Sys.Type.Strings.IsAlphaNumeric)
 
-(function TickHz76  -> (Int64 hz) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2147))
+(function TickHz76  -> (Int64 hz) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2216))
 (alias TickHz76 Sys.Time.TickHz)
 
 (function BitwiseOr77 (Int32 x)(Int32 y) -> (Int32 result) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.i32.inl" 415))
 (alias BitwiseOr77 Sys.Maths.I32.BitwiseOr)
 
-(function TickCount78  -> (Int64 tickCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2148))
+(function TickCount78  -> (Int64 tickCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2217))
 (alias TickCount78 Sys.Time.TickCount)
 
 (function NewExpressionBuilder79  (Sys.Reflection.IExpression origin) -> (Sys.Reflection.IExpressionBuilder builder) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 820))

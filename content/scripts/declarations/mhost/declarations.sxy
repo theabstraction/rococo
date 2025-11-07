@@ -24,7 +24,7 @@
 (function IsSignalNan8 (Float64 x) -> (Bool isNan) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f64.inl" 507))
 (alias IsSignalNan8 Sys.Maths.F64.IsSignalNan)
 
-(function PublishAPI9  -> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1736))
+(function PublishAPI9  -> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1805))
 (alias PublishAPI9 Sys.Native.PublishAPI)
 
 (function IsMethodInputOfType10 (Int32 methodIndex)(Int32 inputIndex) (Sys.Reflection.IStructure argTypeCandidate)(Sys.Type.Pointer pStruct)-> (Bool match) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.reflection\sys.reflection.inl" 839))
@@ -486,7 +486,7 @@
 (function ISoftBoxBuilderCreateRoundCornersShelf162  (Pointer hObject)(const Rococo.Graphics.RoundCornersShelfSpec shelfSpec) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 11469))
 (alias ISoftBoxBuilderCreateRoundCornersShelf162 Rococo.Graphics.Native.ISoftBoxBuilderCreateRoundCornersShelf)
 
-(function AppendCTime163  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2136))
+(function AppendCTime163  (Sys.Type.IStringBuilder sb)->(Int32 nChars) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2205))
 (alias AppendCTime163 Sys.Time.AppendCTime)
 
 (function IBodyGetModel164  (Pointer hObject)(out Sys.Maths.Matrix4x4 model) ->  : (source "D:\work\rococo\source\rococo\component.modules\body\code-gen\body.sxh.inl" 191))
@@ -1209,7 +1209,7 @@
 (function IRodTesselatorScale403  (Pointer hObject)(Float32 sx)(Float32 sy)(Float32 sz) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10391))
 (alias IRodTesselatorScale403 Rococo.Graphics.Native.IRodTesselatorScale)
 
-(function TickHz404  -> (Int64 hz) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2147))
+(function TickHz404  -> (Int64 hz) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2216))
 (alias TickHz404 Sys.Time.TickHz)
 
 (function IRodTesselatorSetMaterialMiddle405  (Pointer hObject)(const Rococo.MaterialVertexData middle) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10394))
@@ -1359,7 +1359,7 @@
 (function IHQFontsCommit453  (Pointer hObject) -> (Int32 sysFontId) : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10985))
 (alias IHQFontsCommit453 Rococo.Graphics.Native.IHQFontsCommit)
 
-(function TickCount454  -> (Int64 tickCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2148))
+(function TickCount454  -> (Int64 tickCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 2217))
 (alias TickCount454 Sys.Time.TickCount)
 
 (function IHQFontsSetZoomLevel455  (Pointer hObject)(Float32 zoomLevel) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10986))
@@ -1434,7 +1434,7 @@
 (function IsUpperCase478  (Int32 c)->(Bool isSo) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.unity.cpp" 135))
 (alias IsUpperCase478 Sys.Type.Strings.IsUpperCase)
 
-(function NativePrint479  (Sys.Type.Pointer s) -> (Int32 charCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1725))
+(function NativePrint479  (Sys.Type.Pointer s) -> (Int32 charCount) : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.script\sexy.script.cpp" 1794))
 (alias NativePrint479 Sys.Type.NativePrint)
 
 (function RectfToRecti480  (Sys.Maths.Rectf rectf)(Sys.Maths.Recti recti)-> : (source "D:\work\rococo\source\rococo\sexy\SS\sexy.nativelib.maths\sys.maths.f32.inl" 728))
