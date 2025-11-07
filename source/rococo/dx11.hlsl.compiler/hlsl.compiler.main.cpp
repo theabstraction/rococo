@@ -3,7 +3,6 @@
 using namespace Rococo::IO;
 
 #include <stdio.h>
-#include <windows.h>
 #include <synchapi.h>
 #include <consoleapi.h>
 #include <WinCon.h>

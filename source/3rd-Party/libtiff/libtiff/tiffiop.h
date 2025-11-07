@@ -47,6 +47,7 @@
 #endif
 
 #include "tif_hash_set.h"
+
 #include "tiffio.h"
 
 #include "tif_dir.h"

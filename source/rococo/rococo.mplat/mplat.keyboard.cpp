@@ -2,7 +2,7 @@
 #include <array>
 #include <rococo.hashtable.h>
 
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 
 #include <rococo.strings.h>
 #include <rococo.io.h>

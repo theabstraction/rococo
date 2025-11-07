@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -48,7 +48,7 @@ using namespace Rococo::Strings;
 
 namespace Rococo
 {
-	bool IsPointerValid(const void* ptr);
+	ROCOCO_API bool IsPointerValid(const void* ptr);
 
 	namespace Compiler
 	{
@@ -74,7 +74,7 @@ namespace Rococo
 {
 	namespace Script
 	{
-		int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf)
+		int GetIndexOfInterface(const IStructure& concreteClass, const IObjectInterface& interf)
 		{
 			for (int i = 0; i < concreteClass.InterfaceCount(); ++i)
 			{
@@ -94,9 +94,9 @@ namespace Rococo
 
 namespace Rococo::Compiler
 {
-	bool IsDerivedFrom(const IInterface& sub, const IInterface& super)
+	bool IsDerivedFrom(const IObjectInterface& sub, const IObjectInterface& super)
 	{
-		for (const IInterface* i = &sub; i != nullptr; i = i->Base())
+		for (const IObjectInterface* i = &sub; i != nullptr; i = i->Base())
 		{
 			if (i == &super) return true;
 		}
@@ -260,7 +260,7 @@ namespace Anon
 		TSexyHashMap<size_t, cstr, std::hash<size_t>, std::equal_to<size_t>> mapGotoStatementsToLabels;
 	public:
 		CodeBuilder(IFunctionBuilder& _f, bool _mayUseParentsSF);
-		~CodeBuilder(void);
+		virtual ~CodeBuilder(void);
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 
@@ -358,7 +358,7 @@ namespace Anon
 		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData) override;
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) override;
 
-		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface) override;
+		virtual void AddDynamicAllocateObject(const IStructure& structType, const IObjectInterface& interface) override;
 
 		bool TryAssignClassInterfaceToInterface(cstr source, cstr target, const IStructure* srcType, const IStructure*trgType);
 
@@ -421,7 +421,7 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface)
+	void CodeBuilder::AddDynamicAllocateObject(const IStructure& structType, const IObjectInterface& interface)
 	{
 		char sym[256];
 
@@ -1300,16 +1300,16 @@ namespace Anon
 		return offset;
 	}
 
-	bool CodeBuilder::IsVariableDefinedAtLevel(int32 sectionIndex, cstr name)
+	bool CodeBuilder::IsVariableDefinedAtLevel(int32 givenSectionIndex, cstr name)
 	{
 		for(TVariables::const_reverse_iterator i = variables.rbegin(); i != variables.rend(); ++i)
 		{
 			Variable* v = *i;
-			if (v->SectionIndex() > sectionIndex)
+			if (v->SectionIndex() > givenSectionIndex)
 			{
 				continue;
 			}
-			else if (v->SectionIndex() < sectionIndex)
+			else if (v->SectionIndex() < givenSectionIndex)
 			{
 				return false;
 			}
@@ -1791,7 +1791,7 @@ namespace Anon
 				}
 			}
 
-			const IInterface& interf = def.ResolvedType->GetInterface(0);
+			const IObjectInterface& interf = def.ResolvedType->GetInterface(0);
 
 			if (!AreEqual("0", literalValue))
 			{

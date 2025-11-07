@@ -1,7 +1,6 @@
 // Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
 #pragma once
 #include <rococo.types.h>
-#include <rococo.os.win32.h>
 #include <rococo.ui.h>
 
 #ifndef ROCOCO_GRAPHICS_API
@@ -35,7 +34,7 @@ namespace Rococo
 
 namespace Rococo
 {
-	void CALLBACK RendererMain(HANDLE hInstanceLock, IO::IInstallation& installation, IAppFactory& factory);
+	void RendererMain(HANDLE hInstanceLock, IO::IInstallation& installation, IAppFactory& factory);
 
 	struct IAppEventHandler
 	{

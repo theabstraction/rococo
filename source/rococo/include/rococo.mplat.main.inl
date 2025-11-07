@@ -5,7 +5,10 @@
 
 #include <rococo.api.h>
 #include <rococo.renderer.h>
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <rococo.target.h>
+#include <Windows.h>
 #include <rococo.mplat.h>
 
 namespace Rococo

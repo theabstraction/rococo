@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -139,7 +139,7 @@ namespace
 		{
 			if (Dsource == Dtarget && bits == BITCOUNT_32 && IsToInt8Lossless(v.int32Value))
 			{
-				int8 value = (int8) v.int32Value;
+				Rococo::int8 value = (Rococo::int8) v.int32Value;
 
 				if (value == -1)
 				{
@@ -293,7 +293,7 @@ namespace
 		{
 			if (Dsource == Dtarget && bits == BITCOUNT_32 && IsToInt8Lossless(v.int32Value))
 			{
-				int8 value = (int8) -v.int32Value;
+				Rococo::int8 value = (Rococo::int8) -v.int32Value;
 				if (value == -1)
 				{
 					ArgsOperateOnRegister args;
@@ -493,12 +493,12 @@ namespace
 		{
 			if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_32)
 			{
-				AddTwoByteInstruction(Opcodes::SetStackFrameImmediate32, (int8) offset);
+				AddTwoByteInstruction(Opcodes::SetStackFrameImmediate32, (Rococo::int8) offset);
 				AddArgument(v.uint32Value);			
 			}
 			else if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_64)
 			{
-				AddTwoByteInstruction(Opcodes::SetStackFrameImmediate64, (int8) offset);
+				AddTwoByteInstruction(Opcodes::SetStackFrameImmediate64, (Rococo::int8) offset);
 				AddArgument(v.uint64Value);			
 			}
 			else
@@ -526,11 +526,11 @@ namespace
 		{
 			if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_32)
 			{
-				AddThreeByteInstruction(Opcodes::GetStackFrameValue32, (int8) offset, Dtarget);			
+				AddThreeByteInstruction(Opcodes::GetStackFrameValue32, (Rococo::int8) offset, Dtarget);			
 			}
 			else if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_64)
 			{
-				AddThreeByteInstruction(Opcodes::GetStackFrameValue64, (int8) offset, Dtarget);		
+				AddThreeByteInstruction(Opcodes::GetStackFrameValue64, (Rococo::int8) offset, Dtarget);		
 			}
 			else
 			{
@@ -549,7 +549,7 @@ namespace
 		{
 			if (IsToInt8Lossless(SFoffset) && IsToInt8Lossless(memberOffset))
 			{
-				AddFourByteInstruction(Opcodes::GetStackFrameMemberPtr, Dtarget, (int8) SFoffset, (int8) memberOffset);
+				AddFourByteInstruction(Opcodes::GetStackFrameMemberPtr, Dtarget, (Rococo::int8) SFoffset, (Rococo::int8) memberOffset);
 			}
 			else
 			{
@@ -602,13 +602,13 @@ namespace
 		{
 			if (IsToInt8Lossless(trgOffset) && IsToInt8Lossless(srcOffset) && bitCount == BITCOUNT_32)
 			{
-				AddThreeByteInstruction(Opcodes::SetSFValueFromSFValue32, (int8) trgOffset, (int8) srcOffset);
+				AddThreeByteInstruction(Opcodes::SetSFValueFromSFValue32, (Rococo::int8) trgOffset, (Rococo::int8) srcOffset);
 			}
 			else
 			{
 				ArgsSetSFValueFromSFValue args;
 				args.opcode = Opcodes::SetSFValueFromSFValueLong;
-				args.byteCount = (int8) (bitCount >> 3);
+				args.byteCount = (Rococo::int8) (bitCount >> 3);
 				args.sfTargetOffset = trgOffset;
 				args.sfSourceOffset = srcOffset;
 
@@ -620,25 +620,25 @@ namespace
 		{
 			if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_32)
 			{
-				AddThreeByteInstruction(Opcodes::SetStackFrameValue32, (int8) offset, Dsource);			
+				AddThreeByteInstruction(Opcodes::SetStackFrameValue32, (Rococo::int8) offset, Dsource);			
 			}
 			else if (IsToInt8Lossless(offset) && bitCount == BITCOUNT_64)
 			{
-				AddThreeByteInstruction(Opcodes::SetStackFrameValue64, (int8) offset, Dsource);		
+				AddThreeByteInstruction(Opcodes::SetStackFrameValue64, (Rococo::int8) offset, Dsource);		
 			}
 			else
 			{
-				AddThreeByteInstruction(Opcodes::SetStackFrameValueFar, (int8) bitCount, Dsource);
+				AddThreeByteInstruction(Opcodes::SetStackFrameValueFar, (Rococo::int8) bitCount, Dsource);
 				AddArgument(offset);
 			}
 		}
 
-		void Append_ShiftLeft(DINDEX Di, BITCOUNT bitCount, int8 shiftCount) override
+		void Append_ShiftLeft(DINDEX Di, BITCOUNT bitCount, Rococo::int8 shiftCount) override
 		{
 			AddThreeByteInstruction(bitCount == BITCOUNT_64 ? Opcodes::ShiftLeft64 : Opcodes::ShiftLeft32, Di, shiftCount);
 		}
 
-		void Append_ShiftRight(DINDEX Di, BITCOUNT bitCount, int8 shiftCount) override
+		void Append_ShiftRight(DINDEX Di, BITCOUNT bitCount, Rococo::int8 shiftCount) override
 		{
 			AddThreeByteInstruction(bitCount == BITCOUNT_64 ? Opcodes::ShiftRight64 : Opcodes::ShiftRight32, Di, shiftCount);
 		}
@@ -809,7 +809,7 @@ namespace
 			if (nBytes == 0) { Append_NoOperation(); return; }
 			if (IsToInt8Lossless(targetOffset) && IsToInt8Lossless(sourceOffset) && nBytes <= 255)
 			{
-				AddFourByteInstruction(Opcodes::CopySFMemoryNear, (uint8) (int8) targetOffset, (uint8) (int8) sourceOffset, (uint8) nBytes);
+				AddFourByteInstruction(Opcodes::CopySFMemoryNear, (uint8) (Rococo::int8) targetOffset, (uint8) (Rococo::int8) sourceOffset, (uint8) nBytes);
 			}
 			else
 			{
@@ -824,11 +824,11 @@ namespace
 		{
 			if (IsToInt8Lossless(targetSFOffset) && IsToInt8Lossless(targetMemberOffset) && IsToInt8Lossless(SFSourceValueOffset) && nBytesSource == 4)
 			{
-				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromSFByValue32, (int8)targetSFOffset, (int8) targetMemberOffset, (int8) SFSourceValueOffset);
+				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromSFByValue32, (Rococo::int8)targetSFOffset, (Rococo::int8) targetMemberOffset, (Rococo::int8) SFSourceValueOffset);
 			}
 			else if (IsToInt8Lossless(targetSFOffset) && IsToInt8Lossless(targetMemberOffset) && IsToInt8Lossless(SFSourceValueOffset) && nBytesSource == 8)
 			{
-				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromSFByValue64, (int8)targetSFOffset, (int8)targetMemberOffset, (int8)SFSourceValueOffset);
+				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromSFByValue64, (Rococo::int8)targetSFOffset, (Rococo::int8)targetMemberOffset, (Rococo::int8)SFSourceValueOffset);
 			}
 			else
 			{
@@ -863,7 +863,7 @@ namespace
 		{
 			if (IsToInt8Lossless(sourceSFOffset) && IsToInt8Lossless(sourceMemberOffset) && IsToInt8Lossless(SFTargetValueOffset) && nBytesSource == 4)
 			{
-				AddFourByteInstruction(Opcodes::SetSFValueFromSFMemberByRef32, (int8)sourceSFOffset, (int8) sourceMemberOffset, (int8) SFTargetValueOffset);
+				AddFourByteInstruction(Opcodes::SetSFValueFromSFMemberByRef32, (Rococo::int8)sourceSFOffset, (Rococo::int8) sourceMemberOffset, (Rococo::int8) SFTargetValueOffset);
 			}
 			else
 			{
@@ -881,7 +881,7 @@ namespace
 		{
 			if (IsToInt8Lossless(sfOffset) && IsToInt8Lossless(memberOffset) && bitcount == 32)
 			{
-				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromRegister32, Dsource, (int8) sfOffset, (int8) memberOffset);
+				AddFourByteInstruction(Opcodes::SetSFMemberByRefFromRegister32, Dsource, (Rococo::int8) sfOffset, (Rococo::int8) memberOffset);
 			}
 			else
 			{
@@ -928,7 +928,7 @@ namespace
 			if (value == 0) return;
 			if (IsToInt8Lossless(value))	
 			{
-				AddThreeByteInstruction(Opcodes::IncrementPtr, sourceAndTarget, (uint8)(int8) value);
+				AddThreeByteInstruction(Opcodes::IncrementPtr, sourceAndTarget, (uint8)(Rococo::int8) value);
 			}
 			else
 			{

@@ -1,6 +1,6 @@
 // rococo.audio.dllmain.cpp : Defines the entry point for the DLL application.
 #include <rococo.audio.h>
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 #include <sexy.script.h>
 #include <sexy.vm.cpu.h>
 #include <rococo.allocators.h>

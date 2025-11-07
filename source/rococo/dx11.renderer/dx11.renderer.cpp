@@ -1,4 +1,4 @@
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include "dx11.renderer.h"
 #include <rococo.renderer.h>
 #include <rococo.imaging.h>

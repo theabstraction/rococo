@@ -15,42 +15,6 @@
 
 
 (function Main (Int32 id) -> (Int32 exitCode):
-	(IHQFonts fonts (HQFonts))
-	
-	(fonts.Build (#HQFontMenuFont))
-	(fonts.SetFaceName "Consolas")
-	(fonts.AddRange 32 126)
-	(fonts.SetHeight 16)
-	(fonts.Commit)
-	
-	(fonts.Build (#HQFontEditorFont))
-	(fonts.SetFaceName "Courier New")
-	(fonts.MakeBold)
-	(fonts.AddRange 32 127)
-	(fonts.AddCharacters "£")
-	(fonts.SetHeight 24)
-	(fonts.Commit)
-
-	(fonts.Build (#HQFontTitleFont))
-	(fonts.SetFaceName "Tahoma")
-	(fonts.AddRange 32 127)
-	(fonts.SetHeight 80)
-	(fonts.Commit)
-	
-	(fonts.Build (#HQFontDebuggerFont))
-	(fonts.SetFaceName "Consolas")
-	(fonts.AddRange 32 127)
-	(fonts.AddCharacters "£")
-	(fonts.SetHeight 28)
-	(fonts.Commit)
-	
-	(fonts.Build (#HQFontInfoFont))
-	(fonts.SetFaceName "Times New Roman")
-	(fonts.AddRange 32 127)
-	(fonts.AddCharacters "£")
-	(fonts.SetHeight 28)
-	(fonts.Commit)
-	
 	(ISpriteBuilder sprites (SpriteBuilder))
 	(sprites.AddSprite "!textures/test/AI-castle.jpg")
 	(sprites.AddEachSpriteInDirectory "!textures/toolbars")

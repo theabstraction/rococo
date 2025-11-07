@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -31,6 +31,8 @@
 	principal credit screen and its principal readme file.
 */
 
+#pragma once
+
 namespace Rococo::Script
 {
 	void ReleaseMap(MapImage* m, IScriptSystem& ss);
@@ -39,14 +41,6 @@ namespace Rococo::Script
 	{
 		uint8* ContainerPtr;
 		int32 locMemberOffset;
-	};
-
-	struct ExceptionHandler
-	{
-		ID_BYTECODE FunctionId;
-		size_t Start;
-		size_t End;
-		size_t HandlerOffset;
 	};
 
 #pragma pack(push,1)
@@ -66,7 +60,7 @@ namespace Rococo::Script
 		int size = type.SizeOfStruct();
 		for(int i = 0; i < type.InterfaceCount(); ++i)
 		{
-			size = std::max(type.GetInterface(i).NullObjectType().SizeOfStruct(), size);
+			size = Rococo::max(type.GetInterface(i).NullObjectType().SizeOfStruct(), size);
 		}
 
 		return size;
@@ -74,6 +68,7 @@ namespace Rococo::Script
 
 	void InitObjectStubAsNullLength(ObjectStub& stub, const IStructure& type, int allocSize)
 	{
+		UNUSED(allocSize);
 		stub.refCount = ObjectStub::NO_REF_COUNT; // prevent ref count hitting zero.
 		stub.Desc = (ObjectDesc*) type.GetVirtualTable(0);
 		stub.pVTables[0] = (VirtualTable*) type.GetVirtualTable(1);
@@ -120,10 +115,15 @@ namespace Rococo::Script
 
 	void DeconstructCallArguments(const IFunction& f, const uint8* pc, const uint8* sf, IProgramObject& programObject, REF int& totalStackCorrection)
 	{
+		UNUSED(programObject);
+		UNUSED(sf);
+		UNUSED(pc);
+
 		for(int i = 0; i < ArgCount(f); ++i)
 		{
 			const IArgument& arg = f.Arg(i);
 			cstr name = arg.Name();
+			UNUSED(name);
 
 			const IStructure& s = *arg.ResolvedType();
 			int sizeOfArg = (s.VarType() == SexyVarType_Derivative) ? sizeof(size_t) : s.SizeOfStruct();
@@ -374,6 +374,8 @@ namespace Rococo::Script
 
 	ObjectStub* ReadExceptionFromInput(int inputNumber, IPublicProgramObject& po, const IFunction& f)
 	{
+		UNUSED(inputNumber);
+
 		void* ex;
 		ReadInput(0, ex, po, f);
 
@@ -405,7 +407,10 @@ namespace Rococo::Script
 
 			ObjectStub* object = ReadExceptionFromInput(0, po, function);
 			const IStructure& underlyingType = GetType(object);
-			const IInterface& iexc = po.Common().SysTypeIException();
+			const IObjectInterface& iexc = po.Common().SysTypeIException();
+
+			UNUSED(underlyingType);
+			UNUSED(iexc);
 
 			po.IncrementRefCount((InterfacePointer)object);
 			
@@ -480,6 +485,8 @@ namespace Rococo::Script
 			const IStructure& nativeExType = *module.FindStructure(("NativeException"));
 			
 			int size = GetNullSize(nativeExType);
+
+			UNUSED(size);
 
 			char buf[2048];
 			SafeVFormat(buf, sizeof buf, format, args);

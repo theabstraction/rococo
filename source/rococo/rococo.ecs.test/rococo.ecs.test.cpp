@@ -13,7 +13,7 @@
 
 void WaitASecond()
 {
-	Sleep(1000);
+	MSWindows::Sleep(1000);
 }
 #else
 void WaitASecond()

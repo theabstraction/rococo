@@ -234,6 +234,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.util\rococo.char16.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.util\rococo.os.win32.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -246,12 +248,12 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.heap.string.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.json.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.observer.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.ex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.mac.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\source\rococo\rococo.util\rococo.os.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.package.zip.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.parsering.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.reflection.cpp" />
@@ -261,6 +263,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.throw.cr_sex.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\rococo.windows.ide.stdout.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.util\sha256.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.util\win32.marshalling.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

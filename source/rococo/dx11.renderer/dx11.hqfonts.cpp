@@ -286,7 +286,7 @@ namespace Rococo::DX11
 
 			if (sysFonts[spec.sysFontId])
 			{
-				Throw(0, "SysFont #d already defined", spec.sysFontId);
+				Throw(0, "SysFont(%s) %d already defined", spec.fontName, spec.sysFontId);
 			}
 
 			FontSpec osSpec = spec;

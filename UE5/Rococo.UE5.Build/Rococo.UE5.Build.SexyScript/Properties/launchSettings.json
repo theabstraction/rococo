@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Rococo.UE5.Build.SexyScript": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}

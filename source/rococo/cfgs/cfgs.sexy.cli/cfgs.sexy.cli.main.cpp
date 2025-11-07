@@ -4,6 +4,7 @@
 
 using namespace Rococo;
 using namespace Rococo::Strings;
+using namespace MSWindows;
 
 ROCOCO_INTERFACE ICFGSSexyCLI
 {

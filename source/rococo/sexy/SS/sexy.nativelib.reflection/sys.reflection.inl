@@ -1,7 +1,8 @@
 #pragma once
 // Note this file is hand-coded. It was written before BennyHill existed, and the layout was the basis for the BennyHill generated code.
 
-#include "..\..\sexy\STC\stccore\sexy.compiler.helpers.h"
+#include "sexy.compiler.helpers.h"
+#include <string.h>
 
 namespace
 {
@@ -804,7 +805,7 @@ namespace
 		int nBytesWritten = Strings::SafeFormat(sbObject->buffer + sbObject->length, sbObject->capacity - sbObject->length, "%s", methodName);
 		if (nBytesWritten < 0)
 		{
-			e.ss.ThrowFromNativeCodeF(GetLastError(), "IStructure.AppendMethodName: Error appending method name");
+			e.ss.ThrowFromNativeCodeF(MSWindows::GetLastError(), "IStructure.AppendMethodName: Error appending method name");
 			return;
 		}
 

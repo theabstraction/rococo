@@ -1,12 +1,12 @@
 #include <rococo.types.h>
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.window.h>
 #include "resource.h"
 
 #include <Rococo.api.h>
 #include <rococo.os.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #include <rococo.io.h>

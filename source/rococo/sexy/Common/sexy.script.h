@@ -19,7 +19,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -327,6 +327,13 @@ namespace Rococo {
 			virtual void ValidateSafeToRead(IPublicScriptSystem& ss, cstr pathname) = 0;
 			virtual void ValidateSafeToWrite(IPublicScriptSystem& ss, cstr pathname) = 0;
 		};
+
+		// An interface that generalizes fputs
+		ROCOCO_INTERFACE IPutString
+		{
+			// A method that generalized fputs
+			virtual int PutString(cstr text) = 0;
+		};
 		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
@@ -338,6 +345,12 @@ namespace Rococo {
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 
 			virtual void AddRawNativeReflectionCall(cstr functionName, FN_RAW_NATIVE_REFLECTION_CALL, void* context) = 0;
+
+			// Override the script system string writing function, this is used for Sys.Print et al
+			virtual void SetPutString(IPutString* putString) = 0;
+
+			// Invokes IPutString::PutString on the internal putString interface
+			virtual int RawPutString(const char* text) = 0;
 
 			template<class CONTEXT> void AddNativeReflectionCall(cstr functionName, typename TReflectionCall<CONTEXT>::FN_NATIVE_REFLECTION_CALL fnCall, CONTEXT* context)
 			{
@@ -445,8 +458,20 @@ namespace Rococo {
 			virtual void ValidateSafeToRead(cstr pathname) = 0;
 		};
 
+		ROCOCO_INTERFACE IScriptSystemConstruction
+		{
+			// Get's the name (sans extension and directory-path) of the index-th native library to load at startup, if index >= number of libraries, returns nullptr
+			// If debugMode is true, then debugging DLL filenames should be returned
+			virtual cstr GetNativeLibName(size_t index, bool debugMode) const = 0;
+		};
+
 		ROCOCO_INTERFACE IScriptSystemFactory : public IFreeable
 		{
+			virtual IScriptSystemConstruction* GetSSConstruction() = 0;
+
+			// Override the script system construction. The reference must remain valid for the lifetime of the factory. 
+			// If the construction interface is null then the script system loads default native libraries, for maths, reflection, coroutines and IO
+			virtual void SetSSConstruction(IScriptSystemConstruction * construction) = 0;
 			virtual IPublicScriptSystem* CreateScriptSystem(const Rococo::Compiler::ProgramInitParameters& pip, ILog& logger) = 0;
 		};
 

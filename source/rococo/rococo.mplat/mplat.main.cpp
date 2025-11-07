@@ -1,10 +1,14 @@
 #include <rococo.mplat.h>
 #include <rococo.io.h>
-#include <rococo.os.win32.h>
+
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#include <rococo.target.h>
+#include <Windows.h>
 #include <rococo.window.h>
+
 #include <rococo.sexy.ide.h>
 #include <rococo.win32.rendering.h>
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 #include <rococo.imaging.h>
 #include <rococo.strings.h>
@@ -71,7 +75,8 @@ namespace Rococo
 		bool QueryYesNo(IWindow& ownerWindow, cstr message)
 		{
 			char title[256];
-			GetWindowTextA(ownerWindow, title, 256);
+			GetWindowTextA(ownerWindow, title, sizeof title);
+
 			return ShowMessageBox(Windows::NullParent(), message, title, MB_ICONQUESTION | MB_YESNO) == IDYES;
 		}
 

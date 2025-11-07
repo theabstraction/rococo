@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -127,12 +127,13 @@ namespace Rococo::Strings
 	{
 		void* AllocateObject(size_t nBytes) override
 		{
+			UNUSED(nBytes);
 			return nullptr;
 		}
 
 		void FreeObject(void* pMemory) override
 		{
-			
+			UNUSED(pMemory);
 		}
 
 		refcount_t AddRef() override
@@ -147,6 +148,7 @@ namespace Rococo::Strings
 
 		size_t FreeAll(IEventCallback<LeakArgs>* leakCallback) override
 		{
+			UNUSED(leakCallback);
 			return 0;
 		}
 	};
@@ -598,8 +600,6 @@ namespace Rococo::Strings
 	void AlignedMalloc(NativeCallEnvironment& e)
 	{
 		IScriptSystem& ss = *(IScriptSystem*) e.context;
-
-		TAllocationMap& allocMap = *(TAllocationMap*) e.context;
 
 		int32 capacity;
 		ReadInput(0, capacity, e); 

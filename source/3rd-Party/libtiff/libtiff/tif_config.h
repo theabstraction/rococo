@@ -117,7 +117,7 @@
 
 /* define to use win32 IO system */
 #ifdef _WIN32
-# define USE_WIN32_FILEIO 1
+// # define USE_WIN32_FILEIO 1
 #endif
 
 /* Support WEBP compression */

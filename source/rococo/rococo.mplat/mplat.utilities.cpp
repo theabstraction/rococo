@@ -1,8 +1,16 @@
 #include "rococo.mplat.h"
-#include <rococo.os.win32.h>
-#include <rococo.window.h>
+# define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+# define NOMINMAX // Macros min(a, b) and max(a, b)
+# define NOCOMM // COMM driver routines
+# define NOKANJI // Kanji support stuff.
+# define NOHELP // Help engine interface.
+# define NOPROFILER // Profiler interface.
+# define NODEFERWINDOWPOS // DeferWindowPos routines
+# define NOMCX // Modem Configuration Extensions
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+# include <Windows.h>
+# include <rococo.window.h>
+
 #include <rococo.hashtable.h>
 #include <rococo.variable.editor.h>
 #include <rococo.file.browser.h>
@@ -30,6 +38,25 @@ namespace Rococo::MPlatImpl
 	// Note - implicityIncludes is NULL, MPlat defaults are used, which may conflict with security.
 	void RunEnvironmentScriptImpl(ScriptPerformanceStats& stats, Platform& platform, IScriptEnumerator* implicitIncludes, IScriptCompilationEventHandler& _onScriptEvent, const char* name, bool addPlatform, bool shutdownOnFail, bool trace, int32 id, Strings::IStringPopulator* onScriptCrash, StringBuilder* declarationBuilder);
 }
+
+class FileHandle
+{
+	HANDLE hFile;
+public:
+	FileHandle(HANDLE _hFile) : hFile(_hFile)
+	{
+	}
+
+	operator HANDLE()
+	{
+		return hFile;
+	}
+
+	~FileHandle()
+	{
+		if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
+	}
+};
 
 class Utilities :
 	public IUtilitiesSupervisor,

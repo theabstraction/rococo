@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.internal.api.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.array.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.asserts.inl" />

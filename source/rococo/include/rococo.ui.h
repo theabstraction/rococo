@@ -58,11 +58,11 @@ namespace Rococo
 
 		union {
 			uint32 buttons;
-			struct {
+			struct FlagsAndData{
 				uint16  buttonFlags;
 				uint16  buttonData;
-			};
-		};
+			} data;
+		} uButtons;
 
 		uint32 ulRawButtons_Unused;
 		int32 dx;
@@ -72,7 +72,7 @@ namespace Rococo
 
 		enum Flags { MouseWheel = 0x0400, RDown = 0x0004, RUp = 0x0008, LDown = 0x0001, LUp = 0x0002, MDown = 0x0010, MUp = 0x0020 };
 
-		bool HasFlag(Flags flag) const { return (buttonFlags & flag) != 0; }
+		bool HasFlag(Flags flag) const { return (uButtons.data.buttonFlags & flag) != 0; }
 		bool IsRelative() const { return (flags & 0x0001) == 0; }
 
 		MouseContext contextFlags;

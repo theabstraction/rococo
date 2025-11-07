@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -57,8 +57,10 @@ namespace Rococo
                 cr_sex s;
                 CCompileEnvironment& ce;
 
-                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(controlFlowData);
+                    UNUSED(object);
                     cr_sex condition = s.GetElement(s.NumberOfElements() - 1);
 
                     bool negate = false;
@@ -79,8 +81,9 @@ namespace Rococo
                 cr_sex s;
                 CCompileEnvironment& ce;
 
-                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData)
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(object);
                     builder.PushControlFlowPoint(*controlFlowData);
                     CompileExpressionSequence(ce, 1, s.NumberOfElements() - 3, s);
                     builder.PopControlFlowPoint();
@@ -131,6 +134,8 @@ namespace Rococo
 
                 void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(object);
+                    UNUSED(controlFlowData);
                     bool negate = false;
                     if (!TryCompileBooleanExpression(ce, s, true, negate))
                     {
@@ -151,6 +156,7 @@ namespace Rococo
     
                 void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(object);
                     if (s.NumberOfElements() > 4)
                     {
                         builder.PushControlFlowPoint(*controlFlowData);
@@ -169,6 +175,9 @@ namespace Rococo
 
                 void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(builder);
+                    UNUSED(object);
+                    UNUSED(controlFlowData);
                     if (s.Type() != EXPRESSION_TYPE_NULL)
                     {
                         CompileExpression(ce, s);
@@ -205,6 +214,8 @@ namespace Rococo
 
                 void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(object);
+                    UNUSED(controlFlowData);
                     cr_sex condition = s.GetElement(1);
 
                     bool negate = false;
@@ -228,6 +239,7 @@ namespace Rococo
 
                 void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(object);
                     if (finallyPos > 2)
                     {
                         builder.PushControlFlowPoint(*controlFlowData);
@@ -247,6 +259,9 @@ namespace Rococo
 
                 void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData) override
                 {
+                    UNUSED(builder);
+                    UNUSED(object);
+                    UNUSED(controlFlowData);
                     if (finallyPos < s.NumberOfElements() - 1)
                     {
                         CompileExpressionSequence(ce, finallyPos + 1, s.NumberOfElements() - 1, s);
@@ -352,8 +367,11 @@ namespace Rococo
                 int endPos;
                 CCompileEnvironment& ce;
 
-                virtual void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData /* NULL, as If...Else does not support break and continue */)
+                void Compile(ICodeBuilder& builder, IProgramObject& object, ControlFlowData* controlFlowData /* NULL, as If...Else does not support break and continue */) override
                 {
+                    UNUSED(builder);
+                    UNUSED(object);
+                    UNUSED(controlFlowData);
                     CompileExpressionSequence(ce, startPos, endPos, s);
                 }
             } thenSection(s, ce), elseSection(s, ce);
@@ -531,6 +549,7 @@ namespace Rococo
             AssertLocalIdentifier(sLabel);
 
             cr_sex sParent = *s.Parent();
+            UNUSED(sParent);
 
             size_t labelPosition = ce.Builder.GetLabelPosition(labelName);
 

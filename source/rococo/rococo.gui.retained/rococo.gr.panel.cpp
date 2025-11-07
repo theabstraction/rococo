@@ -4,7 +4,7 @@
 #include <rococo.maths.i32.h>
 #include <rococo.maths.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 using namespace Rococo::Strings;

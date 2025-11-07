@@ -1,4 +1,4 @@
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 
 namespace Rococo::Windows
 {

@@ -7,7 +7,7 @@
 #include <sexy.script.h>
 #include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
-#include <..\STC\stccore\Sexy.Compiler.h>
+#include <Sexy.Compiler.h>
 #include <sexy.compiler.public.h>
 #include <rococo.sexy.api.h>
 
@@ -96,7 +96,7 @@ namespace Rococo::Domme
 	DommeObject::DommeObject(ScriptingResources& _scripting, cstr sourceName, const char* const _namespace, const char* const _scriptInterfaceName) :
 		logger(_scripting), scripting(_scripting), scriptInterfaceName(_scriptInterfaceName)
 	{
-		sourceTree = scripting.sourceCache.GetSource(sourceName);
+		sourceTree = &scripting.sourceCache.GetSource(sourceName);
 
 		Compiler::ProgramInitParameters pip;
 		pip.addIO = true;
@@ -141,6 +141,8 @@ namespace Rococo::Domme
 
 		scriptContext.ip = (Rococo::Compiler::InterfacePointer) pNullInterface;
 
+		// Investigate the function below, because it ignores section.Id
+		OS::TripDebugger();
 		ExecuteFunctionUntilYield(section.Id, *ss, scripting.debuggerWindow, false);
 
 		objectStub = InterfaceToInstance(scriptContext.ip);

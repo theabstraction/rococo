@@ -69,7 +69,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS=1;ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllexport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\3rd-party\libtiff\libtiff</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\libtiff\libtiff;..\..\source\3rd-party\zlib;..\..\source\rococo\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -143,8 +143,7 @@
       <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\debug\lib-tiff.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\$(configuration)\lib-tiff.lib</ImportLibrary>
@@ -156,7 +155,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>LIBTIFF_IMPLEMENTS_OWN_ROCOCO_OS=1;NDEBUG;ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllexport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\3rd-party\libtiff\libtiff</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\libtiff\libtiff;..\..\source\3rd-party\zlib;..\..\source\rococo\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -230,8 +229,7 @@
       <AdditionalDependencies>lib-jpg.lib;lib-zip.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\release\lib-tiff.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\$(configuration)\lib-tiff.lib</ImportLibrary>
@@ -252,7 +250,6 @@
     <ClInclude Include="..\..\source\3rd-Party\libtiff\libtiff\uvcode.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\3rd-Party\libtiff\bloke.tiff.cpp" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_aux.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_close.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_codec.c" />
@@ -295,6 +292,7 @@
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_write.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_zip.c" />
     <ClCompile Include="..\..\source\3rd-Party\libtiff\libtiff\tif_zstd.c" />
+    <ClCompile Include="..\..\source\3rd-Party\libtiff\tiff.readimage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,5 @@
 #include <rococo.os.win32.h>
+#include <winerror.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
@@ -6,13 +7,14 @@
 #include <rococo.sexystudio.api.h>
 #include <rococo.functional.h>
 #include <rococo.auto-complete.h>
-#include <rococo.window.h>
+#include <string.h>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::AutoComplete;
 using namespace Rococo::Windows;
+using namespace MSWindows;
 
 auto DLL_NAME = L"sexystudio.dll";
 
@@ -672,8 +674,8 @@ void pluginInit(HANDLE /* hModule */)
 		WideFilePath pathToDLL;
 		GetDllPath(pathToDLL);
 
-		static HMODULE hFactoryModule = LoadLibraryW(pathToDLL);
-		if (hFactoryModule == nullptr)
+		HMODULE hFactoryModule = LoadLibraryW(pathToDLL);
+		if (!hFactoryModule)
 		{
 			Throw(GetLastError(), "Could not load library: %ls", pathToDLL.buf);
 		}
@@ -2236,7 +2238,7 @@ void TestShowCompletionsForeachReferenceVariable()
 
 void MainProtected2(HMODULE /* hLib */)
 {
-	pluginInit(NULL);
+	pluginInit(HANDLE{ 0 });
 
 	goto skip;
 	TestFullEditor_GotoDefinitionOfFunction();
@@ -2363,7 +2365,7 @@ void MainProtected(HMODULE hLib)
 int main()
 {
 	WideFilePath directory;
-	if (!GetModuleFileNameW(NULL, directory.buf, directory.CAPACITY)) return GetLastError();
+	if (!GetModuleFileNameW(HMODULE::Null(), directory.buf, directory.CAPACITY)) return GetLastError();
 	Rococo::IO::StripLastSubpath(directory.buf);
 
 	// path now contains the directory
@@ -2371,11 +2373,11 @@ int main()
 	Format(pathToDLL, L"%ls%ls", directory.buf, DLL_NAME);
 
 	auto hLib = LoadLibraryW(pathToDLL);
-	if (hLib == nullptr)
+	if (!hLib)
 	{
 		U8FilePath msg;
 		Format(msg, "Could not load library: %ls", pathToDLL.buf);
-		MessageBoxA(NULL, msg, ErrorCaption, MB_ICONERROR);
+		MessageBoxA(HWND::Null(), msg, ErrorCaption, MB_ICONERROR);
 		return GetLastError();
 	}
 

@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Rococo Gui Plugin Introduction</title>
+		<title>Markup Language Plugin - Introduction</title>
 		<style>
 			body {
 				background-color: lightyellow;
@@ -24,13 +24,16 @@
   <body>
 	<div>
 		<p>
-		<h1>Introducing the Rococo GUI Plugin Suite for Unreal Engine</h1>
+		<h1>The Markup Language Plugin for RAD GUI Development - On-Boarding Introduction</h1>
 		</p>
 	</div>
 	<div>
 		<p>
 		The option widget below was written with the Rococo GUI API. Unlike traditional Unreal Engine development, the entire screen was configured with a single plain-text file,
-		in the S-Expression Mark-up Language - 'SEXML.' SEXML is like XML, but with less boiler-plate. It is easier to type, extend and parse than XML.
+		in the <a href="s.html">S-Expression</a> Mark-up Language - '<a href="sexml.html">SEXML</a>.' SEXML is like XML, but with less boiler-plate. It is easier to type, extend and parse than XML.
+		</p>
+		<p>
+		You can find the test project for the plugin at: <a href="https://github.com/theabstraction/rococo-plugins-test">https://github.com/theabstraction/rococo-plugins-test</a>
 		</p>
 		<p>
 		After compiling and running the RococoTestFPS project you should see this screen. Note that the demo is optimized for 4K. If you are running at HD in windowed mode in the 
@@ -49,9 +52,10 @@
 	<div>
 	<p>
 	In order to reduce the memory footprint of the images in this documentation, we will make the background easier to compress. This also demonstrates how SEXML can be used to 
-	modify the appearance of a screen without having to restart the game session. We must edit $(rococo-content)/tests/greatsex.test.sexml. In notepad++ the shipped file is presented below
-	and line 116 is what we must edit:
-	this:
+	modify the appearance of a screen without having to restart the game session. We must edit <b>$(rococo-content)/tests/greatsex.test.sexml</b>.
+	The directory $(rococo-content) defaults to the <b>Content/rococo.content</b> directory of the Unreal project. 
+	The full specification for the file format is found <a href="greatsex.sexml.html">here</a>.
+	In notepad++ the shipped file is presented below and line 116 is what we must edit:
 	</p>
 	</div>
 	<div>
@@ -61,7 +65,9 @@
 	</div>
 	<div>
 	<p>
-	We change the line to so that our background image is replaced with the image file  $(rococo-content)/textures/test/pure_blue.jpg:
+	We change the line to so that our background image is replaced with the image file</p><p><code>$(rococo-content)/textures/test/pure_blue.jpg</code>. As you see in the sexml
+	the root file path is specified by a ping character '!' - these paths are also known as <i>ping paths</i> and follow the unix convention for directories (forward slash '/').
+	</code>
 	</p>
 	</div>	
 	<div>
@@ -211,8 +217,8 @@
   </p>
   </div>
   <div>
-		<a href="Images/HomePage.2.audio.png">
-		<img src="Images/HomePage.2.audio.png" width=960 />
+		<a href="Images/Homepage.2.audio.png">
+		<img src="Images/Homepage.2.audio.png" width=960 />
 		</a>
   </div>
   <div>
@@ -224,8 +230,8 @@
   </p>
   </div>
    <div>
-		<a href="Images/HomePage.2.graphics.png">
-		<img src="Images/HomePage.2.graphics.png" width=960 />
+		<a href="Images/Homepage.2.graphics.png">
+		<img src="Images/Homepage.2.graphics.png" width=960 />
 		</a>
   </div>
   </body>

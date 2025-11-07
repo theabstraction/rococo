@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -191,7 +191,7 @@ namespace Rococo::Compiler
 		virtual IProgramObject& Object() = 0;
 	};
 
-	ROCOCO_INTERFACE IInterfaceBuilder : public IInterface
+	ROCOCO_INTERFACE IInterfaceBuilder : public IObjectInterface
 	{
 		virtual IAttributes & Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
@@ -371,7 +371,7 @@ namespace Rococo::Compiler
 		/* AddDynamicAllocateObject -> takes sizeof(obj) in D4 (int32),
 		   returns pointer to object in D4 (vPtr)
 		*/
-		virtual void AddDynamicAllocateObject(const IStructure& structType, const IInterface& interface) = 0;
+		virtual void AddDynamicAllocateObject(const IStructure& structType, const IObjectInterface& interface) = 0;
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;

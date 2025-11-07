@@ -37,7 +37,7 @@ namespace Rococo
 
     internal class RococoGUIBuilder: RococoBuilder
     {
-        public RococoGUIBuilder()
+        public RococoGUIBuilder() : base(Path.Join("UE5", "RococoTestFPS", "Plugins"))
         {
             AppendFileByLink = true;
         }
@@ -110,17 +110,18 @@ namespace Rococo
                     "sexy.vm.h",
                     "sexy.vm.cpu.h",
                     "sexy.script.h"
-    }
+                 }
             );
 
             CreateBundleDirect(osSourceDirectory, "wrap.rococo_util.cpp", "rococo.os.UE5.h", "rococo.os.UE5.prelude.h", "rococo.os.UE5.postlude.h", "rococo/rococo.util",
                 new List<string>()
                 {
-                "rococo.strings.cpp",
-                "rococo.base.cpp",
-                "rococo.heap.string.cpp",
-                "rococo.allocators.cpp",
-                "rococo.throw.cr_sex.cpp"
+                    "rococo.strings.cpp",
+                    "rococo.base.cpp",
+                    "rococo.heap.string.cpp",
+                    "rococo.allocators.cpp",
+                    "rococo.throw.cr_sex.cpp",
+                    "rococo.os.win32.strings.inl"
                 }
             );
         }
@@ -134,6 +135,8 @@ namespace Rococo
                     "rococo.types.h",
                     "rococo.io.h",
                     "rococo.os.h",
+                    "rococo.os.win32.h",
+                    "rococo.os.win32.mswindows.h",
                     "rococo.ui.h",
                     "rococo.compiler.options.h",
                     "rococo.functional.h",
@@ -296,7 +299,7 @@ namespace Rococo
             CreateSeparateFilesDirect(tiffSourceDirectory, "wrap.", "rococo.tiff.UE5.h", "rococo.tiff.prelude.decl.h", "rococo.tiff.postlude.h", "3rd-Party/libtiff/",
                 new List<string>()
                 {
-                "bloke.tiff.cpp"
+                    "tiff.readimage.cpp"
                 }
             );
         }
@@ -396,8 +399,8 @@ namespace Rococo
             CreateSeparateFilesDirect(jpegSourceDirectory, "wrap.", "rococo.jpg.UE5.h", "rococo.jpg.prelude.decl.h", "rococo.jpg.postlude.h", "3rd-Party/libjpg/",
                 new List<string>()
                 {
-                    "readimage.cpp",
-                    "writeimage.cpp"
+                    "jpg.readimage.cpp",
+                    "jpg.writeimage.cpp"
                 }
             );
         }

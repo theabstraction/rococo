@@ -383,7 +383,7 @@ namespace Rococo::Windows
 		{
 			if (!text) Throw(0, "%s: null text argument", __ROCOCO_FUNCTION__);
 
-			TVITEMEX y = { 0 };
+			TVITEMEXA y = { 0 };
 			y.mask = TVIF_TEXT | TVIF_HANDLE;
 			y.hItem = ToHTree(nodeId);
 			y.pszText = (char*) text;
@@ -400,7 +400,7 @@ namespace Rococo::Windows
 		{
 			if (!buffer) Throw(0, "%s: null buffer argument", __ROCOCO_FUNCTION__);
 
-			TVITEMEX y = { 0 };
+			TVITEMEXA y = { 0 };
 			y.mask = TVIF_TEXT | TVIF_HANDLE;
 			y.hItem = ToHTree(id);
 			y.pszText = buffer;

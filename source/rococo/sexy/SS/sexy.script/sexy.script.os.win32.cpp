@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -38,27 +38,30 @@
 # define UNICODE
 #endif
 
-#include <rococo.win32.target.win7.h>
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <rococo.os.win32.h>
 
 #include "sexy.debug.types.h"
 #include "sexy.compiler.public.h"
 #include "sexy.script.h"
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 #include <rococo.api.h>
 #include <rococo.os.h>
 #include <rococo.io.h>
 
 using namespace Rococo::Strings;
+using namespace MSWindows;
 
 #define BREAK_ON_THROW
 
 #ifndef SCRIPT_IS_LIBRARY
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+BOOL DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
+	UNUSED(hinstDLL);
+	UNUSED(fdwReason);
+	UNUSED(lpvReserved);
+
 	return TRUE;
 }
 #endif
@@ -97,8 +100,8 @@ namespace Rococo
 #ifdef SCRIPT_IS_LIBRARY
 			GetCurrentDirectoryW((DWORD)capacity, data);
 #else
-			HMODULE hModule = GetModuleHandle(nullptr);
-			if (!hModule)
+			HMODULE hModule = GetModuleHandleW(nullptr);
+			if (!hModule.ptrInternal)
 			{
 				Throw(GetLastError(), "SEXY_NATIVE_SRC_DIR. Failed to get default variable: cannot get module handle for the sexy script dynamic link library");
 			}
@@ -148,7 +151,7 @@ namespace Rococo
 			WideFilePath linkLib;
 			Format(linkLib, L"%ls.dll", dynamicLinkLibOfNativeCalls);
 			HMODULE lib = LoadLibraryW(linkLib);
-			if (lib == nullptr)
+			if (lib.ptrInternal == 0)
 			{
 				if (throwOnError) Rococo::Throw(GetLastError(), "Could not load %ls", linkLib.buf);
 				return nullptr;
@@ -161,7 +164,7 @@ namespace Rococo
 				return nullptr;
 			}
 
-			Rococo::Script::FN_CreateLib createFn = (Rococo::Script::FN_CreateLib) fp;
+			Rococo::Script::FN_CreateLib createFn = reinterpret_cast<Rococo::Script::FN_CreateLib>(fp);
 			return createFn;
 		}
 
@@ -193,7 +196,7 @@ namespace Rococo
 				HANDLE hFile;
 				~AutoFile()
 				{
-					if (hFile != INVALID_HANDLE_VALUE)
+					if (!hFile.IsValidHandleValue())
 					{
 						CloseHandle(hFile);
 					}
@@ -201,14 +204,14 @@ namespace Rococo
 				void Close()
 				{
 					CloseHandle(hFile);
-					hFile = INVALID_HANDLE_VALUE;
+					hFile.internal = -1;
 				}
 				operator HANDLE() { return hFile; }
 			} hFile = {
-				CreateFile(tempFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)
+				CreateFileA(tempFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, {0})
 			};
 
-			if (hFile == INVALID_HANDLE_VALUE)
+			if (!hFile.hFile.IsValidHandleValue())
 			{
 				Throw(GetLastError(), "Could not open file for writing: %hs", tempFile.buf);
 			}
@@ -222,8 +225,8 @@ namespace Rococo
 
 			hFile.Close();
 
-			HMODULE lib = LoadLibrary(tempFile);
-			if (lib == nullptr)
+			HMODULE lib = LoadLibraryA(tempFile);
+			if (lib.ptrInternal == 0)
 			{
 				Rococo::Throw(GetLastError(), "Could not load %hs", origin);
 			}

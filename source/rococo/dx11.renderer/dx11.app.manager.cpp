@@ -2,7 +2,9 @@
 #define ROCOCO_GRAPHICS_API ROCOCO_API_EXPORT
 
 #include "dx11.renderer.h"
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <Windows.h>
 #include <rococo.win32.rendering.h>
 #include <rococo.renderer.h>
 #include <rococo.ui.h>
@@ -283,7 +285,7 @@ namespace ANON
 		{
 			MouseEvent me = { 0 };
 			me.flags = m.usFlags;
-			me.buttons = m.ulButtons;
+			me.uButtons.buttons = m.ulButtons;
 			me.contextFlags = context;
 
 			POINT p;

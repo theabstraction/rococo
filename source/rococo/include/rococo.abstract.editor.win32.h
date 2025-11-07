@@ -3,8 +3,6 @@
 
 #include <rococo.abstract.editor.h>
 
-#include <rococo.os.win32.h>
-
 namespace Rococo::Windows
 {
 	struct IParentWindowSupervisor;

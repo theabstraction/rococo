@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -35,7 +35,7 @@ namespace Rococo
 {
    namespace Script
    {
-	  int GetIndexOfInterface(const IStructure& concreteClass, const IInterface& interf);
+	  int GetIndexOfInterface(const IStructure& concreteClass, const IObjectInterface& interf);
 
       const IFactory* GetFactoryInModuleByFQN(cr_sex factoryExpr, cstr ns, cstr shortName, IModule& module, bool throwIfNotFound = false)
       {
@@ -126,8 +126,9 @@ namespace Rococo
 		  }
 	  }
 
-      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfaceRefName, cr_sex args, const IInterface& interf)
+      void CompileFactoryCall(CCompileEnvironment& ce, const IFactory& factory, cstr interfaceRefName, cr_sex args, const IObjectInterface& interf)
       {
+         UNUSED(interf);
          const IFunction& factoryFunction = factory.Constructor();
 
 		 MemberDef instancedef;
@@ -146,6 +147,7 @@ namespace Rococo
          if (args.NumberOfElements() - 1 > explicitInputCount) Throw(args, ("Too many arguments to factory call"));
 
          int inputStackAllocCount = PushInputs(ce, args, factoryFunction, true, 1);
+         UNUSED(inputStackAllocCount);
 
 		 AddArgVariable("instancePtr", ce, ce.Object.Common().TypePointer());
 
@@ -217,7 +219,7 @@ namespace Rococo
 
       void CompileConstructFromFactory(CCompileEnvironment& ce, const IStructure& nullType, cstr interfaceRefName, cr_sex args)
       {
-         // This function turns (<IInterface> id (<Factory> <arg1>...<argN>)) into assembly
+         // This function turns (<IObjectInterface> id (<Factory> <arg1>...<argN>)) into assembly
 
          AddSymbol(ce.Builder, ("%s %s"), GetFriendlyName(nullType), interfaceRefName);
 

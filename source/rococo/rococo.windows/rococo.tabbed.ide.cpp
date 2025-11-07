@@ -4,7 +4,7 @@
 #include <sexy.debug.types.h>
 #include <sexy.compiler.public.h>
 #include <sexy.script.h>
-#include <windows.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.window.h>
 #include <rococo.strings.h>
 #include <commctrl.h>
@@ -256,11 +256,11 @@ namespace
 			   if (splitterRect.bottom > splitterRect.right)
 			   {
 				   // Vertical
-				   hCursor = LoadCursorA(nullptr, IDC_SIZEWE);
+				   hCursor = LoadCursorA(nullptr, (char*) IDC_SIZEWE);
 			   }
 			   else
 			   {
-				   hCursor = LoadCursorA(nullptr, IDC_SIZENS);
+				   hCursor = LoadCursorA(nullptr, (char*) IDC_SIZENS);
 			   }
 			   
 			   SetCursor(hCursor);

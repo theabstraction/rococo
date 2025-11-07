@@ -1,4 +1,6 @@
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <Windows.h>
 #include <rococo.api.h>
 #include <rococo.os.h>
 
@@ -11,7 +13,7 @@
 #include <dxgi.h>
 #include <d3d11.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 #include "dx11.factory.h"

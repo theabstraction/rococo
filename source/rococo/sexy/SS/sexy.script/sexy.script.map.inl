@@ -18,7 +18,7 @@
 
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application.
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -99,6 +99,7 @@ namespace Rococo::Script
 		size_t firstpadding = GetAlignmentPadding(16, sizeof(MapNode));
 		size_t secondpadding = GetAlignmentPadding(16, (int)keySize);
 		size_t offset_to_value = sizeof(MapNode) + firstpadding + keySize + secondpadding;
+		UNUSED(offset_to_value);
 		return ((uint8*)m) + sizeof(MapNode) + firstpadding + keySize + secondpadding;
 	}
 
@@ -209,6 +210,7 @@ namespace Rococo::Script
 	VM_CALLBACK(MapGetHead)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D7].vPtrValue;
 		MapNode* head = m->Head;
 		if (head != NULL) head->AddRef();
@@ -218,6 +220,7 @@ namespace Rococo::Script
 	VM_CALLBACK(MapGetLength)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D13].vPtrValue;
 		int32 length = m ? m->NumberOfElements : 0;
 		registers[VM::REGISTER_D7].int32Value = length;
@@ -226,6 +229,7 @@ namespace Rococo::Script
 	VM_CALLBACK(MapUpdateRefCounts)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 		MapImage* m = (MapImage*)registers[VM::REGISTER_D4].vPtrValue;
 		
 		size_t offset = 0;
@@ -242,6 +246,7 @@ namespace Rococo::Script
 	VM_CALLBACK(MapNodeEnumNext)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
+		UNUSED(ss);
 		MapNode* n = (MapNode*)registers[VM::REGISTER_D12].vPtrValue;
 		MapNode* next = n->Next;
 		ReleaseNode(n, ss);
@@ -251,6 +256,7 @@ namespace Rococo::Script
 
 	MapNode* CreateExistantMapNode(MapImage& m, IScriptSystem& ss, int hashcode)
 	{
+		UNUSED(ss);
 		MapNode* newNode = CreateMapNode(&m, ss);
 		newNode->IsExistant = 1;
 		newNode->HashCode = hashcode;
@@ -273,6 +279,8 @@ namespace Rococo::Script
 
 	void DeleteNodeFromMap(MapNode* node, IScriptSystem& ss)
 	{
+		UNUSED(ss);
+
 		TMapNodes& row = GetRow(node->HashCode, *node->Container);
 
 		for (auto i = row.begin(); i != row.end(); ++i)
@@ -910,7 +918,7 @@ namespace Rococo::Script
 		AppendInvoke(ce, GetMapCallbacks(ce).MapNodePop, s);
 	}
 
-	bool HasInterface(const IInterface& interface, const IStructure& classspec);
+	bool HasInterface(const IObjectInterface& interface, const IStructure& classspec);
 
 	void CompileAsKeyToTemp(CCompileEnvironment& ce, cr_sex keyExpr, const MapDef& mapDef, int tempIndex)
 	{
@@ -1049,6 +1057,7 @@ namespace Rococo::Script
 		{
 			cr_sex valueExpr = s.GetElement(2);
 			cstr value = valueExpr.c_str();
+			UNUSED(value);
 			CompileNumericExpression(ce, valueExpr, def.ValueType.VarType()); // value goes to D7
 			ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
 			AppendInvoke(ce, GetMemberSize(def.ValueType) == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
@@ -1137,6 +1146,11 @@ namespace Rococo::Script
 
 	void CompileGetMapElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, SexyVarType varType, const IStructure* structType)
 	{
+		UNUSED(ce);
+		UNUSED(s);
+		UNUSED(instanceName);
+		UNUSED(varType);
+		UNUSED(structType);
 	}
 
 	void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source)
@@ -1182,6 +1196,7 @@ namespace Rococo::Script
 		if (s.NumberOfElements() == 5)
 		{
 			cr_sex extPtr = GetAtomicArg(s, 4);
+			UNUSED(extPtr);
 			if (!Eq(nameExpr.c_str(), "*"))
 			{
 				Throw(s[4], "Expecting * in this position, which indicates a reference to an array that is initially null");

@@ -897,6 +897,8 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
+            conf.VcxprojUserFile.LocalDebuggerCommandArguments = "(GreatSex (Sexml !tests/greatsex.test.sexml))";
         }
     }
 
@@ -1439,6 +1441,10 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.SolutionFolder = SolutionFolders.CFGS;
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
+
+            // Annoyingly Sharpmake replaced the outdir directive, rather than letting Visual studio handle it as a macro. Too busy to fix this  - TODO - fix this.
+            conf.VcxprojUserFile.LocalDebuggerCommandArguments = "-controller:$(OutDirFullPath)cfgs.host.dll -view:$(OutDirFullPath)rococo.abstract.editor.dll";
         }
     }
 
@@ -1731,6 +1737,7 @@ namespace Rococo
             conf.Defines.Add("SEXYUTIL_API=__declspec(dllexport)");
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.SolutionFolder = " - Sexy";
+            conf.IncludePaths.Add(System.IO.Path.Join(Roots.RococoSexyPath, "STC", "stccore"));
         }
     }
 
@@ -1844,6 +1851,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.Defines.Add("SEXYCOMPILER_API=__declspec(dllexport)");
             conf.SolutionFolder = " - Sexy";
         }
     }
@@ -1989,7 +1997,7 @@ namespace Rococo
         public LibTiffProject() : base("lib-tiff", @"libtiff\libtiff\")
         {
             Exclude("tif_win32.c", "tif_unix.c");
-            SourceFiles.Add(Path.Combine(SourceRootPath, @"..\bloke.tiff.cpp"));
+            SourceFiles.Add(Path.Combine(SourceRootPath, "..", "tiff.readimage.cpp"));
         }
 
         [Configure()]
@@ -1998,8 +2006,9 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<LibJPegProject>(target);
             conf.AddPublicDependency<LibZipProject>(target);
-            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"libjpg\jpeg-6b\"));
-            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib\"));
+            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, "libjpg", "jpeg-6b"));
+            conf.IncludePaths.Add(Path.Combine(Roots.ThirdPartyPath, @"zlib"));
+            conf.IncludePaths.Add(Path.Combine(SourceRootPath));
             conf.IncludePaths.Add(Roots.RococoIncludePath);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4244", "4267", "4996", "4456", "4334", "4706", "4133", "4457", "4311", "4324"));
             conf.Defines.Add("_ROCOCO_WIDECHAR_=wchar_t");
@@ -2039,8 +2048,8 @@ namespace Rococo
         {
             Exclude("ansi2knr.c", "example.c", "ckConfig.c", "cjpeg.c", "djpeg.c", "jmemmac.c", "jmemdos.c", "jmemname.c");
             Exclude("rdjpgcom.c", "wrjpgcom.c", "jpegtran.c", "wrjpgcom.c", "jmemansi.c", "jpegtran.c");
-            SourceFiles.Add(Path.Combine(SourceRootPath, @"..\readimage.cpp"));
-            SourceFiles.Add(Path.Combine(SourceRootPath, @"..\writeimage.cpp"));
+            SourceFiles.Add(Path.Combine(SourceRootPath, @"..\jpg.readimage.cpp"));
+            SourceFiles.Add(Path.Combine(SourceRootPath, @"..\jpg.writeimage.cpp"));
         }
 
         [Configure()]

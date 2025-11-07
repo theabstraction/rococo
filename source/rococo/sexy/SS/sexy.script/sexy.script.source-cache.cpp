@@ -17,31 +17,7 @@ using namespace Rococo::Script;
 
 namespace Rococo
 {
-	SCRIPTEXPORT_API void ThrowSex(cr_sex s, cstr format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		char msg[512];
-		SafeVFormat(msg, sizeof(msg), format, args);
-
-		auto start = s.Start();
-		auto end = s.End();
-
-		char specimen[64];
-		Rococo::Sex::GetSpecimen(specimen, s);
-
-		ParseException ex(start, end, "ParseException", msg, specimen, &s);
-
-		OS::TripDebugger();
-
-		throw ex;
-	}
-}
-
-namespace Rococo
-{
-	ISourceCode* DuplicateSourceCode(IOS& os, IExpandingBuffer& rbuffer, ISParser& parser, const IBuffer& rawData, const char* resourcePath)
+	ISourceCode* DuplicateSourceCode(ISParser& parser, const IBuffer& rawData, const char* resourcePath)
 	{
 		const char* utf8data = (const char*)rawData.GetData();
 		size_t rawLength = rawData.Length();
@@ -92,7 +68,7 @@ namespace Rococo
 		TSexyStringMap<Binding> sources;
 		// TODO -> allocator using the SourceCache allocator
 		AutoFree<IExpandingBuffer> fileBuffer;
-		// TODO -> allocator using the SourceCache allocator
+
 		AutoFree<IExpandingBuffer> dataBuffer;
 		IInstallation& installation;
 		IAllocator& allocator;
@@ -222,7 +198,7 @@ namespace Rococo
 			}
 		}
 
-		ISParserTree* GetSource(cstr pingName, const Sex::ISExpression* owner) override
+		ISParserTree& GetSource(cstr pingName, const Sex::ISExpression* owner) override
 		{
 			constexpr fstring tagOwner = "#$/"_fstring;
 
@@ -243,7 +219,7 @@ namespace Rococo
 
 				try
 				{
-					auto* src = GetSource(ownerPath, nullptr);
+					auto& src = GetSource(ownerPath, nullptr);
 					return src;
 				}
 				catch(ParseException&)
@@ -267,7 +243,7 @@ namespace Rococo
 				}
 				else
 				{
-					return i->second.tree;
+					return *i->second.tree;
 				}
 			}
 
@@ -278,7 +254,7 @@ namespace Rococo
 			bool success = installation.TryLoadResource(pingName, *fileBuffer, 64_megabytes);
 			if (success)
 			{
-				src = DuplicateSourceCode(installation.OS(), *dataBuffer, *parser, *fileBuffer, pingName);
+				src = DuplicateSourceCode(*parser, *fileBuffer, pingName);
 			}
 			else
 			{
@@ -323,7 +299,7 @@ namespace Rococo
 			ISParserTree* tree = parser->CreateTree(*src);
 			sources[pingName] = Binding{ tree, src, Time::UTCTime() };
 
-			return tree;
+			return *tree;
 		}
 
 		void Release(cstr resourceName) override
@@ -388,6 +364,8 @@ namespace Rococo
 
 	void ApplyFluffle(ISourceCache& sourceCache, Rococo::Script::IPublicScriptSystem& ss, cstr fluffleName, cr_sex sFluffleDirective)
 	{
+		UNUSED(fluffleName);
+
 		// (Fluffle <fluffle-name> "<first source...>" ... "<last_source>")
 		for (int i = 2; i < sFluffleDirective.NumberOfElements(); ++i)
 		{
@@ -399,8 +377,8 @@ namespace Rococo
 
 			cstr pingPath = s.c_str();
 
-			auto* tree = sourceCache.GetSource(pingPath, &sFluffleDirective);
-			ss.AddTree(*tree);
+			auto& tree = sourceCache.GetSource(pingPath, &sFluffleDirective);
+			ss.AddTree(tree);
 		}
 
 		ss.PartialCompile();
@@ -464,9 +442,9 @@ namespace Rococo
 		U8FilePath flufflePath;
 		Format(flufflePath, "%s%sdefault.fluffle", pingPath, EndsWith(pingPath, "/") ? "" : "/");
 
-		auto* fluffle = sources.GetSource(flufflePath, &s);
+		auto& fluffle = sources.GetSource(flufflePath, &s);
 
-		ApplyFluffleDirectives(sources, ss, fluffle->Root());
+		ApplyFluffleDirectives(sources, ss, fluffle.Root());
 	}
 
 	void PreprocessRawRootDirective(IPublicScriptSystem& ss, ISourceCache& sources, cr_sex sraw)
@@ -514,8 +492,8 @@ namespace Rococo
 
 				try
 				{
-					auto includedModule = sources.GetSource(name->Buffer, &sraw);
-					ss.AddTree(*includedModule);
+					auto& includedModule = sources.GetSource(name->Buffer, &sraw);
+					ss.AddTree(includedModule);
 				}
 				catch (ParseException&)
 				{
@@ -583,11 +561,11 @@ namespace Rococo
 			{
 				try
 				{
-					auto includedModule = sources.GetSource(implicitFile);
+					auto& includedModule = sources.GetSource(implicitFile);
 
-					ss.ValidateSecureFile(implicitFile, includedModule->Source().SourceStart(), includedModule->Source().SourceLength());
+					ss.ValidateSecureFile(implicitFile, includedModule.Source().SourceStart(), includedModule.Source().SourceLength());
 
-					ss.AddTree(*includedModule);
+					ss.AddTree(includedModule);
 
 					if (EndsWith(implicitFile, "partial-compile.sxy"))
 					{
@@ -616,7 +594,7 @@ namespace Rococo
 		}
 	}
 
-	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IDebuggerWindow& debugger, IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
+	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
 	{
 		ScriptCompileArgs args{ ss };
 		onCompile.OnCompile(args);

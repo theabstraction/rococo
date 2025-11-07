@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -281,6 +281,8 @@ namespace Rococo
 
 		void ValidateArithmeticVariable(cr_sex parent, cstr token, ICodeBuilder& builder, SexyVarType type, cstr helper)
 		{
+			UNUSED(helper);
+
 			SexyVarType rType = builder.GetVarType(token);
 			if (rType == SexyVarType_Bad)
 			{
@@ -712,6 +714,8 @@ namespace Rococo
 		{
 			cstr value = valueExpr.c_str();
 
+			UNUSED(value);
+
 			IStructure* s = MatchStructure(valueExpr, ce.Builder.Module());
 
 			if (s == NULL)
@@ -794,6 +798,8 @@ namespace Rococo
 
 		VM_CALLBACK(StringIndexToChar)
 		{
+			UNUSED(context);
+
 			int32 index = registers[7].int32Value;
 
 			auto interf = (InterfacePointer)registers[4].vPtrValue;
@@ -908,6 +914,7 @@ namespace Rococo
 			}
 
 			cr_sex firstItem = s.GetElement(0);
+			UNUSED(firstItem);
 			
 			if (s.NumberOfElements() == 1)
 			{

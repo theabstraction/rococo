@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -59,6 +59,7 @@ namespace Rococo
       void CompileFunction(IFunctionBuilder& f, CScript& script, cr_sex s, IScriptSystem& ss)
       {
          cstr name = f.Name();
+         UNUSED(name);
          f.Builder().DeleteSymbols();
          CompileFunctionFromExpression(f, IN s, script);
          SetPCToFunctionStart(ss, f);
@@ -72,7 +73,7 @@ namespace Rococo
       void CompileFactory(IFactoryBuilder& factory, CScript& script, cr_sex s, IScriptSystem& ss)
       {
          cstr name = factory.Name();
-
+         UNUSED(name);
          int bodyIndex = GetIndexOf(1, s, (":"));
          if (bodyIndex < 0) Throw(s, ("Could not find body indicator ':' in factory definition"));
          if (bodyIndex >= s.NumberOfElements()) Throw(s, ("Body indicator ':' was at the end of the expression. Expecting body to follow it"));
@@ -99,32 +100,34 @@ namespace Rococo
 
       void CALLTYPE_C Compile_JIT_Protected(VariantValue* registers, IScriptSystem& ss, JITArgs* args)
       {
-         switch (args->type)
-         {
-         case JIT_TYPE_FUNCTION:
-            CompileFunction(*(IFunctionBuilder*)args->ptr, *args->script, *args->s, ss);
-            break;
-         case JIT_TYPE_FACTORY:
-            CompileFactory(*(IFactoryBuilder*)args->ptr, *args->script, *args->s, ss);
-            break;
-         case JIT_TYPE_MACRO:
-         {
-            IMacroBuilder& macro = *(IMacroBuilder*)args->ptr;
-            macro.Implementation().Builder().DeleteSymbols();
-            CompileMacroFromExpression(macro, *args->script, *args->s);
-            SetPCToFunctionStart(ss, macro.Implementation());
+            UNUSED(registers);
 
-            CodeSection section;
-            macro.Implementation().Builder().GetCodeSection(OUT section);
+            switch (args->type)
+            {
+            case JIT_TYPE_FUNCTION:
+                CompileFunction(*(IFunctionBuilder*)args->ptr, *args->script, *args->s, ss);
+                break;
+            case JIT_TYPE_FACTORY:
+                CompileFactory(*(IFactoryBuilder*)args->ptr, *args->script, *args->s, ss);
+            break;
+            case JIT_TYPE_MACRO:
+            {
+                IMacroBuilder& macro = *(IMacroBuilder*)args->ptr;
+                macro.Implementation().Builder().DeleteSymbols();
+                CompileMacroFromExpression(macro, *args->script, *args->s);
+                SetPCToFunctionStart(ss, macro.Implementation());
 
-            ss.ProgramObject().ProgramMemory().SetImmutable(section.Id);
-         }
-         break;
-         default:
-            ss.ProgramObject().Log().Write(("Compile_JIT called with bad type"));
-            ss.ProgramObject().VirtualMachine().Throw();
-            return;
-         }
+                CodeSection section;
+                macro.Implementation().Builder().GetCodeSection(OUT section);
+
+                ss.ProgramObject().ProgramMemory().SetImmutable(section.Id);
+            }
+            break;
+            default:
+                ss.ProgramObject().Log().Write(("Compile_JIT called with bad type"));
+                ss.ProgramObject().VirtualMachine().Throw();
+                return;
+            }
       }
 
       void CALLTYPE_C Compile_JIT(VariantValue* registers, void* context)
@@ -188,6 +191,7 @@ namespace Rococo
       void CompileJITStub(IFunctionBuilder& f, cr_sex fdef, CScript& script, IScriptSystem& ss)
       {
          cstr name = f.Name();
+         UNUSED(name);
          ICodeBuilder& builder = f.Builder();
 
          CompileJITStubBytecode(builder, &f, fdef, script, JIT_TYPE_FUNCTION, ss);
@@ -196,6 +200,7 @@ namespace Rococo
       void CompileJITStub(IFactoryBuilder* f, cr_sex fdef, CScript& script, IScriptSystem& ss)
       {
          cstr name = f->Name();
+         UNUSED(name);
          ICodeBuilder& builder = f->Constructor().Builder();
 
          CompileJITStubBytecode(builder, (void*)f, fdef, script, JIT_TYPE_FACTORY, ss);
@@ -204,6 +209,7 @@ namespace Rococo
       void CompileJITStub(IMacroBuilder* m, CScript& script, IScriptSystem& ss)
       {
          cstr name = m->Name();
+         UNUSED(name);
 
          ICodeBuilder& builder = m->Implementation().Builder();
 

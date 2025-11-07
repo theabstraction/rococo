@@ -11,7 +11,10 @@
 #include "sexy.compiler.public.h"
 #include "sexy.script.exports.h"
 
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <rococo.target.h>
+#include <Windows.h>
 #include <rococo.window.h>
 
 #include <limits>
@@ -450,11 +453,11 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 
 		// Note here that tree is cached, and once created is immutable, so that the represented structure below
 		// always has a valid sExpression pointer for the lifetime of the program.
-		auto* tree = sourceCache.GetSource(sc->pointer);
+		auto& tree = sourceCache.GetSource(sc->pointer);
 
 		auto* exprStruct = _nce.ss.GetExpressionType();
 
-		auto* sExpression = _nce.ss.Represent(*exprStruct, &tree->Root());
+		auto* sExpression = _nce.ss.Represent(*exprStruct, &tree.Root());
 		InterfacePointer pExpr = &sExpression->header.pVTables[0];
 		WriteOutput(0, pExpr, _nce);
 	}

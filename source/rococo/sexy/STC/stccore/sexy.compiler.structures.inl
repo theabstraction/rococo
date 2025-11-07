@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -167,7 +167,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return (int) interfaceNames.size();
 	}
 
-	const IInterface& Structure::GetInterface(int index) const
+	const IObjectInterface& Structure::GetInterface(int index) const
 	{
 		return *interfaces[index];
 	}
@@ -423,7 +423,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			cstr body, publicName;
 			if (!splitter.SplitTail(OUT body, OUT publicName))
 			{
-				IInterface* interf = TryResolveInterfaceUsingPrefix(log, *this, name, reportErrors);
+				IObjectInterface* interf = TryResolveInterfaceUsingPrefix(log, *this, name, reportErrors);
 				if (interf == NULL)
 				{
 					*pSrcError = this->Definition();
@@ -517,7 +517,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 		}
 		
-		return member.SizeOfMember();
+		return member.SizeOfMember() > 0;
 	}
 
 	bool TryResolve(ILog& log, Structure& s, bool reportErrors, const void** pErrSrc)
@@ -865,7 +865,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	void Structure::FillVirtualTable(int interfaceIndex)
 	{
-		const IInterface& interf = GetInterface(interfaceIndex);
+		const IObjectInterface& interf = GetInterface(interfaceIndex);
 
 		auto& obj = module.Object();
 		auto* programStart = obj.ProgramMemory().StartOfMemory();
@@ -929,7 +929,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 			else
 			{
-				const IInterface& interf = GetInterface(interfaceIndex - 1);
+				const IObjectInterface& interf = GetInterface(interfaceIndex - 1);
 				virtualTables[interfaceIndex] = (ID_BYTECODE*) AllocateSexyMemory(sizeof ID_BYTECODE * (interf.MethodCount() + 1));
 
 				const int offset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(VirtualTable*) * (interfaceIndex - 1);

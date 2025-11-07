@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -34,7 +34,7 @@
 #include "sexy.vm.stdafx.h"
 #include "sexy.vm.cpu.h"
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 #include <memory.h>
 #include <stdarg.h>
@@ -658,7 +658,7 @@ namespace
 
 	void FormatAddQuick32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s %d"), RegisterName(I.Opmod1), (int32)(int8)(I.Opmod2));
+		format(rep, ("%s %d"), RegisterName(I.Opmod1), (int32)(Rococo::int8)(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
@@ -678,7 +678,7 @@ namespace
 
 	void FormatSetStackFrameImmediate32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32) (int8) I.Opmod1;
+		int32 offset = (int32) (Rococo::int8) I.Opmod1;
 		uint32 value = *(uint32*) (I.ToPC()+2);
 		format(rep, ("%d=#%X"), offset, value);
 		rep.ByteCount = 6;
@@ -686,8 +686,8 @@ namespace
 
 	void FormatSetSFValueFromSFValue32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 trgOffset = (int32) (int8) I.Opmod1;
-		int32 srcOffset = (int32) (int8) I.Opmod2;
+		int32 trgOffset = (int32) (Rococo::int8) I.Opmod1;
+		int32 srcOffset = (int32) (Rococo::int8) I.Opmod2;
 
 		format(rep, ("*[SF%+d]=*[SF%+d]"), trgOffset, srcOffset);
 		rep.ByteCount = 3;
@@ -695,7 +695,7 @@ namespace
 
 	void FormatSetStackFrameImmediate64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32) (int8) I.Opmod1;
+		int32 offset = (int32) (Rococo::int8) I.Opmod1;
 		uint64 value = *(uint64*) (I.ToPC()+2);
 		format(rep, ("%d=#%I64x"), offset, value);
 		rep.ByteCount = 10;
@@ -732,7 +732,7 @@ namespace
 
 	void FormatGetStackFrameValue32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32) (int8) I.Opmod1;
+		int32 offset = (int32) (Rococo::int8) I.Opmod1;
 		format(rep, ("%s=@%d"), RegisterName(I.Opmod2), offset);
 		rep.ByteCount = 3;
 	}
@@ -754,7 +754,7 @@ namespace
 
 	void FormatGetStackFrameValue64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32) (int8) I.Opmod1;
+		int32 offset = (int32) (Rococo::int8) I.Opmod1;
 		format(rep, ("%s=@%d"), RegisterName(I.Opmod2), offset);
 		rep.ByteCount = 3;
 	}
@@ -771,23 +771,23 @@ namespace
 
 	void FormatSetStackFrameValue32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32) (int8) I.Opmod1;
+		int32 offset = (int32) (Rococo::int8) I.Opmod1;
 		format(rep, ("@%d=%s"), offset, RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
 	void FormatSetStackFrameValue64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 offset = (int32) (int8) I.Opmod1;
+		int32 offset = (int32) (Rococo::int8) I.Opmod1;
 		format(rep, ("@%d=%s"), offset, RegisterName(I.Opmod2));
 		rep.ByteCount = 3;
 	}
 
 	void FormatSetSFMemberByRefFromSFByValue32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 targetSF = (int8) I.Opmod1;
-		int32 targetMemberSF =(int8) I.Opmod2;
-		int32 sourceSF = (int8) I.Opmod3;
+		int32 targetSF = (Rococo::int8) I.Opmod1;
+		int32 targetMemberSF =(Rococo::int8) I.Opmod2;
+		int32 sourceSF = (Rococo::int8) I.Opmod3;
 
 		format(rep, ("SF(%d.%d)=SF(%d) 32-bit"), targetSF, targetMemberSF, sourceSF);
 
@@ -796,9 +796,9 @@ namespace
 
 	void FormatSetSFMemberByRefFromSFByValue64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 targetSF = (int8)I.Opmod1;
-		int32 targetMemberSF = (int8)I.Opmod2;
-		int32 sourceSF = (int8)I.Opmod3;
+		int32 targetSF = (Rococo::int8)I.Opmod1;
+		int32 targetMemberSF = (Rococo::int8)I.Opmod2;
+		int32 sourceSF = (Rococo::int8)I.Opmod3;
 
 		format(rep, ("SF(%d.%d)=SF(%d) 64-bit"), targetSF, targetMemberSF, sourceSF);
 
@@ -807,9 +807,9 @@ namespace
 
 	void FormatSetSFValueFromSFMemberByRef32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 sourceSF = (int8) I.Opmod1;		
-		int32 sourceMemberSF = (int8) I.Opmod2;
-		int32 targetSF = (int8) I.Opmod3;
+		int32 sourceSF = (Rococo::int8) I.Opmod1;		
+		int32 sourceMemberSF = (Rococo::int8) I.Opmod2;
+		int32 targetSF = (Rococo::int8) I.Opmod3;
 
 		format(rep, ("SF(%d)=SF(%d.%d)"), targetSF, sourceSF, sourceMemberSF);
 
@@ -818,8 +818,8 @@ namespace
 
 	void FormatSetSFMemberByRefFromRegister32(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int32 SFoffset = (int8) I.Opmod2;		
-		int32 memberOffset = (int8) I.Opmod3;
+		int32 SFoffset = (Rococo::int8) I.Opmod2;		
+		int32 memberOffset = (Rococo::int8) I.Opmod3;
 
 		format(rep, ("SF(%d.%d)=%s"), SFoffset, memberOffset, RegisterName(I.Opmod1));
 
@@ -828,8 +828,8 @@ namespace
 
 	void FormatSetSFMemberByRefFromRegisterLong(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int8 srcRegister = (int8)I.Opmod1;
-		int32 bitcount = (int8)I.Opmod2;
+		Rococo::int8 srcRegister = (Rococo::int8)I.Opmod1;
+		int32 bitcount = (Rococo::int8)I.Opmod2;
 
 		int32 SFoffset = *(int32*)(I.ToPC() + 3);
 		int32 memberOffset = *(int32*)(I.ToPC() + 7);
@@ -917,8 +917,8 @@ namespace
 
 	void GetMemCopyNearInfo(const Ins& ins, OUT MemCopyInfo& info, OUT IDisassembler::Rep& rep)
 	{
-		info.TargetOffset = (int32)(int8) ins.Opmod1;
-		info.SourceOffset = (int32)(int8) ins.Opmod2;
+		info.TargetOffset = (int32)(Rococo::int8) ins.Opmod1;
+		info.SourceOffset = (int32)(Rococo::int8) ins.Opmod2;
 		info.ByteCount = (size_t) ins.Opmod3;			
 		rep.ByteCount = 4;
 	}
@@ -977,14 +977,14 @@ namespace
 
 	void FormatIncrementPtr(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		format(rep, ("%s by %d"), RegisterName(I.Opmod1), (int32)(int8) I.Opmod2);
+		format(rep, ("%s by %d"), RegisterName(I.Opmod1), (int32)(Rococo::int8) I.Opmod2);
 		rep.ByteCount = 3;
 	}
 
 	void FormatGetStackFrameMemberPtr(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
-		int SFoffset =  (int32)(int8) I.Opmod2;
-		int memberOffset = (int32)(int8) I.Opmod3;
+		int SFoffset =  (int32)(Rococo::int8) I.Opmod2;
+		int memberOffset = (int32)(Rococo::int8) I.Opmod3;
 	//	char sign = SFoffset >= 0 ? '+' : '-';
 
 		format(rep, ("%s=SF(%d->%d)"), RegisterName(I.Opmod1), SFoffset, memberOffset);

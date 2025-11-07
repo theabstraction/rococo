@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -31,6 +31,7 @@
 	principal credit screen and its principal readme file.
 */
 
+#ifndef SUPPRESS_ROCOCO_MODULE_ALLOCATORS
 #include <allocators/rococo.allocators.dll.inl>
 
 DEFINE_DLL_IALLOCATOR(utilsAllocator)
@@ -41,3 +42,4 @@ DEFINE_FACTORY_DLL_IALLOCATOR_AS_BLOCK(utilsAllocator, 128, SexyUtils)
 DeclareAllocator(TrackingAllocator, SexyUtils, g_allocator)
 Rococo::Memory::AllocatorMonitor<SexyUtils> monitor; // When the progam terminates this object is cleared up and triggers the allocator log
 OVERRIDE_MODULE_ALLOCATORS_WITH_FUNCTOR(g_allocator)
+#endif

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sexystudio.api.h" // The OS independent part of the sexystudio API
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.window.h>
 #include <Uxtheme.h>
 #include <windowsx.h>

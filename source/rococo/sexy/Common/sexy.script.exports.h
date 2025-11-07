@@ -19,7 +19,7 @@ namespace Rococo::Script
 	};
 #pragma pack(pop)
 
-	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IInterface& i);
+	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IObjectInterface& i);
 	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IStructure& typeDesc);
 	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(crwstr pathname);
 	SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(VM::CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss);
@@ -45,6 +45,11 @@ namespace Rococo::Script
 	SCRIPTEXPORT_API bool FindVariableByName(Rococo::Compiler::MemberDef& def, const Rococo::Compiler::IStructure*& pseudoType, const Rococo::uint8*& SF, IPublicScriptSystem& ss, cstr searchName, size_t callOffset);
 	SCRIPTEXPORT_API const Rococo::Compiler::IStructure* FindStructure(IPublicScriptSystem& ss, cstr fullyQualifiedName);
 	SCRIPTEXPORT_API void AddNativeCallSecurity(IPublicScriptSystem& ss, cstr nativeNamespace, cstr permittedPingPath);
+
+	// Overrides the hash directory where hash files are expected to be found. The default is the binary directory
+	// Call this before constructing script systems
+	SCRIPTEXPORT_API void SetHashDirectory(const ROCOCO_WIDECHAR* _hashDir);
+
 }
 
 namespace Rococo::Script

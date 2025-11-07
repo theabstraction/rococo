@@ -1,5 +1,5 @@
 #include <rococo.sxytype-inference.h>
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 #include <stdio.h>
 #include <ctype.h>

@@ -18,7 +18,7 @@
 
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application.
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -1924,6 +1924,30 @@ namespace Anon
 		}
 	};
 } // Anon
+
+namespace Rococo
+{
+	SEXY_SPARSER_API void ThrowSex(Rococo::Sex::cr_sex s, cstr format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+
+		char msg[512];
+		SafeVFormat(msg, sizeof(msg), format, args);
+
+		auto start = s.Start();
+		auto end = s.End();
+
+		char specimen[64];
+		Rococo::Sex::GetSpecimen(specimen, s);
+
+		Rococo::Sex::ParseException ex(start, end, "ParseException", msg, specimen, &s);
+
+		OS::TripDebugger();
+
+		throw ex;
+	}
+}
 
 namespace Rococo::Sex
 {

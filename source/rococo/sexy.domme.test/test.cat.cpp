@@ -9,6 +9,7 @@
 #include <rococo.os.h>
 #include <rococo.task.queue.h>
 #include <sexy.script.exports.h>
+#include <winerror.h>
 
 using namespace Rococo;
 using namespace Rococo::Domme;

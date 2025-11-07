@@ -1,4 +1,4 @@
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 #include <rococo.window.h>
 #include <rococo.textures.h>
 #include <rococo.os.h>

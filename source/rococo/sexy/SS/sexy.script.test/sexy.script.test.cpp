@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -63,7 +63,7 @@
 #include "sexy.script.h"
 #include "sexy.script.exports.h"
 #include "Sexy.S-Parser.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include "Sexy.Compiler.h"
 #include <rococo.api.h>
 #include <sexy.dispatch.inl>
 #include <rococo.package.h>
@@ -3616,7 +3616,7 @@ R"((namespace EntryPoint)
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 		UNUSED(vm);
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
-		const IInterface* i = ns->FindInterface("IPlayer");
+		const IObjectInterface* i = ns->FindInterface("IPlayer");
 		validate(i != NULL);		
 		validate(i->MethodCount() == 2);
 		const IArchetype& a1 = i->GetMethod(0);
@@ -3669,11 +3669,11 @@ R"((namespace EntryPoint)
 
 		validate(s != NULL);
 		validate(s->InterfaceCount() == 1);
-		const IInterface& i1 = s->GetInterface(0);
+		const IObjectInterface& i1 = s->GetInterface(0);
 		validate(&i1 != NULL);
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
-		const IInterface* i2 = ns->FindInterface("IPlayer");
+		const IObjectInterface* i2 = ns->FindInterface("IPlayer");
 
 		validate(i2 != NULL);
 		validate(&i1 == i2);

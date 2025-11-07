@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Rococo.UE5.Build.Core\Rococo.UE5.Build.Core.csproj" />
+  </ItemGroup>
+
 </Project>

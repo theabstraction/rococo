@@ -18,7 +18,7 @@
 
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application.
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -110,6 +110,8 @@ namespace Rococo
 			{
 				cr_sex inputExpression = s.GetElement(i + firstArgIndex);
 
+				UNUSED(inputExpression);
+
 				int argIndex = i + callee.NumberOfOutputs();
 
 				cstr inputName = callee.GetArgName(argIndex);
@@ -136,6 +138,8 @@ namespace Rococo
 
 		int GetMapIndex(cr_sex s, int firstIndex, int outputCount, int inputExpressionCount)
 		{
+			UNUSED(outputCount);
+
 			int mapIndex = GetIndexOf(firstIndex, s, ("->"));
 			if (mapIndex < 0)
 			{
@@ -154,6 +158,7 @@ namespace Rococo
 
 		int GetOutputSFOffset(CCompileEnvironment& ce, int inputStackAllocCount, int outputStackAllocCount)
 		{
+			UNUSED(inputStackAllocCount);
 			int outputOffset = 0;
 			int nTempVariables = ce.Builder.GetVariableCount() - ArgCount(ce.Builder.Owner());
 			if (nTempVariables > 0)
@@ -187,6 +192,8 @@ namespace Rococo
 		// We do NOT assume that any tokens are correct, other than :, => and ->
 		void CompileParsedLambda(CCompileEnvironment& ce, cr_sex lambdaDef, const IStructure& inputType, const IArchetype& archetype, bool mayUseParentSF, int bodyIndicatorIndex)
 		{
+			UNUSED(bodyIndicatorIndex);
+
 			// (<archetype-input-args> -> <archetype-output-args> : <body-directives> -> )
 
 			IFunctionBuilder& lambda = ce.Builder.Module().DeclareClosure(ce.Builder.Owner(), mayUseParentSF, &lambdaDef);
@@ -209,6 +216,7 @@ namespace Rococo
 					AssertLocalIdentifier(outputExpr);
 
 					cstr name = outputExpr.c_str();
+					UNUSED(name);
 					
 					// Note that in the lambda output names are derived from the lambda itself, rather than the archetype arguments
 					lambda.AddOutput(NameString::From(argName), neededType, (void*)&outputExpr);
@@ -322,11 +330,13 @@ namespace Rococo
 				}
 			}
 
-			CompileParsedLambda(ce, s, inputType, archetype, argName, bodyIndicatorIndex);
+			CompileParsedLambda(ce, s, inputType, archetype, ce.Builder.Owner().GetArgumentByName(argName) == NULL, bodyIndicatorIndex);
 		}
 
 		void CompilePushLambda(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, const IArchetype& archetype, cstr argName)
 		{
+			UNUSED(argName);
+
 			// We should have a lambda variable on the lambda variable stack ready for consumption
 			char lambdaName[MAX_FQ_NAME_LEN];
 			ce.Builder.PopLambdaVar(OUT lambdaName);
@@ -440,6 +450,11 @@ namespace Rococo
 
 		bool TryCompileStringLiteralInput(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType)
 		{
+			if (!expectingStructRef)
+			{
+				Throw(s, "TryCompileStringLiteralInput. Only ever tested [expectingStructRef] flag to be true.");
+			}
+
 			cstr inputTypeName = inputType.Name();
 			if (!IsStringLiteral(s) || !AreEqual(inputTypeName, ("_Null_Sys_Type_IString")))
 			{
@@ -914,6 +929,8 @@ namespace Rococo
 
 		int GetOutputStackByteCount(const IArchetype& a, cr_sex sExpr)
 		{
+			UNUSED(sExpr);
+
 			int total = 0;
 			for (int i = 0; i < a.NumberOfOutputs(); i++)
 			{
@@ -992,6 +1009,9 @@ namespace Rococo
 
 		void ValidateSingleOutputAndType(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, SexyVarType returnType, const IArchetype* returnArchetype, const IStructure* returnTypeStruct)
 		{
+			UNUSED(ce);
+			UNUSED(returnArchetype);
+
 			ValidateSingleOutput(s, callee.NumberOfOutputs());
 
 			const IStructure* argStruct;
@@ -1042,7 +1062,6 @@ namespace Rococo
 			int outputStackAllocByteCount = GetOutputStackByteCount(callee, sExpr);
 			if (outputStackAllocByteCount > 0)
 			{
-				int total = 0;
 				for (int i = 0; i < callee.NumberOfOutputs(); i++)
 				{
 					const IStructure& s = callee.GetArgument(i);
@@ -1065,7 +1084,7 @@ namespace Rococo
 			ce.Builder.PopLastVariables(callee.NumberOfInputs() + callee.NumberOfOutputs() + extraArgs, true);
 		}
 
-		int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
+		int CompileVirtualCallKernel(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IObjectInterface& interfaceRef)
 		{
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(def, instanceName);
@@ -1204,6 +1223,9 @@ namespace Rococo
 			cstr calleeName = callee.Name();
 			cstr callerName = ce.Builder.Owner().Name();
 
+			UNUSED(calleeName);
+			UNUSED(callerName);
+
 			ValidateSingleOutputAndType(ce, s, callee, returnType, returnArchetype, returnTypeStruct);
 			ValidateInputCount(s, ArgCount(callee) - 1);
 
@@ -1224,10 +1246,13 @@ namespace Rococo
 			ce.Builder.AssignClosureParentSFtoD6();
 		}
 
-		void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IInterface& interfaceRef)
+		void CompileVirtualCallAndReturnValue(CCompileEnvironment& ce, bool callAtomic, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype, const IObjectInterface& interfaceRef)
 		{
 			cstr calleeName = callee.Name();
 			cstr callerName = ce.Builder.Owner().Name();
+
+			UNUSED(calleeName);
+			UNUSED(callerName);
 
 			// (<instance.method-name> input1 input2 input3.... inputN -> output1...output2...outputN)
 			ValidateSingleOutputAndType(ce, s, callee, returnType, returnArchetype, returnTypeStruct);
@@ -1305,13 +1330,15 @@ namespace Rococo
 
 		cstr GetIndexedMethod(CCompileEnvironment& ce, cr_sex invocation, const IStructure* s)
 		{
+			UNUSED(ce);
+
 			if (s == NULL) return NULL;
 			if (!s->Prototype().IsClass) return NULL;
 			if (invocation.NumberOfElements() != 2) return NULL;
 
 			for (int i = 0; i < s->InterfaceCount(); ++i)
 			{
-				const IInterface& interf = s->GetInterface(i);
+				const IObjectInterface& interf = s->GetInterface(i);
 
 				const ISExpression* src;
 				if (interf.Attributes().FindAttribute("indexed", (const void*&)src))
@@ -1391,6 +1418,7 @@ namespace Rococo
 				ce.Builder.TryGetVariableByName(OUT itemDef, fqItemName);
 
 				BITCOUNT bitCount = GetBitCount(returnType);
+				UNUSED(bitCount);
 
 				UseStackFrameFor(ce.Builder, itemDef);
 				ce.Builder.Assembler().Append_GetStackFrameMember(VM::REGISTER_D7, itemDef.SFOffset, itemDef.MemberOffset - interfaceToInstanceOffsetByRef, (BITCOUNT)(8 * itemDef.ResolvedType->SizeOfStruct()));
@@ -1583,6 +1611,8 @@ namespace Rococo
 
 		bool TryCompileAsTestExistenceAndReturnBool(CCompileEnvironment& ce, cr_sex s, cstr instance, const IStructure& instanceType)
 		{
+			UNUSED(s);
+
 			ce.Builder.AssignVariableToTemp(instance, 0);
 
 			VariantValue v;
@@ -1597,6 +1627,8 @@ namespace Rococo
 
 		bool TryCompileExpressionBuilderCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, const IStructure* returnTypeStruct, const IStructure& instanceStruct)
 		{
+			UNUSED(instanceStruct);
+
 			if (AreEqual(methodName, "TransformParent"))
 			{
 				if (!returnTypeStruct || (*returnTypeStruct != ce.StructExpressionBuilderInterface() && *returnTypeStruct != ce.StructExpressionInterface()))
@@ -1774,7 +1806,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
 			{
-				const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = instanceStruct->GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 
 				CompileVirtualCallAndReturnValue(ce, false, method, s, interfaceIndex, methodIndex, instance, returnType, returnTypeStruct, returnArchetype, interf);
@@ -1835,7 +1867,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
 			{
-				const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = instanceStruct->GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 
 				if (!IsGetAccessor(method))
@@ -1888,7 +1920,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, *instanceStruct, methodName))
 			{
-				const IInterface& interf = instanceStruct->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = instanceStruct->GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 
 				if (!IsGetAccessor(method))
@@ -1940,8 +1972,10 @@ namespace Rococo
 			}
 		}
 
-		void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IInterface& interf, cr_sex s, cstr localName)
+		void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, ICodeBuilder& builder, const IObjectInterface& interf, cr_sex s, cstr localName)
 		{
+			UNUSED(interfaceIndex); // debugging info, interface has been computed and stored in interf reference
+
 			MemberDef refDef;
 			builder.TryGetVariableByName(OUT refDef, instanceName);
 
@@ -1988,6 +2022,7 @@ namespace Rococo
 							MemberDef localDef; // Local defs are copies of parent interface put onto the local stack by value
 							builder.TryGetVariableByName(OUT localDef, localName);
 							int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i);
+							UNUSED(instanceToInterfaceOffset);
 							builder.Assembler().Append_CallVirtualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
 						}
 						else
@@ -2007,8 +2042,11 @@ namespace Rococo
 		{
 			const IArchetype& callee = *type.Archetype();
 			cstr callerName = ce.Builder.Owner().Name();
+			UNUSED(callerName);
 
 			int mapIndex = GetMapIndex(s, 1, callee.NumberOfOutputs(), callee.NumberOfInputs());
+
+			UNUSED(mapIndex);
 
 			int outputAndSFstackAllocByteCount = CompileCloseCallHeader(ce, s, callee, aVarName);
 			int inputStackAllocByteCount = CompileClosureCallKernel(ce, s, callee, aVarName);
@@ -2046,11 +2084,14 @@ namespace Rococo
 			sb << ")";
 		}
 
-		void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IInterface& interfaceRef)
+		void CompileVirtualCall(CCompileEnvironment& ce, const IArchetype& callee, cr_sex s, int interfaceIndex, int methodIndex, cstr instanceName, const IObjectInterface& interfaceRef)
 		{
 			// (<instance.method-name> input1 input2 input3.... inputN -> output1...output2...outputN)
 			cstr calleeName = callee.Name();
 			cstr callerName = ce.Builder.Owner().Name();
+
+			UNUSED(calleeName);
+			UNUSED(callerName);
 
 			int mapIndex;
 
@@ -2105,6 +2146,9 @@ namespace Rococo
 		{
 			cstr calleeName = callee.Name();
 			cstr callerName = ce.Builder.Owner().Name();
+
+			UNUSED(calleeName);
+			UNUSED(callerName);
 
 			int mapIndex = GetMapIndex(s, 1, callee.NumberOfOutputs(), callee.NumberOfInputs());
 
@@ -2315,7 +2359,7 @@ namespace Rococo
 					return NULL;
 				}
 
-				const IInterface& interf = s->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = s->GetInterface(interfaceIndex);
 				const IArchetype& methodArch = interf.GetMethod(methodIndex);
 
 				if (methodArch.NumberOfOutputs() == 0) Throw(arg, ("The method has no output"));
@@ -2405,7 +2449,7 @@ namespace Rococo
 					return NULL;
 				}
 
-				const IInterface& interf = st->GetInterface(interfaceIndex);
+				const IObjectInterface& interf = st->GetInterface(interfaceIndex);
 				const IArchetype& methodArch = interf.GetMethod(methodIndex);
 
 				if (methodArch.NumberOfOutputs() == 0) Throw(tokenExpr, ("The method has no output"));
@@ -2434,8 +2478,10 @@ namespace Rococo
 		// If it is used to call a method not part of the interface, then type info is used to route to the correct method
 		// Generally very useful for writing strongly typed eventing interfaces.
 		// Since an interface ref can be dynamically assigned to different objects, we have to determine whether methods exist at runtime
-		void CompileDynamicDispatch(CCompileEnvironment& ce, cr_sex s, const IInterface& dispatcher, cstr instanceName, cstr methodName)
+		void CompileDynamicDispatch(CCompileEnvironment& ce, cr_sex s, const IObjectInterface& dispatcher, cstr instanceName, cstr methodName)
 		{
+			UNUSED(dispatcher);
+
 			if (s.NumberOfElements() != 2)
 			{
 				Throw(s, "Cannot dispatch method %s. Dispatch methods have one and only one argument.", methodName);
@@ -2498,7 +2544,7 @@ namespace Rococo
 		void PushPrivateInstance(CCompileEnvironment& ce, cr_sex s, const MemberDef& instanceDef)
 		{
 			// Scencarios -> we are calling the method from an interface, or from a class
-
+			UNUSED(s);
 			ce.Builder.PushVariable(instanceDef);
 		}
 
@@ -2618,7 +2664,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (GetMethodIndices(OUT interfaceIndex, OUT methodIndex, c, methodName))
 			{
-				const IInterface& interf = c.GetInterface(interfaceIndex);
+				const IObjectInterface& interf = c.GetInterface(interfaceIndex);
 				const IArchetype& method = interf.GetMethod(methodIndex);
 				CompileVirtualCall(ce, method, s, interfaceIndex, methodIndex, instanceName, interf);
 				return true;
@@ -2773,7 +2819,7 @@ namespace Rococo
 			{
 				if (IsNullType(*type))
 				{
-					const IInterface& interf = type->GetInterface(0);
+					const IObjectInterface& interf = type->GetInterface(0);
 					if (s.NumberOfElements() == 2)
 					{
 						const ISExpression* attr;

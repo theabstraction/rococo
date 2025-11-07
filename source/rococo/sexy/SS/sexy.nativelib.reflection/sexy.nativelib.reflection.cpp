@@ -13,7 +13,7 @@
 #include <sexy.script.exports.h>
 #include "sexy.native.sys.type.h"
 
-#include "../STC/stccore/sexy.compiler.h"
+#include "sexy.compiler.h"
 
 #ifdef char_IS_WIDE
 # define UNICODE
@@ -32,11 +32,13 @@ using namespace Rococo::Sex;
 
 #ifdef _WIN32
 
-BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
+using namespace MSWindows;
+
+BOOL DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
 {
 	UNUSED(reserved);
 
-    BOOLEAN bSuccess = TRUE;
+    BOOL bSuccess = TRUE;
       
     switch (nReason)
 	{

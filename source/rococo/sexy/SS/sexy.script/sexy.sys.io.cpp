@@ -1086,6 +1086,7 @@ namespace ANON_NS
 	void Is_Directory(NativeCallEnvironment& e)
 	{
 		auto& ioSystem = From(e);
+		UNUSED(ioSystem);
 
 		IScriptSystem& ss = (IScriptSystem&)e.ss;
 
@@ -1108,6 +1109,8 @@ namespace ANON_NS
 	void LoadAndAppendToStringBuilder(NativeCallEnvironment& e)
 	{
 		auto& ioSystem = From(e);
+
+		UNUSED(ioSystem);
 
 		IScriptSystem& ss = (IScriptSystem&)e.ss;
 
@@ -1185,6 +1188,8 @@ namespace ANON_NS
 	void AssertDirectory(NativeCallEnvironment& e)
 	{
 		auto& ioSystem = From(e);
+
+		UNUSED(ioSystem);
 
 		IScriptSystem& ss = (IScriptSystem&)e.ss;
 
@@ -1269,6 +1274,8 @@ namespace ANON_NS
 	{
 		auto& ioSystem = From(e);
 
+		UNUSED(ioSystem);
+
 		IScriptSystem& ss = (IScriptSystem&)e.ss;
 
 		InterfacePointer ipValueBuilder;
@@ -1302,6 +1309,8 @@ namespace ANON_NS
 	void AppendDirectorySeparator(NativeCallEnvironment& e)
 	{
 		auto& ioSystem = From(e);
+
+		UNUSED(ioSystem);
 
 		IScriptSystem& ss = (IScriptSystem&)e.ss;
 

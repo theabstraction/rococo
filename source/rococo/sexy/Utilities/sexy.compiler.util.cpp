@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -35,7 +35,7 @@
 #include <sexy.strings.h>
 #include <sexy.stdstrings.h>
 #include <sexy.compiler.public.h>
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include <Sexy.Compiler.h>
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
 
@@ -115,7 +115,7 @@ namespace Rococo::Compiler
 
 		for(int i = 0; i < s.InterfaceCount(); ++i)
 		{
-			const IInterface& interf = s.GetInterface(i);
+			const IObjectInterface& interf = s.GetInterface(i);
 			if (AreEqual(interf.Name(), interfaceName))
 			{
 				for(int j = 0; j < interf.MethodCount(); ++j)
@@ -140,7 +140,7 @@ namespace Rococo::Compiler
 
 		for(int i = 0; i < s.InterfaceCount(); ++i)
 		{
-			const IInterface& interf = s.GetInterface(i);
+			const IObjectInterface& interf = s.GetInterface(i);
 				
 			for(int j = 0; j < interf.MethodCount(); ++j)
 			{
@@ -227,12 +227,12 @@ namespace Rococo::Compiler
 		return NULL;
 	}
 
-	SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IInterface& testInterf)
+	SEXYUTIL_API bool DoesClassImplementInterface(const IStructure& s, const IObjectInterface& testInterf)
 	{
 		for(int i = 0; i < s.InterfaceCount(); ++i)
 		{
-			const IInterface& interf = s.GetInterface(i);
-			for(const IInterface* z = &interf; z != NULL; z = z->Base())
+			const IObjectInterface& interf = s.GetInterface(i);
+			for(const IObjectInterface* z = &interf; z != NULL; z = z->Base())
 			{
 				if (&testInterf == z)
 				{

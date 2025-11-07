@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -1040,7 +1040,7 @@ namespace Anon
 		OPCODE_CALLBACK(SetStackFrameImmediate32)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32)(int8) I->Opmod1;
+			int32 offset = (int32)(Rococo::int8) I->Opmod1;
 			cpu.AdvancePC(2);
 			uint32 value = *((uint32*) cpu.PC());
 			uint8* target = cpu.D[REGISTER_SF].uint8PtrValue + offset;
@@ -1051,7 +1051,7 @@ namespace Anon
 		OPCODE_CALLBACK(GetStackFrameValue32)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32)(int8) I->Opmod1;
+			int32 offset = (int32)(Rococo::int8) I->Opmod1;
 			uint32* source = (uint32*)(cpu.D[REGISTER_SF].uint8PtrValue + offset);
 			VariantValue& target = cpu.D[I->Opmod2];
 			target.uint32Value = *source;
@@ -1061,9 +1061,9 @@ namespace Anon
 		OPCODE_CALLBACK(SetSFMemberByRefFromSFByValue32)
 		{
 			const Ins* I = NextInstruction();
-			int32 targetSF = (int8) I->Opmod1;
-			int32 targetMemberSF = (int8) I->Opmod2;
-			int32 sourceSF = (int8) I->Opmod3;
+			int32 targetSF = (Rococo::int8) I->Opmod1;
+			int32 targetMemberSF = (Rococo::int8) I->Opmod2;
+			int32 sourceSF = (Rococo::int8) I->Opmod3;
 
 			void** ppTarget = (void**)(cpu.SF() + targetSF);
 			uint8* pMember = ((uint8*) *ppTarget) + targetMemberSF;
@@ -1077,9 +1077,9 @@ namespace Anon
 		OPCODE_CALLBACK(SetSFMemberByRefFromSFByValue64)
 		{
 			const Ins* I = NextInstruction();
-			int32 targetSF = (int8)I->Opmod1;
-			int32 targetMemberSF = (int8)I->Opmod2;
-			int32 sourceSF = (int8)I->Opmod3;
+			int32 targetSF = (Rococo::int8)I->Opmod1;
+			int32 targetMemberSF = (Rococo::int8)I->Opmod2;
+			int32 sourceSF = (Rococo::int8)I->Opmod3;
 
 			void** ppTarget = (void**)(cpu.SF() + targetSF);
 			uint8* pMember = ((uint8*)*ppTarget) + targetMemberSF;
@@ -1093,9 +1093,9 @@ namespace Anon
 		OPCODE_CALLBACK(SetSFValueFromSFMemberByRef32)
 		{
 			const Ins* I = NextInstruction();
-			int32 sourceSF = (int8) I->Opmod1;
-			int32 sourceMemberSF = (int8) I->Opmod2;
-			int32 targetSF = (int8) I->Opmod3;
+			int32 sourceSF = (Rococo::int8) I->Opmod1;
+			int32 sourceMemberSF = (Rococo::int8) I->Opmod2;
+			int32 targetSF = (Rococo::int8) I->Opmod3;
 
 			const void** ppSource = (const void**)(cpu.SF() + sourceSF);
 			const uint8* pMember = ((const uint8*) *ppSource) + sourceMemberSF;
@@ -1109,8 +1109,8 @@ namespace Anon
 		OPCODE_CALLBACK(SetSFValueFromSFValue32)
 		{
 			const Ins* I = NextInstruction();
-			int32 targetSF = (int8) I->Opmod1;
-			int32 sourceSF = (int8) I->Opmod2;
+			int32 targetSF = (Rococo::int8) I->Opmod1;
+			int32 sourceSF = (Rococo::int8) I->Opmod2;
 
 			const uint32* source = (const uint32*) (cpu.SF() + sourceSF);
 			uint32* target = (uint32*) (cpu.SF() + targetSF);
@@ -1124,8 +1124,8 @@ namespace Anon
 		{
 			const Ins* I = NextInstruction();
 			const VariantValue& src = cpu.D[I->Opmod1];
-			int32 SFoffset = (int8) I->Opmod2;
-			int32 memberOffset = (int8) I->Opmod3;
+			int32 SFoffset = (Rococo::int8) I->Opmod2;
+			int32 memberOffset = (Rococo::int8) I->Opmod3;
 
 			const void** ppSource = (const void**)(cpu.SF() + SFoffset);
 			uint8* pMember = ((uint8*) *ppSource) + memberOffset;
@@ -1139,7 +1139,7 @@ namespace Anon
 		{
 			const Ins* I = NextInstruction();
 			const VariantValue& src = cpu.D[I->Opmod1];
-			int bitcount = (int8) I->Opmod2;
+			int bitcount = (Rococo::int8) I->Opmod2;
 			cpu.AdvancePC(3);
 
 			int32 SFOffset = *(int32*)cpu.PC();
@@ -1183,7 +1183,7 @@ namespace Anon
 		OPCODE_CALLBACK(SetStackFrameValue32)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32)(int8) I->Opmod1;
+			int32 offset = (int32)(Rococo::int8) I->Opmod1;
 			uint32* target = (uint32*)(cpu.D[REGISTER_SF].uint8PtrValue + offset);
 			const VariantValue& source = cpu.D[I->Opmod2];
 			*target = source.uint32Value;
@@ -1194,8 +1194,8 @@ namespace Anon
 		{
 			const Ins* I = NextInstruction();
 			VariantValue& target = cpu.D[I->Opmod1];
-			int32 SFoffset = (int32)(int8) I->Opmod2;
-			int32 memberOffset = (int32)(int8) I->Opmod3;
+			int32 SFoffset = (int32)(Rococo::int8) I->Opmod2;
+			int32 memberOffset = (int32)(Rococo::int8) I->Opmod3;
 
 			void** ppSource = (void**)(cpu.SF() + SFoffset);
 			uint8* pMember = ((uint8*) *ppSource) + memberOffset;
@@ -1332,7 +1332,7 @@ namespace Anon
 		{
 			const Ins* I = NextInstruction();
 			VariantValue& target = cpu.D[I->Opmod1];
-			int8 value = (int8) I->Opmod2;
+			Rococo::int8 value = (Rococo::int8) I->Opmod2;
 			int32 value32 = (int32) value;
 			target.int32Value += value32;
 			cpu.AdvancePC(3);
@@ -1878,8 +1878,8 @@ namespace Anon
 		void GetMemCopyNearInfoAndAdvance(OUT MemCopyInfo& info)
 		{
 			const Ins* I = NextInstruction();
-			info.TargetOffset = (int32)(int8) I->Opmod1;
-			info.SourceOffset = (int32)(int8) I->Opmod2;
+			info.TargetOffset = (int32)(Rococo::int8) I->Opmod1;
+			info.SourceOffset = (int32)(Rococo::int8) I->Opmod2;
 			info.ByteCount = (size_t) I->Opmod3;			
 			cpu.AdvancePC(4);
 
@@ -2245,7 +2245,7 @@ namespace Anon
 		{
 			const Ins* I = NextInstruction();	
 			VariantValue& d = cpu.D[I->Opmod1];
-			int32 delta = (int32)(int8) I->Opmod2;
+			int32 delta = (int32)(Rococo::int8) I->Opmod2;
 			d.uint8PtrValue += delta;
 			cpu.AdvancePC(3);
 		}
@@ -2284,7 +2284,7 @@ namespace Anon
 
 			cpu.AdvancePC(4);
 
-			const int8* arg = (const int8*) cpu.PC();
+			const Rococo::int8* arg = (const Rococo::int8*) cpu.PC();
 
 			switch(bc)
 			{
@@ -2722,7 +2722,7 @@ namespace Anon
 		OPCODE_CALLBACK(GetStackFrameValue64)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32)(int8) I->Opmod1;
+			int32 offset = (int32)(Rococo::int8) I->Opmod1;
 			const uint64* source = (uint64*)(cpu.D[REGISTER_SF].uint8PtrValue + offset);
 			VariantValue& target = cpu.D[I->Opmod2];
 			target.uint64Value = *source;
@@ -2732,7 +2732,7 @@ namespace Anon
 		OPCODE_CALLBACK(SetStackFrameValue64)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32)(int8) I->Opmod1;
+			int32 offset = (int32)(Rococo::int8) I->Opmod1;
 			uint64* target = (uint64*)(cpu.D[REGISTER_SF].uint8PtrValue + offset);
 			const VariantValue& source = cpu.D[I->Opmod2];
 			*target = source.uint64Value;
@@ -2742,7 +2742,7 @@ namespace Anon
 		OPCODE_CALLBACK(SetStackFrameImmediate64)
 		{
 			const Ins* I = NextInstruction();
-			int32 offset = (int32)(int8) I->Opmod1;
+			int32 offset = (int32)(Rococo::int8) I->Opmod1;
 			cpu.AdvancePC(2);
 			uint64 value = *((uint64*) cpu.PC());
 			uint8* target = cpu.D[REGISTER_SF].uint8PtrValue + offset;

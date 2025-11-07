@@ -1,4 +1,5 @@
-#include <rococo.os.win32.h>
+#define NOMINMAX
+#include <Windows.h>
 #include <rococo.editors.h>
 #include <rococo.abstract.editor.win32.h>
 #include "resource.h"

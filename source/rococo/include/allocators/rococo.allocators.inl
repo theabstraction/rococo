@@ -151,8 +151,9 @@ namespace Rococo::Memory
 		AllocatorMetrics stats;
 		std::unordered_map<size_t, TrackingAtom, hash_size_t, size_t_equal_to, RococoUtilsAllocator<std::pair<const size_t,TrackingAtom>>> tracking;
 		AutoFree<OS::ICriticalSection> criticalSection;
+		AllocatorFunctions& allocatorFunctions;
 
-		TrackingAllocator()
+		TrackingAllocator(AllocatorFunctions& _allocatorFunctions): allocatorFunctions(_allocatorFunctions)
 		{
 			criticalSection = OS::CreateCriticalSection(OS::CriticalSectionMemorySource::GLOBAL_MALLOC);
 		}
@@ -162,7 +163,7 @@ namespace Rococo::Memory
 			stats.totalAllocationSize += nBytes;
 			stats.totalAllocations++;
 
-			auto* data = moduleAllocatorFunctions.Allocate(nBytes);
+			auto* data = allocatorFunctions.Allocate(nBytes);
 
 			OS::Lock lock(criticalSection);
 
@@ -215,7 +216,7 @@ namespace Rococo::Memory
 				}
 
 				stats.usefulFrees++;
-				moduleAllocatorFunctions.Free(buffer);
+				allocatorFunctions.Free(buffer);
 			}
 			else
 			{
@@ -281,15 +282,21 @@ namespace Rococo::Memory
 	template<class T>
 	class FastAllocator
 	{
+		AllocatorFunctions allocatorFunctions;
 	public:
+		FastAllocator(AllocatorFunctions _allocatorFunctions) : allocatorFunctions(_allocatorFunctions)
+		{
+
+		}
+
 		void* ModuleAllocate(std::size_t nBytes)
 		{
-			return moduleAllocatorFunctions.Allocate(nBytes);
+			return allocatorFunctions.Allocate(nBytes);
 		}
 
 		void ModuleFree(void* buffer)
 		{
-			moduleAllocatorFunctions.Free(buffer);
+			allocatorFunctions.Free(buffer);
 		}
 
 		void Log(cstr name, cstr intro)
@@ -300,7 +307,13 @@ namespace Rococo::Memory
 	template<class T>
 	class DefaultAllocator
 	{
+		AllocatorFunctions allocatorFunctions;
 	public:
+		DefaultAllocator(AllocatorFunctions _allocatorFunctions) : allocatorFunctions(_allocatorFunctions)
+		{
+
+		}
+
 		AllocatorMetrics stats;
 
 		inline void* ModuleAllocate(std::size_t nBytes)
@@ -308,7 +321,7 @@ namespace Rococo::Memory
 			stats.totalAllocationSize += nBytes;
 			stats.totalAllocations++;
 
-			return moduleAllocatorFunctions.Allocate(nBytes);
+			return allocatorFunctions.Allocate(nBytes);
 		}
 
 		inline void ModuleFree(void* buffer)
@@ -317,7 +330,7 @@ namespace Rococo::Memory
 			if (buffer)
 			{
 				stats.usefulFrees++;
-				moduleAllocatorFunctions.Free(buffer);
+				allocatorFunctions.Free(buffer);
 			}
 			else
 			{
@@ -362,7 +375,7 @@ namespace Rococo::Memory
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define DeclareAllocator(ALLOCATOR, SHORTNAME,GLOBAL_ALLOCATOR_REF)											\
 struct SHORTNAME;																							\
-Rococo::Memory::ALLOCATOR<SHORTNAME> GLOBAL_ALLOCATOR_REF;													\
+Rococo::Memory::ALLOCATOR<SHORTNAME> GLOBAL_ALLOCATOR_REF(moduleAllocatorFunctions);						\
 struct SHORTNAME																							\
 {																											\
 	const char* Name()																						\

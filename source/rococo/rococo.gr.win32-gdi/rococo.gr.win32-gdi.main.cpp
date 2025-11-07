@@ -2,9 +2,6 @@
 
 #define ROCOCO_GR_GDI_API ROCOCO_API_EXPORT
 
-#include <rococo.gr.win32-gdi.h>
-
-#define ROCOCO_USE_SAFE_V_FORMAT
 #include <rococo.vector.ex.h>
 #include <rococo.gui.retained.ex.h>
 #include <rococo.maths.h>
@@ -13,7 +10,6 @@
 #include <rococo.io.h>
 #include <rococo.ui.h>
 #include <rococo.os.h>
-#include <rococo.window.h>
 #include <rococo.imaging.h>
 #include <rococo.hashtable.h>
 #include <rococo.time.h>
@@ -26,6 +22,10 @@
 #include <../rococo.gui.retained/rococo.gr.image-loading.inl>
 
 #pragma comment(lib, "Msimg32.lib")
+
+#include <rococo.gr.win32-gdi.h>
+
+#include <rococo.window.h>
 
 #include <gdiplus.h>
 #pragma comment (lib,"Gdiplus.lib")
@@ -1842,14 +1842,14 @@ namespace GRANON
 			static_assert(sizeof(GRCursorClick) == sizeof(uint16));
 
 			history.clear();
-			if (me.buttonFlags != 0)
+			if (me.uButtons.data.buttonFlags != 0)
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.buttonData, context };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.uButtons.data.buttonFlags, EGRCursorIcon::Unspecified, (int)(int16)me.uButtons.data.buttonData, context };
 				lastRoutingStatus = gr.RouteCursorClickEvent(cursorEvent);
 			}
 			else
 			{
-				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.buttonFlags, EGRCursorIcon::Arrow, 0, context };
+				GRCursorEvent cursorEvent{ *this, me.cursorPos, eventCount, *(GRCursorClick*)&me.uButtons.data.buttonFlags, EGRCursorIcon::Arrow, 0, context };
 				lastRoutingStatus = gr.RouteCursorMoveEvent(cursorEvent);
 
 				if (currentIcon != cursorEvent.nextIcon)
@@ -2168,7 +2168,7 @@ namespace GRANON
 				if (raw.header.dwType == RIM_TYPEMOUSE)
 				{
 					MouseEvent ev;
-					ev.buttons = raw.data.mouse.ulButtons;
+					ev.uButtons.buttons = raw.data.mouse.ulButtons;
 					ev.dx = raw.data.mouse.lLastX;
 					ev.dy = raw.data.mouse.lLastY;
 					ev.flags = raw.data.mouse.usFlags;

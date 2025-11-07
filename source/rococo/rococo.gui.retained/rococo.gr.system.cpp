@@ -10,7 +10,7 @@
 #include <rococo.ui.h>
 #include <rococo.ringbuffer.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 
 using namespace Rococo;

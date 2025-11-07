@@ -2,11 +2,14 @@
 #pragma once
 
 #include <rococo.gr.client.h>
+
 #ifdef _WIN32
-# include <rococo.win32.target.win7.h>
-# define NOMINMAX
-# include <windows.h>
+#define NOMINMAX
+#include <windows.h>
+#else 
+# error "platform not supported"
 #endif
+
 
 #ifdef DrawText
 # undef DrawText
@@ -95,9 +98,9 @@ namespace Rococo::GR::Win32
 
 	struct GRMainFrameConfig
 	{
-		HICON hLargeIconPath = nullptr;
-		HICON hSmallIconPath = nullptr;
-		HMENU hMainWindowMenu = nullptr;
+		HICON hLargeIconPath { 0 };
+		HICON hSmallIconPath { 0 };
+		HMENU hMainWindowMenu { 0 };
 	};
 
 	ROCOCO_GR_GDI_API IGRMainFrameWindowSupervisor* CreateGRMainFrameWindow(HWND hOwner, const GRMainFrameConfig& config);

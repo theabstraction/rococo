@@ -1,5 +1,5 @@
 #include "sexy.script.stdafx.h"
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include "Sexy.Compiler.h"
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 
@@ -10,14 +10,6 @@ using namespace Rococo::Compiler;
 
 namespace Rococo::Script
 {
-	struct ExceptionHandler
-	{
-		ID_BYTECODE FunctionId;
-		size_t Start;
-		size_t End;
-		size_t HandlerOffset;
-	};
-
 	typedef TSexyVector<ExceptionHandler> TExceptionHandlers;
 
 	IFunctionBuilder* GetFunctionForAddress(const uint8* pc, IProgramObject& programObject);

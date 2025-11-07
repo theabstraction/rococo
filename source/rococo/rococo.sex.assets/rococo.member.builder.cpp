@@ -32,9 +32,9 @@ namespace Rococo::Sex::Assets::Impl
 		return obj;
 	}
 
-	bool DoesInterfaceOrBaseMatch(const IInterface& target, const IInterface& sourceWithPossibleBase)
+	bool DoesInterfaceOrBaseMatch(const IObjectInterface& target, const IObjectInterface& sourceWithPossibleBase)
 	{
-		for (const IInterface* i = &sourceWithPossibleBase; i != nullptr; i = i->Base())
+		for (const IObjectInterface* i = &sourceWithPossibleBase; i != nullptr; i = i->Base())
 		{
 			if (i == &target)
 			{
@@ -45,7 +45,7 @@ namespace Rococo::Sex::Assets::Impl
 		return false;
 	}
 
-	int GetIntefaceIndex(const IStructure& concreteType, const IInterface* interfaceType)
+	int GetIntefaceIndex(const IStructure& concreteType, const IObjectInterface* interfaceType)
 	{
 		for (int j = 0; j < concreteType.InterfaceCount(); ++j)
 		{
@@ -255,7 +255,7 @@ namespace Rococo::Sex::Assets::Impl
 		struct RequiredInterfaceRef
 		{
 			// The type of interface we need to define
-			const IInterface* pInterfaceType;
+			const IObjectInterface* pInterfaceType;
 
 			// The address in memory of the interface pointer to overwrite
 			InterfacePointer* ppInterface;

@@ -62,8 +62,8 @@
     <ClCompile Include="..\..\source\3rd-Party\libjpg\jpeg-6b\wrppm.c" />
     <ClCompile Include="..\..\source\3rd-Party\libjpg\jpeg-6b\wrrle.c" />
     <ClCompile Include="..\..\source\3rd-Party\libjpg\jpeg-6b\wrtarga.c" />
-    <ClCompile Include="..\..\source\3rd-Party\libjpg\readimage.cpp" />
-    <ClCompile Include="..\..\source\3rd-Party\libjpg\writeimage.cpp" />
+    <ClCompile Include="..\..\source\3rd-Party\libjpg\jpg.readimage.cpp" />
+    <ClCompile Include="..\..\source\3rd-Party\libjpg\jpg.writeimage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\3rd-Party\libjpg\jpeg-6b\cderror.h" />

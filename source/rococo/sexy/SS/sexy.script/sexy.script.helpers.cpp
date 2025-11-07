@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -34,7 +34,7 @@
 #include "sexy.script.stdafx.h"
 #include "sexy.compiler.public.h"
 #include "sexy.debug.types.h"
-#include "..\STC\stccore\sexy.compiler.helpers.h"
+#include "sexy.compiler.helpers.h"
 #include "Sexy.S-Parser.h"
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
@@ -358,12 +358,11 @@ namespace Rococo
 		   IPublicProgramObject& po = ss.PublicProgramObject();
 		   IVirtualMachine& vm = po.VirtualMachine();
 
-		   //size_t functionLength = po.ProgramMemory().GetFunctionLength(section.Id);
+		   UNUSED(vm);
 
 		   size_t functionStartAddress = po.ProgramMemory().GetFunctionAddress(section.Id);
-
-		   //const uint8* fstart = vm.Cpu().ProgramStart + functionStartAddress;
-
+		   UNUSED(functionStartAddress);
+		  
 		   size_t fnOffset = pcOffset - po.ProgramMemory().GetFunctionAddress(section.Id);
 
 		   const Rococo::Sex::ISExpression* s = (const Rococo::Sex::ISExpression*) f->Code().GetSymbol(fnOffset).SourceExpression;
@@ -651,9 +650,9 @@ namespace Rococo
 		   }
 	   }
 
-	   bool TryFormatIString(REF VariableDesc& desc, IN const ObjectStub& object, IN const IInterface& refInterf)
+	   bool TryFormatIString(REF VariableDesc& desc, IN const ObjectStub& object, IN const IObjectInterface& refInterf)
 	   {
-		   for (const Rococo::Compiler::IInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
+		   for (const Rococo::Compiler::IObjectInterface* interface = &refInterf; interface != nullptr; interface = interface->Base())
 		   {
 			   if (AreEqual(interface->NullObjectType().Name(), "_Null_Sys_Type_IString"))
 			   {
@@ -901,28 +900,26 @@ namespace Rococo
 
 	   SCRIPTEXPORT_API void ForeachVariable(Rococo::Script::IPublicScriptSystem& ss, Rococo::Debugger::IVariableEnumeratorCallback& variableEnum, size_t callDepth)
 	   {
-		   const uint8* sf;
-		   const uint8* pc;
-		   const IFunction* f;
-		   size_t fnOffset;
-		   size_t pcOffset;
-		   if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset)) return;
+			const uint8* sf;
+			const uint8* pc;
+			const IFunction* f;
+			size_t fnOffset;
+			size_t pcOffset;
+			if (!GetCallDescription(sf, pc, f, fnOffset, ss, callDepth, pcOffset)) return;
 
-		   const Rococo::Compiler::IStructure* lastPseudo = nullptr;
-		   cstr lastPseudoName = nullptr;
+			const Rococo::Compiler::IStructure* lastPseudo = nullptr;
+			cstr lastPseudoName = nullptr;
 
-		   VariableDesc variable = { 0 };
+			VariableDesc variable = { 0 };
 
-		   MemberDef registerDef = { 0 };
+			MemberDef registerDef = { 0 };
 
-		   AddSFToVarEnum(variable, sf);
-		   variableEnum.OnVariable(0, variable, registerDef);
-		   AddReturnAddressToVarEnum(variable, sf);
-		   variableEnum.OnVariable(1, variable, registerDef);
-		   AddOldSFToVarEnum(variable, sf);
-		   variableEnum.OnVariable(2, variable, registerDef);
-
-		   size_t count = 3;
+			AddSFToVarEnum(variable, sf);
+			variableEnum.OnVariable(0, variable, registerDef);
+			AddReturnAddressToVarEnum(variable, sf);
+			variableEnum.OnVariable(1, variable, registerDef);
+			AddOldSFToVarEnum(variable, sf);
+			variableEnum.OnVariable(2, variable, registerDef);
 
 			for (int i = 0; i < f->Code().GetLocalVariableSymbolCount(); ++i)
 			{
@@ -934,7 +931,7 @@ namespace Rococo
 				{
 				}
 			}
-	   }
+		}
 
 	   SCRIPTEXPORT_API bool GetMembers(IPublicScriptSystem& ss, const IStructure& s, cstr parentName, const uint8* instance, ptrdiff_t offset, MemberEnumeratorCallback& enumCallback, int recurseDepth)
 	   {

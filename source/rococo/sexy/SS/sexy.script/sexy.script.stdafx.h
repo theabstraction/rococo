@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -41,17 +41,15 @@
 #define THIS_IS_THE_SEXY_CORE_LIBRARY
 #define IS_SCRIPT_DLL 1
 
-#define SEXY_SPARSER_API
-
 #include <sexy.types.h>
 #include <sexy.vm.h>
 #include <sexy.vm.cpu.h>
 #include <sexy.script.h>
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include "sexy.strings.h"
 #include "sexy.stdstrings.h"
 #include <sexy.unordered_map.h>
-#include "..\STC\stccore\Sexy.Compiler.h"
+#include "Sexy.Compiler.h"
 #include <rococo.hashtable.h>
 #include <sexy.vector.h>
 #include <sexy.compiler.public.h>
@@ -448,7 +446,7 @@ namespace Rococo
         void GetVariableByName(Compiler::ICodeBuilder& builder, OUT Compiler::MemberDef& def, cstr name, Sex::cr_sex src);
         void AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end);
         Compiler::IModuleBuilder& GetModule(CScript& script);
-        void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, Compiler::ICodeBuilder& builder, const Compiler::IInterface& interf, Sex::cr_sex s, cstr localName);
+        void AppendVirtualCallAssembly(cstr instanceName, int interfaceIndex, int methodIndex, Compiler::ICodeBuilder& builder, const Compiler::IObjectInterface& interf, Sex::cr_sex s, cstr localName);
         int GetFirstOutputOffset(Compiler::ICodeBuilder& builder);
         Compiler::IModule& GetSysTypeMemoModule(CScript& script);
         Compiler::INamespaceBuilder& GetNamespaceByFQN(CCompileEnvironment& ce, cstr ns, Sex::cr_sex s);

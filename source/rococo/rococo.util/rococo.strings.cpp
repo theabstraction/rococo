@@ -21,7 +21,7 @@
 #include <vector>
 #include <rococo.io.h>
 
-#define ROCOCO_USE_SAFE_V_FORMAT
+
 #include <rococo.strings.h>
 #include <rococo.reflector.h>
 
@@ -739,23 +739,6 @@ namespace Rococo::Strings
 		return (int32)l;
 	}
 
-#ifdef ROCOCO_WIDECHAR_IS_WCHAR_T
-
-	// N.B sexy script language string length is int32 with max 2^31-1 chars
-	ROCOCO_API int32 StringLength(const wchar_t* s)
-	{
-		enum { MAX_INT32 = 0x7FFFFFFF };
-		size_t l = wcslen(s);
-		if (l > MAX_INT32)
-		{
-			Throw(0, "The string length exceeded INT_MAX characters");
-		}
-
-		return (int32)l;
-	}
-
-#endif
-
 	ROCOCO_API int WriteToStandardOutput(const char* format, ...)
 	{
 		va_list args;
@@ -857,21 +840,6 @@ namespace Rococo::Strings
 		return SafeVFormat(buffer, capacity, format, args);
 	}
 
-#ifdef ROCOCO_WIDECHAR_IS_WCHAR_T
-	ROCOCO_API int SafeVFormat(wchar_t* buffer, size_t capacity, crwstr format, va_list args)
-	{
-
-		int count = _vsnwprintf_s(buffer, capacity, capacity, format, args);
-
-		if (count >= capacity)
-		{
-			return -1;
-		}
-
-		return count;
-	}
-#endif
-
 	ROCOCO_API int SafeFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, ...)
 	{
 		va_list args;
@@ -903,17 +871,6 @@ namespace Rococo::Strings
 		return count;
 	}
 
-	ROCOCO_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args)
-	{
-		int count = vsnprintf(buffer, capacity, format, args);
-		if (count >= capacity)
-		{
-			return -1;
-		}
-
-		return count;
-	}
-
 	ROCOCO_API int StrCmpN(cstr a, cstr b, size_t len)
 	{
 		return strncmp(a, b, len);
@@ -923,7 +880,7 @@ namespace Rococo::Strings
 	{
 		if (length == 0) length = rlen(text);
 		size_t bytecount = sizeof(char) * (length + 1);
-		char* buf = (char*)alloca(bytecount);
+		char* buf = (char*)_alloca(bytecount);
 		memcpy_s(buf, bytecount, text, bytecount);
 		buf[length] = 0;
 
@@ -1026,43 +983,6 @@ namespace Rococo::Strings
 	{
 		return strcmp(a, b) == 0;
 	}
-
-#ifdef ROCOCO_WIDECHAR_IS_WCHAR_T
-	ROCOCO_API bool Eq(crwstr a, crwstr b)
-	{
-		return wcscmp(a, b) == 0;
-	}
-
-	ROCOCO_API bool EqI(crwstr a, crwstr b)
-	{
-		return _wcsicmp(a, b) == 0;
-	}
-
-	ROCOCO_API bool StartsWith(crwstr bigString, crwstr prefix)
-	{
-		return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
-	}
-
-	ROCOCO_API bool EndsWith(crwstr bigString, crwstr suffix)
-	{
-		size_t len = wcslen(suffix);
-		size_t lenBig = wcslen(bigString);
-		crwstr t = bigString + lenBig - len;
-		return Eq(suffix, t);
-	}
-#endif
-
-#ifdef _WIN32
-	ROCOCO_API bool EqI(const char* a, const char* b)
-	{
-		return _strcmpi(a, b) == 0;
-	}
-#else
-	ROCOCO_API bool EqI(const char* a, const char* b)
-	{
-		return strcasecmp(a, b) == 0;
-	}
-#endif
 
 	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix)
 	{

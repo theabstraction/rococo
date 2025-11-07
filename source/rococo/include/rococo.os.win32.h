@@ -1,39 +1,30 @@
 // Copyright (c)2025 Mark Anthony Taylor. Email: mark.anthony.taylor@gmail.com. All rights reserved.
-#ifndef ROCOCO_WIN32_H
-#define ROCOCO_WIN32_H
-
-# include <rococo.types.h>
+#pragma once
 
 #ifdef _WIN32
-# include <rococo.win32.target.win7.h>
-# define WIN32_LEAN_AND_MEAN 
-# define NOMINMAX
-# include <windows.h>
 
-namespace Rococo
+# ifdef _WINDOWS_
+#  error _WINDOWS_ already defined Windows.h already included apparently
+# endif
+
+// UE5 namespaced Windows API conflicts with our own, so trick our code into thinking it is using our own
+# ifdef MINIMAL_WINDOWS_API
+namespace MSWindows = ::Windows;
+
+namespace Windows
 {
-   class FileHandle
-   {
-      HANDLE hFile;
-   public:
-      FileHandle(HANDLE _hFile) : hFile(_hFile)
-      {
-      }
-
-      operator HANDLE ()
-      {
-         return hFile;
-      }
-
-      ~FileHandle()
-      {
-         if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
-      }
-   };
-
-   inline HWND ToHWND(WindowRef ref) { return (HWND) ref.pValue;  }
-   inline WindowRef ToRef(HWND hWnd) { WindowRef ref; ref.pValue = hWnd; return ref; }
+	MINIMAL_WINDOWS_API DWORD GetLastError();
+	inline bool IsNull(HANDLE handle) { return handle == nullptr; }
 }
 
-# endif
+#else
+# include <rococo.os.win32.mswindow.h>
+
+namespace MSWindows
+{
+	inline bool IsNull(HANDLE handle) { return handle.internal == 0; }
+}
+
+#endif
+
 #endif

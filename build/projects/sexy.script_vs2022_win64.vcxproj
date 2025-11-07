@@ -71,7 +71,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllexport);SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -160,7 +160,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllexport);SEXYUTIL_API=__declspec(dllimport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -245,6 +245,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.internal.api.h" />
+    <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.allocators.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.arithmetic.expression.parser.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.array.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\SS\sexy.script\sexy.script.asserts.inl" />

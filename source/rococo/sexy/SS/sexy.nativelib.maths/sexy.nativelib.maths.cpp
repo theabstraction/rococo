@@ -9,7 +9,7 @@
 #include "sexy.vm.cpu.h"
 #include "sexy.script.h"
 #include "sexy.native.sys.type.h"
-#include "../STC/stccore/sexy.compiler.h"
+#include "sexy.compiler.h"
 #include "sexy.strings.h"
 
 #ifdef char_IS_WIDE
@@ -249,11 +249,13 @@ void SeedRandom(int seedValue)
 
 #ifdef _WIN32
 
-BOOLEAN WINAPI DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
+using namespace MSWindows;
+
+BOOL DllMain(HINSTANCE hDllHandle, DWORD nReason, LPVOID reserved)
 {
 	UNUSED(reserved);
 
-	BOOLEAN bSuccess = TRUE;
+	BOOL bSuccess = TRUE;
 
 	switch (nReason)
 	{

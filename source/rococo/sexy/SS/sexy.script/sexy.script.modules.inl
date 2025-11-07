@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -253,6 +253,8 @@ namespace Rococo::Script
 
 		cstr publicFunctionName = tail;
 
+		UNUSED(publicFunctionName);
+
 		cstr name = localName.c_str();
 
 		IFunctionBuilder* f = module.FindFunction(name);
@@ -314,6 +316,8 @@ namespace Rococo::Script
 
 	void AppendAliases(IScriptSystem& ss, IModuleBuilder& module, IN const ISParserTree& tree)
 	{
+		UNUSED(ss);
+
 		cr_sex sSequence = tree.Root();
 
 		for(int i = 0; i < sSequence.NumberOfElements(); i++)
@@ -461,6 +465,7 @@ namespace Rococo::Script
 
 	void AddChildConstructor(cr_sex childConstruct)
 	{
+		UNUSED(childConstruct);
 		// bang();
 	}
 
@@ -677,6 +682,7 @@ namespace Rococo::Script
 		// ArgN+4...N' = constructor body
 		
 		cstr name = constructor.Name();
+		UNUSED(name);
 
 		IStructureBuilder* type = (IStructureBuilder*) constructor.GetType();
 		type->SetConstructor(&constructor);
@@ -701,6 +707,9 @@ namespace Rococo::Script
 
 		int childConstructorStart = childConstructIndex+1;
 		int childConstructorEnd = bodyIndex-1;
+
+		UNUSED(childConstructorStart);
+		UNUSED(childConstructorEnd);
 
 		AddInputs(constructor, constructorDef, 2, childConstructIndex-1, script);
 		AddThisPointer(constructor, constructorDef, script);
@@ -796,6 +805,8 @@ namespace Rococo::Script
 		}
 
 		cstr name = f.Name();
+
+		UNUSED(name);
 
 		AssertNotTooFewElements(fdef, 4);
 	
@@ -1051,7 +1062,7 @@ namespace Rococo::Script
 	{
 		for(int j = 0; j < s.InterfaceCount(); ++j)
 		{
-			const IInterface& interf = s.GetInterface(j);
+			const IObjectInterface& interf = s.GetInterface(j);
 			for(int i = 0; i < interf.MethodCount(); ++i)
 			{
 				const IArchetype& a = interf.GetMethod(i);
@@ -1141,9 +1152,15 @@ namespace Rococo::Script
 					auto& member0 = def.ResolvedType->GetMember(0);
 					auto& member1 = def.ResolvedType->GetMember(0);
 
+					UNUSED(member0);
+					UNUSED(member1);
+
 					VariantValue nullValue;
 					nullValue.int64Value = 0;
 					auto bitcount = GetBitCount(argType.VarType());
+
+					UNUSED(bitcount);
+
 					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset, nullValue, BITCOUNT_POINTER);
 					f.Builder().Assembler().Append_SetStackFrameImmediate(def.SFOffset + sizeof(size_t), nullValue, BITCOUNT_POINTER);
 				}
@@ -1271,6 +1288,8 @@ namespace Rococo::Script
 
 	void CompileMapConstruct(CCompileEnvironment& ce, cr_sex def, const IMember& member, cstr fullName)
 	{
+		UNUSED(def);
+
 		ce.Builder.AssignVariableRefToTemp(fullName, Rococo::ROOT_TEMPDEPTH); // Map goes to D7
 
 		VariantValue key;
@@ -1403,6 +1422,9 @@ namespace Rococo::Script
 
 	void Disassemble(VM::IDisassembler& disassembler, const IFunction& f, IPublicScriptSystem& ss)
 	{
+		UNUSED(disassembler);
+		UNUSED(f);
+		UNUSED(ss);
 		// Disassemble2(disassembler, f, ss);
 	}
 
@@ -1440,6 +1462,8 @@ namespace Rococo::Script
 
 	void CompileProxyFunction(REF IFunctionBuilder& f, IN cr_sex fdef, CScript& script)
 	{
+		UNUSED(fdef);
+
 		CodeSection section;
 		f.Builder().GetCodeSection(OUT section);
 
@@ -1482,6 +1506,8 @@ namespace Rococo::Script
 		// First stack the outputs, then the inputs
 
 		cstr fname = f.Name();
+
+		UNUSED(fname);
 
 		if (IsConstructor(f))
 		{
@@ -1537,10 +1563,10 @@ namespace Rococo::Script
 
 	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype);
 
-	void CompileNullMethod_Throws(IScriptSystem& ss, const IInterface& interface, IFunctionBuilder& f)
+	void CompileNullMethod_Throws(IScriptSystem& ss, const IObjectInterface& interface, IFunctionBuilder& f)
 	{
 		VariantValue v;
-		v.vPtrValue = (IInterface*) &interface;
+		v.vPtrValue = (IObjectInterface*) &interface;
 		f.Builder().Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER);
 
 		v.vPtrValue = (IFunction*) &f;
@@ -1658,6 +1684,8 @@ namespace Rococo::Script
 
 		IFunctionBuilder* f = *(IFunctionBuilder**)pc;
 
+		UNUSED(f);
+
 		auto& mem = ss.ProgramObject().ProgramMemory();
 
 		bool isImmutable;
@@ -1670,6 +1698,9 @@ namespace Rococo::Script
 			auto* sp = registers[REGISTER_SP].uint8PtrValue;
 			InterfacePointer ip = *(InterfacePointer*)(sp - 24);
 			ObjectStub* stub = InterfaceToInstance(ip);
+
+			UNUSED(stub);
+
 			auto* methods = &ip[0]->FirstMethodId;
 			for (int i = 0; i < 10; i++)
 			{
@@ -1689,7 +1720,7 @@ namespace Rococo::Script
 	VM_CALLBACK(ThrowNullRef)
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
-		auto* i = (const IInterface*) registers[4].vPtrValue;
+		auto* i = (const IObjectInterface*) registers[4].vPtrValue;
 		auto *f = (const IFunction*) registers[5].vPtrValue;
 
 		NamespaceSplitter splitter(f->Name());
@@ -1701,6 +1732,8 @@ namespace Rococo::Script
 
 	VM_CALLBACK(IsDifferentObject)
 	{
+		UNUSED(context);
+
 		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
 		sp -= sizeof(InterfacePointer);
 		auto* rightArg = (InterfacePointer*)sp;
@@ -1716,6 +1749,8 @@ namespace Rococo::Script
 
 	VM_CALLBACK(IsSameObject)
 	{
+		UNUSED(context);
+
 		auto& sp = registers[VM::REGISTER_SP].uint8PtrValue;
 		sp -= sizeof(InterfacePointer);
 		auto* rightArg = (InterfacePointer*)sp;
@@ -1936,7 +1971,7 @@ namespace Rococo::Script
 		CompileSetOutputToNull(f);
 	}
 
-	void CompileNullMethod(IScriptSystem& ss, const IArchetype& nullMethod, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
+	void CompileNullMethod(IScriptSystem& ss, const IArchetype& nullMethod, IObjectInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
 	{
 		TokenBuffer qualifiedMethodName;
 		StringPrint(qualifiedMethodName, ("%s.%s"), nullObject.Name(), nullMethod.Name());
@@ -1948,6 +1983,9 @@ namespace Rococo::Script
 		{
 			const IStructure& argStruct = nullMethod.GetArgument(i);
 			cstr argType = GetFriendlyName(argStruct);
+
+			UNUSED(argType);
+
 			cstr argName = nullMethod.GetArgName(i);
 			f.AddOutput(NameString::From(argName), argStruct, (void*)&source);
 		}
@@ -1986,7 +2024,7 @@ namespace Rococo::Script
 		f.Builder().Assembler().Clear();
 	}
 
-	void CompileNullObject(IScriptSystem& ss, IInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
+	void CompileNullObject(IScriptSystem& ss, IObjectInterface& interf, IStructureBuilder& nullObject, cr_sex source, INamespace& ns)
 	{
 		for(int i = 0; i < interf.MethodCount(); ++i)
 		{
@@ -2103,8 +2141,9 @@ namespace Rococo::Script
 				struct : IGlobalEnumerator
 				{
 					uint8* global;
-					virtual void operator()(cstr name, const GlobalValue& variable)
+					void operator()(cstr name, const GlobalValue& variable) override
 					{
+						UNUSED(name);
 						BITCOUNT variableLen = GetBitCount(variable.type);
 						size_t offset = variable.offset;
 
@@ -2257,6 +2296,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.Clear();
 					script.ValidateTopLevel();
 				}
@@ -2269,6 +2309,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ComputePrefixes();
 				}
 			} fnctorCompileUsingNamespaces;
@@ -2282,6 +2323,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.CompileTopLevelMacrosForModule();
 				}
 			} fnctorCompileTopLevelMacros;
@@ -2296,8 +2338,6 @@ namespace Rococo::Script
 
 			{
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
-				const ISExpression* src = NULL;
-
 				IStructureBuilder& s = module.DeclareStructure("_Array", prototype, NULL);
 
 				s.AddMember(NameString::From("_start"), TypeString::From("Pointer"));
@@ -2312,16 +2352,12 @@ namespace Rococo::Script
 			}
 			{
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
-				const ISExpression* src = NULL;
-
 				IStructureBuilder& s = module.DeclareStructure("_List", prototype, NULL);
 				s.AddMember(NameString::From(("_ListImage")), TypeString::From(("Pointer")));
 				ns->Alias(("_List"), s);
 			}
 			{
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
-				const ISExpression* src = NULL;
-
 				IStructureBuilder& s = module.DeclareStructure(("_Node"), prototype, NULL);
 
 				s.AddMember(NameString::From(("_list")), TypeString::From(("Pointer")));
@@ -2336,8 +2372,6 @@ namespace Rococo::Script
 				cstr lockName = ("_Lock");
 
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
-				const ISExpression* src = NULL;
-
 				IStructureBuilder& s = module.DeclareStructure(lockName, prototype, NULL);
 
 				s.AddMember(NameString::From(("_lockSource")), TypeString::From(("Pointer")));
@@ -2349,8 +2383,6 @@ namespace Rococo::Script
 				cstr mapName = ("_Map");
 
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
-				const ISExpression* src = NULL;
-
 				IStructureBuilder& s = module.DeclareStructure(mapName, prototype, NULL);
 
 				s.AddMember(NameString::From(("_mapImage")), TypeString::From(("Pointer")));
@@ -2361,8 +2393,6 @@ namespace Rococo::Script
 				cstr nodeName = ("_MapNode");
 
 				StructurePrototype prototype(MEMBERALIGN_4, INSTANCEALIGN_16, true, NULL, false);
-				const ISExpression* src = NULL;
-
 				IStructureBuilder& s = module.DeclareStructure(nodeName, prototype, NULL);
 
 				s.AddMember(NameString::From(("_container")), TypeString::From(("Pointer")));		
@@ -2386,6 +2416,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ComputeArchetypeNames();
 					script.ComputeInterfacePrototypes();
 				}
@@ -2397,7 +2428,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
-					// script.ComputePrefixes(); // TODO - delete this comment if everything is working
+					UNUSED(name);
 					script.ComputeStructureNames();	
 				}
 			} fnctorComputeStructNames;
@@ -2413,6 +2444,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ComputeFunctionNames();	
 				}
 			} fnctorComputeFunctionNames;
@@ -2422,6 +2454,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					AppendAliases(script.System(), script.ProgramModule(), script.Tree());
 				}
 			} fnctorAppendAliases;
@@ -2431,6 +2464,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ComputeStructureFields();
 				}
 			} fnctorStructureFields;
@@ -2440,6 +2474,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ComputeFunctionArgs();
 				}
 			} fnctorFunctionArgs;
@@ -2449,6 +2484,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ComputeArchetypes();
 					script.ComputeInterfaces();	
 				}
@@ -2474,6 +2510,7 @@ namespace Rococo::Script
 			}
 
 			const IStructure* mapNode = programObject.GetModule(0).FindStructure(("_Map"));
+			UNUSED(mapNode);
 			
 			programObject.InitCommon();
 
@@ -2481,6 +2518,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ValidateConcreteClasses();
 				}
 			} fnctorValidateConcreteClasses;
@@ -2490,6 +2528,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ValidateConstructors();
 				}
 			} fnctorValidateConstructors;
@@ -2499,6 +2538,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.DeclareMacros();
 				}
 			} fnctorDeclareMacros;
@@ -2509,6 +2549,7 @@ namespace Rococo::Script
 				int globalBaseIndex;
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.ComputeGlobals(REF globalBaseIndex);
 				}
 			} fnctorComputeGlobals;
@@ -2520,7 +2561,7 @@ namespace Rococo::Script
 
 		bool TryInlineIString()
 		{		
-			const IInterface& istring = programObject.Common().SysTypeIString();
+			const IObjectInterface& istring = programObject.Common().SysTypeIString();
 
 			for(auto k = scripts.begin(); k != scripts.end(); ++k)
 			{
@@ -2579,6 +2620,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.CompileNullObjects();
 				}
 			} fnctorCompileNullObjects;
@@ -2590,6 +2632,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.CompileJITStubs();
 					script.CompileFactoryJITStubs();		
 					script.CompileMacroJITStubs();
@@ -2601,6 +2644,7 @@ namespace Rococo::Script
 			{
 				void Process(CScript& script, cstr name)
 				{
+					UNUSED(name);
 					script.CompileVTables();
 					script.MarkCompiled();
 				}
@@ -2697,6 +2741,7 @@ namespace Rococo::Script
 		{
 			const IStructure& argStruct = archetype.GetArgument(i);
 			cstr argType = GetFriendlyName(argStruct);
+			UNUSED(argType);
 			cstr argName = archetype.GetArgName(i);
 			f.AddOutput(NameString::From(argName), argStruct, (void*) archetype.Definition());
 		}
@@ -2889,6 +2934,7 @@ namespace Rococo::Script
 
 	void CScript::AddCatchHandler(CScript& script, ID_BYTECODE id, size_t start, size_t end, size_t handlerOffset)
 	{
+		UNUSED(script);
 		scripts.ExceptionLogic().AddCatchHandler(id, start, end, handlerOffset);
 	}
 
@@ -3087,6 +3133,7 @@ namespace Rococo::Script
 	   for (auto i = localFunctions.begin(); i != localFunctions.end(); ++i)
 	   {
 		   cstr fname = i->second.Fn->Name();
+		   UNUSED(fname);
 		   CompileJITStub(*i->second.Fn, *i->second.FnDef, *this, GetSystem(*this));
 	   }
    }
@@ -3335,6 +3382,7 @@ namespace Rococo::Script
 			{
 				cr_sex baseExpr = GetAtomicArg(child, 1);
 				sexstring baseName = baseExpr.String();
+				UNUSED(baseName);
 
 				if (desc.base != NULL) ThrowTokenAlreadyDefined(child, ("extends"), interfaceShortName, ("attribute"));
 
@@ -3401,8 +3449,10 @@ namespace Rococo::Script
 		{
 			int count;
 			sexstring className;
-			virtual void operator()(cr_sex smethodDef, cstr className, cstr methodName)
+			void operator()(cr_sex smethodDef, cstr className, cstr methodName) override
 			{
+				UNUSED(smethodDef);
+				UNUSED(methodName);
 				if (AreEqual(this->className, className))
 				{
 					count++;
@@ -3470,7 +3520,7 @@ namespace Rococo::Script
 		nullObject.AddMember(NameString::From(("_refCount")), TypeString::From(("Int64")));
 		nullObject.AddMember(NameString::From(("_vTable1")), TypeString::From(("Pointer")));
 
-		for (const IInterface* z = interf; z != NULL; z = z->Base())
+		for (const IObjectInterface* z = interf; z != NULL; z = z->Base())
 		{
 			if (AreEqual(z->NullObjectType().Name(), ("_Null_Sys_Type_IString")))
 			{
@@ -3823,6 +3873,7 @@ namespace Rococo::Script
 		AssertLocalIdentifier(sname);
 		sexstring name = sname.String();
 		sexstring type = stype.String();
+		UNUSED(type);
 		sexstring value = svalue.String();
 
 		auto i = globalVariables.find(name->Buffer);
@@ -3937,8 +3988,6 @@ namespace Rococo::Script
 						cstr body, publicName;
 						INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT publicName, IN e, IN programObject, IN module);
 
-						int methodIndex = 0;
-
 						struct : IMethodEnumerator
 						{
 							sexstring className;
@@ -3984,7 +4033,7 @@ namespace Rococo::Script
 		ValidateArchetypeMatchesArchetype(src, *f, method, dottedName);
 	}
 
-	void ValidateClassImplementsInterface(const IInterface& interf, const IStructure& classType, cr_sex src)
+	void ValidateClassImplementsInterface(const IObjectInterface& interf, const IStructure& classType, cr_sex src)
 	{
 		for(int i = 0; i < interf.MethodCount(); ++i)
 		{
@@ -3996,6 +4045,7 @@ namespace Rococo::Script
 	void CScript::ValidateConcreteClasses()
 	{
 		cstr name = ProgramModule().Name();
+		UNUSED(name);
 
 		for(int i = 0; i < module.StructCount();  ++i)
 		{
@@ -4168,6 +4218,8 @@ namespace Rococo::Script
 
 		IFunctionBuilder& f = factory.Constructor();
 		cstr fname = f.Name();
+		UNUSED(fname);
+
 		ICodeBuilder& builder = f.Builder();
 		builder.Begin();
 
@@ -4204,10 +4256,12 @@ namespace Rococo::Script
 
 	const IStructure& GetStructure(cr_sex typeExpr, const sexstring typeName, CScript& script)
 	{
+		UNUSED(typeName);
+
 		const IStructure* s = Compiler::MatchStructure(script.Object().Log(), typeExpr.c_str(), script.ProgramModule());
 		if (s == NULL)
 		{
-			Throw(typeExpr, ("Could not resolve type"));
+			Throw(typeExpr, "Could not resolve type");
 		}
 		return *s;
 	}
@@ -4226,6 +4280,8 @@ namespace Rococo::Script
 
 	IFunctionBuilder* TryCompileInline(IStructureBuilder** ppInlineClass, IFactory& factory, cr_sex factoryDef, int bodyIndex, CScript& script)
 	{
+		UNUSED(factory);
+
 		*ppInlineClass = NULL;
 
 		if (factoryDef.NumberOfElements() != bodyIndex+1)

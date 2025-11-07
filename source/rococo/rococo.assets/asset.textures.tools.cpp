@@ -1,4 +1,4 @@
-#include <rococo.os.win32.h>
+#include <rococo.os.win32.global-ns.h>
 # define ROCOCO_ASSETS_API ROCOCO_API_EXPORT
 #include <assets/assets.texture.h>
 #include <rococo.win32.rendering.h>

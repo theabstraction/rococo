@@ -68,6 +68,57 @@ using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::Debugging;
 
+#ifdef _WIN32
+
+namespace MSWindowsHeap
+{
+    using namespace MSWindows;
+
+    struct PROCESS_HEAP_ENTRY
+    {
+        PROCESS_HEAP_ENTRY() {}
+
+        void* lpData;
+        DWORD cbData;
+        BYTE cbOverhead;
+        BYTE iRegionIndex;
+        WORD wFlags;
+        union Items
+        {
+            struct Block
+            {
+                HANDLE hMem;
+                DWORD dwReserved[3];
+            } block;
+            struct Region
+            {
+                DWORD dwCommittedSize;
+                DWORD dwUnCommittedSize;
+                LPVOID lpFirstBlock;
+                LPVOID lpLastBlock;
+            } region;
+        } items;
+    };
+
+    static_assert(sizeof(PROCESS_HEAP_ENTRY) == 40);
+
+    typedef PROCESS_HEAP_ENTRY* LPPROCESS_HEAP_ENTRY;
+    typedef PROCESS_HEAP_ENTRY* PPROCESS_HEAP_ENTRY;
+
+
+    extern "C" __declspec(dllimport) HANDLE HeapCreate(DWORD flOptions, SIZE_T dwInitialSize, SIZE_T dwMaximumSize);
+    extern "C" __declspec(dllimport) BOOL HeapDestroy(HANDLE hHeap);
+    extern "C" __declspec(dllimport) LPVOID HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
+    extern "C" __declspec(dllimport) LPVOID HeapReAlloc(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem, SIZE_T dwBytes);
+    extern "C" __declspec(dllimport) BOOL HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
+    extern "C" __declspec(dllimport) SIZE_T HeapSize(HANDLE hHeap, DWORD dwFlags, LPCVOID lpMem);
+
+    extern "C" __declspec(dllimport) BOOL HeapWalk(HANDLE hHeap, LPPROCESS_HEAP_ENTRY lpEntry);
+}
+
+using namespace MSWindowsHeap;
+#endif
+
 namespace Rococo::Memory::ANON
 {
     class CheckedAllocator : public IAllocator
@@ -136,7 +187,7 @@ namespace Rococo::Memory::ANON
 #ifdef _WIN32
     class BlockAllocator : public IAllocatorSupervisor
     {
-        HANDLE hHeap{ nullptr };
+        HANDLE hHeap;
         uint32 allocCount{ 0 };
         uint32 freeCount{ 0 };
         uint32 reallocCount{ 0 };
@@ -148,7 +199,7 @@ namespace Rococo::Memory::ANON
         BlockAllocator(size_t kilobytes, size_t _maxkilobytes, const char* const _name) : maxBytes(_maxkilobytes * 1024), name(_name)
         {
             hHeap = HeapCreate(0, kilobytes * 1024, maxBytes);
-            if (hHeap == nullptr) Throw(GetLastError(), "Error allocating heap");
+            if (IsNull(hHeap)) Throw(GetLastError(), "Error allocating heap");
         }
 
         virtual ~BlockAllocator()
@@ -223,7 +274,7 @@ namespace Rococo::Memory::ANON
         size_t EvaluateHeapSize() override
         {
             PROCESS_HEAP_ENTRY entry;
-            entry = { 0 };
+            memset(&entry, 0, sizeof entry);
 
             size_t totalAllocation = 0;
             while (HeapWalk(hHeap, &entry))

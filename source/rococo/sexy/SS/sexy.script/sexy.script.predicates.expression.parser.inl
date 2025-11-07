@@ -18,7 +18,7 @@
 	
 	2. You are not permitted to copyright derivative versions of the source code. You are free to compile the code into binary libraries and include the binaries in a commercial application. 
 
-	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT
+	3. THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM 'AS IS' WITHOUT
 	WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY
 	AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
@@ -321,8 +321,6 @@ namespace Rococo
 
       bool IsZero(VariantValue value, SexyVarType type)
       {
-         bool isZero = false;
-
          BITCOUNT bits = GetBitCount(type);
          if (bits == BITCOUNT_32)
          {
@@ -483,6 +481,10 @@ namespace Rococo
 
 	  void CompareObjects(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr, const MemberDef& leftDef, const MemberDef& rightDef)
 	  {
+          UNUSED(leftVarName);
+          UNUSED(leftExpr);
+          UNUSED(rightExpr);
+
 		  if (leftDef.ResolvedType->InterfaceCount() == 0 || rightDef.ResolvedType->InterfaceCount() == 0)
 		  {
 			  Throw(parent, "Cannot compare %s to %s", GetFriendlyName(*leftDef.ResolvedType), GetFriendlyName(*rightDef.ResolvedType));
@@ -1079,7 +1081,8 @@ namespace Rococo
 
       bool TryCompileBooleanValuedFunction(CCompileEnvironment& ce, cr_sex src, bool expected)
       {
-         return TryCompileFunctionCallAndReturnValue(ce, src, SexyVarType_Bool, NULL, NULL);
+          UNUSED(expected);
+          return TryCompileFunctionCallAndReturnValue(ce, src, SexyVarType_Bool, NULL, NULL);
       }
 
       CONDITION GetBinaryComparisonOp(cr_sex opExpr, bool negate)
@@ -1112,7 +1115,7 @@ namespace Rococo
               cr_sex s0 = s[0];
               if (s.NumberOfElements() == 1)
               {
-                  cr_sex onlyChild = s.GetElement(0);
+                  cr_sex onlyChild = s0;
                   return TryCompileBooleanExpression(ce, onlyChild, expected, negate);
               }
               if (s.NumberOfElements() == 2)
@@ -1122,7 +1125,7 @@ namespace Rococo
                       return true;
                   }
 
-                  cr_sex notIndicator = s.GetElement(0);
+                  cr_sex notIndicator = s0;
                   AssertAtomic(notIndicator);
                   if (AreEqual(notIndicator.String(), "not"))
                   {
@@ -1141,7 +1144,7 @@ namespace Rococo
               }
               if (s.NumberOfElements() == 3)
               {
-                  cr_sex left = s.GetElement(0);
+                  cr_sex left = s0;
                   cr_sex opExpr = s.GetElement(1);
                   cr_sex right = s.GetElement(2);
 

@@ -147,7 +147,7 @@ namespace Rococo
 		}
 	}
 
-	const IFunction* DisassembleCallStackAndAppendToView(IDisassembler& disassembler, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, CPU& cpu, size_t callDepth, const ISExpression** ppExpr, const uint8** ppSF, size_t populateAtDepth)
+	const IFunction* DisassembleCallStackAndAppendToView(IDisassembler& disassembler, IDebuggerWindow& debugger, Rococo::Script::IPublicScriptSystem& ss, VM::CPU& /* cpu */, size_t callDepth, const ISExpression** ppExpr, const uint8** ppSF, size_t populateAtDepth)
 	{
 		const Rococo::uint8* sf = nullptr;
 		const Rococo::uint8* pc = nullptr;
@@ -278,7 +278,7 @@ namespace Rococo
 		int index = 0;
 		int firstUnkIndex = 1;
 
-		void OnMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) override
+		void OnMember(IPublicScriptSystem& ss, cstr /* childName */, const Rococo::Compiler::IMember& member, const uint8* sfItem, int offset, int recurseDepth) override
 		{
 			index++;
 
@@ -364,7 +364,7 @@ namespace Rococo
 					// In the event that we have an Expression
 					// Then we can use the pointer member of the object to determine the s-expression.
 					InterfacePointer p = InterfacePointer(sfItem);
-					auto* object = InterfaceToInstance(InterfacePointer(sfItem));
+					auto* object = InterfaceToInstance(p);
 					auto* objWithHandle = (ObjectStubWithHandle*)object;
 					const ISExpression* s = (const ISExpression*)objWithHandle->handle;
 					if (object->Desc->TypeInfo == ss.GetExpressionType() && s)
@@ -545,6 +545,9 @@ namespace Rococo
 
 		void OnListMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const ListImage* l, const uint8* sfItem, int offset, int recurseDepth) override
 		{
+			UNUSED(recurseDepth);
+			UNUSED(ss);
+
 			index++;
 
 			char name[256];
@@ -580,6 +583,11 @@ namespace Rococo
 
 		void OnMapMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const MapImage* m, const uint8* sfItem, int offset, int recurseDepth) override
 		{
+			UNUSED(offset);
+			UNUSED(recurseDepth);
+			UNUSED(sfItem);
+			UNUSED(ss);
+
 			index++;
 
 			char name[256];
@@ -612,10 +620,10 @@ namespace Rococo
 			SafeFormat(mapInfo, "Address %p", m);
 			tree->AddChild(node, mapInfo, CheckState_NoCheckBox);
 
-			int index = -1;
+			int i = -1;
 			for (auto* p = m->Head; p != nullptr; p = p->Next)
 			{
-				index++;
+				i++;
 
 				auto* keyType = m->KeyType;
 				if (keyType && keyType->InterfaceCount() == 1 && IsIString(keyType->GetInterface(0)))
@@ -624,7 +632,7 @@ namespace Rococo
 					if (s != nullptr)
 					{
 						auto* value = Rococo::Script::GetValuePointer(p);
-						SafeFormat(mapInfo, "[%d] '%s' -> %p", index, s->buffer ? s->buffer : "<null>", value);
+						SafeFormat(mapInfo, "[%d] '%s' -> %p", i, s->buffer ? s->buffer : "<null>", value);
 						tree->AddChild(node, mapInfo, CheckState_NoCheckBox);
 					}
 				}
@@ -633,6 +641,11 @@ namespace Rococo
 
 		void OnArrayMember(IPublicScriptSystem& ss, cstr childName, const Rococo::Compiler::IMember& member, const struct ArrayImage* array, const uint8* sfItem, int offset, int recurseDepth) override
 		{
+			UNUSED(recurseDepth);
+			UNUSED(offset);
+			UNUSED(sfItem);
+			UNUSED(ss);
+
 			index++;
 
 			char name[256];
@@ -705,8 +718,10 @@ namespace Rococo
 
 	struct VariableEnumeratorPopulator : public IVariableEnumeratorCallback
 	{
-		virtual void OnVariable(size_t index, const VariableDesc& v, const MemberDef& def)
+		void OnVariable(size_t index, const VariableDesc& v, const MemberDef& def) override
 		{
+			UNUSED(index);
+
 			if (AreEqual(v.Location, "CPU"))
 			{
 				return;
@@ -738,9 +753,10 @@ namespace Rococo
 				addMember.instance = v.instance;
 
 				InterfacePointer pInterf = (InterfacePointer)(v.instance);
+				UNUSED(pInterf);
 				if (v.s) GetMembers(*ss, *v.s, v.parentName, v.instance, 0, addMember, 1);
 			}
-				CATCH_PROTECTED
+			CATCH_PROTECTED
 			{
 
 			}
@@ -757,6 +773,7 @@ namespace Rococo
 	void PopulateMemberTree(Visitors::IUITree& tree, IPublicScriptSystem& ss, int depth)
 	{
 		auto& vm = ss.PublicProgramObject().VirtualMachine();
+		UNUSED(vm);
 
 		const Rococo::uint8* sf = nullptr;
 		const Rococo::uint8* pc = nullptr;
@@ -813,6 +830,7 @@ namespace Rococo
 			void Populate(Visitors::IUIList& list) override
 			{
 				auto& vm = ss->PublicProgramObject().VirtualMachine();
+				UNUSED(vm);
 
 				const Rococo::uint8* sf = nullptr;
 				const Rococo::uint8* pc = nullptr;
@@ -837,6 +855,7 @@ namespace Rococo
 	void PopulateVariableList(Visitors::IUIList& list, IPublicScriptSystem& ss, int depth)
 	{
 		auto& vm = ss.PublicProgramObject().VirtualMachine();
+		UNUSED(vm);
 
 		const Rococo::uint8* sf = nullptr;
 		const Rococo::uint8* pc = nullptr;
@@ -851,8 +870,11 @@ namespace Rococo
 
 		struct ANON : public IVariableEnumeratorCallback
 		{
-			virtual void OnVariable(size_t index, const VariableDesc& v, const MemberDef& def)
+			void OnVariable(size_t index, const VariableDesc& v, const MemberDef& def) override
 			{
+				UNUSED(def);
+				UNUSED(index);
+
 				char offset[32];
 				SafeFormat(offset, sizeof(offset), "%d", v.Address);
 				char descAddress[256];
@@ -965,7 +987,6 @@ namespace Rococo
 							s = s->GetOriginal();
 						}
 
-						auto& origin = s->Tree().Source().Origin();
 						auto p0 = s->Start() - Vec2i{ 1,0 };
 						auto p1 = s->End() - Vec2i{ 1,0 };
 						debugger.SetCodeHilight(s->Tree().Source().Name(), p0, p1, "!");
@@ -1491,6 +1512,8 @@ namespace Rococo
 
 	SCRIPTEXPORT_API void ExecuteFunctionUntilYield(ID_BYTECODE bytecodeId, Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
+		// N.B this is used by domme.cpp. Too busy to check right now, but its odd that bytecodeId is ignored.
+		UNUSED(bytecodeId);
 		auto& vm = ss.PublicProgramObject().VirtualMachine();
 		ExecuteUntilYield(vm, ss, debugger, trace);
 	};
@@ -1541,7 +1564,7 @@ namespace Rococo
 	SCRIPTEXPORT_API int ExecuteSexyScript(ScriptPerformanceStats& stats, ISParserTree& mainModule, IDebuggerWindow& debugger, Script::IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, int32 param, IScriptCompilationEventHandler& onCompile, bool trace, StringBuilder* declarationBuilder)
 	{
 		Time::ticks start = Time::TickCount();
-		InitSexyScript(mainModule, debugger, ss, sources, implicitIncludes, onCompile, declarationBuilder);
+		InitSexyScript(mainModule, ss, sources, implicitIncludes, onCompile, declarationBuilder);
 
 		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
 		if (ns == nullptr)
