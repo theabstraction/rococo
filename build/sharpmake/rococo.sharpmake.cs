@@ -1441,6 +1441,10 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.SolutionFolder = SolutionFolders.CFGS;
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
+
+            // Annoyingly Sharpmake replaced the outdir directive, rather than letting Visual studio handle it as a macro. Too busy to fix this  - TODO - fix this.
+            conf.VcxprojUserFile.LocalDebuggerCommandArguments = "-controller:$(OutDirFullPath)cfgs.host.dll -view:$(OutDirFullPath)rococo.abstract.editor.dll";
         }
     }
 
