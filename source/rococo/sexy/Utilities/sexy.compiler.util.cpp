@@ -35,7 +35,7 @@
 #include <sexy.strings.h>
 #include <sexy.stdstrings.h>
 #include <sexy.compiler.public.h>
-#include "Sexy.Compiler.h"
+#include <Sexy.Compiler.h>
 #include <sexy.debug.types.h>
 #include <sexy.vm.cpu.h>
 
