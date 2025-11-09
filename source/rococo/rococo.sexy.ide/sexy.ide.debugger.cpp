@@ -1271,12 +1271,12 @@ namespace
 
 namespace Rococo::Windows::IDE
 {
-    IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation)
+	SEXYIDE_API IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation)
     {
 		return TabbedDebuggerWindowHandler::Create(parent, installation, appControl);
     }
 
-	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data)
+	SEXYIDE_API IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data)
 	{
 		return new DebuggerEventHandler(installation, data);
 	}

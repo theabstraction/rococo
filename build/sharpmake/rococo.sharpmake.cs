@@ -1049,6 +1049,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.Defines.Add("SEXYIDE_API="); 
         }
     }
 
@@ -1070,6 +1071,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             ImportSexyScriptProject(conf,target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
+            conf.Defines.Add("SEXYIDE_API=");
         }
     }
 
@@ -1277,6 +1279,7 @@ namespace Rococo
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
+            conf.Defines.Add("SEXYIDE_API=");
             AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
         }
     }
@@ -1309,6 +1312,7 @@ namespace Rococo
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
+            conf.Defines.Add("SEXYIDE_API=");
         }
     }
 
@@ -1981,6 +1985,7 @@ namespace Rococo
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189", "4244"));
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllexport)");
+            conf.Defines.Add("SEXYIDE_API=");
             conf.SolutionFolder = " - Sexy";
 
             string flags = "/i  /y  /d  /q";

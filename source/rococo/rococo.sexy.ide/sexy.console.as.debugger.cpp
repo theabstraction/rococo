@@ -283,18 +283,18 @@ struct ConsoleAsDebuggerWindow: public Rococo::IDebuggerWindow
 
 namespace Rococo::Windows::IDE
 {
-	IDebuggerWindow* GetConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& formatter, Strings::IColourOutputControl& control)
+	SEXYIDE_API IDebuggerWindow* GetConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& formatter, Strings::IColourOutputControl& control)
 	{
 		return new ConsoleAsDebuggerWindow(formatter, control);
 	}
 
-	Strings::IColourOutputControl& GetConsoleColourController()
+	SEXYIDE_API Strings::IColourOutputControl& GetConsoleColourController()
 	{
 		static ConsoleColourController controller;
 		return controller;
 	}
 
-	Strings::IVarArgStringFormatter& GetStdoutFormatter()
+	SEXYIDE_API Strings::IVarArgStringFormatter& GetStdoutFormatter()
 	{
 		static StdoutFormatter formatter;
 		return formatter;

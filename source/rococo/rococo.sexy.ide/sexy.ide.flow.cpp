@@ -405,7 +405,7 @@ namespace Rococo
 				return 0;
 			}
 
-			IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler)
+			SEXYIDE_API IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler)
 			{
 				return new PersistentScript(maxBytes, factory, sources, implicitIncludes, debugger, resourcePath, onCompile, exceptionHandler);
 			}

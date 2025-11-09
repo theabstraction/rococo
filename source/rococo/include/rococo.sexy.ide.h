@@ -5,6 +5,10 @@
 #include <rococo.api.h>
 #include <rococo.sexy.api.h>
 
+#ifndef SEXYIDE_API
+# error first define SEXYIDE_API
+#endif
+
 namespace Rococo
 {
 	struct MenuCommand;
@@ -84,12 +88,12 @@ namespace Rococo
 				char filename[256];
 			};
 
-			IDebuggerWindow* GetConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& formatter, Strings::IColourOutputControl& control);
-			Strings::IColourOutputControl& GetConsoleColourController();
-			Strings::IVarArgStringFormatter& GetStdoutFormatter();
-			IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation);
-			IPersistentScript* CreatePersistentScript(size_t maxBytes, Rococo::Script::IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler);
-			int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, Script::IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, int32 param, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace, Strings::StringBuilder* declarationBuilder);
+			SEXYIDE_API IDebuggerWindow* GetConsoleAsDebuggerWindow(Strings::IVarArgStringFormatter& formatter, Strings::IColourOutputControl& control);
+			SEXYIDE_API Strings::IColourOutputControl& GetConsoleColourController();
+			SEXYIDE_API Strings::IVarArgStringFormatter& GetStdoutFormatter();
+			SEXYIDE_API IDebuggerWindow* CreateDebuggerWindow(Windows::IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation);
+			SEXYIDE_API IPersistentScript* CreatePersistentScript(size_t maxBytes, Rococo::Script::IScriptSystemFactory& factory, ISourceCache& sources, IDebuggerWindow& debugger, cstr resourcePath, int32 maxScriptSizeBytes, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler);
+			SEXYIDE_API int32 ExecuteSexyScriptLoop(ScriptPerformanceStats& stats, size_t maxBytes, Script::IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, int32 param, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler, OS::IAppControl& appControl, bool trace, Strings::StringBuilder* declarationBuilder);
 		}
 	}
 }

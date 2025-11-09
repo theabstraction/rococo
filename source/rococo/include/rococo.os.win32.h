@@ -15,10 +15,20 @@ namespace Windows
 {
 	MINIMAL_WINDOWS_API DWORD GetLastError();
 	inline bool IsNull(HANDLE handle) { return handle == nullptr; }
+    MINIMAL_WINDOWS_API HWND GetActiveWindow();
+
+    enum EAncestor
+    {
+        GA_PARENT = 1,
+        GA_ROOT,
+        GA_ROOTOWNER
+    };
+
+    MINIMAL_WINDOWS_API HWND GetAncestor(HWND hwnd, UINT gaFlags);
 }
 
 #else
-# include <rococo.os.win32.mswindow.h>
+# include "rococo.os.win32.mswindow.h"
 
 namespace MSWindows
 {

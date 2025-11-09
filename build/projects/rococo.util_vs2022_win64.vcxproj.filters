@@ -24,6 +24,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.util\rococo.char16.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.util\rococo.os.win32.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.util\rococo.os.win32.strings.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.util\xxhash.hpp" />
   </ItemGroup>
   <ItemGroup>
