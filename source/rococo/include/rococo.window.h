@@ -92,6 +92,7 @@ namespace Rococo
 		ROCOCO_WINDOWS_API IWindow& NullParent();
 
 		ROCOCO_WINDOWS_API HFONT GetControlFont();
+		ROCOCO_WINDOWS_API HFONT GetTitleFont();
 
 		ROCOCO_INTERFACE ICommandTarget
 		{

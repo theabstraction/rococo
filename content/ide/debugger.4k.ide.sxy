@@ -1,7 +1,8 @@
 (child 
   (Version int32 0x1002)
   (FontFamily string "Courier New")
-  (FontHeight int32 0xFFFFFFF5)
+  (FontHeight int32 0xFFFFFFEE)
+  (DarkMode int32 1)
 )
 (child 
   (splitPosition int32 0x459)

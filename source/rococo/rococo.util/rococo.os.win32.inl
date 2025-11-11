@@ -1254,6 +1254,28 @@ namespace Rococo::OS
 	}
 } // Rococo::OS
 
+namespace Rococo::IO
+{
+	WideFilePath contentDirectoryOverride;
+
+	ROCOCO_API void SetContentDirectoryOverride(crwstr directory)
+	{
+		if (directory == nullptr)
+		{
+			Throw(0, "SetContentDirectoryOverride: null argument");
+		}
+
+		if (!IO::IsDirectory(directory))
+		{
+			Throw(0, "No such content directory: %ls", directory);
+		}
+
+		Format(contentDirectoryOverride, L"%ls", directory);
+
+		IO::EndDirectoryWithSlash(contentDirectoryOverride.buf, WideFilePath::CAPACITY);
+	}
+}
+
 namespace Rococo
 {
 	ROCOCO_API MemoryUsage ProcessMemory()
@@ -1286,7 +1308,15 @@ namespace WIN32_ANON
 	public:
 		Installation(crwstr contentIndicatorName, IOS& _os) : os(_os)
 		{
-			GetContentDirectory(contentIndicatorName, contentDirectory, os);
+			if (*IO::contentDirectoryOverride.buf == 0)
+			{
+				GetContentDirectory(contentIndicatorName, contentDirectory, os);
+			}
+			else
+			{
+				contentDirectory = IO::contentDirectoryOverride;
+			}
+
 			len = (int32)wcslen(contentDirectory);
 
 			if (!IO::IsDirectory(contentDirectory))

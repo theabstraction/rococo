@@ -304,13 +304,13 @@ namespace
       {
       }
 
-      virtual void OnSize(HWND, const Vec2i& span, RESIZE_TYPE)
+      void OnSize(HWND, const Vec2i& span, RESIZE_TYPE) override
       {
           UNUSED(span);
          LayoutChildren();
       }
 
-      LRESULT OnSetCursor(HWND, WPARAM, LPARAM)
+      LRESULT OnSetCursor(HWND, WPARAM, LPARAM) override
       {
          SetCursor(LoadCursor(nullptr, IDC_HAND));
          return TRUE;
@@ -337,12 +337,12 @@ namespace
          delete this;
       }
 
-      virtual IWindow& GetWindow()
+      IWindow& GetWindow()
       {
          return *window;
       }
 
-      virtual Windows::IWindow& IDEHandle()
+      Windows::IWindow& IDEHandle()
       {
          return *window;
       }
@@ -369,7 +369,7 @@ namespace
 
       void SetFont(HFONT hFont) override
       {
-         SendMessage(*window, WM_SETFONT, (WPARAM)hFont, TRUE);
+         SendMessageA(*window, WM_SETFONT, (WPARAM)hFont, TRUE);
       }
 
       void PostConstruct(IWindow* parent)
@@ -1167,7 +1167,7 @@ namespace
          }
       }
 
-      virtual void Save(const LOGFONTW& logFont, int32 version, bool darkMode)
+      void Save(const LOGFONTW& logFont, int32 version, bool darkMode) override
       {
          IDEWriterViaSexy writer;
 
@@ -1861,6 +1861,12 @@ namespace
       cr_sex sdarkmode = sheader[4];
 
       LOGFONTW blank = { 0 };
+      blank.lfWeight = FW_NORMAL;
+      blank.lfCharSet = ANSI_CHARSET;
+      blank.lfOutPrecision = OUT_DEFAULT_PRECIS;
+      blank.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+      blank.lfQuality = CLEARTYPE_QUALITY;
+      blank.lfPitchAndFamily = DEFAULT_PITCH;
       logFont = blank;
 
       VariantValue id;
@@ -1885,6 +1891,9 @@ namespace
       VariantValue vvDarkMode;
       Parse::TryParse(vvDarkMode, SexyVarType_Int32, GetAtomicArg(sdarkmode, 2).c_str());
       isDarkMode = vvDarkMode.int32Value == 1;
+
+      cstr fontFamily = sfont[2].c_str();
+      SecureFormat(logFont.lfFaceName, L"%hs", fontFamily);
    }
 
    ISpatialManager* _LoadSpatialManager(IWindow& parent, REF LOGFONTW& logFont, OUT bool& isDarkMode, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)

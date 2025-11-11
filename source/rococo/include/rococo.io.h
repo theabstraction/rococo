@@ -393,6 +393,8 @@ namespace Rococo::IO
 		virtual IOS& OS() = 0;
 	};
 
+	ROCOCO_API void SetContentDirectoryOverride(crwstr directory);
+
 	ROCOCO_INTERFACE IInstallationSupervisor : public IInstallation
 	{
 		virtual void Free() = 0;

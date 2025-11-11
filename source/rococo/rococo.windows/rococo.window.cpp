@@ -64,6 +64,11 @@ namespace Rococo
 			SendMessage(hTitleBar, WM_SETFONT, (WPARAM)hTitleFont, 0);
 		}
 
+		ROCOCO_WINDOWS_API HFONT GetTitleFont()
+		{
+			return hControlFont;
+		}
+
 		IWindow& NullParent()
 		{
 			class NullParentClass : public IWindow
