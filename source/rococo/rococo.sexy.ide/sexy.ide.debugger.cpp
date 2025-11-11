@@ -43,7 +43,7 @@ using namespace Rococo::VM;
 
 namespace Rococo::Windows::IDE
 {
-	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data);
+	SEXYIDE_API IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data);
 }
 
 namespace

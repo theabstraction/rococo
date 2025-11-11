@@ -69,6 +69,7 @@ using namespace Rococo::Strings;
 namespace
 {
 	WideFilePath defaultNativeSourcePath;
+	WideFilePath defaultNativeBinPath;
 
 	// Careful that we had enough buffer space
 	void AddSlashToDirectory(wchar_t* buffer)
@@ -112,6 +113,20 @@ namespace Rococo::Script
 
 		// Terminate with slash
 		AddSlashToDirectory(defaultNativeSourcePath.buf);
+	}
+
+	SCRIPTEXPORT_API void SetDefaultNativeBinPath(crwstr pathname)
+	{
+		if (pathname == nullptr)
+		{
+			defaultNativeBinPath.buf[0] = 0;
+			return;
+		}
+
+		Format(defaultNativeBinPath, L"%ls", pathname);
+
+		// Terminate with slash
+		AddSlashToDirectory(defaultNativeBinPath.buf);
 	}
 
 	ISexyPackagerSupervisor* CreatePackager(IScriptSystem& ss);
@@ -978,17 +993,22 @@ namespace Rococo::Script
 				IO::ToSysPath(srcEnvironment.buf);
 				AddSlashToDirectory(srcEnvironment.buf);
 
-				if (pip.NativeBinPath == nullptr)
+				if (*defaultNativeBinPath != 0)
+				{
+					Format(nativeBinDirectory, L"%ls", defaultNativeBinPath.buf);
+				}
+				else if (pip.NativeBinPath == nullptr)
 				{
 					nativeBinDirectory = srcEnvironment;
 				}
 				else
 				{
 					Format(nativeBinDirectory, L"%ls", pip.NativeBinPath);
-					IO::EndDirectoryWithSlash(nativeBinDirectory.buf, WideFilePath::CAPACITY);
-					IO::ToSysPath(nativeBinDirectory.buf);
-					IO::NormalizePath(nativeBinDirectory);
 				}
+
+				IO::EndDirectoryWithSlash(nativeBinDirectory.buf, WideFilePath::CAPACITY);
+				IO::ToSysPath(nativeBinDirectory.buf);
+				IO::NormalizePath(nativeBinDirectory);
 			}
 			catch (IException& innerEx)
 			{

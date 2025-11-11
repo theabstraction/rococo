@@ -37,4 +37,14 @@ namespace MSWindows
 
 #endif
 
+#ifndef ROCOCO_WINDOWS_API
+# define ROCOCO_WINDOWS_API __declspec(dllimport)
+#endif
+
+namespace Rococo::Windows
+{
+    // WindowsAPI free version of InitRococoWindows. Note, you need to provide HINSTANCE for the app to pInstance
+    ROCOCO_WINDOWS_API void InitRococoWindows(void* pInstance, const char* titleFontFaceName, int titleHeight, const char* controlFontFaceName, int controlFontHeight);
+}
+
 #endif

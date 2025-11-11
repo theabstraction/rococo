@@ -57,7 +57,7 @@ namespace Rococo::Windows
 				{
 					case TVN_SELCHANGED:
 						{
-							LPNMTREEVIEW treeVieww = (LPNMTREEVIEW)header;
+							LPNMTREEVIEWA treeVieww = (LPNMTREEVIEWA)header;
 							auto& i = treeVieww->itemNew;
 							eventHandler.OnItemSelected(ToId(i.hItem), *this);
 						}
@@ -185,6 +185,21 @@ namespace Rococo::Windows
 			return p;
 		}
 
+		BOOL TreeView_GetItemA(OUT TVITEMA* pitem)
+		{
+			return (BOOL)SendMessageA(hTreeWindow, TVM_GETITEMA, 0, (LPARAM)pitem);
+		}
+
+		BOOL TreeView_SetItemA(const TVITEMA* pitem)
+		{
+			return (BOOL)SendMessageA(hTreeWindow, TVM_SETITEMA, 0, (LPARAM)pitem);
+		}
+
+		HTREEITEM TreeView_InsertItemA(LPTV_INSERTSTRUCTA lpis)
+		{
+			return (HTREEITEM)SendMessageA(hTreeWindow, TVM_INSERTITEMA, 0, (LPARAM)(LPTV_INSERTSTRUCTA)(lpis));
+		}
+   
 		~TreeControlSupervisor()
 		{
 			Rococo::Free(containerWindow);
@@ -238,7 +253,7 @@ namespace Rococo::Windows
 				CHAR buf[MAX_PATH];
 				item.cchTextMax = MAX_PATH;
 				item.pszText = buf;
-				TreeView_GetItem(hTreeWindow, &item);
+				TreeView_GetItemA(&item);
 
 				if (withText == nullptr || Eq(buf, withText))
 				{
@@ -270,7 +285,7 @@ namespace Rococo::Windows
 				CHAR buf[MAX_PATH];
 				item.cchTextMax = MAX_PATH;
 				item.pszText = buf;
-				TreeView_GetItem(hTreeWindow, &item);
+				TreeView_GetItemA(&item);
 
 				if (withText == nullptr || Eq(buf, withText))
 				{
@@ -298,14 +313,14 @@ namespace Rococo::Windows
 
 			z.itemex.cchTextMax = (int)len;
 
-			TREE_NODE_ID id = ToId(TreeView_InsertItem(hTreeWindow, &z));
+			TREE_NODE_ID id = ToId(TreeView_InsertItemA(&z));
 
-			TVITEMEX y = { 0 };
+			TVITEMEXA y = { 0 };
 			y.mask = TVIF_STATE | TVIF_HANDLE;
 			y.stateMask = TVIS_STATEIMAGEMASK;
 			y.state = INDEXTOSTATEIMAGEMASK(state);
 			y.hItem = ToHTree(id);
-			BOOL isOK = TreeView_SetItem(hTreeWindow, &y);
+			BOOL isOK = TreeView_SetItemA((const TVITEMA*) & y);
 			if (!isOK) Throw(GetLastError(), "TreeView_SetItem (TEXT/STATE) failed");
 
 			return id;
@@ -335,11 +350,11 @@ namespace Rococo::Windows
 
 		void SetId(TREE_NODE_ID nodeId, int64 id) override
 		{
-			TVITEMEX item = { 0 };
+			TVITEMEXA item = { 0 };
 			item.mask = TVIF_PARAM;
 			item.hItem = ToHTree(nodeId);
 			item.lParam = (int64)id;
-			if (!TreeView_SetItem(hTreeWindow, &item))
+			if (!TreeView_SetItemA((const TVITEMA*) & item))
 			{
 				Throw(GetLastError(), "TreeView_SetItem (LPARAM) failed");
 			}
@@ -362,14 +377,14 @@ namespace Rococo::Windows
 
 			z.itemex.cchTextMax = (int)len;
 			z.itemex.state = INDEXTOSTATEIMAGEMASK(state);
-			TREE_NODE_ID id = ToId(TreeView_InsertItem(hTreeWindow, &z));
+			TREE_NODE_ID id = ToId(TreeView_InsertItemA(&z));
 
-			TVITEMEX y = { 0 };
+			TVITEMEXA y = { 0 };
 			y.mask = TVIF_STATE | TVIF_HANDLE;
 			y.stateMask = TVIS_STATEIMAGEMASK;
 			y.state = INDEXTOSTATEIMAGEMASK(state);
 			y.hItem = ToHTree(id);
-			BOOL isOK = TreeView_SetItem(hTreeWindow, &y);
+			BOOL isOK = TreeView_SetItemA((const TVITEMA*) &y);
 			if (!isOK) Throw(GetLastError(), "AddRootItem failed");
 			return id;
 		}
@@ -388,7 +403,7 @@ namespace Rococo::Windows
 			y.hItem = ToHTree(nodeId);
 			y.pszText = (char*) text;
 
-			TreeView_SetItem(hTreeWindow, &y);
+			TreeView_SetItemA((const TVITEMA*) & y);
 		}
 
 		void ScrollTo(TREE_NODE_ID nodeId) override
@@ -406,7 +421,7 @@ namespace Rococo::Windows
 			y.pszText = buffer;
 			y.cchTextMax = (int)sizeofBuffer;
 
-			return TreeView_GetItem(hTreeWindow, &y) ? true : false;
+			return TreeView_GetItemA((TVITEMA*) &y) ? true : false;
 		}
 
 		IWindowHandler& Handler() override

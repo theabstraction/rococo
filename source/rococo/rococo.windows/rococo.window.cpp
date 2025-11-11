@@ -184,6 +184,19 @@ namespace Rococo
 			atexit(ANON::Cleanup);
 		}
 
+		ROCOCO_WINDOWS_API void InitRococoWindows(void* pInstance, const char* titleFontFaceName, int titleHeight, const char* controlFontFaceName, int controlFontHeight)
+		{
+			LOGFONTA titleFont = { 0 };
+			SafeFormat(titleFont.lfFaceName, sizeof(titleFont.lfFaceName), titleFontFaceName ? titleFontFaceName : "Consolas");
+			titleFont.lfHeight = clamp(titleHeight, 8, 32);
+
+			LOGFONTA controlFont = { 0 };
+			SafeFormat(controlFont.lfFaceName, sizeof(controlFont.lfFaceName), controlFontFaceName ? controlFontFaceName : "Consolas");
+			controlFont.lfHeight = clamp(controlFontHeight, 8, 32);
+
+			InitRococoWindows((HINSTANCE)pInstance, NULL, NULL, &titleFont, &controlFont);
+		}
+
 		void ValidateInit()
 		{
 			/*

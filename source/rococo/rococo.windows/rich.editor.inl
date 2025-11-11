@@ -68,7 +68,7 @@ namespace Rococo::Windows
 
 		void AppendText(COLORREF foreground, COLORREF background, cstr text, size_t nChars) override
 		{
-			CHARFORMAT2 c;
+			CHARFORMAT2A c;
 			memset(&c, 0, sizeof(c));
 			c.cbSize = sizeof(c);
 			c.dwMask = CFM_COLOR | CFM_BACKCOLOR;
@@ -95,28 +95,28 @@ namespace Rococo::Windows
 				source += delta;
 				len -= delta;
 
-				SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);
+				SendMessageA(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr);
 
 				CHARRANGE rangeBeforeAppend;
 				rangeBeforeAppend.cpMin = -1; // This will give the starting character for the range of added characters
 				rangeBeforeAppend.cpMax = -1;
-				SendMessage(hWndEditor, EM_GETSEL, (WPARAM)&rangeBeforeAppend.cpMin, (LPARAM)&rangeBeforeAppend.cpMax);
+				SendMessageA(hWndEditor, EM_GETSEL, (WPARAM)&rangeBeforeAppend.cpMin, (LPARAM)&rangeBeforeAppend.cpMax);
 
-				SendMessage(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
+				SendMessageA(hWndEditor, EM_REPLACESEL, 0, (LPARAM)segmentBuffer);
 				
 				CHARRANGE rangeAfterAppend;
 				rangeAfterAppend.cpMin = -1;
 				rangeAfterAppend.cpMax = -1; // This will give the end character positiion for the range of added characters
-				SendMessage(hWndEditor, EM_GETSEL, (WPARAM) &rangeAfterAppend.cpMin, (LPARAM) &rangeAfterAppend.cpMax);
+				SendMessageA(hWndEditor, EM_GETSEL, (WPARAM) &rangeAfterAppend.cpMin, (LPARAM) &rangeAfterAppend.cpMax);
 
 				// Select everything we just added
 				CHARRANGE cr4;
 				cr4.cpMin = rangeBeforeAppend.cpMin;
 				cr4.cpMax = rangeAfterAppend.cpMax;
-				SendMessage(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr4);
+				SendMessageA(hWndEditor, EM_EXSETSEL, 0, (LPARAM)&cr4);
 
 				// Then assign the colours
-				SendMessage(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
+				SendMessageA(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
 			}
 		}
 

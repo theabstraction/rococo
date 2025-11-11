@@ -220,7 +220,8 @@ namespace Rococo::Windows
 				item.mask = LVCF_TEXT | LVCF_WIDTH;
 				item.pszText = (char*)*col;
 				item.cx = widths[index];
-				if (-1 == ListView_InsertColumn(hWndListView, 10000, &item))
+
+				if (-1 == (int)SendMessage(hWndListView, LVM_INSERTCOLUMNA, (WPARAM)(int)(10000), (LPARAM)(const LV_COLUMNA*)(&item)))
 				{
 					Throw(0, "Error inserting item into a ListView header");
 				}
