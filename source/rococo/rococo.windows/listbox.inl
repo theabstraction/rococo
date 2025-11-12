@@ -20,6 +20,12 @@ namespace Rococo::Windows
 		{
 			switch (uMsg)
 			{
+			case WM_UPDATE_TITLE:
+				if (hTitle)
+				{
+					SendMessageA(hTitle, WM_SETFONT, (WPARAM) (HFONT) lParam, 0);
+				}
+				return 0L;
 			case WM_SIZE:
 				return OnSize(hWnd, wParam, lParam);
 			case WM_DRAWITEM:

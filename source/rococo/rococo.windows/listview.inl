@@ -21,6 +21,12 @@ namespace Rococo::Windows
 		{
 			switch (uMsg)
 			{
+			case WM_UPDATE_TITLE:
+				if (hTitle)
+				{
+					SendMessageA(hTitle, WM_SETFONT, (WPARAM)(HFONT)lParam, 0);
+				}
+				return 0L;
 			case LVM_GETBKCOLOR:
 				return ToCOLORREF(scheme.backColour);
 			case WM_ERASEBKGND:
@@ -167,7 +173,7 @@ namespace Rococo::Windows
 
 		int ListView_InsertItemA(HWND hWnd, const LV_ITEMA* pItem)
 		{
-			return SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)pItem);
+			return (int) SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)pItem);
 		}
    
 		void AddRow(cstr values[]) override

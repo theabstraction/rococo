@@ -64,6 +64,13 @@ namespace Rococo
 			SendMessage(hTitleBar, WM_SETFONT, (WPARAM)hTitleFont, 0);
 		}
 
+		void SetTitleFont(const LOGFONTW& logFont)
+		{
+			HFONT hOldFont = hTitleFont;
+			hTitleFont = CreateFontIndirectW(&logFont);
+			DeleteObject(hOldFont);
+		}
+
 		ROCOCO_WINDOWS_API HFONT GetTitleFont()
 		{
 			return hControlFont;

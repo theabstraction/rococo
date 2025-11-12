@@ -24,7 +24,6 @@
 #include <rococo.visitors.h>
 #include <commctrl.h>
 
-#include <string>
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
@@ -87,6 +86,7 @@ namespace
 		MENU_SPACER = 0,
 		MENU_SYS_EXIT = 1000,
 		MENU_SYSFONT,
+		MENU_TITLEFONT,
 		MENU_SYSRESET,
 		MENU_SYS_LOADLAYOUT,
 		MENU_SYS_LOAD4KLAYOUT,
@@ -101,12 +101,12 @@ namespace
 
 	BOOL ListView_GetItemA(HWND hWnd, LV_ITEMA* item)
 	{
-		return SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM) item);
+		return (BOOL) SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM) item);
 	}
 
 	BOOL ListView_GetColumnA(HWND hwnd, int iCol, LV_COLUMNA* pcol)
 	{
-		return SendMessageA(hwnd, LVM_GETCOLUMNA, (WPARAM)iCol, (LPARAM)pcol);
+		return (BOOL) SendMessageA(hwnd, LVM_GETCOLUMNA, (WPARAM)iCol, (LPARAM)pcol);
 	}
 
 	NOT_INLINE void LV_DrawItem(const ColourScheme& scheme, DRAWITEMSTRUCT& d)
@@ -270,7 +270,10 @@ namespace
 		IDEPANE_ID migratingId;
 
 		LOGFONTW logFont;
+		LOGFONTW headerLogFont;
+
 		AutoFont schemeFont;
+		AutoFont headerFont;
 
 		int32 requiredDepth; // Function to view according to stack depth 
 
@@ -362,7 +365,10 @@ namespace
 			auto& sysMenu = mainMenu->AddPopup("&Sys");
 			auto& sysDebug = mainMenu->AddPopup("&Debug");
 
-			sysMenu.AddString("&Font...", MENU_SYSFONT);
+			auto& fontMenu = sysMenu.AddPopup("&Fonts...");
+			fontMenu.AddString("&Data Font...", MENU_SYSFONT);
+			fontMenu.AddString("&Header Font...", MENU_TITLEFONT);
+
 			sysMenu.AddString("&Reset UI", MENU_SYSRESET);
 			sysMenu.AddString("&Load layout", MENU_SYS_LOADLAYOUT);
 
@@ -396,6 +402,8 @@ namespace
 			logFont.lfQuality = CLEARTYPE_QUALITY;
 			logFont.lfPitchAndFamily = DEFAULT_PITCH;
 
+			headerLogFont = logFont;
+
 			schemeFont.SetFont(logFont);
 			if (!schemeFont)
 			{
@@ -403,14 +411,37 @@ namespace
 			}
 		}
 
-		void OnChooseFont()
+		void OnChooseDataFont()
 		{
 			LOGFONTW output;
+			output.lfHeight = logFont.lfHeight;
 			if (OpenChooseFontBox(*dialog, output))
 			{
 				schemeFont.SetFont(output);
 				logFont = output;
 				spatialManager->SetFontRecursive(schemeFont());
+			}
+		}
+
+		static BOOL UpdateTitleOnAllDescendants(HWND hChild, HFONT hFont)
+		{
+			SendMessageA(hChild, WM_UPDATE_TITLE, 0, (LPARAM) hFont);
+			EnumChildWindows(hChild, (WNDENUMPROC) UpdateTitleOnAllDescendants, (LPARAM) hFont);
+			return TRUE;
+		}
+
+		void OnChooseTitleFont()
+		{
+			LOGFONTW output;
+			output.lfHeight = -18;
+			if (OpenChooseFontBox(*dialog, output))
+			{
+				headerLogFont = output;
+			}
+
+			if (spatialManager)
+			{
+				UpdateTitleOnAllDescendants(*spatialManager, 0);
 			}
 		}
 
@@ -428,7 +459,9 @@ namespace
 			{
 				spatialManager->Free();
 				IO::DeleteUserFile("debugger.ide.sxy");
-				spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
+
+				HString err;
+				spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT headerLogFont, OUT darkMode, "debugger", OUT err);
 
 				memset(&logFont, 0, sizeof logFont);
 				logFont.lfWeight = FW_NORMAL;
@@ -439,6 +472,11 @@ namespace
 				logFont.lfPitchAndFamily = DEFAULT_PITCH;
 				SecureFormat(logFont.lfFaceName, L"Courier New");
 				logFont.lfHeight = -18;
+
+				headerLogFont = logFont;
+				headerFont.SetFont(headerLogFont);
+
+				UpdateTitleOnAllDescendants(*spatialManager, headerFont());
 
 				schemeFont.SetFont(logFont);
 
@@ -490,7 +528,10 @@ namespace
 				appControl.ShutdownApp();
 				break;
 			case MENU_SYSFONT:
-				OnChooseFont();
+				OnChooseDataFont();
+				break;
+			case MENU_TITLEFONT:
+				OnChooseTitleFont();
 				break;
 			case MENU_SYSRESET:
 				ResetUI();
@@ -600,9 +641,19 @@ namespace
 			config.top = workArea.y / 10;
 			dialog = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
+			HString err;
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT headerLogFont, OUT darkMode, "debugger", OUT err);
+
+			if (err.length() > 0)
+			{
+				this->logSegments.push_back(ColouredTextSegment{ RGBAb(255,255,255), err });
+			}
 		
 			LayoutChildren();
+
+			headerFont.SetFont(headerLogFont);
+
+			UpdateTitleOnAllDescendants(*spatialManager, headerFont());
 
 			schemeFont.SetFont(logFont);
 			spatialManager->SetFontRecursive(schemeFont());
@@ -732,7 +783,7 @@ namespace
 				report->SetFont(schemeFont());
 				for (const auto& segment : logSegments)
 				{
-					report->AddSegment(true, segment.colour, segment.text.c_str(), segment.text.size(), RGBAb(255, 255, 255));
+					report->AddSegment(true, segment.colour, segment.text.c_str(), segment.text.length(), RGBAb(255, 255, 255));
 				}
 				return report;
 			}
@@ -743,8 +794,8 @@ namespace
 
 		struct Hilight
 		{
-			std::string source;
-			std::string toolTip;
+			HString source;
+			HString toolTip;
 			Vec2i start;
 			Vec2i end;
 		} hilight;
@@ -801,7 +852,7 @@ namespace
 		struct ColouredTextSegment
 		{
 			RGBAb colour;
-			std::string text;
+			HString text;
 		};
 
 		std::vector<ColouredTextSegment> logSegments;
@@ -1197,7 +1248,14 @@ namespace
 		{
 			spatialManager->Free();
 			spatialManager = nullptr;
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, path);
+
+			HString err;
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT headerLogFont, OUT darkMode, path, OUT err);
+
+			headerFont.SetFont(headerLogFont);
+
+			UpdateTitleOnAllDescendants(*spatialManager, headerFont());
+
 			schemeFont.SetFont(logFont);
 			LayoutChildren();
 			spatialManager->SetFontRecursive(schemeFont());
@@ -1216,7 +1274,7 @@ namespace
 
 		void Save()
 		{
-			spatialManager->Save(logFont, IDE_FILE_VERSION, darkMode);
+			spatialManager->Save(logFont, headerLogFont, IDE_FILE_VERSION, darkMode);
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override

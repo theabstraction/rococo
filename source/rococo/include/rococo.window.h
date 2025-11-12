@@ -78,8 +78,14 @@ namespace Rococo
 
 		ROCOCO_WINDOWS_API void ShowExceptionDialog(const ExceptionDialogSpec& spec, HWND parent, IException& ex);
 
-		ROCOCO_WINDOWS_API void SetControlFont(HWND hControlWindow); // Sets the font of the window to the default control font specified in InitRococoWindows
-		ROCOCO_WINDOWS_API void SetTitleFont(HWND hTitleBar);  // Sets the font of the window to the default title font specified in InitRococoWindows
+		// Sets the font of the window to the default control font specified in InitRococoWindows
+		ROCOCO_WINDOWS_API void SetControlFont(HWND hControlWindow);
+
+		// Sets the font of the window to the default title font specified in InitRococoWindows
+		ROCOCO_WINDOWS_API void SetTitleFont(HWND hTitleBar);
+
+		// Sets the title font from the logFont specification
+		ROCOCO_WINDOWS_API void SetTitleFont(const LOGFONTW& logFont);
 
 		ROCOCO_INTERFACE IWin32Menu: IMenuBuilder
 		{
@@ -93,6 +99,8 @@ namespace Rococo
 
 		ROCOCO_WINDOWS_API HFONT GetControlFont();
 		ROCOCO_WINDOWS_API HFONT GetTitleFont();
+
+		enum { WM_UPDATE_TITLE = 0xBEEF };
 
 		ROCOCO_INTERFACE ICommandTarget
 		{
@@ -458,7 +466,7 @@ namespace Rococo
 			   virtual void Free() = 0;
 			   virtual void SetColourSchemeRecursive(const ColourScheme& scheme) = 0;
 			   virtual void SetFontRecursive(HFONT hFont) = 0;
-			   virtual void Save(const LOGFONTW& logFont, int32 version, bool darkMode) = 0;
+			   virtual void Save(const LOGFONTW& logFont, const LOGFONTW& headerLogFont, int32 version, bool darkMode) = 0;
 			};
 
 			ROCOCO_INTERFACE IPaneDatabase
@@ -491,7 +499,7 @@ namespace Rococo
 			ROCOCO_WINDOWS_API IIDETextWindow* CreateTextWindow(IWindow& parent, bool isSourceCode = false);
 			ROCOCO_WINDOWS_API IIDETreeWindow* CreateTreeView(IWindow& parent, Visitors::ITreeControlHandler* handler);
 			ROCOCO_WINDOWS_API IIDEReportWindow* CreateReportView(IWindow& parent, IListViewEvents& eventHandler, bool ownerDraw);
-			ROCOCO_WINDOWS_API ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, OUT LOGFONTW& logFont, OUT bool& isDarkMode, cstr file_prefix);
+			ROCOCO_WINDOWS_API ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, OUT LOGFONTW& logFont, OUT LOGFONTW& headerFont, OUT bool& isDarkMode, cstr file_prefix, OUT Rococo::Strings::HString& err);
 		}
 
 		ROCOCO_INTERFACE ISuperListEvents

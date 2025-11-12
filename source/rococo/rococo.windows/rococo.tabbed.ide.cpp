@@ -1167,7 +1167,7 @@ namespace
          }
       }
 
-      void Save(const LOGFONTW& logFont, int32 version, bool darkMode) override
+      void Save(const LOGFONTW& logFont, const LOGFONTW& headerLogFont, int32 version, bool darkMode) override
       {
          IDEWriterViaSexy writer;
 
@@ -1176,6 +1176,8 @@ namespace
             writer.WriteText("FontFamily", logFont.lfFaceName);
             writer.WriteInt("FontHeight", logFont.lfHeight);
             writer.WriteInt("DarkMode", darkMode ? 1 : 0);
+            writer.WriteText("HeaderFontFamily", headerLogFont.lfFaceName);
+            writer.WriteInt("HeaderFontHeight", headerLogFont.lfHeight);
          writer.PopChild();
 
          writer.PushChild();
@@ -1846,19 +1848,21 @@ namespace
       LayoutChildren();
    }
 
-   void LoadHeader(cr_sex sheader, UINT versionId, OUT LOGFONTW& logFont, OUT bool& isDarkMode)
+   void LoadHeader(cr_sex sheader, UINT versionId, OUT LOGFONTW& logFont, OUT LOGFONTW& logHeaderFont, OUT bool& isDarkMode)
    {
        // Todo - replace this with SEXML to eliminate the error handling
 
-      if (sheader.NumberOfElements() != 5)
+      if (sheader.NumberOfElements() != 7)
       {
-         Rococo::Throw(0, "Expecting 5 elements in header");
+         Rococo::Throw(0, "Expecting 7 elements in header");
       }
 
       cr_sex svid = sheader[1];
       cr_sex sfont = sheader[2];
       cr_sex sheight = sheader[3];
       cr_sex sdarkmode = sheader[4];
+      cr_sex sHeaderFont = sheader[5];
+      cr_sex sHeaderFontHeight = sheader[6];
 
       LOGFONTW blank = { 0 };
       blank.lfWeight = FW_NORMAL;
@@ -1868,6 +1872,7 @@ namespace
       blank.lfQuality = CLEARTYPE_QUALITY;
       blank.lfPitchAndFamily = DEFAULT_PITCH;
       logFont = blank;
+      logHeaderFont = blank;
 
       VariantValue id;
       Parse::TryParse(id, SexyVarType_Int32, GetAtomicArg(svid, 2).c_str());
@@ -1882,6 +1887,10 @@ namespace
 
       if (GetAtomicArg(sdarkmode, 0) != "DarkMode") ThrowSex(sfont, "Expecting (DarkMode int32 ...)");
 
+      if (GetAtomicArg(sHeaderFont, 0) != "HeaderFontFamily") ThrowSex(sHeaderFont, "Expecting (HeaderFontFamily string ...)");
+
+      if (GetAtomicArg(sHeaderFontHeight, 0) != "HeaderFontHeight") ThrowSex(sHeaderFontHeight, "Expecting (HeaderFontHeight string ...)");
+
       SecureFormat(logFont.lfFaceName, LF_FACESIZE, L"%hs", sfont[2].c_str());
 
       VariantValue height;
@@ -1892,68 +1901,82 @@ namespace
       Parse::TryParse(vvDarkMode, SexyVarType_Int32, GetAtomicArg(sdarkmode, 2).c_str());
       isDarkMode = vvDarkMode.int32Value == 1;
 
-      cstr fontFamily = sfont[2].c_str();
-      SecureFormat(logFont.lfFaceName, L"%hs", fontFamily);
+      cstr headerFontFamily = sHeaderFont[2].c_str();
+      SecureFormat(logHeaderFont.lfFaceName, L"%hs", headerFontFamily);
+
+      Parse::TryParse(height, SexyVarType_Int32, GetAtomicArg(sHeaderFontHeight, 2).c_str());
+      logHeaderFont.lfHeight = height.int32Value;
    }
 
-   ISpatialManager* _LoadSpatialManager(IWindow& parent, REF LOGFONTW& logFont, OUT bool& isDarkMode, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix)
+   ISpatialManager* _LoadSpatialManager(IWindow& parent, REF LOGFONTW& logFont, OUT LOGFONTW& headerLogFont, OUT bool& isDarkMode, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, cstr file_prefix, OUT Strings::HString& err)
    {
-	  AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "tabbed-ide"));
-      Auto<ISParser> parser(CreateSexParser_2_0(*allocator, 128));
+       AutoFree<IAllocatorSupervisor> allocator(Rococo::Memory::CreateBlockAllocator(16, 0, "tabbed-ide"));
+       Auto<ISParser> parser(CreateSexParser_2_0(*allocator, 128));
 
-      char loadname[_MAX_PATH];
-      SafeFormat(loadname, sizeof(loadname), "%s.ide.sxy", file_prefix);
+       char loadname[_MAX_PATH];
+       SafeFormat(loadname, sizeof(loadname), "%s.ide.sxy", file_prefix);
 
-      AutoFree<IO::IOSSupervisor> io = IO::GetIOS();
-      AutoFree<IO::IInstallationSupervisor> installation;
+       AutoFree<IO::IOSSupervisor> io = IO::GetIOS();
+       AutoFree<IO::IInstallationSupervisor> installation;
 
-      WideFilePath fullLoadPath;
+       WideFilePath fullLoadPath;
 
-      if (*file_prefix == '!')
-      {
-          installation = IO::CreateInstallation(L"content.indicator.txt", *io);
-          installation->ConvertPingPathToSysPath(loadname, fullLoadPath);
-      }
-      else
-      {
-          IO::GetUserPath(fullLoadPath.buf, _MAX_PATH, loadname);
-      }
+       if (*file_prefix == '!')
+       {
+           installation = IO::CreateInstallation(L"content.indicator.txt", *io);
+           installation->ConvertPingPathToSysPath(loadname, fullLoadPath);
+       }
+       else
+       {
+           IO::GetUserPath(fullLoadPath.buf, _MAX_PATH, loadname);
+       }
 
-      Auto<Rococo::Sex::ISourceCode> src;
-      Auto<Rococo::Sex::ISParserTree> tree;
+       Auto<Rococo::Sex::ISourceCode> src;
+       Auto<Rococo::Sex::ISParserTree> tree;
 
-      auto spatialManager = IDESpatialManager::Create(parent, nullptr, database, nullptr, "debugger.ide.sxy");
+       auto spatialManager = IDESpatialManager::Create(parent, nullptr, database, nullptr, "debugger.ide.sxy");
 
-      try
-      {
+       try
+       {
 
-         src = parser->LoadSource(fullLoadPath, Vec2i{ 1, 1 });
-         tree = parser->CreateTree(*src);
+           src = parser->LoadSource(fullLoadPath, Vec2i{ 1, 1 });
+           tree = parser->CreateTree(*src);
 
-         if (src->SourceLength() == 0)
-         {
-            Rococo::Throw(0, "Missing IDE config file. Reverting to default");
-         }
+           if (src->SourceLength() == 0)
+           {
+               Rococo::Throw(0, "Missing IDE config file. Reverting to default");
+           }
 
-         cr_sex root = tree->Root();
+           cr_sex root = tree->Root();
 
-         if (root.NumberOfElements() != 2)
-         {
-            Rococo::Throw(0, "Expecting header element followed by IDE nodes");
-         }
+           if (root.NumberOfElements() != 2)
+           {
+               Rococo::Throw(0, "Expecting header element followed by IDE nodes");
+           }
 
-         LoadHeader(root[0], versionId, logFont, OUT isDarkMode);
-         spatialManager->Load(root[1]);
-      }
-      catch (IException&)
-      {
-         for (size_t i = 0; i < nPanes; i++)
-         {
-            spatialManager->AddPane(idArray[i]);
-         }
-      }
+           LoadHeader(root[0], versionId, OUT logFont, OUT headerLogFont, OUT isDarkMode);
+           spatialManager->Load(root[1]);
+           err = "";
+       }
+       catch (ParseException& ex)
+       {
+           Format(err, "Error loading %ls: %s. Line %d Pos %d\n", fullLoadPath.buf, ex.Message(), ex.Start().y, ex.Start().x);
 
-      return spatialManager;
+           for (size_t i = 0; i < nPanes; i++)
+           {
+               spatialManager->AddPane(idArray[i]);
+           }
+       }
+       catch (IException& ex)
+       {
+           Format(err, "Error loading %ls: %s", fullLoadPath.buf, ex.Message());
+           for (size_t i = 0; i < nPanes; i++)
+           {
+               spatialManager->AddPane(idArray[i]);
+           }
+       }
+
+       return spatialManager;
    }
 }
 
@@ -1983,9 +2006,9 @@ namespace Rococo
                 return IDESpatialManager::Create(parent, nullptr, database, nullptr);
             }
 
-            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, OUT LOGFONTW& logFont, OUT bool& isDarkMode, cstr file_prefix)
+            ISpatialManager* LoadSpatialManager(IWindow& parent, IPaneDatabase& database, const IDEPANE_ID* idArray, size_t nPanes, UINT versionId, OUT LOGFONTW& logFont, OUT LOGFONTW& headerLogFont, OUT bool& isDarkMode, cstr file_prefix, OUT Strings::HString& err)
             {
-                return _LoadSpatialManager(parent, OUT logFont, OUT isDarkMode, database, idArray, nPanes, versionId, file_prefix);
+                return _LoadSpatialManager(parent, OUT logFont, OUT headerLogFont, OUT isDarkMode, database, idArray, nPanes, versionId, file_prefix, OUT err);
             }
         }
     }

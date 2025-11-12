@@ -29,6 +29,10 @@ namespace Rococo::Windows
 		{
 			switch (uMsg)
 			{
+			case WM_UPDATE_TITLE:
+				SendMessageA(hWndTabControl, WM_SETFONT, (WPARAM)(HFONT)lParam, 0);
+				SyncSize();
+				return 0;
 			case WM_DRAWITEM:
 				{
 					auto* d = (DRAWITEMSTRUCT*)lParam;

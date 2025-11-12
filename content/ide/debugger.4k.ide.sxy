@@ -3,6 +3,8 @@
   (FontFamily string "Courier New")
   (FontHeight int32 0xFFFFFFEE)
   (DarkMode int32 1)
+  (HeaderFontFamily string "Consolas")
+  (HeaderFontHeight int32 0xFFFFFFF0)
 )
 (child 
   (splitPosition int32 0x459)
