@@ -1742,6 +1742,7 @@ namespace ANON
 			mapPrefixToPackageSource.clear();
 			packages.clear();
 
+			// TODO - convert this to SEXML
 			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
 			{
 				cr_sex sDirective = sRoot[i];
@@ -1970,17 +1971,20 @@ namespace ANON
 			WideFilePath associationPath;
 			installation->ConvertPingPathToSysPath("!scripts/declarations/sys/sexystudio.solution.sxyq", associationPath);
 
-			AutoRelease<ISourceCode> src = sparser->LoadSource(associationPath, { 1,1 });
-			AutoRelease<ISParserTree> tree;
+			if (Rococo::IO::IsFileExistant(associationPath))
+			{
+				AutoRelease<ISourceCode> src = sparser->LoadSource(associationPath, { 1,1 });
+				AutoRelease<ISParserTree> tree;
 
-			try
-			{
-				tree = sparser->CreateTree(*src);
-				solutionFile.ParseSolution(tree->Root());
-			}
-			catch (ParseException& ex)
-			{
-				Throw(ex.ErrorCode(), "%ls error %s line column %d line %d", associationPath.buf, ex.Message(), ex.Start().x, ex.Start().y);
+				try
+				{
+					tree = sparser->CreateTree(*src);
+					solutionFile.ParseSolution(tree->Root());
+				}
+				catch (ParseException& ex)
+				{
+					Throw(ex.ErrorCode(), "%ls error %s line column %d line %d", associationPath.buf, ex.Message(), ex.Start().x, ex.Start().y);
+				}
 			}
 		}
 
