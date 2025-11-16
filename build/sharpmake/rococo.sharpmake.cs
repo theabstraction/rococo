@@ -535,6 +535,24 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoSexyGen4UnrealProject : RococoProject
+    {
+        public RococoSexyGen4UnrealProject() : base("sexy-gen.4.unreal")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoIncludeProject : RococoProject
     {
         public RococoIncludeProject() : base("rococo.include", "include")
@@ -2139,6 +2157,7 @@ namespace Rococo
             conf.AddProject<RococoMPlatDynamicProject>(target);
             conf.AddProject<RococoMHostProject>(target);
             conf.AddProject<RococoMathsTestProject>(target);
+            conf.AddProject<RococoSexyGen4UnrealProject>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -2388,6 +2407,8 @@ namespace Rococo
 
             arguments.Generate<DommeProject>();
             arguments.Generate<DommeTestProject>();
+
+            arguments.Generate<RococoSexyGen4UnrealProject>();
         }
     }
 }
