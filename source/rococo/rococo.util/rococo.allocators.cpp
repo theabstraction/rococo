@@ -199,7 +199,7 @@ namespace Rococo::Memory::ANON
         BlockAllocator(size_t kilobytes, size_t _maxkilobytes, const char* const _name) : maxBytes(_maxkilobytes * 1024), name(_name)
         {
             hHeap = HeapCreate(0, kilobytes * 1024, maxBytes);
-            if (IsNull(hHeap)) Throw(GetLastError(), "Error allocating heap");
+            if (IsNull(hHeap)) Throw(GetLastError(), "Error allocating heap. %llu kb were requested with %llu kb as the maximum", kilobytes, _maxkilobytes);
         }
 
         virtual ~BlockAllocator()

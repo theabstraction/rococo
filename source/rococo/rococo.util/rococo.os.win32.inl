@@ -2360,7 +2360,12 @@ namespace Rococo::OS
 		memset(username, 0, UNLEN + 1);
 	}
 
-	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
+	ROCOCO_API void SetConsoleDimensions(int, int)
+	{
+		Throw(0, __FUNCTION__ ": not implemented");
+	}
+
+	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack, bool appendStackModule, bool appendStackAddress)
 	{
 		StackStringBuilder sb(buffer, capacity);
 
@@ -2385,31 +2390,46 @@ namespace Rococo::OS
 		sb << ex.Message() << "\n";
 
 		auto stackFrames = ex.StackFrames();
+
 		if (appendStack && stackFrames)
 		{
 			sb << "Stack Frames\n";
 			struct ANON : Debugging::IStackFrameFormatter
 			{
 				StringBuilder* sb;
+				bool appendStackModule;
+				bool appendStackAddress;
+				bool skip = false;
 
 				void Format(const Debugging::StackFrame& sf) override
 				{
+					if (skip) return;
+
 					auto& s = *sb;
-					s.AppendFormat("#%-2u %-48.48s ", sf.depth, sf.functionName);
+
+					if (Eq("invoke_main", sf.functionName))
+					{
+						skip = true;
+						return;
+					}
+
+					s.AppendFormat("%-2u %-36.36s ", sf.depth, sf.functionName);
 					if (*sf.sourceFile)
 					{
-						s.AppendFormat("Line #%4u of %-64s ", sf.lineNumber, sf.sourceFile);
+						s.AppendFormat("%s (%d) ", sf.sourceFile, sf.lineNumber);
 					}
 					else
 					{
 						s.AppendFormat("%-79.79s", "");
 					}
-					s.AppendFormat("%-64s ", sf.moduleName);
-					s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
+					if (appendStackModule) s.AppendFormat("%-64s ", sf.moduleName);
+					if (appendStackAddress) s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
 					s << "\n";
 				}
 			} formatter;
 			formatter.sb = &sb;
+			formatter.appendStackAddress = appendStackAddress;
+			formatter.appendStackModule = appendStackModule;
 
 			stackFrames->FormatEachStackFrame(formatter);
 		}
@@ -2577,6 +2597,11 @@ namespace Rococo::IO
 
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text)
 	{
+		if (!filename || *filename == 0)
+		{
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(<blank>): filename was blank");
+		}
+
 		if (text.length > 1024_megabytes)
 		{
 			Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);

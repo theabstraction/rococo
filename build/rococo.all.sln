@@ -153,8 +153,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.version.generator", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.windows", "projects\rococo.windows_vs2022_win64.vcxproj", "{82217C37-348A-32E9-39E2-871C1E8CA026}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy-gen.4.unreal", "projects\sexy-gen.4.unreal_vs2022_win64.vcxproj", "{1A705B94-1CE2-2138-CDCE-50079B34E9D4}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.bennyhill", "projects\sexy.bennyhill_vs2022_win64.vcxproj", "{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexy.compiler", "projects\sexy.compiler_vs2022_win64.vcxproj", "{87496FE8-0053-AED7-44D6-138174796DD1}"
@@ -188,6 +186,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.app", "projects\sexystudio.app_vs2022_win64.vcxproj", "{8C71C5FF-33DF-365E-B2A4-F9C23459BC12}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sexystudio.test", "projects\sexystudio.test_vs2022_win64.vcxproj", "{C4505BC3-9EC0-244A-59AC-648EF21C1D92}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unreal-sexy-gen", "projects\unreal-sexy-gen_vs2022_win64.vcxproj", "{7CB067C6-914F-F833-18BC-491741F8FBBA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -407,10 +407,6 @@ Global
 		{82217C37-348A-32E9-39E2-871C1E8CA026}.Debug|x64.Build.0 = Debug|x64
 		{82217C37-348A-32E9-39E2-871C1E8CA026}.Release|x64.ActiveCfg = Release|x64
 		{82217C37-348A-32E9-39E2-871C1E8CA026}.Release|x64.Build.0 = Release|x64
-		{1A705B94-1CE2-2138-CDCE-50079B34E9D4}.Debug|x64.ActiveCfg = Debug|x64
-		{1A705B94-1CE2-2138-CDCE-50079B34E9D4}.Debug|x64.Build.0 = Debug|x64
-		{1A705B94-1CE2-2138-CDCE-50079B34E9D4}.Release|x64.ActiveCfg = Release|x64
-		{1A705B94-1CE2-2138-CDCE-50079B34E9D4}.Release|x64.Build.0 = Release|x64
 		{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}.Debug|x64.ActiveCfg = Debug|x64
 		{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}.Debug|x64.Build.0 = Debug|x64
 		{AAA4E388-1FBD-AA0C-6B5C-0727A1455157}.Release|x64.ActiveCfg = Release|x64
@@ -479,6 +475,10 @@ Global
 		{C4505BC3-9EC0-244A-59AC-648EF21C1D92}.Debug|x64.Build.0 = Debug|x64
 		{C4505BC3-9EC0-244A-59AC-648EF21C1D92}.Release|x64.ActiveCfg = Release|x64
 		{C4505BC3-9EC0-244A-59AC-648EF21C1D92}.Release|x64.Build.0 = Release|x64
+		{7CB067C6-914F-F833-18BC-491741F8FBBA}.Debug|x64.ActiveCfg = Debug|x64
+		{7CB067C6-914F-F833-18BC-491741F8FBBA}.Debug|x64.Build.0 = Debug|x64
+		{7CB067C6-914F-F833-18BC-491741F8FBBA}.Release|x64.ActiveCfg = Release|x64
+		{7CB067C6-914F-F833-18BC-491741F8FBBA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

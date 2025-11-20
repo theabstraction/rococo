@@ -225,7 +225,8 @@ namespace Rococo::OS
 	// Merge Flags::BreakFlag to provide the argument to SetBreakPoints
 	ROCOCO_API void SetBreakPoints(int flags);
 	ROCOCO_API void FormatErrorMessage(char* message, size_t sizeofBuffer, int errorCode);
-	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack);
+	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack, bool appendStackModule = false, bool appendStackAddress = false);
+	ROCOCO_API void SetConsoleDimensions(int DX, int DY);
 	ROCOCO_API cstr GetCommandLineText();
 	ROCOCO_API void GetCurrentUserName(Strings::IStringPopulator& populator);
 }

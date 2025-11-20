@@ -537,7 +537,7 @@ namespace Rococo
     [Sharpmake.Generate]
     public class RococoSexyGen4UnrealProject : RococoProject
     {
-        public RococoSexyGen4UnrealProject() : base("sexy-gen.4.unreal")
+        public RococoSexyGen4UnrealProject() : base("unreal-sexy-gen")
         {
         }
 
