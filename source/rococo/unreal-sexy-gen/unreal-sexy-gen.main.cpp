@@ -86,18 +86,114 @@ void ValidateToken(cr_sex s, cstr matchThis, cstr context)
 	}
 }
 
+struct UnrealFunctionArg : IUnrealArg
+{
+	cr_sex argName;
+	cr_sex argType;
+	bool isConst = false;
+	bool isRef = false;
+
+	UnrealFunctionArg(cr_sex _argName, cr_sex _argType): argName(_argName), argType(_argType)
+	{
+		cr_sex sParent = *_argName.Parent();
+		for (int i = 0; i < sParent.NumberOfElements(); i++)
+		{
+			if (Eq(sParent[i].c_str(), "const"))
+			{
+				isConst = true;
+			}
+		}
+	}
+
+	void AppendName(StringBuilder& sb) const override
+	{
+		sb << argName.c_str();
+	}
+
+	void AppendTypeSansRef(StringBuilder& sb) const
+	{
+		cstr p = argType.c_str();
+		while (*p != 0 && *p != '^')
+		{
+			sb.AppendChar(*p++);
+		}
+	}
+
+	void AppendType(StringBuilder& sb) const override
+	{
+		cstr p = argType.c_str();
+
+		if (Eq(p, "int32") || Eq(p, "int32^"))
+		{
+			sb << "int32";
+		}
+		else if (Eq(p, "int64") || Eq(p, "int64^"))
+		{
+			sb << "int64";
+		}
+		else if (Eq(p, "double") || Eq(p, "double64^"))
+		{
+			sb << "double";
+		}
+		else
+		{
+			sb << "UnknownType /*";
+			AppendTypeSansRef(sb);
+			sb << "*/";
+		}
+	}
+
+	bool IsRef() const override
+	{
+		return EndsWith(argType.c_str(), "^");
+	}
+
+	bool IsConst() const override
+	{
+		return IsRef() && isConst;
+	}
+};
+
 struct UnrealFunctionDef : IUnrealFunction
 {
 	cr_sex fDef;
 
+	std::vector<UnrealFunctionArg*> args;
+
 	UnrealFunctionDef(cr_sex f): fDef(f)
 	{
+		// Example: (' Method0 DivideFloats (visible read-only double A) (visible read-only double B) (out double NewParam))
 
+		for (int i = 3; i < fDef.NumberOfElements(); i++)
+		{
+			cr_sex s = fDef[i];
+			if (IsCompound(s) && s.NumberOfElements() > 2)
+			{
+				auto& argName = s[s.NumberOfElements() - 1];
+				auto& argType = s[s.NumberOfElements() - 2];
+
+				args.push_back(new UnrealFunctionArg(argName, argType));
+			}
+		}
 	}
 
-	cstr FunctionName() const override
+	IUnrealArg* GetArg(size_t index) override
 	{
-		return GetAtomicArg(fDef, 2).c_str();
+		if (index >= args.size()) return nullptr;
+		return args[index];
+	}
+
+	~UnrealFunctionDef()
+	{
+		for (auto* arg : args)
+		{
+			delete arg;
+		}
+	}
+
+	void AppendFunctionName(StringBuilder& sb) const override
+	{
+		sb << GetAtomicArg(fDef, 2).c_str();
 	}
 };
 
@@ -182,5 +278,5 @@ void GenClassDef(IUnrealClass& classDef, crwstr rootDirectory);
 void ParseClassDef(cr_sex sDef)
 {
 	UnrealClassDef def(sDef);
-	GenClassDef(def, L"D:\\work\\Rococo.Reflect\\CPP-API\\");
+	GenClassDef(def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
 }

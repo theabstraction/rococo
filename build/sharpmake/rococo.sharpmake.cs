@@ -614,6 +614,21 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class SexyUE5APILib : RococoProject
+    {
+        public SexyUE5APILib() : base("sexy.UE5.API")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoComponentsConfigurationProject : RococoProject
     {
         public RococoComponentsConfigurationProject() : base("rococo.component.configuration", @"component.modules\configuration")
@@ -2158,6 +2173,7 @@ namespace Rococo
             conf.AddProject<RococoMHostProject>(target);
             conf.AddProject<RococoMathsTestProject>(target);
             conf.AddProject<RococoSexyGen4UnrealProject>(target);
+            conf.AddProject<SexyUE5APILib>(target);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -2409,6 +2425,8 @@ namespace Rococo
             arguments.Generate<DommeTestProject>();
 
             arguments.Generate<RococoSexyGen4UnrealProject>();
+
+            arguments.Generate<SexyUE5APILib>();
         }
     }
 }
