@@ -2595,6 +2595,96 @@ namespace Rococo::IO
 		SaveAsciiTextFileIfDifferent(target, wPath, text);
 	}
 
+	ROCOCO_API crwstr FindChar(crwstr token, char c)
+	{
+		for (crwstr p = token; *p != 0; p++)
+		{
+			if (*p == c)
+			{
+				return p;
+			}
+		}
+
+		return nullptr;
+	}
+
+
+	HANDLE OpenFileForWriteCreatingDirectories(crwstr filename)
+	{
+		HANDLE hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			int err = GetLastError();
+
+			if (wcslen(filename) >= WideFilePath::CAPACITY)
+			{
+				Throw(err, "Cannot create file %ls. Unexpected filename length", filename);
+			}
+
+			WideFilePath subPath;
+
+			bool addedDirectory = false;
+
+			// Path not found:
+			if (err == 3)
+			{
+				WideFilePath pathBuilder;
+				crwstr slashPos = FindChar(filename + 1, '\\');
+				if (!slashPos)
+				{
+					Throw(err, "Cannot create file %ls", filename);
+				}
+
+				crwstr p = slashPos;
+				for (;;)
+				{
+					p = FindChar(p + 1, '\\');
+					if (p == nullptr)
+					{
+						break;
+					}
+
+					wcsncpy_s(subPath.buf, WideFilePath::CAPACITY, filename, p - filename);
+
+					if (!IO::IsDirectory(subPath.buf))
+					{
+						try
+						{
+							IO::CreateDirectoryFolder(subPath);
+						}
+						catch (IException& ex)
+						{
+							Throw(ex.ErrorCode(), "Error: %s attempting to create subpath for %ls", ex.Message(), filename);
+						}
+						addedDirectory = true;
+					}
+				}
+
+				if (!addedDirectory)
+				{
+					// We did not added subpaths, so we will not be able to recreate the file
+					Throw(err, "Cannot create file %ls. Path not found and paths were not created", filename);
+				}
+
+				// Figure first slash follows device, such as C: or My-System//
+				hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+				if (hFile == INVALID_HANDLE_VALUE)
+				{
+					err = GetLastError();
+					Throw(err, "Cannot create file %ls. Subpaths *were* created however", filename);
+				}
+			}
+			else
+			{
+				Throw(err, "Cannot create file %ls", filename);
+			}
+		}
+
+		return hFile;
+	}
+
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text)
 	{
 		if (!filename || *filename == 0)
@@ -2634,21 +2724,11 @@ namespace Rococo::IO
 				Throw(0, "Error allocating memory for SaveAsciiTextFile");
 			}
 
-			hFile = CreateFileW(fullPath.data(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-			if (hFile == INVALID_HANDLE_VALUE)
-			{
-				Throw(GetLastError(), "Cannot create file %ls", fullPath.data());
-			}
+			hFile = OpenFileForWriteCreatingDirectories(fullPath.data());
 		}
 		break;
 		case TargetDirectory_Root:
-			hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-			if (hFile == INVALID_HANDLE_VALUE)
-			{
-				Throw(GetLastError(), "Cannot create file %ls in root directory", filename);
-			}
+			hFile = OpenFileForWriteCreatingDirectories(filename);
 			break;
 		default:
 			Throw(0, "Rococo::IO::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);

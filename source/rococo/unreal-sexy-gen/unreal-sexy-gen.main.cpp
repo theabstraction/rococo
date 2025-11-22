@@ -14,6 +14,41 @@ using namespace Rococo::Sex;
 void ParseClassDef(cr_sex sClassDef);
 void ParseClassTree(cr_sex sRoot);
 
+bool DoExpressionsMatchRecursive(cr_sex a, cr_sex b, int startingIndex)
+{
+	if (a.NumberOfElements() != b.NumberOfElements())
+	{
+		return false;
+	}
+
+	if (a.Type() != b.Type())
+	{
+		return false;
+	}
+
+	switch (a.Type())
+	{
+	case Sex::EXPRESSION_TYPE_ATOMIC:
+	case Sex::EXPRESSION_TYPE_STRING_LITERAL:
+		return Strings::Eq(a.c_str(), b.c_str());
+	case Sex::EXPRESSION_TYPE_NULL:
+		return true;
+	default:
+		// Compound
+		break;
+	}
+
+	for (int i = startingIndex; i < a.NumberOfElements(); i++)
+	{
+		if (!DoExpressionsMatchRecursive(a[i], b[i], 0))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void ParseClassFile(crwstr filename, ISParser& parser)
 {
 	Auto<ISourceCode> src = parser.LoadSource(filename, { 1,1 });
@@ -123,7 +158,15 @@ struct UnrealFunctionArg : IUnrealArg
 	{
 		cstr p = argType.c_str();
 
-		if (Eq(p, "int32") || Eq(p, "int32^"))
+		if (*p == 'U' && EndsWith(p, "*"))
+		{
+			sb << p;
+		}
+		else if (*p == 'A' && EndsWith(p, "*"))
+		{
+			sb << p;
+		}
+		else if (Eq(p, "int32") || Eq(p, "int32^"))
 		{
 			sb << "int32";
 		}
@@ -135,12 +178,34 @@ struct UnrealFunctionArg : IUnrealArg
 		{
 			sb << "double";
 		}
+		else if (Eq(p, "bool") || Eq(p, "bool^"))
+		{
+			sb << "bool";
+		}
 		else
 		{
 			sb << "UnknownType /*";
 			AppendTypeSansRef(sb);
 			sb << "*/";
 		}
+	}
+
+	bool GetObjectPointerType(char* buffer, size_t capacity) const override
+	{
+		cstr p = argType.c_str();
+		if (*p == 'U' && EndsWith(p, "*"))
+		{
+			SecureFormat(buffer, capacity, "%s", p);
+			return true;
+		}
+
+		if (*p == 'A' && EndsWith(p, "*"))
+		{
+			SecureFormat(buffer, capacity, "%s", p);
+			return true;
+		}
+
+		return false;
 	}
 
 	bool IsRef() const override
@@ -193,7 +258,9 @@ struct UnrealFunctionDef : IUnrealFunction
 
 	void AppendFunctionName(StringBuilder& sb) const override
 	{
-		sb << GetAtomicArg(fDef, 2).c_str();
+		cr_sex fName = fDef[2];
+		AssertStringLiteral(fName);
+		sb << fName.c_str();
 	}
 };
 
@@ -241,10 +308,23 @@ struct UnrealClassDef : IUnrealClass
 				{
 					if (Eq(GetAtomicArg(sDirective, 0).c_str(), "'"))
 					{
+						// Check for duplicate functions. A duplicate may indicate two virtual functions each have their own UFUNCTION, but map to the same implementation
+						// This will mean the algorithm speed is O(N^2), but since N = number of methods = small, nothing to worry about
+						for (const auto* f : functions)
+						{
+							if (DoExpressionsMatchRecursive(f->fDef, sDirective, 2))
+							{
+								goto next;
+							}
+						}
+
 						// Raw method definition. e.g (' Method0 AllowSelectionModifiers (const FScriptTypedElementHandle^ InElementHandle) (return bool ReturnValue))
 						functions.push_back(new UnrealFunctionDef(sDirective));
 					}
 				}
+
+			next:
+				continue;
 			}
 		}
 	}
@@ -270,6 +350,11 @@ struct UnrealClassDef : IUnrealClass
 	cstr ShortName() const override
 	{
 		return name;
+	}
+
+	cstr PackageName() const override
+	{
+		return package;
 	}
 };
 

@@ -12,6 +12,7 @@ namespace Rococo::Unreal
 	{
 		virtual void AppendName(Strings::StringBuilder & sb) const = 0;
 		virtual void AppendType(Strings::StringBuilder& sb) const = 0;
+		virtual bool GetObjectPointerType(char* buffer, size_t capacity) const = 0;
 		virtual bool IsConst() const = 0;
 		virtual bool IsRef() const = 0;
 	};
@@ -24,6 +25,7 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IUnrealClass
 	{
+		virtual cstr PackageName() const = 0;
 		virtual cstr ShortName() const = 0;
 		virtual size_t MethodCount() const = 0;
 		virtual IUnrealFunction& GetFunction(size_t index) = 0;
