@@ -233,6 +233,27 @@ namespace StringsAnon
 			return (int32)(internalBuffer.size()-1);
 		}
 
+		void Undo(int nChars) override
+		{
+			if (nChars == 0)
+			{
+				return;
+			}
+
+			if (nChars > 0)
+			{
+				Throw(0, __FUNCTION__ " requires a negative argument");
+			}
+
+			if (nChars + (int) internalBuffer.size() < 1)
+			{
+				Throw(0, __FUNCTION__ " undo length >= internal buffer length");
+			}
+
+			internalBuffer.resize((int) internalBuffer.size() + nChars);
+			internalBuffer[internalBuffer.size()-1] = 0;
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -1112,6 +1133,27 @@ namespace Rococo::Strings
 	{
 		buffer[0] = 0;
 		length = 0;
+	}
+
+	ROCOCO_API void StackStringBuilder::Undo(int nChars)
+	{
+		if (nChars == 0)
+		{
+			return;
+		}
+
+		if (nChars > 0)
+		{
+			Throw(0, __FUNCTION__ " requires a negative argument");
+		}
+
+		if (nChars + length < 0)
+		{
+			Throw(0, __FUNCTION__ " undo length > string length");
+		}
+
+		length += nChars;
+		buffer[length] = 0;
 	}
 
 	ROCOCO_API bool IsFQNamespace(cr_substring s)

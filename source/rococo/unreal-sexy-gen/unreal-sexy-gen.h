@@ -10,10 +10,11 @@ namespace Rococo::Unreal
 {
 	ROCOCO_INTERFACE IUnrealArg
 	{
-		virtual void AppendName(Strings::StringBuilder & sb) const = 0;
+		virtual void AppendName(Strings::StringBuilder & sb, bool makeSexyVariableName = false) const = 0;
 		virtual void AppendType(Strings::StringBuilder& sb) const = 0;
 		virtual bool GetObjectPointerType(char* buffer, size_t capacity) const = 0;
 		virtual bool IsConst() const = 0;
+		virtual bool IsOutput() const = 0;
 		virtual bool IsRef() const = 0;
 	};
 

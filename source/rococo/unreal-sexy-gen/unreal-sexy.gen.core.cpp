@@ -11,10 +11,12 @@ using namespace Rococo::Unreal;
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb);
 
+const bool UsePackageForFolders = false;
+
 void GenClassDef(IUnrealClass& classDef, crwstr rootDirectory)
 {
 	cstr shortName = classDef.ShortName();
-	cstr packageName = classDef.PackageName();
+	cstr packageName = UsePackageForFolders ? classDef.PackageName() : "";
 
 	if (*packageName == '/')
 	{
@@ -64,6 +66,153 @@ void AppendCompactName(StringBuilder& sb, cstr p)
 	}
 }
 
+void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb)
+{
+	sb << "\n\tvoid ";
+	AppendCompactName(sb, classDef.ShortName());
+	sb << "_";
+	method.AppendFunctionName(sb);
+	sb << "(NativeCallEnvironment & _nce)\n";
+	sb << "\t{\n";
+
+	sb << "\t\tuint8* _sf = _nce.cpu.SF();\n";
+	sb << "\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n";
+
+	sb << "\t\tUNUSED(_sf)\n";
+	sb << "\t\tUNUSED(_offset)\n";
+
+	sb << "\t\tUMethod* methodRef = GetNCEUMethod(_nce);\n";
+	sb << "\t\tUObject* object = GetNCEUObject(_nce);\n\n";
+	sb << "\t\tstruct SexyArgs_";
+	method.AppendFunctionName(sb);
+	sb << "\n\t\t{\n";
+
+	size_t j = 0;
+	for (;;)
+	{
+		auto* arg = method.GetArg(j++);
+		if (arg == nullptr)
+		{
+			break;
+		}
+
+		sb << "\t\t\t";
+
+		arg->AppendType(sb);
+
+		if (arg->IsRef())
+		{
+			sb << "*";
+		}
+
+		// Add a prefix to the name, in case the variable name conflicts with a C++ keyword
+		sb << " m_";
+
+		arg->AppendName(sb);
+
+		sb << ";\n";
+	}
+
+	sb << "\t\t} ";
+
+	sb << "args;\n\n";
+
+	sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
+	sb << "\t\tProcessEvent(object, methodRef, &args);\n";
+
+	sb << "\t}\n";
+}
+
+#include <ctype.h>
+
+void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
+{
+	// Example /Engine/AI/
+	cstr packageName = classRef.PackageName();
+	if (*packageName == '/')
+	{
+		packageName++;
+	}
+
+	char firstChar = *packageName++;
+
+	if (IsLowerCase(firstChar))
+	{
+		// Lower case - but Sexy namespaces must be pascal case, so convert to pascal case
+		sb.AppendChar(toupper(firstChar));
+	}
+	else if (isupper(firstChar))
+	{
+		sb.AppendChar(firstChar);
+	}
+	else if (IsNumeric(firstChar))
+	{
+		// Illegal first character, so add a prefix
+		sb << "NS";
+		sb.AppendChar(firstChar);
+	}
+	else
+	{
+		Throw(0, "Cannot transform package name to Sexy namespace. Bad first character: %s %s", classRef.PackageName(), classRef.PackageName());
+	}
+
+	int subspaceCharCount = 1;
+
+	for (cstr p = packageName; *p != 0; p++)
+	{
+		char c = *p;
+
+		if (c == '/')
+		{
+			if (subspaceCharCount > 0)
+			{
+				sb.AppendChar('.');
+				subspaceCharCount = 0;
+			}
+		}
+		else if (IsAlphaNumeric(c))
+		{
+			sb.AppendChar(c);
+			subspaceCharCount++;
+		}
+		else
+		{
+			// Skip character, assume it to be blankspace
+		}
+	}
+
+	if (subspaceCharCount == 0)
+	{
+		// We finished on a trailing dot, which is not permitted
+		sb.Undo(-1);
+	}
+}
+
+void BuildInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUnrealArg*>& outputs, IUnrealFunction& method)
+{
+	inputs.clear();
+	outputs.clear();
+
+	size_t j = 0;
+	for (;;)
+	{
+		auto* arg = method.GetArg(j++);
+		if (!arg)
+		{
+			break;
+		}
+
+		if (arg->IsOutput())
+		{
+			inputs.push_back(arg);
+		}
+		else
+		{
+			outputs.push_back(arg);
+		}
+	}
+}
+
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
 {
 	sb <<
@@ -73,11 +222,14 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
 #include <sexy.script.h>
 
 typedef int UnknownType;
+class UClass;
 class UObject;
 class UMethod;
 )";
 
+	
 	stringmap<int> knownObjects;
+	knownObjects.insert("UClass", 0);
 	knownObjects.insert("UObject", 0);
 	knownObjects.insert("UMethod", 0);
 	knownObjects.insert("UnknownType", 0);
@@ -136,67 +288,63 @@ namespace
 		for (size_t i = 0; i < classDef.MethodCount(); i++)
 		{
 			auto& method = classDef.GetFunction(i);
-
-			sb << "\n\tvoid ";
-			AppendCompactName(sb, classDef.ShortName());
-			sb << "_";
-			method.AppendFunctionName(sb);
-			sb << "(NativeCallEnvironment & _nce)\n";
-			sb << "\t{\n";
-
-			sb << "\t\tuint8* _sf = _nce.cpu.SF();\n";
-			sb << "\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n";
-
-			sb << "\t\tUNUSED(_sf)\n";
-			sb << "\t\tUNUSED(_offset)\n";
-
-			sb << "\t\tUMethod* methodRef = GetNCEUMethod(_nce);\n";
-			sb << "\t\tUObject* object = GetNCEUObject(_nce);\n\n";
-			sb << "\t\tstruct SexyArgs_";
-			method.AppendFunctionName(sb);
-			sb << "\n\t\t{\n";
-			
-			size_t j = 0;
-			for (;;)
-			{
-				auto* arg = method.GetArg(j++);
-				if (arg == nullptr)
-				{
-					break;
-				}
-
-				sb << "\t\t\t";
-
-				arg->AppendType(sb);
-
-				if (arg->IsRef())
-				{
-					sb << "*";
-				}
-
-				// Add a prefix to the name, in case the variable name conflicts with a C++ keyword
-				sb << " m_";
-
-				arg->AppendName(sb);
-
-				sb << ";\n";
-			}
-
-			sb << "\t\t} ";
-
-			sb << "args;\n\n";
-
-			sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
-			sb << "\t\tProcessEvent(object, methodRef, &args);\n";
-
-			sb << "\t}\n";
+			BuildMethod(classDef, method, sb);
 		}
 
 		sb << "}\n\n";
 
 		sb << "namespace Rococo::Unreal\n{\n";
-		sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(UObject* worldObject)\n", classDef.ShortName());
-		sb << "\t{\n\t\tUNUSED(worldObject);\n\t}\n";
+		sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(IPublicScriptSystem& ss, UClass* classRef)\n", classDef.ShortName());
+		sb << "\t{\n";
+
+		sb << "\t\tconst INamespace& ns = ss.AddNativeNamespace(\"";
+	
+		sb << "UE.";
+
+		AppendPackageAsSexyNamespace(sb, classDef);
+			
+		sb << "\");\n";
+
+		std::vector<IUnrealArg*> inputs;
+		std::vector<IUnrealArg*> outputs;
+
+		for (size_t i = 0; i < classDef.MethodCount(); i++)
+		{
+			auto& method = classDef.GetFunction(i);
+
+			sb << "\t\tss.AddNativeCall(ns, ";
+			AppendCompactName(sb, classDef.ShortName());
+			sb << "_";
+			method.AppendFunctionName(sb);
+			sb << ", classRef, \"";
+			method.AppendFunctionName(sb);
+
+			BuildInputsAndOutputs(REF inputs, REF outputs, method);
+
+			for (auto* input : inputs)
+			{
+				sb << "(";
+				input->AppendType(sb);
+				sb << " ";
+				input->AppendName(sb, true);
+				sb << ")";
+			}
+
+			sb << " -> ";
+
+			for (auto* output : outputs)
+			{
+				sb << "(";
+				output->AppendType(sb);
+				sb << " ";
+				output->AppendName(sb, true);
+				sb << ")";
+			}
+
+			sb << "\", __FILE__, __LINE__);\n";
+		}
+
+		sb << "\t}\n";
 		sb << "}\n";
 	}
 }
@@ -209,10 +357,17 @@ R"(#pragma once
 // Code generated by unreal-sexy.gen.core.cpp
 #include <rococo.types.h>
 
+class UClass;
+
+namespace Rococo::Script
+{
+	DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;
+}
+
 namespace Rococo::Unreal
 {
 )";
 
-	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(UObject* worldObject);\n", classDef.ShortName());
+	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(Rococo::Script::IPublicScriptSystem& ss, UClass* classRef);\n", classDef.ShortName());
 	sb << "}\n";
 }

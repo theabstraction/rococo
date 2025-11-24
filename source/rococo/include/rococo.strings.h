@@ -223,6 +223,8 @@ namespace Rococo::Strings
 		virtual fstring operator * () const = 0;
 		virtual void Clear() = 0;
 		virtual int32 Length() const = 0;
+		// nChars should be negative, so -1 => reverse one char back, -3 = reverse 3 chars back
+		virtual void Undo(int nChars) = 0;
 
 		enum CursorState 
 		{
@@ -282,6 +284,7 @@ namespace Rococo::Strings
 		ROCOCO_API StringBuilder& operator << (double value) override;
 		ROCOCO_API void Clear() override;
 		ROCOCO_API int32 Length() const override;
+		ROCOCO_API void Undo(int nChars) override;
 	};
 
 	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer

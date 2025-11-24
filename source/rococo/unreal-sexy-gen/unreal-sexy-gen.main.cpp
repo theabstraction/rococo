@@ -121,6 +121,8 @@ void ValidateToken(cr_sex s, cstr matchThis, cstr context)
 	}
 }
 
+#include <ctype.h>
+
 struct UnrealFunctionArg : IUnrealArg
 {
 	cr_sex argName;
@@ -140,9 +142,35 @@ struct UnrealFunctionArg : IUnrealArg
 		}
 	}
 
-	void AppendName(StringBuilder& sb) const override
+	void AppendName(StringBuilder& sb, bool makeSexyVariableName = false) const override
 	{
-		sb << argName.c_str();
+		if (!makeSexyVariableName)
+		{
+			sb << argName.c_str();
+			return;
+		}
+
+		cstr rawName = argName.c_str();
+
+		char firstChar = *rawName;
+
+		if (isupper(firstChar))
+		{
+			if (isupper(rawName[1]))
+			{
+				// We have two or more capital letters, this could be an acronym, so we would not want to create a name like this: hAL, instead we add a prefix,  e.g lHAL
+				cstr prefix = "l"; // for 'local'
+				sb << prefix;
+			}
+			else
+			{
+				// Convert pascal case to camel case
+				sb.AppendChar(tolower(firstChar));
+				rawName++;
+			}
+		}
+
+		sb << rawName;
 	}
 
 	void AppendTypeSansRef(StringBuilder& sb) const
@@ -216,6 +244,21 @@ struct UnrealFunctionArg : IUnrealArg
 	bool IsConst() const override
 	{
 		return IsRef() && isConst;
+	}
+
+	bool IsOutput() const override
+	{
+		cr_sex argDef = *argName.Parent();
+		for (int i = 0; i < argDef.NumberOfElements(); i++)
+		{
+			cr_sex s = argDef[i];
+			if (IsAtomic(s) && Eq(s.c_str(), "out"))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 };
 
