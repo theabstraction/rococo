@@ -66,6 +66,31 @@ void AppendCompactName(StringBuilder& sb, cstr p)
 	}
 }
 
+void BuildInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUnrealArg*>& outputs, IUnrealFunction& method)
+{
+	inputs.clear();
+	outputs.clear();
+
+	size_t j = 0;
+	for (;;)
+	{
+		auto* arg = method.GetArg(j++);
+		if (!arg)
+		{
+			break;
+		}
+
+		if (arg->IsOutput())
+		{
+			outputs.push_back(arg);
+		}
+		else
+		{
+			inputs.push_back(arg);
+		}
+	}
+}
+
 void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb)
 {
 	sb << "\n\tvoid ";
@@ -77,9 +102,6 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 	sb << "\t\tuint8* _sf = _nce.cpu.SF();\n";
 	sb << "\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n";
-
-	sb << "\t\tUNUSED(_sf)\n";
-	sb << "\t\tUNUSED(_offset)\n";
 
 	sb << "\t\tUMethod* methodRef = GetNCEUMethod(_nce);\n";
 	sb << "\t\tUObject* object = GetNCEUObject(_nce);\n\n";
@@ -117,8 +139,62 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 	sb << "args;\n\n";
 
+	std::vector<IUnrealArg*> inputs;
+	std::vector<IUnrealArg*> outputs;
+	BuildInputsAndOutputs(REF inputs, REF outputs, method);
+
+	for (auto* input : inputs)
+	{
+		sb << "\t\t";
+
+		input->AppendType(sb);
+		sb << " ";
+		input->AppendName(sb, true);
+		sb << ";\n";
+
+		sb << "\t\t_offset += sizeof(";
+		input->AppendName(sb, true);
+		sb << ");\n";
+
+		sb << "\t\tReadInput(";
+		input->AppendName(sb, true);
+		sb << ", _sf, -_offset);\n";
+
+		sb << "\t\targs.m_";
+		input->AppendName(sb, false);
+		sb << " = ";
+
+		if (input->IsRef())
+		{
+			sb << "&";
+		}
+
+		input->AppendName(sb, true);
+		sb << ";\n\n";
+	}
+
 	sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
 	sb << "\t\tProcessEvent(object, methodRef, &args);\n";
+
+	for (auto* output : outputs)
+	{
+		sb << "\n\t\t";
+
+		output->AppendType(sb);
+		sb << " ";
+		output->AppendName(sb, true);
+		sb << " = args.m_";
+		output->AppendName(sb, false);
+		sb << ";\n";
+
+		sb << "\t\t_offset += sizeof(";
+		output->AppendName(sb, true);
+		sb << ");\n";
+
+		sb << "\t\tWriteOutput(";
+		output->AppendName(sb, true);
+		sb << ", _sf, -_offset);\n";
+	}
 
 	sb << "\t}\n";
 }
@@ -139,7 +215,7 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 	if (IsLowerCase(firstChar))
 	{
 		// Lower case - but Sexy namespaces must be pascal case, so convert to pascal case
-		sb.AppendChar(toupper(firstChar));
+		sb.AppendChar((char)toupper(firstChar));
 	}
 	else if (isupper(firstChar))
 	{
@@ -185,31 +261,6 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 	{
 		// We finished on a trailing dot, which is not permitted
 		sb.Undo(-1);
-	}
-}
-
-void BuildInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUnrealArg*>& outputs, IUnrealFunction& method)
-{
-	inputs.clear();
-	outputs.clear();
-
-	size_t j = 0;
-	for (;;)
-	{
-		auto* arg = method.GetArg(j++);
-		if (!arg)
-		{
-			break;
-		}
-
-		if (arg->IsOutput())
-		{
-			inputs.push_back(arg);
-		}
-		else
-		{
-			outputs.push_back(arg);
-		}
 	}
 }
 
@@ -320,6 +371,11 @@ namespace
 			method.AppendFunctionName(sb);
 
 			BuildInputsAndOutputs(REF inputs, REF outputs, method);
+
+			if (!inputs.empty())
+			{
+				sb << " ";
+			}
 
 			for (auto* input : inputs)
 			{

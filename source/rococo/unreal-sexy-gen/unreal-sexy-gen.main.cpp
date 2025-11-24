@@ -13,6 +13,7 @@ using namespace Rococo::Sex;
 
 void ParseClassDef(cr_sex sClassDef);
 void ParseClassTree(cr_sex sRoot);
+void BuildInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 
 bool DoExpressionsMatchRecursive(cr_sex a, cr_sex b, int startingIndex)
 {
@@ -165,7 +166,7 @@ struct UnrealFunctionArg : IUnrealArg
 			else
 			{
 				// Convert pascal case to camel case
-				sb.AppendChar(tolower(firstChar));
+				sb.AppendChar((char)tolower(firstChar));
 				rawName++;
 			}
 		}
@@ -238,7 +239,7 @@ struct UnrealFunctionArg : IUnrealArg
 
 	bool IsRef() const override
 	{
-		return EndsWith(argType.c_str(), "^");
+		return EndsWith(argType.c_str(), "^") || EndsWith(argType.c_str(), "*");
 	}
 
 	bool IsConst() const override
