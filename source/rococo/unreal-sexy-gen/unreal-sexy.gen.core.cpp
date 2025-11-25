@@ -10,10 +10,11 @@ using namespace Rococo::Unreal;
 
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb);
+void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb);
 
 const bool UsePackageForFolders = false;
 
-void GenClassDef(IUnrealClass& classDef, crwstr rootDirectory)
+void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sexyDirectory)
 {
 	cstr shortName = classDef.ShortName();
 	cstr packageName = UsePackageForFolders ? classDef.PackageName() : "";
@@ -33,19 +34,30 @@ void GenClassDef(IUnrealClass& classDef, crwstr rootDirectory)
 	// .HPP builder
 	auto& sbHPP = dsbHPP->Builder();
 
+	AutoFree<IDynamicStringBuilder> dsbSXY = CreateDynamicStringBuilder(64_kilobytes);
+
+	// .sxy builder
+	auto& sbSXY = dsbSXY->Builder();
+
 	WideFilePath wTargetCPPFile;
-	Format(wTargetCPPFile, L"%ls%hs\\%hs.cpp", rootDirectory, packageName, shortName);
+	Format(wTargetCPPFile, L"%ls%hs\\%hs.cpp", nativeDirectory, packageName, shortName);
 	IO::ToSysPath(wTargetCPPFile.buf);
 
 	WideFilePath wTargetHPPFile;
-	Format(wTargetHPPFile, L"%ls%hs\\%hs.hpp", rootDirectory, packageName, shortName);
+	Format(wTargetHPPFile, L"%ls%hs\\%hs.hpp", nativeDirectory, packageName, shortName);
 	IO::ToSysPath(wTargetHPPFile.buf);
+
+	WideFilePath wTargetSXYFile;
+	Format(wTargetSXYFile, L"%ls%hs\\%hs.sxy", sexyDirectory, packageName, shortName);
+	IO::ToSysPath(wTargetSXYFile.buf);
 
 	BuildSexyNativesCPP(classDef, sbCPP);
 	BuildSexyNativesHPP(classDef, sbHPP);
+	BuildSexyFiles(classDef, sbSXY);
 
 	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
 	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
 }
 
 void AppendCompactName(StringBuilder& sb, cstr p)
@@ -97,14 +109,12 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	AppendCompactName(sb, classDef.ShortName());
 	sb << "_";
 	method.AppendFunctionName(sb);
-	sb << "(NativeCallEnvironment & _nce)\n";
+	sb << "(NativeCallEnvironment& nce)\n";
 	sb << "\t{\n";
 
-	sb << "\t\tuint8* _sf = _nce.cpu.SF();\n";
-	sb << "\t\tptrdiff_t _offset = 2 * sizeof(size_t);\n";
+	sb << "\t\tuint8* sf = nce.cpu.SF();\n";
+	sb << "\t\tptrdiff_t offset = 2 * sizeof(size_t);\n\n";
 
-	sb << "\t\tUMethod* methodRef = GetNCEUMethod(_nce);\n";
-	sb << "\t\tUObject* object = GetNCEUObject(_nce);\n\n";
 	sb << "\t\tstruct SexyArgs_";
 	method.AppendFunctionName(sb);
 	sb << "\n\t\t{\n";
@@ -122,7 +132,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		arg->AppendType(sb);
 
-		if (arg->IsRef())
+		if (arg->IsRef() && !arg->IsPtr())
 		{
 			sb << "*";
 		}
@@ -143,22 +153,26 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	std::vector<IUnrealArg*> outputs;
 	BuildInputsAndOutputs(REF inputs, REF outputs, method);
 
+	sb << "\t\tint64 objectHandle;\n";
+	sb << "\t\toffset += sizeof(int64);\n";
+	sb << "\t\tReadInput(objectHandle, sf, -offset);\n\n";
+	
 	for (auto* input : inputs)
 	{
 		sb << "\t\t";
 
 		input->AppendType(sb);
-		sb << " ";
+		sb << " in_";
 		input->AppendName(sb, true);
 		sb << ";\n";
 
-		sb << "\t\t_offset += sizeof(";
+		sb << "\t\toffset += sizeof(in_";
 		input->AppendName(sb, true);
 		sb << ");\n";
 
-		sb << "\t\tReadInput(";
+		sb << "\t\tReadInput(in_";
 		input->AppendName(sb, true);
-		sb << ", _sf, -_offset);\n";
+		sb << ", sf, -offset);\n";
 
 		sb << "\t\targs.m_";
 		input->AppendName(sb, false);
@@ -169,10 +183,13 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 			sb << "&";
 		}
 
+		sb << "in_";
 		input->AppendName(sb, true);
 		sb << ";\n\n";
 	}
 
+	sb << "\t\tUObject* object = GetNCEUObject(nce, objectHandle);\n";
+	sb << "\t\tUMethod* methodRef = GetNCEUMethod(nce);\n";
 	sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
 	sb << "\t\tProcessEvent(object, methodRef, &args);\n";
 
@@ -181,25 +198,86 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		sb << "\n\t\t";
 
 		output->AppendType(sb);
-		sb << " ";
+
+		if (output->IsRef() && !output->IsPtr())
+		{
+			sb << "*";
+		}
+
+		sb << " out_";
 		output->AppendName(sb, true);
 		sb << " = args.m_";
 		output->AppendName(sb, false);
 		sb << ";\n";
 
-		sb << "\t\t_offset += sizeof(";
+		sb << "\t\toffset += sizeof(out_";
 		output->AppendName(sb, true);
 		sb << ");\n";
 
-		sb << "\t\tWriteOutput(";
+		sb << "\t\tWriteOutput(out_";
 		output->AppendName(sb, true);
-		sb << ", _sf, -_offset);\n";
+		sb << ", sf, -offset);\n";
 	}
 
 	sb << "\t}\n";
 }
 
 #include <ctype.h>
+
+void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
+{
+	cstr className = classRef.ShortName();
+	
+	char firstChar = *className++;
+
+	if (IsLowerCase(firstChar))
+	{
+		// Lower case - but Sexy namespaces must be pascal case, so convert to pascal case
+		sb.AppendChar((char)toupper(firstChar));
+	}
+	else if (isupper(firstChar))
+	{
+		sb.AppendChar(firstChar);
+	}
+	else if (IsNumeric(firstChar))
+	{
+		// Illegal first character, so add a prefix
+		sb << "C";
+		sb.AppendChar(firstChar);
+	}
+	else
+	{
+		Throw(0, "Cannot transform class name to Sexy type name. Bad first character: %s %s", classRef.PackageName(), classRef.ShortName());
+	}
+
+	bool pascalize = false;
+
+	for (cstr p = className; *p != 0; p++)
+	{
+		char c = *p;
+		if (c == '_')
+		{
+			pascalize = true;
+			continue; // Skip underscores
+		}
+		else if (!isalnum(c))
+		{
+			Throw(0, "Cannot transform class name to Sexy type name. None alphanumeric character in short name: %s %s", classRef.PackageName(), classRef.ShortName());
+		}
+
+		if (pascalize)
+		{
+			pascalize = false;
+			if (islower(c))
+			{
+				sb.AppendChar((char)toupper(c));
+				continue;
+			}
+		}
+
+		sb.AppendChar(c);		
+	}
+}
 
 void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 {
@@ -229,7 +307,7 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 	}
 	else
 	{
-		Throw(0, "Cannot transform package name to Sexy namespace. Bad first character: %s %s", classRef.PackageName(), classRef.PackageName());
+		Throw(0, "Cannot transform package name to Sexy namespace. Bad first character: %s %s", classRef.PackageName(), classRef.ShortName());
 	}
 
 	int subspaceCharCount = 1;
@@ -248,7 +326,27 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 		}
 		else if (IsAlphaNumeric(c))
 		{
-			sb.AppendChar(c);
+			if (subspaceCharCount == 0)
+			{
+				// We must begin with a capital letter
+				if (islower(c))
+				{
+					sb.AppendChar((char)toupper(c));
+				}
+				else if (isupper(c))
+				{
+					sb.AppendChar(c);
+				}
+				else
+				{
+					sb << "N"; // For want of a better prefix
+					sb.AppendChar(c);
+				}
+			}
+			else
+			{
+				sb.AppendChar(c);
+			}
 			subspaceCharCount++;
 		}
 		else
@@ -278,7 +376,7 @@ class UObject;
 class UMethod;
 )";
 
-	
+
 	stringmap<int> knownObjects;
 	knownObjects.insert("UClass", 0);
 	knownObjects.insert("UObject", 0);
@@ -314,95 +412,121 @@ class UMethod;
 		}
 	}
 
-sb << R"(
+	sb << R"(
 namespace Rococo::UE5::Marshal
 {
+	int64 ConstructUObject(Rococo::Script::NativeCallEnvironment& e);
 	UMethod* GetNCEUMethod(Rococo::Script::NativeCallEnvironment& e);
-	UObject* GetNCEUObject(Rococo::Script::NativeCallEnvironment& e);
+	UMethod& GetMethod(UClass& classRef, crwstr methodName);
+	UObject* GetNCEUObject(Rococo::Script::NativeCallEnvironment& e, int64 objectHandle);
 	void ValidateArgs(UMethod* methodRef, void* args, size_t argSize);
 	void ProcessEvent(UObject* object, UMethod* methodRef, void* args);
 }
 )";
 
-	if (classDef.MethodCount() > 0)
-	{
-		sb << R"(
+	sb << R"(
+using namespace Rococo;
+using namespace Rococo::Sex;
+using namespace Rococo::Script;
+using namespace Rococo::Compiler;
+using namespace Rococo::UE5::Marshal;
+
 namespace 
 {
-	using namespace Rococo;
-	using namespace Rococo::Sex;
-	using namespace Rococo::Script;
-	using namespace Rococo::Compiler;
-	using namespace Rococo::UE5::Marshal;
 )";
 
-		for (size_t i = 0; i < classDef.MethodCount(); i++)
-		{
-			auto& method = classDef.GetFunction(i);
-			BuildMethod(classDef, method, sb);
-		}
+	sb << "\tvoid Construct_";
+	AppendCompactName(sb, classDef.ShortName());
+	sb << "(NativeCallEnvironment& nce)\n";
+	sb << "\t{\n";
 
-		sb << "}\n\n";
+	sb << "\t\tuint8* sf = nce.cpu.SF();\n";
+	sb << "\t\tptrdiff_t offset = 2 * sizeof(size_t);\n\n";
+	sb << "\t\tint64 objectHandle = ConstructUObject(nce);\n";
+	sb << "\t\toffset += sizeof(objectHandle);\n";
+	sb << "\t\tWriteOutput(objectHandle, sf, -offset);\n";
+	sb << "\t};\n";
 
-		sb << "namespace Rococo::Unreal\n{\n";
-		sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(IPublicScriptSystem& ss, UClass* classRef)\n", classDef.ShortName());
-		sb << "\t{\n";
-
-		sb << "\t\tconst INamespace& ns = ss.AddNativeNamespace(\"";
-	
-		sb << "UE.";
-
-		AppendPackageAsSexyNamespace(sb, classDef);
-			
-		sb << "\");\n";
-
-		std::vector<IUnrealArg*> inputs;
-		std::vector<IUnrealArg*> outputs;
-
-		for (size_t i = 0; i < classDef.MethodCount(); i++)
-		{
-			auto& method = classDef.GetFunction(i);
-
-			sb << "\t\tss.AddNativeCall(ns, ";
-			AppendCompactName(sb, classDef.ShortName());
-			sb << "_";
-			method.AppendFunctionName(sb);
-			sb << ", classRef, \"";
-			method.AppendFunctionName(sb);
-
-			BuildInputsAndOutputs(REF inputs, REF outputs, method);
-
-			if (!inputs.empty())
-			{
-				sb << " ";
-			}
-
-			for (auto* input : inputs)
-			{
-				sb << "(";
-				input->AppendType(sb);
-				sb << " ";
-				input->AppendName(sb, true);
-				sb << ")";
-			}
-
-			sb << " -> ";
-
-			for (auto* output : outputs)
-			{
-				sb << "(";
-				output->AppendType(sb);
-				sb << " ";
-				output->AppendName(sb, true);
-				sb << ")";
-			}
-
-			sb << "\", __FILE__, __LINE__);\n";
-		}
-
-		sb << "\t}\n";
-		sb << "}\n";
+	for (size_t i = 0; i < classDef.MethodCount(); i++)
+	{
+		auto& method = classDef.GetFunction(i);
+		BuildMethod(classDef, method, sb);
 	}
+
+	sb << "}\n\n";
+
+	sb << "namespace Rococo::Unreal\n{\n";
+	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(IPublicScriptSystem& ss, UClass* classRef)\n", classDef.ShortName());
+	sb << "\t{\n";
+
+	sb << "\t\tconst INamespace& ns = ss.AddNativeNamespace(\"";
+	
+	sb << "UE.Native.";
+
+	AppendPackageAsSexyNamespace(sb, classDef);
+			
+	sb << "\");\n";
+
+	std::vector<IUnrealArg*> inputs;
+	std::vector<IUnrealArg*> outputs;
+
+	sb << "\t\tss.AddNativeCall(ns, Construct_";
+		
+	AppendCompactName(sb, classDef.ShortName());
+		
+	sb <<", classRef, \"Construct";
+	AppendCompactName(sb, classDef.ShortName());
+	sb << " -> (Int64 objectHandle)\", __FILE__, __LINE__);\n";
+
+	for (size_t i = 0; i < classDef.MethodCount(); i++)
+	{
+		auto& method = classDef.GetFunction(i);
+
+		sb << "\t\tss.AddNativeCall(ns, ";
+		AppendCompactName(sb, classDef.ShortName());
+		sb << "_";
+		method.AppendFunctionName(sb);
+		sb << ", &GetMethod(*classRef, L\"";
+
+		method.AppendFunctionName(sb);
+
+		sb << "\"), \"";
+		method.AppendFunctionName(sb);
+
+		BuildInputsAndOutputs(REF inputs, REF outputs, method);
+
+		sb << " (int64 objectHandle)";
+
+		if (!inputs.empty())
+		{
+			sb << " ";
+		}
+
+		for (auto* input : inputs)
+		{
+			sb << "(";
+			input->AppendType(sb);
+			sb << " ";
+			input->AppendName(sb, true);
+			sb << ")";
+		}
+
+		sb << " -> ";
+
+		for (auto* output : outputs)
+		{
+			sb << "(";
+			output->AppendType(sb);
+			sb << " ";
+			output->AppendName(sb, true);
+			sb << ")";
+		}
+
+		sb << "\", __FILE__, __LINE__);\n";
+	}
+
+	sb << "\t}\n";
+	sb << "}\n";
 }
 
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb)
@@ -426,4 +550,124 @@ namespace Rococo::Unreal
 
 	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(Rococo::Script::IPublicScriptSystem& ss, UClass* classRef);\n", classDef.ShortName());
 	sb << "}\n";
+}
+
+void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
+{
+	sb << "(using UE.Native.";
+	AppendPackageAsSexyNamespace(sb, classRef);
+	sb << ")\n\n";
+
+	sb << "(class ";
+	AppendNameAsSxyType(sb, classRef);
+	sb << " (defines UE.";
+	AppendPackageAsSexyNamespace(sb, classRef);
+	sb << ".I";
+	AppendNameAsSxyType(sb, classRef);
+	sb << ")\n";
+	sb << "\t(int64 objectHandle)\n";
+	sb << ")\n\n";
+
+	sb << "(factory UE.";
+
+	AppendPackageAsSexyNamespace(sb, classRef);
+
+	sb << ".New";
+
+	AppendNameAsSxyType(sb, classRef);
+
+	sb << " UE.";
+
+	AppendPackageAsSexyNamespace(sb, classRef);
+
+	sb << ".I";
+	AppendNameAsSxyType(sb, classRef);
+
+	sb << " ()\n";
+	sb << "\t(construct ";
+	AppendNameAsSxyType(sb, classRef);
+	sb << ")\n";
+	sb << ")\n";
+
+	std::vector<IUnrealArg*> inputs;
+	std::vector<IUnrealArg*> outputs;
+
+	sb << "\n(method ";
+	AppendNameAsSxyType(sb, classRef);
+	sb << ".Construct :\n";
+	sb << "\t(Construct";
+	AppendNameAsSxyType(sb, classRef);
+	sb << " -> this.ObjectHandle)\n";
+	sb << ")\n";
+
+	for (size_t i = 0; i < classRef.MethodCount(); i++)
+	{
+		auto& method = classRef.GetFunction(i);
+
+		sb << "\n(method ";
+		AppendNameAsSxyType(sb, classRef);
+
+		sb << ".";
+
+		method.AppendFunctionName(sb);
+
+		BuildInputsAndOutputs(REF inputs, REF outputs, method);
+
+		if (!inputs.empty())
+		{
+			sb << " ";
+		}
+
+		for (auto* input : inputs)
+		{
+			sb << "(";
+			input->AppendType(sb);
+			sb << " ";
+			input->AppendName(sb, true);
+			sb << ")";
+		}
+
+		sb << " -> ";
+
+		for (auto* output : outputs)
+		{
+			sb << "(";
+			output->AppendType(sb);
+			sb << " ";
+			output->AppendName(sb, true);
+			sb << ")";
+		}
+
+		sb << ":\n";
+
+		sb << "\t(";
+
+		method.AppendFunctionName(sb);
+
+		sb << " this.objectHandle";
+
+		if (!inputs.empty())
+		{
+			sb << " ";
+		}
+
+		for (auto* input : inputs)
+		{
+			input->AppendName(sb, true);
+		}
+
+		if (!outputs.empty())
+		{
+			sb << " -> ";
+
+			for (auto* output : outputs)
+			{
+				output->AppendName(sb, true);
+			}
+		}
+
+		sb << ")\n";
+
+		sb << ")\n";
+	}
 }

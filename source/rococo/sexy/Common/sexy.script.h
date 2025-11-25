@@ -379,6 +379,9 @@ namespace Rococo {
 			// and use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
 			virtual ListImage* CreateListImage(const Compiler::IStructure& valueType) = 0;
 
+			// Returns the value set by SetScriptContext
+			virtual int64 GetScriptContext() const = 0;
+
 			virtual Rococo::uint8* AppendListNode(ListImage& image) = 0;
 
 			// Assumes that the string bound to the input pointer is immutable for the lifespan of the script and provides a CStringConstant for it that can be used by any script that assumes immutability
@@ -528,6 +531,8 @@ namespace Rococo {
 			virtual Compiler::IMemberLife* GetListLifetimeManager() = 0;
 			virtual Compiler::IMemberLife* GetArrayLifetimeManager() = 0;
 			virtual Compiler::IMemberLife* GetMapLifetimeManager() = 0;
+
+			virtual void SetScriptContext(int64 context) = 0;
 		};
 
 		ROCOCO_INTERFACE INativeLib

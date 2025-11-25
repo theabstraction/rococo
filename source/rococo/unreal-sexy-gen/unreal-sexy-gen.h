@@ -15,6 +15,7 @@ namespace Rococo::Unreal
 		virtual bool GetObjectPointerType(char* buffer, size_t capacity) const = 0;
 		virtual bool IsConst() const = 0;
 		virtual bool IsOutput() const = 0;
+		virtual bool IsPtr() const = 0;
 		virtual bool IsRef() const = 0;
 	};
 

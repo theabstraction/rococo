@@ -811,6 +811,18 @@ namespace Rococo::Script
 
 		IPutString* putStringInterface;
 
+		int64 scriptContext = 0;
+
+		int64 GetScriptContext() const override
+		{
+			return scriptContext;
+		}
+
+		void SetScriptContext(int64 context) override
+		{
+			scriptContext = context;
+		}
+
 		void SetPutString(IPutString* putString) override
 		{
 			this->putStringInterface = putString == nullptr ? this : putString;

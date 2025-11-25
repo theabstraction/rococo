@@ -203,6 +203,10 @@ struct UnrealFunctionArg : IUnrealArg
 		{
 			sb << "int64";
 		}
+		else if (Eq(p, "float") || Eq(p, "float^"))
+		{
+			sb << "float";
+		}
 		else if (Eq(p, "double") || Eq(p, "double64^"))
 		{
 			sb << "double";
@@ -237,9 +241,14 @@ struct UnrealFunctionArg : IUnrealArg
 		return false;
 	}
 
+	bool IsPtr() const override
+	{
+		return EndsWith(argType.c_str(), "*");
+	}
+
 	bool IsRef() const override
 	{
-		return EndsWith(argType.c_str(), "^") || EndsWith(argType.c_str(), "*");
+		return EndsWith(argType.c_str(), "^");
 	}
 
 	bool IsConst() const override
@@ -253,9 +262,17 @@ struct UnrealFunctionArg : IUnrealArg
 		for (int i = 0; i < argDef.NumberOfElements(); i++)
 		{
 			cr_sex s = argDef[i];
-			if (IsAtomic(s) && Eq(s.c_str(), "out"))
+			if (IsAtomic(s))
 			{
-				return true;
+				if (Eq(s.c_str(), "out"))
+				{
+					return true;
+				}
+
+				if (Eq(s.c_str(), "return"))
+				{
+					return true;
+				}
 			}
 		}
 
@@ -304,7 +321,15 @@ struct UnrealFunctionDef : IUnrealFunction
 	{
 		cr_sex fName = fDef[2];
 		AssertStringLiteral(fName);
-		sb << fName.c_str();
+
+		cstr fNameStr = fName.c_str();
+		sb << fNameStr;
+
+		if (Eq(fNameStr, "Construct") || Eq(fNameStr, "Destruct"))
+		{
+			// Reserved method names in Sexy. We add a suffix unlikely to conflict with other method names
+			sb << "QQQ";
+		}
 	}
 };
 
@@ -402,10 +427,13 @@ struct UnrealClassDef : IUnrealClass
 	}
 };
 
-void GenClassDef(IUnrealClass& classDef, crwstr rootDirectory);
+void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sexyDirectory);
 
 void ParseClassDef(cr_sex sDef)
 {
 	UnrealClassDef def(sDef);
-	GenClassDef(def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
+	GenClassDef(def,
+		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\",
+		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\sexy-files\\"
+	);
 }
