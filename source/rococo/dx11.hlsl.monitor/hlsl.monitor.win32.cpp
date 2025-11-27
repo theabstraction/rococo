@@ -390,10 +390,6 @@ struct HLSL_Monitor: IO::IShaderMonitor, ID3DInclude, IEventCallback<FileModifie
 
 	STDMETHOD(Open)(D3D_INCLUDE_TYPE IncludeType, cstr pFileName, LPCVOID pParentData, OUT LPCVOID* ppData, OUT UINT* pBytes) override
 	{
-		if (strstr(pFileName, "..") == pFileName)
-		{
-			printf("");
-		}
 		cstr parentData = (cstr)pParentData;
 		UNUSED(parentData);
 		UNUSED(IncludeType);

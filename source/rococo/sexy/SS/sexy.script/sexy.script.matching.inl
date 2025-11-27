@@ -177,7 +177,7 @@ namespace Rococo
             if (AreEqual(type, ("array")))
             {
                // Special intrinsic
-               return module.Object().GetModule(0).FindStructure(("_Array"));
+               return module.Object().GetModule(0).FindStructure("_Array");
             }
             return NULL;
          }
@@ -188,7 +188,7 @@ namespace Rococo
          if (splitter.SplitTail(OUT body, OUT tail))
          {
             INamespaceBuilder* ns = Compiler::MatchNamespace(module, body);
-            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, ("program"), ("namespace"));
+            if (ns == NULL) ThrowTokenNotFound(typeExpr, body, "program", "namespace");
 
             IStructureBuilder* s = ns->FindStructure(tail);
             if (s != NULL)

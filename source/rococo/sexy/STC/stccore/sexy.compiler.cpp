@@ -469,12 +469,47 @@ namespace Anon
 			return AddSymbol(symbols, text);
 		}
 
+		IStructureBuilder& AddHandleStruct(cstr name, cstr origin, int lineNumber) override
+		{
+			cstr fieldName = "_NativeValue";
+
+			auto* currentDef = intrinsics->Structures().TryGet(name);
+			if (currentDef)
+			{
+				if (currentDef->MemberCount() != 1 || !Eq(currentDef->GetMember(0).Name(), fieldName))
+				{
+					auto* sDef = currentDef->Definition();
+					char def[256];
+					if (!sDef)
+					{
+						*def = 0;
+					}
+					else
+					{
+						SafeFormat(def, "Original is in %s line %d pos %d", sDef->Tree().Source().Name(), sDef->Start().y, sDef->Start().x);
+					}
+
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and it is not a handle type. %s", origin, lineNumber, name, def);
+				}
+
+				return *currentDef;				
+			}
+
+			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, nullptr, false);
+
+			Structure* s = new Structure(name, prototype, *intrinsics, Rococo::SexyVarType_Derivative, NULL);
+			s->AddMember(NameString::From(fieldName), TypeString::From("Int64"));
+			intrinsics->Structures().Register(s->Name(), *s);
+
+			return *s;
+		}
+
 		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) override
 		{
 			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, archetype, false);
 
 			Structure* s = new Structure(name, prototype, *intrinsics, underlyingType, NULL);
-			s->AddMember(NameString::From(("Value")), TypeString::From(name));
+			s->AddMember(NameString::From("Value"), TypeString::From(name));
 			StructureMember& m = s->GetMemberRef(0);
 			m.SetSize(sizeOfType);
 			s->Seal();

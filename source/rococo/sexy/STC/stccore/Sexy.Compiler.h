@@ -263,6 +263,7 @@ namespace Rococo::Compiler
 		virtual IModuleBuilder& GetModule(int index) = 0;
 		virtual INamespaceBuilder& GetRootNamespace() = 0;
 		virtual IModuleBuilder& IntrinsicModule() = 0;
+		virtual IStructureBuilder& AddHandleStruct(cstr name, cstr origin, int lineNumber) = 0;
 		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) = 0;
 		virtual void ResolveNativeTypes(const void** pSrcErr) = 0;
 		virtual bool ResolveDefinitions(const void** pSrcErr) = 0;

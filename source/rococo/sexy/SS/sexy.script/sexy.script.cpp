@@ -412,6 +412,7 @@ namespace Rococo::Script
 		rstdstring sourceFile;
 		int lineNumber;
 		bool declaredSomewhere = false;
+		bool compiled = false;
 
 		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context, cstr _sourceFile, int _lineNumber) :
 			e(ss, f, cpu, context), sourceFile(_sourceFile), lineNumber(_lineNumber) {}
@@ -550,6 +551,12 @@ namespace Rococo::Script
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
 			NativeFunction& nf = *i->second;
+
+			if (nf.compiled)
+			{
+				continue;
+			}
+
 			NamespaceSplitter splitter(i->first.c_str());
 
 			cstr body, publicName;
@@ -591,8 +598,9 @@ namespace Rococo::Script
 				ID_API_CALLBACK idCallback = rootNS.Object().VirtualMachine().Core().RegisterCallback(RouteToNative, i->second, i->first.c_str());
 				builder.Assembler().Append_Invoke(idCallback);
 				builder.Assembler().Append_Pop(f->GetExtraPopBytes());
-				builder.End();
+				builder.End();			
 				builder.Assembler().Clear();
+				nf.compiled = true;
 			}
 			catch (IException& e)
 			{
@@ -812,6 +820,94 @@ namespace Rococo::Script
 		IPutString* putStringInterface;
 
 		int64 scriptContext = 0;
+
+		struct HandleType
+		{
+			HString origin;
+			int lineNumber;
+		};
+
+		stringmap<HandleType> handleTypes;
+
+		void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber) override
+		{
+			if (origin == nullptr)
+			{
+				origin = __FUNCTION__;
+				lineNumber = __LINE__;
+			}
+
+			if (typeName == nullptr || *typeName == 0)
+			{
+				Throw(0, __FUNCTION__ ": null [typeName]");
+			}
+
+			enum { MAX_HANDLE_NAME_LEN = 63 };
+
+			if (strlen(typeName) > MAX_HANDLE_NAME_LEN)
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length", typeName);
+			}
+
+			if (!isupper(*typeName))
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter", typeName);
+			}
+
+			for (cstr p = typeName+1; *p != 0; p++)
+			{
+				if (!IsAlphaNumeric(*p))
+				{
+					Throw(0, __FUNCTION__ ": [typeName=%s] must consist of alphanumerics", typeName);
+				}
+			}
+
+			if (&ns == &PublicProgramObject().GetRootNamespace())
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed", typeName);
+			}
+
+			char fqName[256];
+			SafeFormat(fqName, "%s.%s", ns.FullName()->Buffer, typeName);
+			handleTypes.insert(fqName, HandleType{ origin, lineNumber });
+		}
+
+		void RegisterHandles()
+		{
+			for (auto& item : handleTypes)
+			{
+				cstr key = item.first;
+				NamespaceSplitter splitter(key);
+
+				cstr body, tail;
+				if (!splitter.SplitTail(OUT body, OUT tail))
+				{
+					Throw(0, __FUNCTION__ ": expected to be able to split %s", key);
+				}
+
+				auto& ns = AddNativeNamespace(body);
+				RegisterHandleType(ns, tail, item.second.origin, item.second.lineNumber);
+			}
+		}
+
+		void RegisterHandleType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber)
+		{
+			IStructureBuilder& s = progObjProxy->AddHandleStruct(typeName, origin, lineNumber);
+			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
+			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
+
+			auto* currentAlias = nb.FindStructure(typeName);
+			if (currentAlias == nullptr)
+			{
+				nb.Alias(typeName, s);
+				return;
+			}
+
+			if (currentAlias != &s)
+			{
+				Throw(0, __FUNCTION__  ": %s (line %d): current alias for [%s] in namespace does not match the newly created handle type", origin, lineNumber, typeName);
+			}
+		}
 
 		int64 GetScriptContext() const override
 		{
@@ -2232,6 +2328,8 @@ namespace Rococo::Script
 			}
 
 			stringPool = NewStringPool();
+
+			RegisterHandles();
 
 			INamespaceBuilder& sysTime = progObjProxy->GetRootNamespace().AddNamespace("Sys.Time", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			AddNativeCall(sysTime, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);

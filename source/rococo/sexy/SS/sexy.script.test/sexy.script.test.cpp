@@ -3503,6 +3503,77 @@ R"((namespace EntryPoint)
 		validate(170 == x);
 	}
 
+	static int64 TestNativeHandle_globalHandle = 0;
+
+	struct HandleImage
+	{
+		int64 nativeValue;
+	};
+
+	void TestNativeHandle(IPublicScriptSystem& ss)
+	{
+		struct ANON
+		{
+			static void SetGlobalHandle(NativeCallEnvironment& e)
+			{
+				Rococo::uint8* _sf = e.cpu.SF();
+				ptrdiff_t _offset = 2 * sizeof(size_t);
+
+				HandleImage* handle;
+				_offset += sizeof(handle);
+				ReadInput(handle, _sf, -_offset);
+
+				TestNativeHandle_globalHandle = handle->nativeValue;
+			}
+
+			static void GetHandle9001(NativeCallEnvironment& e)
+			{
+				Rococo::uint8* _sf = e.cpu.SF();
+				ptrdiff_t _offset = 2 * sizeof(size_t);
+
+				HandleImage* handle;
+				_offset += sizeof(handle);
+				ReadInput(handle, _sf, -_offset);
+
+				handle->nativeValue = 9001LL;
+			}
+		};
+
+		try
+		{
+			auto& nsAnimals = ss.AddNativeNamespace("Sys.Animals");
+			static_cast<IScriptSystem&>(ss).CreateHandleType(nsAnimals, "HMONKEY", __FILE__, __LINE__);
+
+			ss.AddNativeCall(nsAnimals, ANON::GetHandle9001, NULL, "GetHandle9001 (Sys.Animals.HMONKEY hMonkey) ->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsAnimals, ANON::SetGlobalHandle, NULL, "SetGlobalHandle (Sys.Animals.HMONKEY hMonkey) ->", __FILE__, __LINE__, false, 0);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		cstr srcCode =
+			"(function Main -> (Int32 result):"
+			"		(Sys.Animals.HMONKEY hMonkey)"
+			"		(Sys.Animals.GetHandle9001 hMonkey)"
+			"		(Sys.Animals.SetGlobalHandle hMonkey)"
+			")"
+			"(namespace EntryPoint)(alias Main EntryPoint.Main)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestNativeHandle");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int64 x = vm.PopInt32();
+		validate(0 == x);
+		validate(TestNativeHandle_globalHandle == 9001LL);
+	}
+
 	void TestNativeCall2(IPublicScriptSystem& ss)
 	{
 		struct ANON
@@ -17993,6 +18064,8 @@ R"(
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestNativeHandle);
 
 		TEST(TestTypenames);
 
