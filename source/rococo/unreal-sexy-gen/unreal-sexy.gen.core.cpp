@@ -459,6 +459,15 @@ namespace
 	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(IPublicScriptSystem& ss, UClass* classRef)\n", classDef.ShortName());
 	sb << "\t{\n";
 
+	sb << "\t\tconst INamespace& nsHandles = ss.AddNativeNamespace(\"UE.Handles\");\n";
+	for (auto& known : knownObjects)
+	{
+		cstr type = known.first;
+		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, \"%s\", __FUNCTION__, __LINE__);\n", type);
+	}
+
+	sb << "\n";
+
 	sb << "\t\tconst INamespace& ns = ss.AddNativeNamespace(\"";
 	
 	sb << "UE.Native.";
