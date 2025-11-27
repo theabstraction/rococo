@@ -3574,6 +3574,38 @@ R"((namespace EntryPoint)
 		validate(TestNativeHandle_globalHandle == 9001LL);
 	}
 
+	void TestNativeHandleSecurity(IPublicScriptSystem& ss)
+	{
+		try
+		{
+			auto& nsAnimals = ss.AddNativeNamespace("Sys.Animals");
+			static_cast<IScriptSystem&>(ss).CreateHandleType(nsAnimals, "HMONKEY", __FILE__, __LINE__);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		// This will fail because HMONKEY is a handle with no public members, so memberwise assignment fails
+		cstr srcCode =
+			"(function Main -> (Int32 result):\n"
+			"		(MyMonkey monkey = 0 (614))\n"
+			")\n"
+			"(struct MyMonkey (Int64 a)(Sys.Animals.HMONKEY hMonkey))\n"
+			"(namespace EntryPoint)(alias Main EntryPoint.Main)\n";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestNativeHandleSecurity");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
+	}
+
 	void TestNativeCall2(IPublicScriptSystem& ss)
 	{
 		struct ANON
@@ -18472,6 +18504,7 @@ R"(
 
 	void RunPositiveFailures()
 	{	
+		TEST(TestNativeHandleSecurity);
 		TEST(TestInvokeMethodViaReflectionFails);
 		TEST(TestThrowInConstructor);
 		TEST(TestMissingMethod);

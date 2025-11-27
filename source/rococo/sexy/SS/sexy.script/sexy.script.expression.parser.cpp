@@ -854,7 +854,7 @@ namespace Rococo
 
 					if (src.NumberOfElements() != PublicMemberCount(memberType))
 					{
-						Throw(src, "%s has %d elements. But %d were supplied", member.Name(), memberType.MemberCount(), src.NumberOfElements());
+						Throw(src, "[%s %s] has %d public elements. But %d were supplied", GetFriendlyName(*member.UnderlyingType()), member.Name(), PublicMemberCount(memberType), src.NumberOfElements());
 						return;
 					}
 
@@ -2250,22 +2250,22 @@ namespace Rococo
 
 						if (varType == NULL)
 						{
-							Throw(*value.Parent(), ("Cannot determine structure type on LHS of assignment"));
+							Throw(*value.Parent(), __FUNCTION__ ": Cannot determine structure type on LHS of assignment");
 						}
 
 						if (*varType != elementType)
 						{
-							ThrowTypeMismatch(*value.Parent(), *varType, elementType, ("Array type does not match assignment target type"));
+							ThrowTypeMismatch(*value.Parent(), *varType, elementType, __FUNCTION__ ": Array type does not match assignment target type");
 						}
 
 						if (!IsPLOD(elementType))
 						{
-							Throw(value, "The array element type is not plain data. One or more of its members was reference counted. Use syntax (foreach <local-var> # (<array> <index> (...logic....))");
+							Throw(value, __FUNCTION__ ": The array element type is not plain data. One or more of its members was reference counted. Use syntax (foreach <local-var> # (<array> <index> (...logic....))");
 						}
 
 						if (!TryCompileArithmeticExpression(ce, arg, true, SexyVarType_Int32))
 						{
-							Throw(command, ("Expecting Int32 valued expression for array index"));
+							Throw(command, __FUNCTION__ ": Expecting Int32 valued expression for array index");
 						} // D7 now contains the array index
 
 						ce.Builder.AssignVariableRefToTemp(commandText, 0); // D4 contains the array ptr
@@ -2276,12 +2276,12 @@ namespace Rococo
 					}
 					else
 					{
-						Throw(command, ("Expecting array name"));
+						Throw(command, __FUNCTION__ ": Expecting array name. The apparent syntax is (%s %s = (<array> <array-index>))", GetFriendlyName(varStruct), varName);
 					}
 				}
 				else
 				{
-					Throw(command, ("Expecting variable name"));
+					Throw(command, __FUNCTION__ ": Expecting variable name. The apparent syntax is (%s %s = (<array> <array-index>))", GetFriendlyName(varStruct), varName);
 				}
 			}
 

@@ -2126,13 +2126,13 @@ namespace Anon
 		MemberDef sourceDef;
 		if (!TryGetVariableByName(OUT sourceDef, source))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not resolve %s"), source);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not resolve source: %s in assignment of source to target (%s) ", source, target);
 		}
 
 		MemberDef targetDef;
 		if (!TryGetVariableByName(OUT targetDef, target))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Could not resolve %s"), target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not resolve target: %s in assignment of source %s to target", target, source);
 		}
 
 		const IStructure* srcType = sourceDef.ResolvedType;
