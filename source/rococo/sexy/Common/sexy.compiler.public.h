@@ -411,6 +411,7 @@ namespace Rococo {
 			virtual const IModule& Module() const = 0;
 
 			virtual bool HasInterfaceMembers() const = 0;
+			virtual bool IsPersistent() const = 0;
 			virtual int MemberCount() const = 0;
 			virtual const IMember& GetMember(int index) const = 0;
 			virtual int SizeOfStruct() const = 0;

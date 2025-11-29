@@ -100,6 +100,11 @@ namespace Rococo::Script
 
 	ListImage* CreateListImage(IScriptSystem& ss, const IStructure& valueType)
 	{
+		if (!valueType.IsPersistent())
+		{
+			Throw(0, "Could not allocate list of %s. Element type is not persistent. Check for non-persistent members such as handles.", GetFriendlyName(valueType));
+		}
+
 		auto* p = ss.AlignedMalloc(16, sizeof ListImage);
 
 		ListImage* l = new (p) ListImage;

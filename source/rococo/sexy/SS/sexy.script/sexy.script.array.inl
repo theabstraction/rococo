@@ -54,20 +54,25 @@ namespace Rococo
 	   {
 		   if (capacity < 0)
 		   {
-			   Throw(0, "Could not allocate array. Negative element count: %d", capacity);
+			   Throw(0, "Could not allocate array of %s. Negative element count: %d", GetFriendlyName(elementType), capacity);
+		   }
+
+		   if (!elementType.IsPersistent())
+		   {
+			   Throw(0, "Could not allocate array of %s. Element type is not persistent. Check for non-persistent members such as handles.");
 		   }
 
 		   int elementSize = elementType.InterfaceCount() > 0 ? sizeof(InterfacePointer) : elementType.SizeOfStruct();
 
 		   if (elementSize > 0x7FFFFFFFLL)
 		   {
-			   Throw(0, "Could not allocate array. Element size was > 2GB");
+			   Throw(0, "Could not allocate array of %s. Element size was > 2GB", GetFriendlyName(elementType));
 		   }
 
 		   size_t szCapacity = elementSize * (size_t)capacity;
 		   if (szCapacity > 0x7FFFFFFFLL)
 		   {
-			   Throw(0, "Could not allocate array. The maximum size is 2GB");
+			   Throw(0, "Could not allocate array of %s. The maximum size is 2GB", GetFriendlyName(elementType));
 		   }
 
 		   ArrayImage* a = new ArrayImage();
@@ -85,7 +90,7 @@ namespace Rococo
 		   catch (...)
 		   {
 			   delete a;
-			   Throw(0, "Could not allocate array with %d elements and %d bytes per element. ", capacity, a->ElementLength);
+			   Throw(0, "Could not allocate array of %s with %d elements and %d bytes per element. ", GetFriendlyName(elementType), capacity, a->ElementLength);
 		   }
 
 		   a->RefCount = 1;

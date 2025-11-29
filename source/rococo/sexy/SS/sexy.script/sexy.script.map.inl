@@ -578,6 +578,16 @@ namespace Rococo::Script
 
 	MapImage* CreateMapImage(IScriptSystem& ss, const IStructure& keyType, const IStructure& valueType)
 	{
+		if (!keyType.IsPersistent())
+		{
+			Throw(0, "Could not allocate map of %s vs %s. Key type is not persistent. Check for non-persistent members such as handles.", GetFriendlyName(keyType), GetFriendlyName(valueType));
+		}
+
+		if (!valueType.IsPersistent())
+		{
+			Throw(0, "Could not allocate map of %s %s. Value type is not persistent. Check for non-persistent members such as handles.", GetFriendlyName(keyType), GetFriendlyName(valueType));
+		}
+
 		auto* p = ss.AlignedMalloc(16, sizeof MapImage);
 		auto* m = new (p) MapImage;
 

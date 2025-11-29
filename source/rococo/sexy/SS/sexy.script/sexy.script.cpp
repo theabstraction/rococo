@@ -829,7 +829,7 @@ namespace Rococo::Script
 
 		stringmap<HandleType> handleTypes;
 
-		void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber) override
+		void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) override
 		{
 			if (origin == nullptr)
 			{

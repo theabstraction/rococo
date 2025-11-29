@@ -3542,7 +3542,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			auto& nsAnimals = ss.AddNativeNamespace("Sys.Animals");
-			static_cast<IScriptSystem&>(ss).CreateHandleType(nsAnimals, "HMONKEY", __FILE__, __LINE__);
+			ss.CreateHandleType(nsAnimals, __FILE__, __LINE__, "HMONKEY");
 
 			ss.AddNativeCall(nsAnimals, ANON::GetHandle9001, NULL, "GetHandle9001 (Sys.Animals.HMONKEY hMonkey) ->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsAnimals, ANON::SetGlobalHandle, NULL, "SetGlobalHandle (Sys.Animals.HMONKEY hMonkey) ->", __FILE__, __LINE__, false, 0);
@@ -3579,7 +3579,7 @@ R"((namespace EntryPoint)
 		try
 		{
 			auto& nsAnimals = ss.AddNativeNamespace("Sys.Animals");
-			static_cast<IScriptSystem&>(ss).CreateHandleType(nsAnimals, "HMONKEY", __FILE__, __LINE__);
+			ss.CreateHandleType(nsAnimals, __FILE__, __LINE__, "HMONKEY");
 		}
 		catch (IException& ex)
 		{
@@ -18541,6 +18541,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
+
+		TEST(TestEmptyMap);
 
 		RunPositiveSuccesses();	
 		RunGotoTests();

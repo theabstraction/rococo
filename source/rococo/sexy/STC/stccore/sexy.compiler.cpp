@@ -499,6 +499,7 @@ namespace Anon
 
 			Structure* s = new Structure(name, prototype, *intrinsics, Rococo::SexyVarType_Derivative, NULL);
 			s->AddMember(NameString::From(fieldName), TypeString::From("Int64"));
+			s->PreventPersistence();
 			intrinsics->Structures().Register(s->Name(), *s);
 
 			return *s;

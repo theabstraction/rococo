@@ -163,6 +163,7 @@ namespace Rococo::Compiler
 		virtual void ExpandAllocSize(int minimumByteCount) = 0;
 		virtual void FillVirtualTables() = 0;
 		virtual void MakeStrong() = 0;
+		virtual void PreventPersistence() = 0;
 		virtual void Update() = 0;
 		virtual void SetConstructor(const IFunction* cons) = 0;
 

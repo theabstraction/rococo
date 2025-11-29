@@ -506,6 +506,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		mutable TSexyVector<const IArchetype*> cachedMethods; // Methods cached by the reflection system. Most structures do not need them. The raw pointers do not need deleting after the container is deleted
 		bool isNullType = false;
 		bool isStrongType = false;
+		mutable bool isPersistent = true;
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, SexyVarType type, const Sex::ISExpression* _definition);
 		~Structure();
@@ -513,6 +514,29 @@ namespace Rococo { namespace Compiler { namespace Impl
 		bool IsNullType() const override
 		{
 			return isNullType;
+		}
+
+		bool IsPersistent() const override
+		{
+			if (!isPersistent)
+			{
+				return false;
+			}
+
+			for (auto& m : members)
+			{
+				auto* memberType = m.UnderlyingType();
+				if (memberType)
+				{
+					if (!memberType->IsPersistent())
+					{
+						isPersistent = false;
+						return false;
+					}
+				}
+			}
+
+			return true;
 		}
 
 		bool IsStrongType() const override
@@ -523,6 +547,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 		void MakeStrong() override
 		{
 			isStrongType = true;
+		}
+
+		void PreventPersistence() override
+		{
+			isPersistent = false;
 		}
 
 		void* operator new(size_t nBytes)

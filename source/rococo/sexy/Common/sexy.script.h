@@ -351,7 +351,7 @@ namespace Rococo {
 			// Find or create a 64-bit handle object (struct [typeName] (Int64 _nativeHandle)) and aliases into the namespace.
 			// The [typeName] must be unique.
 			// [origin] and [lineNumber] give the source line that invoked CreateHandleType
-			virtual void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber) = 0;
+			virtual void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) = 0;
 
 			// Override the script system string writing function, this is used for Sys.Print et al
 			virtual void SetPutString(IPutString* putString) = 0;
