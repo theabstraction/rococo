@@ -10,10 +10,18 @@
 
 using namespace Rococo;
 using namespace Rococo::Sex;
+using namespace Rococo::Strings;
+using namespace Rococo::Unreal;
+
+int g_nClassesParsed = 0;
+int g_nMethodsParsed = 0;
+int g_nMethodsNotMarshaled = 0;
 
 void ParseClassDef(cr_sex sClassDef);
+void ParseStructDef(cr_sex sDef);
 void ParseClassTree(cr_sex sRoot);
-void BuildInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
+void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
+void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 
 bool DoExpressionsMatchRecursive(cr_sex a, cr_sex b, int startingIndex)
 {
@@ -58,6 +66,13 @@ void ParseClassFile(crwstr filename, ISParser& parser)
 	{
 		Auto<ISParserTree> tree = parser.CreateTree(*src);
 		ParseClassTree(tree->Root());
+
+		printf("\nNumber of classes: %d\n", g_nClassesParsed);
+		printf("Number of methods in API: %d\n", g_nMethodsParsed);
+		printf("Number of methods that could not be marshaled: %d\n", g_nMethodsNotMarshaled);
+
+		double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
+		printf("API coverage: %2.2f%%\n", 100.0 - failureRate);
 	}
 	catch (ParseException& ex)
 	{
@@ -68,6 +83,8 @@ void ParseClassFile(crwstr filename, ISParser& parser)
 	}
 }
 
+void PrintUnknownsAscending();
+
 int mainProtected(int, char*[])
 {
 	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(32768, 0, "main");
@@ -75,6 +92,7 @@ int mainProtected(int, char*[])
 
 	crwstr filename = L"D:\\work\\Rococo.Reflect\\S-API\\all-classes.sexml";
 	ParseClassFile(filename, *sParser);
+	PrintUnknownsAscending();
 	
 	return 0;
 }
@@ -99,15 +117,61 @@ int main(int argc, char* argv[])
 
 void ParseClassTree(cr_sex sRoot)
 {
+	int structCount = 0;
+	for (int i = 0; i < sRoot.NumberOfElements(); i++)
+	{
+		cr_sex sStructDef = sRoot[i];
+		cr_sex sDirective = GetAtomicArg(sStructDef, 0);
+
+		if (Eq(sDirective.c_str(), "UStruct"))
+		{
+			structCount++;
+		}
+	}
+
+	printf("Processing %d UStructs...\n", structCount);
+
+	for (int i = 0; i < sRoot.NumberOfElements(); i++)
+	{
+		cr_sex sStructDef = sRoot[i];
+		cr_sex sDirective = GetAtomicArg(sStructDef, 0);
+
+		if (Eq(sDirective.c_str(), "UStruct"))
+		{
+			ParseStructDef(sStructDef);
+		}
+	}
+
+	printf("Processed UStructs.\n");
+
+	int classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
 		cr_sex sClassDef = sRoot[i];
-		ParseClassDef(sClassDef);
+		cr_sex sDirective = GetAtomicArg(sClassDef, 0);
+		if (Eq(sDirective.c_str(), "UClass"))
+		{
+			classCount++;
+		}
+	}
+
+	printf("Generating %d classes", classCount);
+
+	for (int i = 0; i < sRoot.NumberOfElements(); i++)
+	{
+		cr_sex sClassDef = sRoot[i];
+		cr_sex sDirective = GetAtomicArg(sClassDef, 0);
+		if (Eq(sDirective.c_str(), "UClass"))
+		{
+			ParseClassDef(sClassDef);
+		}
+
+		if ((i % 100) == 0)
+		{
+			printf(".");
+		}
 	}
 }
-
-using namespace Rococo::Strings;
-using namespace Rococo::Unreal;
 
 void ValidateToken(cr_sex s, cstr matchThis, cstr context)
 {
@@ -123,6 +187,174 @@ void ValidateToken(cr_sex s, cstr matchThis, cstr context)
 }
 
 #include <ctype.h>
+
+#include <rococo.hashtable.h>
+
+ROCOCO_INTERFACE IMarshalType
+{
+	virtual cstr CPPName() const = 0;
+};
+
+Rococo::stringmap<IMarshalType*> marshalArgTypes;
+
+struct MarshalType_Int32: IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "Int32";
+	}
+} s_mt_Int32;
+
+struct MarshalType_Int64 : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "Int64";
+	}
+} s_mt_Int64;
+
+struct MarshalType_float : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "float";
+	}
+} s_mt_float;
+
+struct MarshalType_double : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "double";
+	}
+} s_mt_double;
+
+struct MarshalType_bool : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "bool";
+	}
+} s_mt_bool;
+
+struct MarshalType_FString : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "Rococo::UE5::Marshal::FStringImage";
+	}
+} s_mt_FString;
+
+struct MarshalType_FName : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "Rococo::UE5::Marshal::FStringImage";
+	}
+} s_mt_FName;
+
+struct MarshalType_FVector : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "Rococo::UE5::Marshal::DVector3";
+	}
+} s_mt_FVector;
+
+struct MarshalType_FTransform : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "Rococo::UE5::Marshal::DTransform";
+	}
+} s_mt_FTransform;
+
+struct MarshalType_FRotator : IMarshalType
+{
+	cstr CPPName() const override
+	{
+		return "Rococo::UE5::Marshal::DRotator";
+	}
+} s_mt_FRotator;
+
+const IMarshalType* FindPrimitiveType(cstr argType)
+{
+	if (marshalArgTypes.size() == 0)
+	{
+		marshalArgTypes.insert("Int32", &s_mt_Int32);
+		marshalArgTypes.insert("Int32^", &s_mt_Int32);
+		marshalArgTypes.insert("Int64", &s_mt_Int64);
+		marshalArgTypes.insert("Int64^", &s_mt_Int64);
+		marshalArgTypes.insert("float", &s_mt_float);
+		marshalArgTypes.insert("float^", &s_mt_float);
+		marshalArgTypes.insert("double", &s_mt_double);
+		marshalArgTypes.insert("double^", &s_mt_double);
+		marshalArgTypes.insert("bool", &s_mt_bool);
+		marshalArgTypes.insert("bool^", &s_mt_bool);
+		marshalArgTypes.insert("FString", &s_mt_FString);
+		marshalArgTypes.insert("FStringe^", &s_mt_FString);
+		marshalArgTypes.insert("FName", &s_mt_FName);
+		marshalArgTypes.insert("FName^", &s_mt_FName);
+		marshalArgTypes.insert("FVector", &s_mt_FVector);
+		marshalArgTypes.insert("FVector^", &s_mt_FVector);
+		marshalArgTypes.insert("FTransform", &s_mt_FTransform);
+		marshalArgTypes.insert("FTransform^", &s_mt_FTransform);
+		marshalArgTypes.insert("FRotator", &s_mt_FRotator);
+		marshalArgTypes.insert("FRotator^", &s_mt_FRotator);
+	}
+
+	auto i = marshalArgTypes.find(argType);
+	return i != marshalArgTypes.end() ? i->second : nullptr;
+}
+
+stringmap<int> mapUnknownToUsage;
+
+void MarkUnknown(cstr type)
+{
+	auto i = mapUnknownToUsage.find(type);
+	if (i == mapUnknownToUsage.end())
+	{
+		mapUnknownToUsage.insert(type, 1);
+	}
+	else
+	{
+		i->second++;
+	}
+}
+
+#include <algorithm>
+
+void PrintUnknownsAscending()
+{
+	struct Usage
+	{
+		cstr item;
+		int count;
+	};
+	std::vector<Usage> elements;
+	for (auto& i : mapUnknownToUsage)
+	{
+		Usage u{ i.first, i.second };
+		elements.push_back(u);
+	}
+
+	std::sort(elements.begin(), elements.end(), 
+		[](const Usage& a, const Usage& b)
+		{
+			return a.count < b.count;
+		}
+	);
+
+	printf("\n-------------------------------\n");
+	printf("\nUnknown Type - [Occurence Rate]\n");
+
+	for (auto& u : elements)
+	{
+		printf("%s - [%d]\n", u.item, u.count);
+	}
+
+	printf("\n-------------------------------\n");
+}
 
 struct UnrealFunctionArg : IUnrealArg
 {
@@ -141,6 +373,29 @@ struct UnrealFunctionArg : IUnrealArg
 				isConst = true;
 			}
 		}
+	}
+
+	bool HasSexyCounterpart() const override
+	{
+		cstr p = argType.c_str();
+
+		if (*p == 'U' && EndsWith(p, "*"))
+		{
+			return true;
+		}
+
+		if (*p == 'A' && EndsWith(p, "*"))
+		{
+			return true;
+		}
+
+		auto* primitive = FindPrimitiveType(p);
+		if (primitive)
+		{
+			return true;
+		}
+				
+		return false;
 	}
 
 	void AppendName(StringBuilder& sb, bool makeSexyVariableName = false) const override
@@ -183,44 +438,49 @@ struct UnrealFunctionArg : IUnrealArg
 		}
 	}
 
-	void AppendType(StringBuilder& sb) const override
+	void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVariableType) const
+	{
+		if (makeSexyVariableType)
+		{
+			sb << "H";
+		}
+
+		sb << nameType;
+
+		if (makeSexyVariableType)
+		{
+			sb.Undo(-1);
+		}
+	}
+
+	void AppendType(StringBuilder& sb, bool makeSexyVariableType) const override
 	{
 		cstr p = argType.c_str();
 
 		if (*p == 'U' && EndsWith(p, "*"))
 		{
-			sb << p;
+			MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
+			return;
 		}
-		else if (*p == 'A' && EndsWith(p, "*"))
+
+		if (*p == 'A' && EndsWith(p, "*"))
 		{
-			sb << p;
+			MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
+			return;
 		}
-		else if (Eq(p, "int32") || Eq(p, "int32^"))
+
+		auto* primitive = FindPrimitiveType(p);
+		if (primitive)
 		{
-			sb << "int32";
+			sb << primitive->CPPName();
+			return;
 		}
-		else if (Eq(p, "int64") || Eq(p, "int64^"))
-		{
-			sb << "int64";
-		}
-		else if (Eq(p, "float") || Eq(p, "float^"))
-		{
-			sb << "float";
-		}
-		else if (Eq(p, "double") || Eq(p, "double64^"))
-		{
-			sb << "double";
-		}
-		else if (Eq(p, "bool") || Eq(p, "bool^"))
-		{
-			sb << "bool";
-		}
-		else
-		{
-			sb << "UnknownType /*";
-			AppendTypeSansRef(sb);
-			sb << "*/";
-		}
+
+		MarkUnknown(p);
+			
+		sb << "UnknownType /*";
+		AppendTypeSansRef(sb);
+		sb << "*/";
 	}
 
 	bool GetObjectPointerType(char* buffer, size_t capacity) const override
@@ -256,7 +516,7 @@ struct UnrealFunctionArg : IUnrealArg
 		return IsRef() && isConst;
 	}
 
-	bool IsOutput() const override
+	bool IsCPPOutput() const override
 	{
 		cr_sex argDef = *argName.Parent();
 		for (int i = 0; i < argDef.NumberOfElements(); i++)
@@ -277,6 +537,29 @@ struct UnrealFunctionArg : IUnrealArg
 		}
 
 		return false;
+	}
+
+	bool IsSexyOutput() const override
+	{
+		if (!IsCPPOutput())
+		{
+			return false;
+		}
+
+		if (IsPtr())
+		{
+			// We want to emit a handle, but handles are derived types passed by mutable reference
+			return false;
+		}
+
+		cstr p = argType.c_str();
+		if (Eq(p, "FString") || Eq(p, "FString^"))
+		{
+			// FString is marshalled as FStringImage, a derived type, passed by mutable reference
+			return false;
+		}
+
+		return true;
 	}
 };
 
@@ -303,6 +586,19 @@ struct UnrealFunctionDef : IUnrealFunction
 		}
 	}
 
+	bool HasSexyCounterpart() const override
+	{
+		for (auto* a : args)
+		{
+			if (!a->HasSexyCounterpart())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	IUnrealArg* GetArg(size_t index) override
 	{
 		if (index >= args.size()) return nullptr;
@@ -319,10 +615,7 @@ struct UnrealFunctionDef : IUnrealFunction
 
 	void AppendFunctionName(StringBuilder& sb) const override
 	{
-		cr_sex fName = fDef[2];
-		AssertStringLiteral(fName);
-
-		cstr fNameStr = fName.c_str();
+		cstr fNameStr = GetAtomicArg(fDef, 2).c_str();
 		sb << fNameStr;
 
 		if (Eq(fNameStr, "Construct") || Eq(fNameStr, "Destruct"))
@@ -436,4 +729,175 @@ void ParseClassDef(cr_sex sDef)
 		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\",
 		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\sexy-files\\"
 	);
+
+	g_nClassesParsed++;
+	g_nMethodsParsed += (int) def.MethodCount();
+
+	for (int i = 0; i < def.MethodCount(); i++)
+	{
+		auto& method = def.GetFunction(i);
+		if (!method.HasSexyCounterpart())
+		{
+			g_nMethodsNotMarshaled++;
+		}
+	}
+}
+
+struct UnrealStructElement: IUnrealStructElement
+{
+	HString typeName;
+	HString fieldName;
+	int offset = 0;
+	int sizeofStruct = 0;
+
+	UnrealStructElement(cr_sex eDef)
+	{
+		// (Property ([] Def <sNameSpec>))
+		cr_sex sNameSpec = eDef[1];
+		ValidateToken(sNameSpec[0], "[]", __FUNCTION__);
+		ValidateToken(sNameSpec[1], "Def", __FUNCTION__);
+		typeName = GetAtomicArg(sNameSpec, 2).c_str();
+		fieldName = GetAtomicArg(sNameSpec, sNameSpec.NumberOfElements() - 1).c_str();
+
+		if (eDef.NumberOfElements() > 2)
+		{
+			int i = 2;
+
+			if (Eq(GetAtomicArg(eDef[2], 0).c_str(), "NameCPP"))
+			{
+				i++;
+			}
+
+			cr_sex sOffset = eDef[i];
+			ValidateToken(sOffset[0], "Offset", __FUNCTION__);
+			cstr txtOffset = GetAtomicArg(sOffset, 1).c_str();
+
+			cr_sex sSizeOfStruct = eDef[i+1];
+			ValidateToken(sSizeOfStruct[0], "SizeOf", __FUNCTION__);
+			cstr txtSizeOfStruct = GetAtomicArg(sSizeOfStruct, 1).c_str();
+
+			offset = atoi(txtOffset);
+			sizeofStruct = atoi(txtSizeOfStruct);
+		}
+	}
+
+	int Offset() const override
+	{
+		return offset;
+	}
+
+	int SizeOf() const override
+	{
+		return sizeofStruct;
+	}
+
+	cstr TypeName() const override
+	{
+		return typeName;
+	}
+
+	cstr FieldName() const override
+	{
+		return fieldName;
+	}
+};
+
+struct UnrealStructDef : IUnrealStruct
+{
+	HString typeName;
+	HString pathName;
+	int alignment = 0;
+	int sizeofStruct = 0;
+
+	std::vector<UnrealStructElement*> elements;
+
+	cr_sex sDef;
+	UnrealStructDef(cr_sex _sDef) : sDef(_sDef)
+	{
+		cr_sex sNameDirective = sDef[1];
+		ValidateToken(sNameDirective[0], "FullName", __FUNCTION__);
+		cstr path = GetAtomicArg(sNameDirective, 2).c_str();
+
+		NamespaceSplitter splitter(path);
+
+		cstr package, name;
+		if (!splitter.SplitHead(OUT package, OUT name))
+		{
+			Throw(sDef, "Expecting /<package>.<name>");
+		}
+
+		cr_sex sOffsetDirective = sDef[2];
+		ValidateToken(sOffsetDirective[0], "SizeOf", __FUNCTION__);
+		cstr txtSize = sOffsetDirective[1].c_str();
+
+		cr_sex sAlignDirective = sDef[3];
+		ValidateToken(sAlignDirective[0], "Alignment", __FUNCTION__);
+		cstr txtAlign = sAlignDirective[0].c_str();
+
+		pathName = package;
+		typeName = name;
+		sizeofStruct = atoi(txtSize);
+		alignment = atoi(txtAlign);
+
+		if (sDef.NumberOfElements() > 5)
+		{
+			cr_sex sColon = sDef[4];
+			ValidateToken(sColon, ":", __FUNCTION__);
+		}
+
+		for (int i = 5; i < sDef.NumberOfElements(); i++)
+		{
+			cr_sex sDirective = sDef[i];
+			AssertCompound(sDirective);
+
+			cstr command = GetAtomicArg(sDirective, 0).c_str();
+			if (Eq(command, "Property"))
+			{
+				elements.push_back(new UnrealStructElement(sDirective));
+			}
+		}
+	}
+
+	~UnrealStructDef()
+	{
+		for (auto* e : elements)
+		{
+			delete e;
+		}
+	}
+
+	cstr TypeName() const override
+	{
+		return typeName;
+	}
+
+	cstr Package() const override
+	{
+		return pathName;
+	}
+
+	int Alignment() const override
+	{
+		return alignment;
+	}
+
+	int SizeOf() const override
+	{
+		return sizeofStruct;
+	}
+
+	size_t ElementCount() const override
+	{
+		return elements.size();
+	}
+
+	IUnrealStructElement& operator[](size_t index) override
+	{
+		return *elements[index];
+	}
+};
+
+void ParseStructDef(cr_sex sDef)
+{
+	UnrealStructDef def(sDef);
 }

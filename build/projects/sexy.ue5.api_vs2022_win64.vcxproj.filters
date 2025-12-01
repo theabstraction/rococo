@@ -12784,6 +12784,7 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\ZeroOutRootBoneModifier.hpp">
       <Filter>natives</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="natives">

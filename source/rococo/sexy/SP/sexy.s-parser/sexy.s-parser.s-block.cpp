@@ -818,7 +818,7 @@ namespace Anon
 		const ISExpression& GetElement(int index) const override
 		{
 			UNUSED(index);
-			Throw(0, "Atomic node has no elements");
+			Throw(*this, "Atomic node has no elements");
 		}
 
 		const ISExpression* Parent() const override
