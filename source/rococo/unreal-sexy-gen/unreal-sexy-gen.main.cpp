@@ -129,7 +129,7 @@ void ParseClassTree(cr_sex sRoot)
 		}
 	}
 
-	printf("Processing %d UStructs...\n", structCount);
+	printf("Processing %d UStructs", structCount);
 
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -140,9 +140,14 @@ void ParseClassTree(cr_sex sRoot)
 		{
 			ParseStructDef(sStructDef);
 		}
+
+		if ((i % 100) == 0)
+		{
+			printf(".");
+		}
 	}
 
-	printf("Processed UStructs.\n");
+	printf("\nProcessed UStructs.\n");
 
 	int classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
@@ -356,6 +361,29 @@ void PrintUnknownsAscending()
 	printf("\n-------------------------------\n");
 }
 
+void AppendIdentifier(StringBuilder& sb, cstr rawName)
+{
+	char firstChar = *rawName;
+
+	if (isupper(firstChar))
+	{
+		if (isupper(rawName[1]))
+		{
+			// We have two or more capital letters, this could be an acronym, so we would not want to create a name like this: hAL, instead we add a prefix,  e.g lHAL
+			cstr prefix = "l"; // for 'local'
+			sb << prefix;
+		}
+		else
+		{
+			// Convert pascal case to camel case
+			sb.AppendChar((char)tolower(firstChar));
+			rawName++;
+		}
+	}
+
+	sb << rawName;
+}
+
 struct UnrealFunctionArg : IUnrealArg
 {
 	cr_sex argName;
@@ -408,25 +436,7 @@ struct UnrealFunctionArg : IUnrealArg
 
 		cstr rawName = argName.c_str();
 
-		char firstChar = *rawName;
-
-		if (isupper(firstChar))
-		{
-			if (isupper(rawName[1]))
-			{
-				// We have two or more capital letters, this could be an acronym, so we would not want to create a name like this: hAL, instead we add a prefix,  e.g lHAL
-				cstr prefix = "l"; // for 'local'
-				sb << prefix;
-			}
-			else
-			{
-				// Convert pascal case to camel case
-				sb.AppendChar((char)tolower(firstChar));
-				rawName++;
-			}
-		}
-
-		sb << rawName;
+		AppendIdentifier(sb, rawName);
 	}
 
 	void AppendTypeSansRef(StringBuilder& sb) const
@@ -897,7 +907,10 @@ struct UnrealStructDef : IUnrealStruct
 	}
 };
 
+void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory);
+
 void ParseStructDef(cr_sex sDef)
 {
 	UnrealStructDef def(sDef);
+	GenStructDef(def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
 }
