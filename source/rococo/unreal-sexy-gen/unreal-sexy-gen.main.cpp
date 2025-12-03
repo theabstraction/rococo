@@ -757,6 +757,7 @@ struct UnrealStructElement: IUnrealStructElement
 {
 	HString typeName;
 	HString fieldName;
+	HString innerValueType;
 	int offset = 0;
 	int sizeofStruct = 0;
 
@@ -768,6 +769,10 @@ struct UnrealStructElement: IUnrealStructElement
 		ValidateToken(sNameSpec[1], "Def", __FUNCTION__);
 		typeName = GetAtomicArg(sNameSpec, 2).c_str();
 		fieldName = GetAtomicArg(sNameSpec, sNameSpec.NumberOfElements() - 1).c_str();
+		if (Eq(typeName, "TArray") || Eq(typeName, "TSet"))
+		{
+			innerValueType = GetAtomicArg(sNameSpec, 3).c_str();
+		}
 
 		if (eDef.NumberOfElements() > 2)
 		{
@@ -809,6 +814,11 @@ struct UnrealStructElement: IUnrealStructElement
 	cstr FieldName() const override
 	{
 		return fieldName;
+	}
+
+	cstr InnerValueType() const override
+	{
+		return innerValueType;
 	}
 };
 

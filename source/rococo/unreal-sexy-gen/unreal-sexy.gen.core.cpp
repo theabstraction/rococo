@@ -602,6 +602,11 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 	{
 		auto& e = structDef[i];
 
+		if (Eq(e.TypeName(), "Array"))
+		{
+			continue;
+		}
+
 		if (StartsWith(e.TypeName(), "TObjectPtr<"))
 		{
 			continue;
@@ -661,7 +666,11 @@ namespace Rococo::UE::Structs::Gen
 			sb.AppendFormat("\t\tchar _padding_%d[%d];\n", paddingIndex++, e.Offset() - currentOffset);
 		}
 
-		if (StartsWith(e.TypeName(), enumAsBytePrefix))
+		if (Eq(e.TypeName(), "TArray"))
+		{
+			sb.AppendFormat("\t\tRT_Array<%s> ", e.InnerValueType());
+		}
+		else if (StartsWith(e.TypeName(), enumAsBytePrefix))
 		{
 			char innerType[256];
 			cstr endToken = FindChar(e.TypeName(), '>');

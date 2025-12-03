@@ -45,6 +45,9 @@ namespace Rococo::Unreal
 		virtual int SizeOf() const = 0;
 		virtual cstr TypeName() const = 0;
 		virtual cstr FieldName() const = 0;
+
+		// Defined if TypeName is TArray or TSet
+		virtual cstr InnerValueType() const = 0;
 	};
 
 	ROCOCO_INTERFACE IUnrealStruct
@@ -56,6 +59,8 @@ namespace Rococo::Unreal
 		virtual int SizeOf() const = 0;
 
 		virtual size_t ElementCount() const = 0;
+
+		// Returns the element at the given index
 		virtual IUnrealStructElement& operator[](size_t index) = 0;
 	};
 }
