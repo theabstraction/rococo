@@ -580,13 +580,57 @@ void BuildHardCodedTypes()
 	hardcodedTypes.insert("FGuid", { "RF_Guid", nullptr });
 }
 
+auto objectPtrPrefix = "TObjectPtr<"_fstring;
+auto subclassOfPrefix = "TSubclassOf<"_fstring;
+auto enumAsBytePrefix = "TEnumAsByte<"_fstring;
+
+void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealType)
+{
+	if (Eq(unrealType, "TArray"))
+	{
+		Throw(0, "Cannot handle TArray as an inner type");
+	}
+	else if (StartsWith(unrealType, enumAsBytePrefix))
+	{
+		char innerType[256];
+		cstr endToken = FindChar(unrealType, '>');
+		cstr startToken = unrealType + enumAsBytePrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		SafeFormat(buffer, capacity, "uint8");
+	}
+	else if (StartsWith(unrealType, subclassOfPrefix))
+	{
+		char innerType[256];
+		cstr endToken = FindChar(unrealType, '>');
+		cstr startToken = unrealType + subclassOfPrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		SafeFormat(buffer, capacity, "RF_SubclassOf");
+	}
+	else if (StartsWith(unrealType, objectPtrPrefix))
+	{
+		char innerType[256];
+		cstr endToken = FindChar(unrealType, '>');
+		cstr startToken = unrealType + objectPtrPrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		SafeFormat(buffer, capacity, "tRF_HObject");
+	}
+	else
+	{
+		auto h = hardcodedTypes.find(unrealType);
+		if (h != hardcodedTypes.end())
+		{
+			SafeFormat(buffer, capacity, "%s", h->second.typeName);
+		}
+		else
+		{
+			SafeFormat(buffer, capacity, "%s%s", STRUCT_PREFIX, unrealType);
+		}
+	}
+}
+
 void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 {
 	BuildHardCodedTypes();
-
-	auto objectPtrPrefix = "TObjectPtr<"_fstring;
-	auto subclassOfPrefix = "TSubclassOf<"_fstring;
-	auto enumAsBytePrefix = "TEnumAsByte<"_fstring;
 
 	size_t nElements = structDef.ElementCount();
 
@@ -668,7 +712,9 @@ namespace Rococo::UE::Structs::Gen
 
 		if (Eq(e.TypeName(), "TArray"))
 		{
-			sb.AppendFormat("\t\tRT_Array<%s> ", e.InnerValueType());
+			char innerType[256];
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
+			sb.AppendFormat("\t\tRT_Array<%s> ", innerType);
 		}
 		else if (StartsWith(e.TypeName(), enumAsBytePrefix))
 		{

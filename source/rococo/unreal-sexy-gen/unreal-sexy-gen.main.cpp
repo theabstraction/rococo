@@ -147,8 +147,6 @@ void ParseClassTree(cr_sex sRoot)
 		}
 	}
 
-	printf("\nProcessed UStructs.\n");
-
 	int classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -160,7 +158,7 @@ void ParseClassTree(cr_sex sRoot)
 		}
 	}
 
-	printf("Generating %d classes", classCount);
+	printf("\nGenerating %d classes", classCount);
 
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
