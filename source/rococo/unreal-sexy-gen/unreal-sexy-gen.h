@@ -8,6 +8,17 @@ namespace Rococo::Strings
 
 namespace Rococo::Unreal
 {
+	ROCOCO_INTERFACE IUnrealEnumDef
+	{
+		virtual cstr Name() const = 0;
+		virtual cstr Package() const = 0;
+		virtual int64 MaxValue() const = 0;
+		virtual int32 NumberOfKeys() const = 0;
+		virtual cstr GetKey(int32 index) const = 0;
+		virtual int64 GetValue(int32 index) const = 0;
+		virtual size_t GetUnderlyingSize() const = 0;
+	};
+
 	ROCOCO_INTERFACE IUnrealArg
 	{
 		virtual void AppendName(Strings::StringBuilder & sb, bool makeSexyVariableName = false) const = 0;

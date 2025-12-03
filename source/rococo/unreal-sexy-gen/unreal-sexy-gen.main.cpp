@@ -18,6 +18,7 @@ int g_nMethodsParsed = 0;
 int g_nMethodsNotMarshaled = 0;
 
 void ParseClassDef(cr_sex sClassDef);
+void ParseEnumDef(cr_sex sEnumDef);
 void ParseStructDef(cr_sex sDef);
 void ParseClassTree(cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
@@ -117,6 +118,36 @@ int main(int argc, char* argv[])
 
 void ParseClassTree(cr_sex sRoot)
 {
+	int enumCount = 0;
+	for (int i = 0; i < sRoot.NumberOfElements(); i++)
+	{
+		cr_sex sEnumDef = sRoot[i];
+		cr_sex sEnumDirective = GetAtomicArg(sEnumDef, 0);
+
+		if (Eq(sEnumDirective.c_str(), "UEnum"))
+		{
+			enumCount++;
+		}
+	}
+
+	printf("Processing %d UEnums", enumCount);
+
+	for (int i = 0; i < sRoot.NumberOfElements(); i++)
+	{
+		cr_sex sEnumDef = sRoot[i];
+		cr_sex sEnumDirective = GetAtomicArg(sEnumDef, 0);
+
+		if (Eq(sEnumDirective.c_str(), "UEnum"))
+		{
+			ParseEnumDef(sEnumDef);
+		}
+
+		if ((i % 100) == 0)
+		{
+			printf(".");
+		}
+	}
+
 	int structCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -129,7 +160,7 @@ void ParseClassTree(cr_sex sRoot)
 		}
 	}
 
-	printf("Processing %d UStructs", structCount);
+	printf("\nProcessing %d UStructs", structCount);
 
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -357,6 +388,136 @@ void PrintUnknownsAscending()
 	}
 
 	printf("\n-------------------------------\n");
+}
+
+
+/* Example:
+(UEnum
+	(FullName Enum /Script/Engine.EDataLayerRuntimeState)
+	(MaxValue 3)
+	:
+	(Values
+		(Unloaded 0)
+		(Loaded 1)
+		(Activated 2)
+		(EDataLayerRuntimeState_MAX 3)
+	)
+)
+*/
+
+struct UnrealEnumDef: IUnrealEnumDef
+{
+	cr_sex sDef;
+	HString name;
+	HString package;
+	int64 maxValue = 0;
+	
+	struct Entry
+	{
+		HString key;
+		int64 value;
+	};
+
+	std::vector<Entry> entries;
+
+	UnrealEnumDef(cr_sex _sDef): sDef(_sDef)
+	{
+		cr_sex sNameDef = sDef[1];
+		cstr nameAndPackage = GetAtomicArg(sNameDef, 2).c_str();
+
+		NamespaceSplitter splitter(nameAndPackage);
+
+		cstr package, shortName;
+		if (!splitter.SplitTail(OUT package, shortName))
+		{
+			Throw(sNameDef[2], "Cannot split %s into <package>.<name>", nameAndPackage);
+		}
+
+		this->package = package;
+		this->name = shortName;
+
+		cr_sex sMaxDef = sDef[2];
+		ValidateToken(sMaxDef[0], "MaxValue", __FUNCTION__);
+
+		maxValue = _atoi64(GetAtomicArg(sMaxDef, 1).c_str());
+
+		cr_sex sValuesDef = sDef[4];
+		ValidateToken(sValuesDef[0], "Values", __FUNCTION__);
+
+		entries.reserve(sValuesDef.NumberOfElements() - 1);
+
+		for (int i = 1; i < sValuesDef.NumberOfElements(); i++)
+		{
+			cr_sex sPair = sValuesDef[i];
+			Entry e;
+			e.key = GetAtomicArg(sPair, 0).c_str();
+			e.value = _atoi64(GetAtomicArg(sPair, 1).c_str());
+			entries.push_back(e);
+		}
+	}
+
+	cstr Name() const override
+	{
+		return name;
+	}
+
+	cstr Package() const override
+	{
+		return package;
+	}
+
+	int64 MaxValue() const override
+	{
+		return maxValue;
+	}
+
+	int32 NumberOfKeys() const override
+	{
+		return (int32) entries.size();
+	}
+
+	cstr GetKey(int32 index) const override
+	{
+		return entries[index].key;
+	}
+
+	int64 GetValue(int32 index) const override
+	{
+		return entries[index].value;
+	}
+
+	size_t GetUnderlyingSize() const override
+	{
+		// Not sure how the engine works, but guessing this is the way. Compare this against sizeOf fields in struct generation to ensure correct logic
+		// Any suggestions on how to get the correct underlying type for the enum, please email me.
+		if (maxValue <= 255)
+		{
+			return sizeof(uint8);
+		}
+
+		if (maxValue <= 65535)
+		{
+			return sizeof(uint16);
+		}
+
+		if (maxValue <= 0xFFFF'FFFFLL)
+		{
+			return sizeof(uint32);
+		}
+
+		return sizeof(uint64);
+	}
+};
+
+void GenEnumDef(IUnrealEnumDef& def, crwstr nativeDirectory, crwstr sexyDirectory);
+
+void ParseEnumDef(cr_sex sDef)
+{
+	UnrealEnumDef def(sDef);
+	GenEnumDef(def,
+		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\",
+		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\sexy-files\\"
+	);
 }
 
 void AppendIdentifier(StringBuilder& sb, cstr rawName)
