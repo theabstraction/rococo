@@ -11,6 +11,8 @@ using namespace Rococo::Unreal;
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb);
+IUnrealStruct* FindStruct(cstr name);
+IUnrealEnumDef* FindEnum(cstr name);
 
 const bool UsePackageForFolders = false;
 
@@ -128,6 +130,64 @@ void BuildSexyInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUn
 	}
 }
 
+void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVariableType)
+{
+	if (makeSexyVariableType)
+	{
+		sb << "H";
+	}
+
+	sb << nameType;
+
+	if (makeSexyVariableType)
+	{
+		sb.Undo(-1);
+	}
+}
+
+const IMarshalType* FindPrimitiveType(cstr argType);
+void MarkUnknown(cstr type);
+
+void AppendTypeSansRef(StringBuilder& sb, cstr argType)
+{
+	cstr p = argType;
+	while (*p != 0 && *p != '^')
+	{
+		sb.AppendChar(*p++);
+	}
+}
+
+void AppendType(StringBuilder& sb, cstr argType, bool makeSexyVariableType)
+{
+	cstr p = argType;
+
+	if (*p == 'U' && EndsWith(p, "*"))
+	{
+		MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
+		return;
+	}
+
+	if (*p == 'A' && EndsWith(p, "*"))
+	{
+		MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
+		return;
+	}
+
+	auto* primitive = FindPrimitiveType(p);
+	if (primitive)
+	{
+		sb << primitive->CPPName();
+		return;
+	}
+
+
+	MarkUnknown(p);
+
+	sb << "UnknownType /*";
+	AppendTypeSansRef(sb, argType);
+	sb << "*";
+}
+
 void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb)
 {
 	sb << "\n\tvoid ";
@@ -155,7 +215,8 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		sb << "\t\t\t";
 
-		arg->AppendType(sb);
+		cstr argType = arg->ArgType();	
+		AppendType(sb, argType, false);
 
 		if (arg->IsRef() && !arg->IsPtr())
 		{
@@ -186,7 +247,9 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	{
 		sb << "\t\t";
 
-		input->AppendType(sb);
+		cstr argType = input->ArgType();
+		AppendType(sb, argType, false);
+
 		sb << " in_";
 		input->AppendName(sb, true);
 		sb << ";\n";
@@ -222,7 +285,8 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	{
 		sb << "\n\t\t";
 
-		output->AppendType(sb);
+		cstr argType = output->ArgType();
+		AppendType(sb, argType, false);
 
 		if (output->IsRef() && !output->IsPtr())
 		{
@@ -428,6 +492,8 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
 					sb << "class " << objectPointerType << ";\n";
 				}
 			}
+
+			
 		}
 	}
 
@@ -526,7 +592,7 @@ namespace
 		for (auto* input : inputs)
 		{
 			sb << "(";
-			input->AppendType(sb, true);
+			AppendType(sb, input->ArgType(), true);
 			sb << " ";
 			input->AppendName(sb, true);
 			sb << ")";
@@ -537,7 +603,7 @@ namespace
 		for (auto* output : outputs)
 		{
 			sb << "(";
-			output->AppendType(sb, true);
+			AppendType(sb, output->ArgType(), true);
 			sb << " ";
 			output->AppendName(sb, true);
 			sb << ")";
@@ -664,6 +730,18 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 		if (StartsWith(e.TypeName(), "TEnumAsByte<"))
 		{
 			continue;
+		}
+
+		auto* enumDef = FindEnum(e.TypeName());
+		if (enumDef)
+		{
+			sb.AppendFormat("#include <%s.hpp>\n", enumDef->Name());
+			continue;
+		}
+
+		if (StartsWith(e.TypeName(), "E"))
+		{
+			Throw(0, "Expecting Enumeration name %s, but it was not a known enumeration type", e.TypeName());
 		}
 
 		auto h = hardcodedTypes.find(e.TypeName());
@@ -862,7 +940,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 		for (auto* input : inputs)
 		{
 			sb << "(";
-			input->AppendType(sb, true);
+			AppendType(sb, input->ArgType(), true);
 			sb << " ";
 			input->AppendName(sb, true);
 			sb << ")";
@@ -873,7 +951,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 		for (auto* output : outputs)
 		{
 			sb << "(";
-			output->AppendType(sb, true);
+			AppendType(sb, output->ArgType(), true);
 			sb << " ";
 			output->AppendName(sb, true);
 			sb << ")";
@@ -961,7 +1039,7 @@ void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory)
 
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& structDef, StringBuilder& sb);
 
-void GenEnumDef(IUnrealEnumDef& enumDef, crwstr nativeDirectory, crwstr sexyDirectory)
+void GenEnumDef(IUnrealEnumDef& enumDef, crwstr nativeDirectory)
 {
 	cstr structName = enumDef.Name();
 	cstr packageName = UsePackageForFolders ? enumDef.Package() : "";

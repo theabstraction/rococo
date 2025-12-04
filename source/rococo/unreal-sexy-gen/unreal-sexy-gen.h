@@ -22,7 +22,7 @@ namespace Rococo::Unreal
 	ROCOCO_INTERFACE IUnrealArg
 	{
 		virtual void AppendName(Strings::StringBuilder & sb, bool makeSexyVariableName = false) const = 0;
-		virtual void AppendType(Strings::StringBuilder& sb, bool makeSexyVariableType = false) const = 0;
+		virtual cstr ArgType() const = 0;
 		virtual bool GetObjectPointerType(char* buffer, size_t capacity) const = 0;
 
 		// Returns true if Sexy can marshal the argument
@@ -73,5 +73,10 @@ namespace Rococo::Unreal
 
 		// Returns the element at the given index
 		virtual IUnrealStructElement& operator[](size_t index) = 0;
+	};
+
+	ROCOCO_INTERFACE IMarshalType
+	{
+		virtual cstr CPPName() const = 0;
 	};
 }

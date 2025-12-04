@@ -224,11 +224,6 @@ void ValidateToken(cr_sex s, cstr matchThis, cstr context)
 
 #include <rococo.hashtable.h>
 
-ROCOCO_INTERFACE IMarshalType
-{
-	virtual cstr CPPName() const = 0;
-};
-
 Rococo::stringmap<IMarshalType*> marshalArgTypes;
 
 struct MarshalType_Int32: IMarshalType
@@ -509,15 +504,209 @@ struct UnrealEnumDef: IUnrealEnumDef
 	}
 };
 
-void GenEnumDef(IUnrealEnumDef& def, crwstr nativeDirectory, crwstr sexyDirectory);
+void GenEnumDef(IUnrealEnumDef& def, crwstr nativeDirectory);
+
+stringmap<UnrealEnumDef*> g_unrealEnums; // This will leak, but get cleared up at exit.
+
+IUnrealEnumDef* FindEnum(cstr name)
+{
+	auto i = g_unrealEnums.find(name);
+	return i == g_unrealEnums.end() ? nullptr : i->second;
+}
 
 void ParseEnumDef(cr_sex sDef)
 {
-	UnrealEnumDef def(sDef);
-	GenEnumDef(def,
-		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\",
-		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\sexy-files\\"
-	);
+	UnrealEnumDef* def = new UnrealEnumDef(sDef);
+	GenEnumDef(*def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
+
+	if (!g_unrealEnums.insert(def->Name(), def).second)
+	{
+		Throw(sDef, "Duplicate enum name: %s", def->Name());
+	}
+}
+
+struct UnrealStructElement : IUnrealStructElement
+{
+	HString typeName;
+	HString fieldName;
+	HString innerValueType;
+	int offset = 0;
+	int sizeofStruct = 0;
+
+	UnrealStructElement(cr_sex eDef)
+	{
+		// (Property ([] Def <sNameSpec>))
+		cr_sex sNameSpec = eDef[1];
+		ValidateToken(sNameSpec[0], "[]", __FUNCTION__);
+		ValidateToken(sNameSpec[1], "Def", __FUNCTION__);
+		typeName = GetAtomicArg(sNameSpec, 2).c_str();
+		fieldName = GetAtomicArg(sNameSpec, sNameSpec.NumberOfElements() - 1).c_str();
+		if (Eq(typeName, "TArray") || Eq(typeName, "TSet"))
+		{
+			innerValueType = GetAtomicArg(sNameSpec, 3).c_str();
+		}
+
+		if (eDef.NumberOfElements() > 2)
+		{
+			int i = 2;
+
+			if (Eq(GetAtomicArg(eDef[2], 0).c_str(), "NameCPP"))
+			{
+				i++;
+			}
+
+			cr_sex sOffset = eDef[i];
+			ValidateToken(sOffset[0], "Offset", __FUNCTION__);
+			cstr txtOffset = GetAtomicArg(sOffset, 1).c_str();
+
+			cr_sex sSizeOfStruct = eDef[i + 1];
+			ValidateToken(sSizeOfStruct[0], "SizeOf", __FUNCTION__);
+			cstr txtSizeOfStruct = GetAtomicArg(sSizeOfStruct, 1).c_str();
+
+			offset = atoi(txtOffset);
+			sizeofStruct = atoi(txtSizeOfStruct);
+		}
+	}
+
+	int Offset() const override
+	{
+		return offset;
+	}
+
+	int SizeOf() const override
+	{
+		return sizeofStruct;
+	}
+
+	cstr TypeName() const override
+	{
+		return typeName;
+	}
+
+	cstr FieldName() const override
+	{
+		return fieldName;
+	}
+
+	cstr InnerValueType() const override
+	{
+		return innerValueType;
+	}
+};
+
+struct UnrealStructDef : IUnrealStruct
+{
+	HString typeName;
+	HString pathName;
+	int alignment = 0;
+	int sizeofStruct = 0;
+
+	std::vector<UnrealStructElement*> elements;
+
+	cr_sex sDef;
+	UnrealStructDef(cr_sex _sDef) : sDef(_sDef)
+	{
+		cr_sex sNameDirective = sDef[1];
+		ValidateToken(sNameDirective[0], "FullName", __FUNCTION__);
+		cstr path = GetAtomicArg(sNameDirective, 2).c_str();
+
+		NamespaceSplitter splitter(path);
+
+		cstr package, name;
+		if (!splitter.SplitHead(OUT package, OUT name))
+		{
+			Throw(sDef, "Expecting /<package>.<name>");
+		}
+
+		cr_sex sOffsetDirective = sDef[2];
+		ValidateToken(sOffsetDirective[0], "SizeOf", __FUNCTION__);
+		cstr txtSize = sOffsetDirective[1].c_str();
+
+		cr_sex sAlignDirective = sDef[3];
+		ValidateToken(sAlignDirective[0], "Alignment", __FUNCTION__);
+		cstr txtAlign = sAlignDirective[0].c_str();
+
+		pathName = package;
+		typeName = name;
+		sizeofStruct = atoi(txtSize);
+		alignment = atoi(txtAlign);
+
+		if (sDef.NumberOfElements() > 5)
+		{
+			cr_sex sColon = sDef[4];
+			ValidateToken(sColon, ":", __FUNCTION__);
+		}
+
+		for (int i = 5; i < sDef.NumberOfElements(); i++)
+		{
+			cr_sex sDirective = sDef[i];
+			AssertCompound(sDirective);
+
+			cstr command = GetAtomicArg(sDirective, 0).c_str();
+			if (Eq(command, "Property"))
+			{
+				elements.push_back(new UnrealStructElement(sDirective));
+			}
+		}
+	}
+
+	~UnrealStructDef()
+	{
+		for (auto* e : elements)
+		{
+			delete e;
+		}
+	}
+
+	cstr TypeName() const override
+	{
+		return typeName;
+	}
+
+	cstr Package() const override
+	{
+		return pathName;
+	}
+
+	int Alignment() const override
+	{
+		return alignment;
+	}
+
+	int SizeOf() const override
+	{
+		return sizeofStruct;
+	}
+
+	size_t ElementCount() const override
+	{
+		return elements.size();
+	}
+
+	IUnrealStructElement& operator[](size_t index) override
+	{
+		return *elements[index];
+	}
+};
+
+void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory);
+
+stringmap<UnrealStructDef*> knownStructs;
+
+IUnrealStruct* FindStruct(cstr name)
+{
+	auto i = knownStructs.find(name);
+	return i == knownStructs.end() ? nullptr : i->second;
+}
+
+void ParseStructDef(cr_sex sDef)
+{
+	UnrealStructDef* def = new UnrealStructDef(sDef);
+	GenStructDef(*def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
+	if (knownStructs.insert(def->TypeName(), def).second == false)
+	{
+		Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
+	}
 }
 
 void AppendIdentifier(StringBuilder& sb, cstr rawName)
@@ -598,60 +787,11 @@ struct UnrealFunctionArg : IUnrealArg
 		AppendIdentifier(sb, rawName);
 	}
 
-	void AppendTypeSansRef(StringBuilder& sb) const
+	cstr ArgType() const override
 	{
-		cstr p = argType.c_str();
-		while (*p != 0 && *p != '^')
-		{
-			sb.AppendChar(*p++);
-		}
+		return argType.c_str();
 	}
-
-	void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVariableType) const
-	{
-		if (makeSexyVariableType)
-		{
-			sb << "H";
-		}
-
-		sb << nameType;
-
-		if (makeSexyVariableType)
-		{
-			sb.Undo(-1);
-		}
-	}
-
-	void AppendType(StringBuilder& sb, bool makeSexyVariableType) const override
-	{
-		cstr p = argType.c_str();
-
-		if (*p == 'U' && EndsWith(p, "*"))
-		{
-			MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
-			return;
-		}
-
-		if (*p == 'A' && EndsWith(p, "*"))
-		{
-			MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
-			return;
-		}
-
-		auto* primitive = FindPrimitiveType(p);
-		if (primitive)
-		{
-			sb << primitive->CPPName();
-			return;
-		}
-
-		MarkUnknown(p);
-			
-		sb << "UnknownType /*";
-		AppendTypeSansRef(sb);
-		sb << "*/";
-	}
-
+		
 	bool GetObjectPointerType(char* buffer, size_t capacity) const override
 	{
 		cstr p = argType.c_str();
@@ -912,174 +1052,3 @@ void ParseClassDef(cr_sex sDef)
 	}
 }
 
-struct UnrealStructElement: IUnrealStructElement
-{
-	HString typeName;
-	HString fieldName;
-	HString innerValueType;
-	int offset = 0;
-	int sizeofStruct = 0;
-
-	UnrealStructElement(cr_sex eDef)
-	{
-		// (Property ([] Def <sNameSpec>))
-		cr_sex sNameSpec = eDef[1];
-		ValidateToken(sNameSpec[0], "[]", __FUNCTION__);
-		ValidateToken(sNameSpec[1], "Def", __FUNCTION__);
-		typeName = GetAtomicArg(sNameSpec, 2).c_str();
-		fieldName = GetAtomicArg(sNameSpec, sNameSpec.NumberOfElements() - 1).c_str();
-		if (Eq(typeName, "TArray") || Eq(typeName, "TSet"))
-		{
-			innerValueType = GetAtomicArg(sNameSpec, 3).c_str();
-		}
-
-		if (eDef.NumberOfElements() > 2)
-		{
-			int i = 2;
-
-			if (Eq(GetAtomicArg(eDef[2], 0).c_str(), "NameCPP"))
-			{
-				i++;
-			}
-
-			cr_sex sOffset = eDef[i];
-			ValidateToken(sOffset[0], "Offset", __FUNCTION__);
-			cstr txtOffset = GetAtomicArg(sOffset, 1).c_str();
-
-			cr_sex sSizeOfStruct = eDef[i+1];
-			ValidateToken(sSizeOfStruct[0], "SizeOf", __FUNCTION__);
-			cstr txtSizeOfStruct = GetAtomicArg(sSizeOfStruct, 1).c_str();
-
-			offset = atoi(txtOffset);
-			sizeofStruct = atoi(txtSizeOfStruct);
-		}
-	}
-
-	int Offset() const override
-	{
-		return offset;
-	}
-
-	int SizeOf() const override
-	{
-		return sizeofStruct;
-	}
-
-	cstr TypeName() const override
-	{
-		return typeName;
-	}
-
-	cstr FieldName() const override
-	{
-		return fieldName;
-	}
-
-	cstr InnerValueType() const override
-	{
-		return innerValueType;
-	}
-};
-
-struct UnrealStructDef : IUnrealStruct
-{
-	HString typeName;
-	HString pathName;
-	int alignment = 0;
-	int sizeofStruct = 0;
-
-	std::vector<UnrealStructElement*> elements;
-
-	cr_sex sDef;
-	UnrealStructDef(cr_sex _sDef) : sDef(_sDef)
-	{
-		cr_sex sNameDirective = sDef[1];
-		ValidateToken(sNameDirective[0], "FullName", __FUNCTION__);
-		cstr path = GetAtomicArg(sNameDirective, 2).c_str();
-
-		NamespaceSplitter splitter(path);
-
-		cstr package, name;
-		if (!splitter.SplitHead(OUT package, OUT name))
-		{
-			Throw(sDef, "Expecting /<package>.<name>");
-		}
-
-		cr_sex sOffsetDirective = sDef[2];
-		ValidateToken(sOffsetDirective[0], "SizeOf", __FUNCTION__);
-		cstr txtSize = sOffsetDirective[1].c_str();
-
-		cr_sex sAlignDirective = sDef[3];
-		ValidateToken(sAlignDirective[0], "Alignment", __FUNCTION__);
-		cstr txtAlign = sAlignDirective[0].c_str();
-
-		pathName = package;
-		typeName = name;
-		sizeofStruct = atoi(txtSize);
-		alignment = atoi(txtAlign);
-
-		if (sDef.NumberOfElements() > 5)
-		{
-			cr_sex sColon = sDef[4];
-			ValidateToken(sColon, ":", __FUNCTION__);
-		}
-
-		for (int i = 5; i < sDef.NumberOfElements(); i++)
-		{
-			cr_sex sDirective = sDef[i];
-			AssertCompound(sDirective);
-
-			cstr command = GetAtomicArg(sDirective, 0).c_str();
-			if (Eq(command, "Property"))
-			{
-				elements.push_back(new UnrealStructElement(sDirective));
-			}
-		}
-	}
-
-	~UnrealStructDef()
-	{
-		for (auto* e : elements)
-		{
-			delete e;
-		}
-	}
-
-	cstr TypeName() const override
-	{
-		return typeName;
-	}
-
-	cstr Package() const override
-	{
-		return pathName;
-	}
-
-	int Alignment() const override
-	{
-		return alignment;
-	}
-
-	int SizeOf() const override
-	{
-		return sizeofStruct;
-	}
-
-	size_t ElementCount() const override
-	{
-		return elements.size();
-	}
-
-	IUnrealStructElement& operator[](size_t index) override
-	{
-		return *elements[index];
-	}
-};
-
-void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory);
-
-void ParseStructDef(cr_sex sDef)
-{
-	UnrealStructDef def(sDef);
-	GenStructDef(def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
-}
