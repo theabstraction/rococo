@@ -59,6 +59,8 @@ namespace Rococo::Unreal
 
 		// Defined if TypeName is TArray or TSet
 		virtual cstr InnerValueType() const = 0;
+
+		virtual void Throw(cstr message) = 0;
 	};
 
 	ROCOCO_INTERFACE IUnrealStruct

@@ -67,13 +67,6 @@ void ParseClassFile(crwstr filename, ISParser& parser)
 	{
 		Auto<ISParserTree> tree = parser.CreateTree(*src);
 		ParseClassTree(tree->Root());
-
-		printf("\nNumber of classes: %d\n", g_nClassesParsed);
-		printf("Number of methods in API: %d\n", g_nMethodsParsed);
-		printf("Number of methods that could not be marshaled: %d\n", g_nMethodsNotMarshaled);
-
-		double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
-		printf("API coverage: %2.2f%%\n", 100.0 - failureRate);
 	}
 	catch (ParseException& ex)
 	{
@@ -94,6 +87,13 @@ int mainProtected(int, char*[])
 	crwstr filename = L"D:\\work\\Rococo.Reflect\\S-API\\all-classes.sexml";
 	ParseClassFile(filename, *sParser);
 	PrintUnknownsAscending();
+
+	printf("\nNumber of classes: %d\n", g_nClassesParsed);
+	printf("Number of methods in API: %d\n", g_nMethodsParsed);
+	printf("Number of methods that could not be marshaled: %d\n", g_nMethodsNotMarshaled);
+
+	double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
+	printf("API coverage: %2.2f%%\n", 100.0 - failureRate);
 	
 	return 0;
 }
@@ -310,26 +310,18 @@ const IMarshalType* FindPrimitiveType(cstr argType)
 {
 	if (marshalArgTypes.size() == 0)
 	{
-		marshalArgTypes.insert("Int32", &s_mt_Int32);
-		marshalArgTypes.insert("Int32^", &s_mt_Int32);
-		marshalArgTypes.insert("Int64", &s_mt_Int64);
-		marshalArgTypes.insert("Int64^", &s_mt_Int64);
+		marshalArgTypes.insert("uint8", &s_mt_Int32);
+		marshalArgTypes.insert("int32", &s_mt_Int32);
+		marshalArgTypes.insert("int64", &s_mt_Int32);
 		marshalArgTypes.insert("float", &s_mt_float);
-		marshalArgTypes.insert("float^", &s_mt_float);
 		marshalArgTypes.insert("double", &s_mt_double);
-		marshalArgTypes.insert("double^", &s_mt_double);
 		marshalArgTypes.insert("bool", &s_mt_bool);
-		marshalArgTypes.insert("bool^", &s_mt_bool);
 		marshalArgTypes.insert("FString", &s_mt_FString);
-		marshalArgTypes.insert("FStringe^", &s_mt_FString);
 		marshalArgTypes.insert("FName", &s_mt_FName);
-		marshalArgTypes.insert("FName^", &s_mt_FName);
 		marshalArgTypes.insert("FVector", &s_mt_FVector);
-		marshalArgTypes.insert("FVector^", &s_mt_FVector);
 		marshalArgTypes.insert("FTransform", &s_mt_FTransform);
-		marshalArgTypes.insert("FTransform^", &s_mt_FTransform);
 		marshalArgTypes.insert("FRotator", &s_mt_FRotator);
-		marshalArgTypes.insert("FRotator^", &s_mt_FRotator);
+		marshalArgTypes.insert("FText", &s_mt_FRotator);
 	}
 
 	auto i = marshalArgTypes.find(argType);
@@ -511,7 +503,32 @@ stringmap<UnrealEnumDef*> g_unrealEnums; // This will leak, but get cleared up a
 IUnrealEnumDef* FindEnum(cstr name)
 {
 	auto i = g_unrealEnums.find(name);
-	return i == g_unrealEnums.end() ? nullptr : i->second;
+	if (i != g_unrealEnums.end())
+	{
+		return i->second;
+	}
+
+	if (*name != 'E')
+	{
+		return nullptr;
+	}
+
+	if (EndsWith(name, "^"))
+	{
+		char valueName[256];
+		CopyString(valueName, sizeof valueName, name, strlen(name) - 1);
+		return FindEnum(valueName);
+	}
+
+	fstring typeSuffix = "::Type"_fstring;
+	if (EndsWith(name, typeSuffix))
+	{
+		char namespaceEnum[256];
+		CopyString(namespaceEnum, sizeof namespaceEnum, name, strlen(name) - typeSuffix.length);
+		return FindEnum(namespaceEnum);
+	}
+
+	return nullptr;
 }
 
 void ParseEnumDef(cr_sex sDef)
@@ -527,13 +544,14 @@ void ParseEnumDef(cr_sex sDef)
 
 struct UnrealStructElement : IUnrealStructElement
 {
+	cr_sex eDef;
 	HString typeName;
 	HString fieldName;
 	HString innerValueType;
 	int offset = 0;
 	int sizeofStruct = 0;
 
-	UnrealStructElement(cr_sex eDef)
+	UnrealStructElement(cr_sex _eDef): eDef(_eDef)
 	{
 		// (Property ([] Def <sNameSpec>))
 		cr_sex sNameSpec = eDef[1];
@@ -591,6 +609,11 @@ struct UnrealStructElement : IUnrealStructElement
 	cstr InnerValueType() const override
 	{
 		return innerValueType;
+	}
+
+	void Throw(cstr message) override
+	{
+		Rococo::Sex::Throw(eDef, "%s", message);
 	}
 };
 
@@ -702,10 +725,18 @@ IUnrealStruct* FindStruct(cstr name)
 void ParseStructDef(cr_sex sDef)
 {
 	UnrealStructDef* def = new UnrealStructDef(sDef);
-	GenStructDef(*def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
-	if (knownStructs.insert(def->TypeName(), def).second == false)
+	try
 	{
-		Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
+		GenStructDef(*def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
+		if (knownStructs.insert(def->TypeName(), def).second == false)
+		{
+			Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
+		}
+	}
+	catch (...)
+	{
+		printf("Error generating struct definition for %s\n", def->TypeName());
+		throw;
 	}
 }
 
@@ -732,10 +763,71 @@ void AppendIdentifier(StringBuilder& sb, cstr rawName)
 	sb << rawName;
 }
 
+fstring enumAsBytePrefix = "TEnumAsByte<"_fstring;
+
+bool IsKnownElementType(cstr argType)
+{
+	cstr p = argType;
+
+	if (*p == 'U' && EndsWith(p, "*"))
+	{
+		return true;
+	}
+
+	if (*p == 'A' && EndsWith(p, "*"))
+	{
+		return true;
+	}
+
+	auto* primitive = FindPrimitiveType(p);
+	if (primitive)
+	{
+		return true;
+	}
+
+	auto* enumType = FindEnum(p);
+	if (enumType)
+	{
+		return true;
+	}
+
+	if (StartsWith(p, enumAsBytePrefix))
+	{
+		cstr innerTypeStart = p + enumAsBytePrefix.length;
+		cstr templateDelimeter = FindChar(innerTypeStart, '>');
+		if (!templateDelimeter)
+		{
+			Throw(0, "Cannot find template delimeter '>' for %s", p);
+		}
+
+		size_t len = templateDelimeter - innerTypeStart;
+
+		char innerType[256];
+		CopyString(innerType, sizeof innerType, innerTypeStart, len);
+		enumType = FindEnum(innerType);
+		if (enumType)
+		{
+			return true;
+		}
+	}
+
+	if (*p == 'F')
+	{
+		auto* structType = FindStruct(p + 1);
+		if (structType)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 struct UnrealFunctionArg : IUnrealArg
 {
 	cr_sex argName;
 	cr_sex argType;
+	HString elementType;
 	bool isConst = false;
 	bool isRef = false;
 
@@ -753,22 +845,15 @@ struct UnrealFunctionArg : IUnrealArg
 
 	bool HasSexyCounterpart() const override
 	{
-		cstr p = argType.c_str();
-
-		if (*p == 'U' && EndsWith(p, "*"))
+		cstr outerType = argType.c_str();
+		if (IsKnownElementType(outerType))
 		{
 			return true;
 		}
 
-		if (*p == 'A' && EndsWith(p, "*"))
+		if (Eq(outerType, "TArray"))
 		{
-			return true;
-		}
-
-		auto* primitive = FindPrimitiveType(p);
-		if (primitive)
-		{
-			return true;
+			return IsKnownElementType(elementType);
 		}
 				
 		return false;

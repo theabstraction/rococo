@@ -8,6 +8,8 @@ using namespace Rococo;
 using namespace Rococo::Strings;
 using namespace Rococo::Unreal;
 
+extern fstring enumAsBytePrefix;
+
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb);
@@ -159,33 +161,76 @@ void AppendTypeSansRef(StringBuilder& sb, cstr argType)
 
 void AppendType(StringBuilder& sb, cstr argType, bool makeSexyVariableType)
 {
-	cstr p = argType;
-
-	if (*p == 'U' && EndsWith(p, "*"))
+	if (EndsWith(argType, "^"))
 	{
-		MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
+		char valueType[256];
+		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
+		AppendType(sb, valueType, makeSexyVariableType);
 		return;
 	}
 
-	if (*p == 'A' && EndsWith(p, "*"))
+	if (*argType == 'U' && EndsWith(argType, "*"))
 	{
-		MarshalNameTypeAsHandle(sb, p, makeSexyVariableType);
+		MarshalNameTypeAsHandle(sb, argType, makeSexyVariableType);
 		return;
 	}
 
-	auto* primitive = FindPrimitiveType(p);
+	if (*argType == 'A' && EndsWith(argType, "*"))
+	{
+		MarshalNameTypeAsHandle(sb, argType, makeSexyVariableType);
+		return;
+	}
+
+	auto* primitive = FindPrimitiveType(argType);
 	if (primitive)
 	{
 		sb << primitive->CPPName();
 		return;
 	}
 
+	auto* enumType = FindEnum(argType);
+	if (enumType)
+	{
+		sb << enumType->Name();
+		return;
+	}
 
-	MarkUnknown(p);
+	if (StartsWith(argType, enumAsBytePrefix))
+	{
+		cstr innerTypeStart = argType + enumAsBytePrefix.length;
+		cstr templateDelimeter = FindChar(innerTypeStart, '>');
+		if (!templateDelimeter)
+		{
+			Throw(0, "Cannot find template delimeter '>' for %s", argType);
+		}
+
+		size_t len = templateDelimeter - innerTypeStart;
+
+		char innerType[256];
+		CopyString(innerType, sizeof innerType, innerTypeStart, len);
+		enumType = FindEnum(innerType);
+		if (enumType)
+		{
+			sb.AppendFormat("TEnumAsByte<%s>", enumType->Name());
+			return;
+		}
+	}
+
+	if (*argType == 'F')
+	{
+		auto* structType = FindStruct(argType + 1);
+		if (structType)
+		{
+			sb << argType;
+			return;
+		}
+	}
+
+	MarkUnknown(argType);
 
 	sb << "UnknownType /*";
 	AppendTypeSansRef(sb, argType);
-	sb << "*";
+	sb << "*/";
 }
 
 void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb)
@@ -648,7 +693,6 @@ void BuildHardCodedTypes()
 
 auto objectPtrPrefix = "TObjectPtr<"_fstring;
 auto subclassOfPrefix = "TSubclassOf<"_fstring;
-auto enumAsBytePrefix = "TEnumAsByte<"_fstring;
 
 void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealType)
 {
@@ -741,7 +785,9 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 
 		if (StartsWith(e.TypeName(), "E"))
 		{
-			Throw(0, "Expecting Enumeration name %s, but it was not a known enumeration type", e.TypeName());
+			char msg[256];
+			SafeFormat(msg, "Expecting Enumeration name %s, but it was not a known enumeration type", e.TypeName());
+			e.Throw(msg);
 		}
 
 		auto h = hardcodedTypes.find(e.TypeName());
