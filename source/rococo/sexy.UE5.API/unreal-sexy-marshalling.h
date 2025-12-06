@@ -8,7 +8,7 @@ class UObject;
 class UMethod;
 typedef int UnknownType;
 
-namespace Rococo::UE5::Marshal
+namespace Rococo::UE::Native
 {
 	int64 ConstructUObject(Rococo::Script::NativeCallEnvironment& e);
 	UMethod* GetNCEUMethod(Rococo::Script::NativeCallEnvironment& e);
@@ -17,48 +17,39 @@ namespace Rococo::UE5::Marshal
 	void ValidateArgs(UMethod* methodRef, void* args, size_t argSize);
 	void ProcessEvent(UObject* object, UMethod* methodRef, void* args);
 
-#pragma pack(push, 4)
-	struct FStringImage
+#pragma pack(push, 1)
+	struct R_FString
 	{
 		crwstr buffer;
 		int32 length;
 		int32 alignmentPadding;
 	};
 
-	struct FNameImage
+	struct R_FName
 	{
 		uint32 comparisonIndex;
 		uint32 number;
 		uint32 displayIndex;
 	};
 
-	struct DVector3
+	template<class T>
+	struct TEnumAsByte
 	{
-		double x;
-		double y;
-		double z;
-	};
+		TEnumAsByte(): value(0)
+		{
 
-	struct DQuat
-	{
-		double x;
-		double y;
-		double z;
-		double w;
-	};
+		}
 
-	struct DTransform
-	{
-		DQuat rotation;
-		DVector3 translation;
-		DVector3 scale;
-	};
+		TEnumAsByte(T _value) : value(static_cast<uint8>(_value)) 
+		{
+		}
+		
+		T operator()() const 
+		{
+			return static_cast<T>((value)); 
+		}
 
-	struct DRotator
-	{
-		double pitch;
-		double yaw;
-		double roll;
+		uint8 value;
 	};
 #pragma pack(pop)
 }

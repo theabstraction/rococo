@@ -57,7 +57,10 @@ namespace Rococo::Unreal
 		virtual cstr TypeName() const = 0;
 		virtual cstr FieldName() const = 0;
 
-		// Defined if TypeName is TArray or TSet
+		// Defined if TypeName is TMap
+		virtual cstr InnerKeyType() const = 0;
+
+		// Defined if TypeName is TArray or TSet or TMap
 		virtual cstr InnerValueType() const = 0;
 
 		virtual void Throw(cstr message) = 0;

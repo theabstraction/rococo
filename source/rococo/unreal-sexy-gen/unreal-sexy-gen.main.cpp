@@ -189,7 +189,7 @@ void ParseClassTree(cr_sex sRoot)
 		}
 	}
 
-	printf("\nGenerating %d classes", classCount);
+	printf("\nProcessing %d UClasses", classCount);
 
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -230,7 +230,7 @@ struct MarshalType_Int32: IMarshalType
 {
 	cstr CPPName() const override
 	{
-		return "Int32";
+		return "int32";
 	}
 } s_mt_Int32;
 
@@ -238,7 +238,7 @@ struct MarshalType_Int64 : IMarshalType
 {
 	cstr CPPName() const override
 	{
-		return "Int64";
+		return "int64";
 	}
 } s_mt_Int64;
 
@@ -270,7 +270,7 @@ struct MarshalType_FString : IMarshalType
 {
 	cstr CPPName() const override
 	{
-		return "Rococo::UE5::Marshal::FStringImage";
+		return "R_FString";
 	}
 } s_mt_FString;
 
@@ -278,33 +278,17 @@ struct MarshalType_FName : IMarshalType
 {
 	cstr CPPName() const override
 	{
-		return "Rococo::UE5::Marshal::FStringImage";
+		return "R_FName";
 	}
 } s_mt_FName;
 
-struct MarshalType_FVector : IMarshalType
+struct MarshalType_FText : IMarshalType
 {
 	cstr CPPName() const override
 	{
-		return "Rococo::UE5::Marshal::DVector3";
+		return "R_FText";
 	}
-} s_mt_FVector;
-
-struct MarshalType_FTransform : IMarshalType
-{
-	cstr CPPName() const override
-	{
-		return "Rococo::UE5::Marshal::DTransform";
-	}
-} s_mt_FTransform;
-
-struct MarshalType_FRotator : IMarshalType
-{
-	cstr CPPName() const override
-	{
-		return "Rococo::UE5::Marshal::DRotator";
-	}
-} s_mt_FRotator;
+} s_mt_FText;
 
 const IMarshalType* FindPrimitiveType(cstr argType)
 {
@@ -318,10 +302,7 @@ const IMarshalType* FindPrimitiveType(cstr argType)
 		marshalArgTypes.insert("bool", &s_mt_bool);
 		marshalArgTypes.insert("FString", &s_mt_FString);
 		marshalArgTypes.insert("FName", &s_mt_FName);
-		marshalArgTypes.insert("FVector", &s_mt_FVector);
-		marshalArgTypes.insert("FTransform", &s_mt_FTransform);
-		marshalArgTypes.insert("FRotator", &s_mt_FRotator);
-		marshalArgTypes.insert("FText", &s_mt_FRotator);
+		marshalArgTypes.insert("FText", &s_mt_FText);
 	}
 
 	auto i = marshalArgTypes.find(argType);
@@ -548,6 +529,7 @@ struct UnrealStructElement : IUnrealStructElement
 	HString typeName;
 	HString fieldName;
 	HString innerValueType;
+	HString innerKeyType;
 	int offset = 0;
 	int sizeofStruct = 0;
 
@@ -562,6 +544,12 @@ struct UnrealStructElement : IUnrealStructElement
 		if (Eq(typeName, "TArray") || Eq(typeName, "TSet"))
 		{
 			innerValueType = GetAtomicArg(sNameSpec, 3).c_str();
+		}
+
+		if (Eq(typeName, "TMap"))
+		{
+			innerKeyType = GetAtomicArg(sNameSpec, 3).c_str();
+			innerValueType = GetAtomicArg(sNameSpec, 4).c_str();
 		}
 
 		if (eDef.NumberOfElements() > 2)
@@ -604,6 +592,11 @@ struct UnrealStructElement : IUnrealStructElement
 	cstr FieldName() const override
 	{
 		return fieldName;
+	}
+
+	cstr InnerKeyType() const override
+	{
+		return innerKeyType;
 	}
 
 	cstr InnerValueType() const override
@@ -828,6 +821,7 @@ struct UnrealFunctionArg : IUnrealArg
 	cr_sex argName;
 	cr_sex argType;
 	HString elementType;
+	HString keyType;
 	bool isConst = false;
 	bool isRef = false;
 
@@ -836,9 +830,23 @@ struct UnrealFunctionArg : IUnrealArg
 		cr_sex sParent = *_argName.Parent();
 		for (int i = 0; i < sParent.NumberOfElements(); i++)
 		{
-			if (Eq(sParent[i].c_str(), "const"))
+			cr_sex s = sParent[i];
+			if (Eq(s.c_str(), "const"))
 			{
 				isConst = true;
+			}
+
+			if (Eq(s.c_str(), "TArray") || Eq(s.c_str(), "TSet"))
+			{
+				elementType = sParent[i + 1].c_str();
+			}
+			else
+			{
+				if (Eq(s.c_str(), "TMap"))
+				{
+					keyType = sParent[i + 2].c_str();
+					elementType = sParent[i + 3].c_str();
+				}
 			}
 		}
 	}
@@ -851,9 +859,14 @@ struct UnrealFunctionArg : IUnrealArg
 			return true;
 		}
 
-		if (Eq(outerType, "TArray"))
+		if (Eq(outerType, "TArray") || Eq(outerType, "TSet"))
 		{
 			return IsKnownElementType(elementType);
+		}
+
+		if (Eq(outerType, "TMap"))
+		{
+			return IsKnownElementType(elementType) && IsKnownElementType(keyType);
 		}
 				
 		return false;
@@ -902,7 +915,7 @@ struct UnrealFunctionArg : IUnrealArg
 
 	bool IsRef() const override
 	{
-		return EndsWith(argType.c_str(), "^");
+		return EndsWith(argType.c_str(), "^") || EndsWith(elementType, "^");
 	}
 
 	bool IsConst() const override
@@ -973,10 +986,28 @@ struct UnrealFunctionDef : IUnrealFunction
 			if (IsCompound(s) && s.NumberOfElements() > 2)
 			{
 				auto& argName = s[s.NumberOfElements() - 1];
-				auto& argType = s[s.NumberOfElements() - 2];
 
+				for (int j = 0; j < s.NumberOfElements(); j++)
+				{
+					cstr container = s[j].c_str();
+					if (Eq(container, "TArray") || Eq(container, "TSet"))
+					{
+						args.push_back(new UnrealFunctionArg(argName, s[j+1]));
+						goto nextFunction;
+					}
+					else if (Eq(container, "TMap"))
+					{
+						args.push_back(new UnrealFunctionArg(argName, s[j + 2]));
+						goto nextFunction;
+					}
+				}
+
+				auto& argType = s[s.NumberOfElements() - 2];
 				args.push_back(new UnrealFunctionArg(argName, argType));
 			}
+
+		nextFunction:
+			continue;
 		}
 	}
 
