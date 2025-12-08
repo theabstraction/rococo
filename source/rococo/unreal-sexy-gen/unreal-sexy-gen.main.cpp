@@ -3,6 +3,7 @@
 #include <Sexy.S-Parser.h>
 #include <rococo.os.h>
 #include <rococo.strings.h>
+#include <rococo.hashtable.h>
 
 #include <vector>
 
@@ -13,9 +14,14 @@ using namespace Rococo::Sex;
 using namespace Rococo::Strings;
 using namespace Rococo::Unreal;
 
+auto subclassOfPrefix = "TSubclassOf<"_fstring;
+auto scriptInterfacePrefix = "TScriptInterface<"_fstring;
+auto objectPtrPrefix = "TObjectPtr<"_fstring;
+
 int g_nClassesParsed = 0;
 int g_nMethodsParsed = 0;
 int g_nMethodsNotMarshaled = 0;
+Rococo::stringmap<int> knownDelegatesVsSize;
 
 void ParseClassDef(cr_sex sClassDef);
 void ParseEnumDef(cr_sex sEnumDef);
@@ -23,6 +29,12 @@ void ParseStructDef(cr_sex sDef);
 void ParseClassTree(cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
+
+int FindDelegateSize(cstr name)
+{
+	auto i = knownDelegatesVsSize.find(name);
+	return i == knownDelegatesVsSize.end() ? 0 : i->second;
+}
 
 bool DoExpressionsMatchRecursive(cr_sex a, cr_sex b, int startingIndex)
 {
@@ -116,6 +128,10 @@ int main(int argc, char* argv[])
 	}
 }
 
+std::vector<struct UnrealClassDef*> allClasses;
+
+void ParseDelegateDef(cstr typeName, int sizeInBytes);
+
 void ParseClassTree(cr_sex sRoot)
 {
 	int enumCount = 0;
@@ -132,6 +148,7 @@ void ParseClassTree(cr_sex sRoot)
 
 	printf("Processing %d UEnums", enumCount);
 
+	enumCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
 		cr_sex sEnumDef = sRoot[i];
@@ -140,11 +157,10 @@ void ParseClassTree(cr_sex sRoot)
 		if (Eq(sEnumDirective.c_str(), "UEnum"))
 		{
 			ParseEnumDef(sEnumDef);
-		}
-
-		if ((i % 100) == 0)
-		{
-			printf(".");
+			if ((enumCount++ % 100) == 0)
+			{
+				printf(".");
+			}
 		}
 	}
 
@@ -162,6 +178,7 @@ void ParseClassTree(cr_sex sRoot)
 
 	printf("\nProcessing %d UStructs", structCount);
 
+	structCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
 		cr_sex sStructDef = sRoot[i];
@@ -170,11 +187,10 @@ void ParseClassTree(cr_sex sRoot)
 		if (Eq(sDirective.c_str(), "UStruct"))
 		{
 			ParseStructDef(sStructDef);
-		}
-
-		if ((i % 100) == 0)
-		{
-			printf(".");
+			if ((structCount++ % 100) == 0)
+			{
+				printf(".");
+			}
 		}
 	}
 
@@ -191,6 +207,7 @@ void ParseClassTree(cr_sex sRoot)
 
 	printf("\nProcessing %d UClasses", classCount);
 
+	classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
 		cr_sex sClassDef = sRoot[i];
@@ -198,12 +215,20 @@ void ParseClassTree(cr_sex sRoot)
 		if (Eq(sDirective.c_str(), "UClass"))
 		{
 			ParseClassDef(sClassDef);
+			if ((classCount++ % 100) == 0)
+			{
+				printf(".");
+			}
 		}
+	}
 
-		if ((i % 100) == 0)
-		{
-			printf(".");
-		}
+	printf("\nProcessing %llu delegates", knownDelegatesVsSize.size());
+	for (auto& d : knownDelegatesVsSize)
+	{
+		cstr typeName = d.first;
+		int sizeInBytes = d.second;
+
+		ParseDelegateDef(typeName, sizeInBytes);
 	}
 }
 
@@ -501,11 +526,11 @@ IUnrealEnumDef* FindEnum(cstr name)
 		return FindEnum(valueName);
 	}
 
-	fstring typeSuffix = "::Type"_fstring;
-	if (EndsWith(name, typeSuffix))
+	cstr firstColon = strstr(name, "::");
+	if (firstColon)
 	{
 		char namespaceEnum[256];
-		CopyString(namespaceEnum, sizeof namespaceEnum, name, strlen(name) - typeSuffix.length);
+		CopyString(namespaceEnum, sizeof namespaceEnum, name, firstColon - name);
 		return FindEnum(namespaceEnum);
 	}
 
@@ -532,6 +557,7 @@ struct UnrealStructElement : IUnrealStructElement
 	HString innerKeyType;
 	int offset = 0;
 	int sizeofStruct = 0;
+	bool isBitField = false;
 
 	UnrealStructElement(cr_sex _eDef): eDef(_eDef)
 	{
@@ -572,6 +598,24 @@ struct UnrealStructElement : IUnrealStructElement
 			offset = atoi(txtOffset);
 			sizeofStruct = atoi(txtSizeOfStruct);
 		}
+
+		cr_sex sFlags = eDef[eDef.NumberOfElements() - 1];
+		ValidateToken(sFlags[0], "[]", __FUNCTION__);
+		ValidateToken(sFlags[1], "Flags", __FUNCTION__);
+
+		for (int i = 2; i < sFlags.NumberOfElements(); i++)
+		{
+			cstr flag = GetAtomicArg(sFlags, i).c_str();
+			if (Eq(flag, "boolean"))
+			{
+				isBitField = true;
+			}
+		}
+	}
+
+	bool IsBitfield() const override
+	{
+		return isBitField;
 	}
 
 	int Offset() const override
@@ -712,6 +756,18 @@ stringmap<UnrealStructDef*> knownStructs;
 IUnrealStruct* FindStruct(cstr name)
 {
 	auto i = knownStructs.find(name);
+	if (i == knownStructs.end())
+	{
+		if (EndsWith(name, "^"))
+		{
+			char sansRef[256];
+			CopyString(sansRef, sizeof sansRef, name);
+			size_t len = strlen(sansRef);
+			sansRef[len - 1] = 0;
+			return FindStruct(sansRef);
+		}
+	}
+
 	return i == knownStructs.end() ? nullptr : i->second;
 }
 
@@ -731,6 +787,13 @@ void ParseStructDef(cr_sex sDef)
 		printf("Error generating struct definition for %s\n", def->TypeName());
 		throw;
 	}
+}
+
+void GenDelegateDef(cstr typeName, int sizeInBytes, crwstr path);
+
+void ParseDelegateDef(cstr typeName, int sizeInBytes)
+{
+	GenDelegateDef(typeName, sizeInBytes, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
 }
 
 void AppendIdentifier(StringBuilder& sb, cstr rawName)
@@ -757,6 +820,7 @@ void AppendIdentifier(StringBuilder& sb, cstr rawName)
 }
 
 fstring enumAsBytePrefix = "TEnumAsByte<"_fstring;
+fstring softObjectPtrPrefix = "TSoftObjectPtr<"_fstring;
 
 bool IsKnownElementType(cstr argType)
 {
@@ -804,6 +868,16 @@ bool IsKnownElementType(cstr argType)
 		}
 	}
 
+	if (StartsWith(p, subclassOfPrefix))
+	{
+		return true;
+	}
+
+	if (StartsWith(p, softObjectPtrPrefix))
+	{
+		return true;
+	}
+
 	if (*p == 'F')
 	{
 		auto* structType = FindStruct(p + 1);
@@ -816,55 +890,168 @@ bool IsKnownElementType(cstr argType)
 	return false;
 }
 
+bool IsArgKeyword(cstr token)
+{
+	if (!IsLowerCase(*token))
+	{
+		return false;
+	}
+
+	static stringmap<int> keywords;
+	if (keywords.empty())
+	{
+		keywords.insert("const", 0);
+		keywords.insert("out", 0);
+		keywords.insert("return", 0);
+		keywords.insert("visible", 0);
+		keywords.insert("read-only", 0);
+	}
+
+	return keywords.find(token) != keywords.end();
+}
+
+bool LooksLikeObjectPointer(cstr p)
+{
+	if (*p == 'U' && EndsWith(p, "*"))
+	{
+		return true;
+	}
+
+	if (*p == 'A' && EndsWith(p, "*"))
+	{
+		return true;
+	}
+
+	if (*p == 'U' && EndsWith(p, "^"))
+	{
+		return true;
+	}
+
+	if (*p == 'A' && EndsWith(p, "^"))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 struct UnrealFunctionArg : IUnrealArg
 {
-	cr_sex argName;
-	cr_sex argType;
+	cr_sex sFnArgDef;
+	HString argName;
+	HString argType;
 	HString elementType;
 	HString keyType;
 	bool isConst = false;
 	bool isRef = false;
+	bool isContainer = false;
 
-	UnrealFunctionArg(cr_sex _argName, cr_sex _argType): argName(_argName), argType(_argType)
+	UnrealFunctionArg(cr_sex sFunctionArgDef): sFnArgDef(sFunctionArgDef)
 	{
-		cr_sex sParent = *_argName.Parent();
-		for (int i = 0; i < sParent.NumberOfElements(); i++)
+		for (int i = 0; i < sFunctionArgDef.NumberOfElements(); i++)
 		{
-			cr_sex s = sParent[i];
+			cr_sex s = sFunctionArgDef[i];
 			if (Eq(s.c_str(), "const"))
 			{
 				isConst = true;
+				continue;
+			}
+		}
+
+		for (int i = 0; i < sFunctionArgDef.NumberOfElements(); i++)
+		{
+			cr_sex s = sFunctionArgDef[i];
+
+			cstr p = s.c_str();
+
+			if (IsArgKeyword(p))
+			{
+				continue;
+			}
+			
+			if (Eq(p, "TArray") || Eq(p, "TSet"))
+			{
+				argType = p;
+				elementType = sFunctionArgDef[i + 1].c_str();
+				argName = sFunctionArgDef[i + 2].c_str();
+				isContainer = true;
+				break;
 			}
 
-			if (Eq(s.c_str(), "TArray") || Eq(s.c_str(), "TSet"))
+			if (Eq(p, "TMap"))
 			{
-				elementType = sParent[i + 1].c_str();
+				argType = "TMap";
+				keyType = sFunctionArgDef[i + 1].c_str();
+				elementType = sFunctionArgDef[i + 2].c_str();
+				argName = sFunctionArgDef[i + 3].c_str();
+				isContainer = true;
+				break;
 			}
-			else
+
+			if (Eq(p, "Delegate"))
 			{
-				if (Eq(s.c_str(), "TMap"))
+				argType = "TDelegate";
+				elementType = sFunctionArgDef[i + 1].c_str();
+				argName = sFunctionArgDef[i + 2].c_str();
+				isContainer = true;
+
+				cr_sex sLastArg = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1];
+				int delegateSize = atoi(sLastArg.c_str());
+
+				auto j = knownDelegatesVsSize.find(elementType);
+				if (j == knownDelegatesVsSize.end())
 				{
-					keyType = sParent[i + 2].c_str();
-					elementType = sParent[i + 3].c_str();
+					if (EndsWith(elementType, "^"))
+					{
+						char valueWithNoRef[256];
+						CopyString(valueWithNoRef, sizeof valueWithNoRef, elementType);
+						valueWithNoRef[strlen(valueWithNoRef) - 1] = 0;
+						knownDelegatesVsSize.insert(valueWithNoRef, delegateSize);
+
+					}
+					else
+					{
+						knownDelegatesVsSize.insert(elementType, delegateSize);
+					}
 				}
+				else
+				{
+					if (j->second != delegateSize)
+					{
+						Throw(sLastArg, "Expecting delegate size %d to match that of previous definition (%d)", delegateSize, j->second);
+					}
+				}
+
+				break;
 			}
+
+			if (argType.length() == 0)
+			{
+				argType = p;
+				argName = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1].c_str();
+				break;
+			}
+		}
+
+		if (argType.length() == 0)
+		{
+			Throw(0, "Indeterminate arg type");
 		}
 	}
 
 	bool HasSexyCounterpart() const override
 	{
-		cstr outerType = argType.c_str();
-		if (IsKnownElementType(outerType))
+		if (IsKnownElementType(argType))
 		{
 			return true;
 		}
 
-		if (Eq(outerType, "TArray") || Eq(outerType, "TSet"))
+		if (Eq(argType, "TArray") || Eq(argType, "TSet"))
 		{
 			return IsKnownElementType(elementType);
 		}
 
-		if (Eq(outerType, "TMap"))
+		if (Eq(argType, "TMap"))
 		{
 			return IsKnownElementType(elementType) && IsKnownElementType(keyType);
 		}
@@ -889,20 +1076,32 @@ struct UnrealFunctionArg : IUnrealArg
 	{
 		return argType.c_str();
 	}
-		
+
+	cstr ElementType() const override
+	{
+		return elementType.c_str();
+	}
+
+	cstr KeyType() const override
+	{
+		return keyType.c_str();
+	}
+
 	bool GetObjectPointerType(char* buffer, size_t capacity) const override
 	{
-		cstr p = argType.c_str();
-		if (*p == 'U' && EndsWith(p, "*"))
+		if (LooksLikeObjectPointer(argType))
 		{
-			SecureFormat(buffer, capacity, "%s", p);
+			SecureFormat(buffer, capacity, "%s", argType.c_str());
 			return true;
 		}
 
-		if (*p == 'A' && EndsWith(p, "*"))
+		if (elementType.length() > 0)
 		{
-			SecureFormat(buffer, capacity, "%s", p);
-			return true;
+			if (LooksLikeObjectPointer(elementType))
+			{
+				SecureFormat(buffer, capacity, "%s", elementType.c_str());
+				return true;
+			}
 		}
 
 		return false;
@@ -923,9 +1122,14 @@ struct UnrealFunctionArg : IUnrealArg
 		return IsRef() && isConst;
 	}
 
+	bool IsContainer() const override
+	{
+		return isContainer;
+	}
+
 	bool IsCPPOutput() const override
 	{
-		cr_sex argDef = *argName.Parent();
+		cr_sex argDef = sFnArgDef;
 		for (int i = 0; i < argDef.NumberOfElements(); i++)
 		{
 			cr_sex s = argDef[i];
@@ -973,41 +1177,27 @@ struct UnrealFunctionArg : IUnrealArg
 struct UnrealFunctionDef : IUnrealFunction
 {
 	cr_sex fDef;
+	HString name;
 
 	std::vector<UnrealFunctionArg*> args;
 
-	UnrealFunctionDef(cr_sex f): fDef(f)
+	UnrealFunctionDef(cr_sex f): fDef(f), name(GetAtomicArg(fDef, 2).c_str())
 	{
 		// Example: (' Method0 DivideFloats (visible read-only double A) (visible read-only double B) (out double NewParam))
-
 		for (int i = 3; i < fDef.NumberOfElements(); i++)
 		{
-			cr_sex s = fDef[i];
-			if (IsCompound(s) && s.NumberOfElements() > 2)
+			try
 			{
-				auto& argName = s[s.NumberOfElements() - 1];
-
-				for (int j = 0; j < s.NumberOfElements(); j++)
-				{
-					cstr container = s[j].c_str();
-					if (Eq(container, "TArray") || Eq(container, "TSet"))
-					{
-						args.push_back(new UnrealFunctionArg(argName, s[j+1]));
-						goto nextFunction;
-					}
-					else if (Eq(container, "TMap"))
-					{
-						args.push_back(new UnrealFunctionArg(argName, s[j + 2]));
-						goto nextFunction;
-					}
-				}
-
-				auto& argType = s[s.NumberOfElements() - 2];
-				args.push_back(new UnrealFunctionArg(argName, argType));
+				args.push_back(new UnrealFunctionArg(fDef[i]));
 			}
-
-		nextFunction:
-			continue;
+			catch (ParseException& pex)
+			{
+				Throw(*pex.Source(), "Error parsing method %s: %s", name.c_str(), pex.Message());
+			}
+			catch (IException& ex)
+			{
+				Throw(fDef[i], "Error parsing method %s: %s", name.c_str(), ex.Message());
+			}
 		}
 	}
 
@@ -1040,14 +1230,18 @@ struct UnrealFunctionDef : IUnrealFunction
 
 	void AppendFunctionName(StringBuilder& sb) const override
 	{
-		cstr fNameStr = GetAtomicArg(fDef, 2).c_str();
-		sb << fNameStr;
+		sb << name;
 
-		if (Eq(fNameStr, "Construct") || Eq(fNameStr, "Destruct"))
+		if (Eq(name, "Construct") || Eq(name, "Destruct"))
 		{
 			// Reserved method names in Sexy. We add a suffix unlikely to conflict with other method names
 			sb << "QQQ";
 		}
+	}
+
+	cstr Name() const override
+	{
+		return name;
 	}
 };
 
@@ -1076,43 +1270,54 @@ struct UnrealClassDef : IUnrealClass
 
 		int colonIndicator = -1;
 
-		for (int i = 2; i < sDef.NumberOfElements(); i++)
+		try
 		{
-			cr_sex sColon = sDef[i];
-			if (IsAtomic(sColon) && Eq(sColon.c_str(), ":"))
+			for (int i = 2; i < sDef.NumberOfElements(); i++)
 			{
-				colonIndicator = i;
-				break;
+				cr_sex sColon = sDef[i];
+				if (IsAtomic(sColon) && Eq(sColon.c_str(), ":"))
+				{
+					colonIndicator = i;
+					break;
+				}
+			}
+
+			if (colonIndicator > 0)
+			{
+				for (int i = colonIndicator + 1; i < sDef.NumberOfElements(); i++)
+				{
+					cr_sex sDirective = sDef[i];
+					if (IsCompound(sDirective))
+					{
+						if (Eq(GetAtomicArg(sDirective, 0).c_str(), "'"))
+						{
+							// Check for duplicate functions. A duplicate may indicate two virtual functions each have their own UFUNCTION, but map to the same implementation
+							// This will mean the algorithm speed is O(N^2), but since N = number of methods = small, nothing to worry about
+							for (const auto* f : functions)
+							{
+								if (DoExpressionsMatchRecursive(f->fDef, sDirective, 2))
+								{
+									goto next;
+								}
+							}
+
+							// Raw method definition. e.g (' Method0 AllowSelectionModifiers (const FScriptTypedElementHandle^ InElementHandle) (return bool ReturnValue))
+							functions.push_back(new UnrealFunctionDef(sDirective));
+						}
+					}
+
+				next:
+					continue;
+				}
 			}
 		}
-
-		if (colonIndicator > 0)
+		catch (ParseException& pex)
 		{
-			for (int i = colonIndicator + 1; i < sDef.NumberOfElements(); i++)
-			{
-				cr_sex sDirective = sDef[i];
-				if (IsCompound(sDirective))
-				{
-					if (Eq(GetAtomicArg(sDirective, 0).c_str(), "'"))
-					{
-						// Check for duplicate functions. A duplicate may indicate two virtual functions each have their own UFUNCTION, but map to the same implementation
-						// This will mean the algorithm speed is O(N^2), but since N = number of methods = small, nothing to worry about
-						for (const auto* f : functions)
-						{
-							if (DoExpressionsMatchRecursive(f->fDef, sDirective, 2))
-							{
-								goto next;
-							}
-						}
-
-						// Raw method definition. e.g (' Method0 AllowSelectionModifiers (const FScriptTypedElementHandle^ InElementHandle) (return bool ReturnValue))
-						functions.push_back(new UnrealFunctionDef(sDirective));
-					}
-				}
-
-			next:
-				continue;
-			}
+			Throw(*pex.Source(), "Error parsing class %s\n%s", name.c_str(), pex.Message());
+		}
+		catch (IException& ex)
+		{
+			Throw(sDef, "Error parsing class %s\n%s", name.c_str(), ex.Message());
 		}
 	}
 
@@ -1149,18 +1354,20 @@ void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sexyDire
 
 void ParseClassDef(cr_sex sDef)
 {
-	UnrealClassDef def(sDef);
-	GenClassDef(def,
+	UnrealClassDef* def = new UnrealClassDef(sDef);
+	GenClassDef(*def,
 		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\",
 		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\sexy-files\\"
 	);
 
-	g_nClassesParsed++;
-	g_nMethodsParsed += (int) def.MethodCount();
+	allClasses.push_back(def);
 
-	for (int i = 0; i < def.MethodCount(); i++)
+	g_nClassesParsed++;
+	g_nMethodsParsed += (int) def->MethodCount();
+
+	for (int i = 0; i < def->MethodCount(); i++)
 	{
-		auto& method = def.GetFunction(i);
+		auto& method = def->GetFunction(i);
 		if (!method.HasSexyCounterpart())
 		{
 			g_nMethodsNotMarshaled++;

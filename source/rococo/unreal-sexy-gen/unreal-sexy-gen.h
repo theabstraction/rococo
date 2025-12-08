@@ -23,6 +23,8 @@ namespace Rococo::Unreal
 	{
 		virtual void AppendName(Strings::StringBuilder & sb, bool makeSexyVariableName = false) const = 0;
 		virtual cstr ArgType() const = 0;
+		virtual cstr KeyType() const = 0;
+		virtual cstr ElementType() const = 0;
 		virtual bool GetObjectPointerType(char* buffer, size_t capacity) const = 0;
 
 		// Returns true if Sexy can marshal the argument
@@ -32,6 +34,7 @@ namespace Rococo::Unreal
 		virtual bool IsSexyOutput() const = 0;
 		virtual bool IsPtr() const = 0;
 		virtual bool IsRef() const = 0;
+		virtual bool IsContainer() const = 0;
 	};
 
 	ROCOCO_INTERFACE IUnrealFunction
@@ -40,6 +43,7 @@ namespace Rococo::Unreal
 		virtual bool HasSexyCounterpart() const = 0;
 		virtual void AppendFunctionName(Strings::StringBuilder& sb) const = 0;
 		virtual IUnrealArg* GetArg(size_t index) = 0;
+		virtual cstr Name() const = 0;
 	};
 
 	ROCOCO_INTERFACE IUnrealClass
@@ -52,6 +56,7 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IUnrealStructElement
 	{
+		virtual bool IsBitfield() const = 0;
 		virtual int Offset() const = 0;
 		virtual int SizeOf() const = 0;
 		virtual cstr TypeName() const = 0;
