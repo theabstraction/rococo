@@ -12,6 +12,11 @@ typedef int UnknownType;
 
 namespace Rococo::UE::Native
 {
+	namespace Delegate
+	{
+
+	}
+
 	namespace Enum
 	{
 		template<class T>
@@ -102,8 +107,15 @@ namespace Rococo::UE::Native
 		template<class T>
 		struct R_TSubclassOf
 		{
-			T* t;
+			int dummy;
 		};
+
+		template<class T>
+		struct R_TScriptInterface
+		{
+			int dummy;
+		};
+		
 	}
 
 	int64 ConstructUObject(Rococo::Script::NativeCallEnvironment& e);

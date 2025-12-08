@@ -14,6 +14,8 @@ extern fstring subclassOfPrefix;
 extern fstring scriptInterfacePrefix;
 extern fstring objectPtrPrefix;
 
+fstring delegatePrefix = "TDelegate<"_fstring;
+
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb);
 void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb);
@@ -277,7 +279,7 @@ void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSe
 		cstr endToken = FindChar(argType, '>');
 		cstr startToken = argType + scriptInterfacePrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		sb.AppendFormat("R_TScriptInterface<U%s>", innerType);
+		sb.AppendFormat("R_TScriptInterface<%s>", innerType);
 		return;
 	}
 
@@ -310,6 +312,11 @@ void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType)
 		{
 			AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType);
 			sb << ",";
+		}
+
+		if (Eq(argType, "TDelegate"))
+		{
+			sb << "R_";
 		}
 
 		AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType);
@@ -602,7 +609,16 @@ void ForEachArgumentOfEachMethod(IUnrealClass& classDef, LAMBDA lambda)
 	}
 }
 
-void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg&, cstr argType)
+void GetTypeWithoutRef(char* buffer, size_t capacity, cstr type)
+{
+	CopyString(buffer, capacity, type);
+	if (EndsWith(buffer, "^"))
+	{
+		buffer[strlen(buffer) - 1] = 0;
+	}
+}
+
+void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg& arg, cstr argType)
 {
 	if (*argType == 'F')
 	{
@@ -637,6 +653,17 @@ void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealAr
 		if (requiredStructs.insert(enumDef->Name(), 0).second)
 		{
 			sb.AppendFormat("#include \"Enum/%s.hpp\"\n", enumDef->Name());
+			return;
+		}
+	}
+
+	if (Eq(argType, "TDelegate"))
+	{
+		char valueWithoutRef[256];
+		GetTypeWithoutRef(valueWithoutRef, sizeof valueWithoutRef, arg.ElementType());
+		if (requiredStructs.insert(valueWithoutRef, 0).second)
+		{
+			sb.AppendFormat("#include \"Delegate/%s.hpp\"\n", valueWithoutRef);
 			return;
 		}
 	}
@@ -741,12 +768,17 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
 				return;
 			}
 
-			fstring uobjectContainerPrefices[] = { softObjectPtrPrefix, subclassOfPrefix, ""_fstring };
+			fstring uobjectContainerPrefices[] = { softObjectPtrPrefix, subclassOfPrefix, scriptInterfacePrefix, ""_fstring };
 
 			char innerType[256];
 			if (TryGetInnerType(innerType, sizeof innerType, arg.ArgType(), uobjectContainerPrefices))
 			{
-				sb << "class " << innerType << ";\n";
+				if (knownObjects.find(innerType) == knownObjects.end())
+				{
+					// New object
+					knownObjects.insert(innerType, 0);
+					sb << "class " << innerType << ";\n";
+				}
 			}
 		}
 	);
@@ -757,6 +789,7 @@ using namespace Rococo::Sex;
 using namespace Rococo::Script;
 using namespace Rococo::Compiler;
 using namespace Rococo::UE::Native;
+using namespace Rococo::UE::Native::Delegate;
 using namespace Rococo::UE::Native::Enum;
 using namespace Rococo::UE::Native::Struct;
 
@@ -960,9 +993,10 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName)
 		return;
 	}
 
+	char innerType[256];
+
 	if (StartsWith(typeName, enumAsBytePrefix))
 	{
-		char innerType[256];
 		cstr endToken = FindChar(typeName, '>');
 		cstr startToken = typeName + enumAsBytePrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
@@ -970,13 +1004,10 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName)
 		return;
 	}
 
-	if (StartsWith(typeName, softObjectPtrPrefix))
+	fstring prefices[] = { softObjectPtrPrefix, subclassOfPrefix, ""_fstring };
+	if (TryGetInnerType(innerType, sizeof innerType, typeName, prefices))
 	{
-		return;
-	}
-
-	if (*typeName == 'F' && EndsWith(typeName, "Delegate"))
-	{
+		AppendHeaderForType(sb, innerType);
 		return;
 	}
 
@@ -1010,6 +1041,8 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName)
 	}
 }
 
+void AddDelegate(cstr elementType, int delegateSize);
+
 void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 {
 	BuildHardCodedTypes();
@@ -1033,8 +1066,20 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 			AppendHeaderForType(sb, e.InnerValueType());
 			continue;
 		}
-
-		AppendHeaderForType(sb, e.TypeName());
+		else if (StartsWith(e.TypeName(), "TDelegate<"))
+		{
+			char delegateType[256];
+			if (TryGetInnerType(delegateType, sizeof delegateType, e.TypeName(), "TDelegate<"_fstring))
+			{
+				sb.AppendFormat("#include \"Delegate/%s.hpp\"\n", delegateType);
+				AddDelegate(delegateType, e.SizeOf());
+			}
+			continue;
+		}
+		else
+		{
+			AppendHeaderForType(sb, e.TypeName());
+		}
 	}
 
 	sb << "\n";
@@ -1102,45 +1147,33 @@ namespace Rococo::UE::Native::Struct
 			sb.AppendFormat("\t\tchar _padding_%d[%d];\n", paddingIndex++, e.Offset() - currentOffset);
 		}
 
+		char innerType[256];
+
 		if (Eq(e.TypeName(), "TArray"))
 		{
-			char innerType[256];
 			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
 			sb.AppendFormat("\t\tR_TArray<%s> ", innerType);
 		}
-		else if (StartsWith(e.TypeName(), enumAsBytePrefix))
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), enumAsBytePrefix))
 		{
-			char innerType[256];
-			cstr endToken = FindChar(e.TypeName(), '>');
-			cstr startToken = e.TypeName() + enumAsBytePrefix.length;
-			CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-
 			auto* enumRef = FindEnum(innerType);
 			sb.AppendFormat("\t\tEnum::R_TEnumAsByte<Enum::R_%s> ", enumRef ? enumRef->Name() : innerType);
 		}
-		else if (StartsWith(e.TypeName(), subclassOfPrefix))
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), subclassOfPrefix))
 		{
-			char innerType[256];
-			cstr endToken = FindChar(e.TypeName(), '>');
-			cstr startToken = e.TypeName() + subclassOfPrefix.length;
-			CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 			sb.AppendFormat("\t\tR_TSubclassOf<%s> ", innerType);
 		}
-		else if (StartsWith(e.TypeName(), objectPtrPrefix))
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), objectPtrPrefix))
 		{
-			char innerType[256];
-			cstr endToken = FindChar(e.TypeName(), '>');
-			cstr startToken = e.TypeName() + objectPtrPrefix.length;
-			CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 			sb.AppendFormat("\t\tR_TObjectPtr<%s> ", innerType);
 		}
-		else if (StartsWith(e.TypeName(), softObjectPtrPrefix))
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), softObjectPtrPrefix))
 		{
-			char innerType[256];
-			cstr endToken = FindChar(e.TypeName(), '>');
-			cstr startToken = e.TypeName() + softObjectPtrPrefix.length;
-			CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 			sb.AppendFormat("\t\tR_TSoftObjectPtr<%s> ", innerType);
+		}
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), delegatePrefix))
+		{
+			sb.AppendFormat("\t\tR_TDelegate<Delegate::R_%s> ", innerType);
 		}
 		else
 		{

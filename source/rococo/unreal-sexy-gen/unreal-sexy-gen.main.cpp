@@ -36,6 +36,33 @@ int FindDelegateSize(cstr name)
 	return i == knownDelegatesVsSize.end() ? 0 : i->second;
 }
 
+void AddDelegate(cstr elementType, int delegateSize)
+{
+	auto j = knownDelegatesVsSize.find(elementType);
+	if (j == knownDelegatesVsSize.end())
+	{
+		if (EndsWith(elementType, "^"))
+		{
+			char valueWithNoRef[256];
+			CopyString(valueWithNoRef, sizeof valueWithNoRef, elementType);
+			valueWithNoRef[strlen(valueWithNoRef) - 1] = 0;
+			knownDelegatesVsSize.insert(valueWithNoRef, delegateSize);
+
+		}
+		else
+		{
+			knownDelegatesVsSize.insert(elementType, delegateSize);
+		}
+	}
+	else
+	{
+		if (j->second != delegateSize)
+		{
+			Throw(0, "Expecting delegate size %d to match that of previous definition (%d)", delegateSize, j->second);
+		}
+	}
+}
+
 bool DoExpressionsMatchRecursive(cr_sex a, cr_sex b, int startingIndex)
 {
 	if (a.NumberOfElements() != b.NumberOfElements())
@@ -998,30 +1025,8 @@ struct UnrealFunctionArg : IUnrealArg
 				cr_sex sLastArg = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1];
 				int delegateSize = atoi(sLastArg.c_str());
 
-				auto j = knownDelegatesVsSize.find(elementType);
-				if (j == knownDelegatesVsSize.end())
-				{
-					if (EndsWith(elementType, "^"))
-					{
-						char valueWithNoRef[256];
-						CopyString(valueWithNoRef, sizeof valueWithNoRef, elementType);
-						valueWithNoRef[strlen(valueWithNoRef) - 1] = 0;
-						knownDelegatesVsSize.insert(valueWithNoRef, delegateSize);
-
-					}
-					else
-					{
-						knownDelegatesVsSize.insert(elementType, delegateSize);
-					}
-				}
-				else
-				{
-					if (j->second != delegateSize)
-					{
-						Throw(sLastArg, "Expecting delegate size %d to match that of previous definition (%d)", delegateSize, j->second);
-					}
-				}
-
+				AddDelegate(elementType, delegateSize);
+				
 				break;
 			}
 
