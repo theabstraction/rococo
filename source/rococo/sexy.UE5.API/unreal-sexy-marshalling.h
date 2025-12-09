@@ -53,18 +53,13 @@ namespace Rococo::UE::Native
 		template<class T>
 		struct R_TSet
 		{
-			int unknown;
+			uint8 _opaqueData[80];
 		};
 
 		template<class KEY, class VALUE>
 		struct R_TMap
 		{
-			struct PAIR
-			{
-				KEY key;
-				VALUE value;
-			};
-			PAIR* data;
+			R_TSet<KEY> _opaqueSet;
 		};
 
 		struct R_FString
@@ -91,28 +86,43 @@ namespace Rococo::UE::Native
 			} u;
 		};
 
+		struct R_ITextData;
+
 		struct R_FText
 		{
-			int64 id;
+			R_ITextData* data;
+			int32 flags;
+			uint32 _padding;
 		};
 
 		template<class T>
 		struct R_TDelegate
 		{
-			UObject* objectHandler;
-			R_FName methodName;
+			char _opaque_data[32];
 		};
+
+		struct R_FUtf8String
+		{
+			char* utf8Encoding;
+			int len;
+		};
+
+		static_assert(sizeof(R_FUtf8String) == 12);
 
 		template<class T>
 		struct R_TSoftObjectPtr
 		{
-			T* pObject;
+			T* pWeakObjectPtr;
+			R_FName packageName;
+			R_FName assetName;
+			R_FUtf8String subPathString;
+			uint32 padding;
 		};
 
 		template<class T>
 		struct R_TSubclassOf
 		{
-			int dummy;
+			R_TObjectPtr<T> classRef;
 		};
 
 		template<class T>
@@ -120,9 +130,17 @@ namespace Rococo::UE::Native
 		{
 			int dummy;
 		};
-		
-	}
 
+		template<class T, class INNER>
+		struct R_TEnum
+		{
+			INNER value;
+		};
+	}
+}
+
+namespace Rococo::UE5::Marshal
+{
 	int64 ConstructUObject(Rococo::Script::NativeCallEnvironment& e);
 	UMethod* GetNCEUMethod(Rococo::Script::NativeCallEnvironment& e);
 	UMethod& GetMethod(UClass& classRef, crwstr methodName);

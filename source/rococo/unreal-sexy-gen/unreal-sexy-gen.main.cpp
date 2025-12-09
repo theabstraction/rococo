@@ -649,6 +649,7 @@ struct UnrealStructElement : IUnrealStructElement
 
 	bool IsBitfield() const override
 	{
+
 		return isBitField;
 	}
 
@@ -742,6 +743,13 @@ struct UnrealStructDef : IUnrealStruct
 				elements.push_back(new UnrealStructElement(sDirective));
 			}
 		}
+
+		auto byOffsetAscending = []	(const UnrealStructElement* a, const UnrealStructElement* b) -> bool
+		{
+			return a->offset < b->offset;
+		};
+
+		std::sort(elements.begin(), elements.end(), byOffsetAscending);
 	}
 
 	~UnrealStructDef()

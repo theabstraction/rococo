@@ -852,6 +852,7 @@ using namespace Rococo::UE::Native;
 using namespace Rococo::UE::Native::Delegate;
 using namespace Rococo::UE::Native::Enum;
 using namespace Rococo::UE::Native::Struct;
+using namespace Rococo::UE5::Marshal;
 
 namespace 
 {
@@ -1288,7 +1289,22 @@ namespace Rococo::UE::Native::Struct
 				auto* enumRef = FindEnum(e.TypeName());
 				if (enumRef)
 				{
-					sb.AppendFormat("\t\tEnum::R_%s ", e.TypeName());
+					cstr enumInnerType;
+					switch (e.SizeOf())
+					{
+					case 1:						
+						enumInnerType = "int8";
+						break;
+					case 2:
+						enumInnerType = "int16";
+						break;
+					case 4:
+						enumInnerType = "int32";
+						break;
+					default:
+						Throw(0, "Unknown enum size: %d", e.SizeOf());
+					}
+					sb.AppendFormat("\t\tR_TEnum<Enum::R_%s,%s> ", e.TypeName(), enumInnerType);
 				}
 				else if (*e.TypeName() == 'F' && EndsWith(e.TypeName(), "Delegate"))
 				{
@@ -1305,8 +1321,27 @@ namespace Rococo::UE::Native::Struct
 
 		if (e.IsBitfield())
 		{
-			sb << " : 1";
+			if (i > 0)
+			{
+				auto& predecessor = structDef[i - 1];
+				if (predecessor.IsBitfield() && predecessor.Offset() == e.Offset())
+				{
+					sb << " : 1";
+					goto next;
+				}
+			}
+
+			if (i < structDef.ElementCount() - 1)
+			{
+				auto& successor = structDef[i + 1];
+				if (successor.IsBitfield() && successor.Offset() == e.Offset())
+				{
+					sb << " : 1";
+				}			
+			}
 		}
+
+		next:
 
 		sb << ";\n";
 		currentOffset = e.Offset() + e.SizeOf();
@@ -1612,24 +1647,7 @@ namespace Rococo::UE::Native::Enum
 
 	sb << "\tenum class R_";
 	sb << enumDef.Name();
-	sb << ": Rococo::";
-
-	switch (enumDef.GetUnderlyingSize())
-	{
-	case 1:
-		sb << "uint8";
-		break;
-	case 2:
-		sb << "uint16";
-		break;
-	case 4:
-		sb << "uint32";
-		break;
-	case 8:
-		sb << "uint64";
-		break;
-	}
-
+	sb << " : int32";	
 	sb << "\n";
 	sb << "\t{\n";
 
