@@ -24,6 +24,30 @@ IUnrealEnumDef* FindEnum(cstr name);
 
 const bool UsePackageForFolders = false;
 
+namespace Rococo::IO
+{
+	int g_redundantWrites = 0;
+	int g_overwrites = 0;
+
+	void SaveAsciiTextFileIfDifferentAndLog(TargetDirectory target, crwstr filename, const fstring& text)
+	{
+		bool isMatch = IO::SaveAsciiTextFileIfDifferent(target, filename, text);
+		if (isMatch)
+		{
+			g_redundantWrites++;
+		}
+		else
+		{
+			g_overwrites++;
+		}
+	}
+
+	void PrintOverwriteReport()
+	{
+		printf("Files written: %d. Files unchanged: %d\n", g_overwrites, g_redundantWrites);
+	}
+}
+
 void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sexyDirectory)
 {
 	cstr shortName = classDef.ShortName();
@@ -65,9 +89,9 @@ void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sexyDire
 	BuildSexyNativesHPP(classDef, sbHPP);
 	BuildSexyFiles(classDef, sbSXY);
 
-	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
-	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
-	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
+	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
+	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
 }
 
 void AppendCompactName(StringBuilder& sb, cstr p)
@@ -288,7 +312,7 @@ void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSe
 		cstr endToken = FindChar(argType, '>');
 		cstr startToken = argType + objectPtrPrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		sb.AppendFormat("R_TObjectPtr<U%s>", innerType);
+		sb.AppendFormat("R_TObjectPtr<%s>", innerType);
 		return;
 	}
 
@@ -768,7 +792,7 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
 				return;
 			}
 
-			fstring uobjectContainerPrefices[] = { softObjectPtrPrefix, subclassOfPrefix, scriptInterfacePrefix, ""_fstring };
+			fstring uobjectContainerPrefices[] = { softObjectPtrPrefix, subclassOfPrefix, scriptInterfacePrefix, objectPtrPrefix, ""_fstring };
 
 			char innerType[256];
 			if (TryGetInnerType(innerType, sizeof innerType, arg.ArgType(), uobjectContainerPrefices))
@@ -778,6 +802,42 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
 					// New object
 					knownObjects.insert(innerType, 0);
 					sb << "class " << innerType << ";\n";
+				}
+			}
+
+			if (Eq(arg.ArgType(), "TArray") || Eq(arg.ArgType(), "TSet"))
+			{
+				if (TryGetInnerType(innerType, sizeof innerType, arg.ElementType(), uobjectContainerPrefices))
+				{
+					if (knownObjects.find(innerType) == knownObjects.end())
+					{
+						// New object
+						knownObjects.insert(innerType, 0);
+						sb << "class " << innerType << ";\n";
+					}
+				}
+			}
+
+			if (Eq(arg.ArgType(), "TMap"))
+			{
+				if (TryGetInnerType(innerType, sizeof innerType, arg.KeyType(), uobjectContainerPrefices))
+				{
+					if (knownObjects.find(innerType) == knownObjects.end())
+					{
+						// New object
+						knownObjects.insert(innerType, 0);
+						sb << "class " << innerType << ";\n";
+					}
+				}
+
+				if (TryGetInnerType(innerType, sizeof innerType, arg.ElementType(), uobjectContainerPrefices))
+				{
+					if (knownObjects.find(innerType) == knownObjects.end())
+					{
+						// New object
+						knownObjects.insert(innerType, 0);
+						sb << "class " << innerType << ";\n";
+					}
 				}
 			}
 		}
@@ -942,53 +1002,69 @@ void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealT
 	if (Eq(unrealType, "TArray"))
 	{
 		Throw(0, "Cannot handle TArray as an inner type");
+		return;
 	}
-	else if (StartsWith(unrealType, enumAsBytePrefix))
+
+	if (StartsWith(unrealType, enumAsBytePrefix))
 	{
 		char innerType[256];
 		cstr endToken = FindChar(unrealType, '>');
 		cstr startToken = unrealType + enumAsBytePrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 		SafeFormat(buffer, capacity, "uint8");
+		return;
 	}
-	else if (StartsWith(unrealType, subclassOfPrefix))
+
+	if (StartsWith(unrealType, subclassOfPrefix))
 	{
 		char innerType[256];
 		cstr endToken = FindChar(unrealType, '>');
 		cstr startToken = unrealType + subclassOfPrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 		SafeFormat(buffer, capacity, "RF_SubclassOf");
+		return;
 	}
-	else if (StartsWith(unrealType, objectPtrPrefix))
+
+	if (StartsWith(unrealType, objectPtrPrefix))
 	{
 		char innerType[256];
 		cstr endToken = FindChar(unrealType, '>');
 		cstr startToken = unrealType + objectPtrPrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 		SafeFormat(buffer, capacity, "R_TObjectPtr<%s>", innerType);
+		return;
 	}
-	else
+
+	auto* enumDef = FindEnum(unrealType);
+	if (enumDef)
 	{
-		auto h = hardcodedTypes.find(unrealType);
-		if (h != hardcodedTypes.end())
-		{
-			SafeFormat(buffer, capacity, "%s", h->second.typeName);
-		}
-		else
-		{
-			SafeFormat(buffer, capacity, "%s%s", STRUCT_PREFIX, unrealType + 1);
-		}
+		SafeFormat(buffer, capacity, "Enum::R_%s", unrealType);
+		return;
 	}
+
+	auto h = hardcodedTypes.find(unrealType);
+	if (h != hardcodedTypes.end())
+	{
+		SafeFormat(buffer, capacity, "%s", h->second.typeName);
+		return;
+	}
+	
+	SafeFormat(buffer, capacity, "%s%s", STRUCT_PREFIX, unrealType + 1);	
 }
 
 void AppendHeaderForType(StringBuilder& sb, cstr typeName)
 {
-	if (StartsWith(typeName, "TObjectPtr<"))
+	if (StartsWith(typeName, softObjectPtrPrefix))
 	{
 		return;
 	}
 
-	if (StartsWith(typeName, "TSubclassOf<"))
+	if (StartsWith(typeName, objectPtrPrefix))
+	{
+		return;
+	}
+
+	if (StartsWith(typeName, subclassOfPrefix))
 	{
 		return;
 	}
@@ -1061,8 +1137,14 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 	{
 		auto& e = structDef[i];
 
-		if (Eq(e.TypeName(), "TArray"))
+		if (Eq(e.TypeName(), "TArray") || Eq(e.TypeName(), "TSet"))
 		{
+			AppendHeaderForType(sb, e.InnerValueType());
+			continue;
+		}
+		else if (Eq(e.TypeName(), "TMap"))
+		{
+			AppendHeaderForType(sb, e.InnerKeyType());
 			AppendHeaderForType(sb, e.InnerValueType());
 			continue;
 		}
@@ -1088,35 +1170,41 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 	{
 		auto& e = structDef[i];
 
+		char innerType[256];
+
 		if (*e.TypeName() == 'F' && EndsWith(e.TypeName(), "Delegate"))
 		{
 			sb << "class R_" << e.TypeName() << ";\n";
 		}
-		else if (StartsWith(e.TypeName(), objectPtrPrefix))
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), objectPtrPrefix))
 		{
-			char innerType[256];
-			cstr endToken = FindChar(e.TypeName(), '>');
-			cstr startToken = e.TypeName() + objectPtrPrefix.length;
-			CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 			sb << "class " << innerType << ";\n";
 		}
-		else if (Eq(e.TypeName(), "TArray"))
+		else if (Eq(e.TypeName(), "TArray") || Eq(e.TypeName(), "TSet"))
 		{
-			if (StartsWith(e.InnerValueType(), objectPtrPrefix))
+			if (TryGetInnerType(innerType, sizeof innerType, e.InnerValueType(), objectPtrPrefix))
 			{
-				char innerType[256];
-				cstr endToken = FindChar(e.InnerValueType(), '>');
-				cstr startToken = e.InnerValueType() + objectPtrPrefix.length;
-				CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
 				sb << "class " << innerType << ";\n";
 			}
 		}
-		else if (StartsWith(e.TypeName(), softObjectPtrPrefix))
+		else if (Eq(e.TypeName(), "TMap"))
 		{
-			char innerType[256];
-			cstr endToken = FindChar(e.TypeName(), '>');
-			cstr startToken = e.TypeName() + softObjectPtrPrefix.length;
-			CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+			if (TryGetInnerType(innerType, sizeof innerType, e.InnerValueType(), objectPtrPrefix))
+			{
+				sb << "class " << innerType << ";\n";
+			}
+
+			if (TryGetInnerType(innerType, sizeof innerType, e.InnerKeyType(), objectPtrPrefix))
+			{
+				sb << "class " << innerType << ";\n";
+			}
+		}
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), softObjectPtrPrefix))
+		{
+			sb << "class " << innerType << ";\n";
+		}
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), subclassOfPrefix))
+		{
 			sb << "class " << innerType << ";\n";
 		}
 	}
@@ -1153,6 +1241,19 @@ namespace Rococo::UE::Native::Struct
 		{
 			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
 			sb.AppendFormat("\t\tR_TArray<%s> ", innerType);
+		}
+		else if (Eq(e.TypeName(), "TSet"))
+		{
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
+			sb.AppendFormat("\t\tR_TSet<%s> ", innerType);
+		}
+		else if (Eq(e.TypeName(), "TMap"))
+		{
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
+
+			char keyType[256];
+			InnerUnrealTypeToMarshalledType(keyType, sizeof keyType, e.InnerKeyType());
+			sb.AppendFormat("\t\tR_TMap<%s,%s> ", keyType, innerType);
 		}
 		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), enumAsBytePrefix))
 		{
@@ -1407,9 +1508,9 @@ void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory)
 	BuildSexyNativeStructsHPP(structDef, sbHPP);
 	//BuildSexyFiles(classDef, sbSXY);
 
-	//IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
-	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
-	//IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
+	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
+	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
 }
 
 void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path)
@@ -1446,7 +1547,7 @@ namespace Rococo::UE::Native::Delegate
 
 	sbHPP << "\t};\n}\n";
 
-	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
 }
 
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& structDef, StringBuilder& sb);
@@ -1492,9 +1593,9 @@ void GenEnumDef(IUnrealEnumDef& enumDef, crwstr nativeDirectory)
 	BuildSexyNativeEnumHPP(enumDef, sbHPP);
 	//BuildSexyFiles(classDef, sbSXY);
 
-	//IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
-	IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
-	//IO::SaveAsciiTextFile(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
+	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
+	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
 }
 
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& enumDef, StringBuilder& sb)

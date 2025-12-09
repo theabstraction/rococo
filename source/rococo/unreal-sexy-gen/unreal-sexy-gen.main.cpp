@@ -118,6 +118,11 @@ void ParseClassFile(crwstr filename, ISParser& parser)
 
 void PrintUnknownsAscending();
 
+namespace Rococo::IO
+{
+	void PrintOverwriteReport();
+}
+
 int mainProtected(int, char*[])
 {
 	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(32768, 0, "main");
@@ -133,6 +138,8 @@ int mainProtected(int, char*[])
 
 	double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
 	printf("API coverage: %2.2f%%\n", 100.0 - failureRate);
+
+	IO::PrintOverwriteReport();
 	
 	return 0;
 }
@@ -823,27 +830,63 @@ void ParseDelegateDef(cstr typeName, int sizeInBytes)
 	GenDelegateDef(typeName, sizeInBytes, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
 }
 
+bool IsCPPKeyword(cstr token)
+{
+	static stringmap<int> cppKeywords;
+	if (cppKeywords.empty())
+	{
+		cppKeywords.insert("namespace", 0);
+		cppKeywords.insert("this", 0);
+		cppKeywords.insert("class", 0);
+		cppKeywords.insert("struct", 0);
+		cppKeywords.insert("if", 0);
+		cppKeywords.insert("else", 0);
+		cppKeywords.insert("do", 0);
+		cppKeywords.insert("for", 0);
+		cppKeywords.insert("while", 0);
+		cppKeywords.insert("try", 0);
+		cppKeywords.insert("catch", 0);
+	}
+
+	return cppKeywords.find(token) != cppKeywords.end();
+}
+
 void AppendIdentifier(StringBuilder& sb, cstr rawName)
 {
 	char firstChar = *rawName;
+	static cstr prefix = "l"; // for 'local'
 
 	if (isupper(firstChar))
 	{
 		if (isupper(rawName[1]))
 		{
 			// We have two or more capital letters, this could be an acronym, so we would not want to create a name like this: hAL, instead we add a prefix,  e.g lHAL
-			cstr prefix = "l"; // for 'local'
 			sb << prefix;
 		}
 		else
 		{
-			// Convert pascal case to camel case
-			sb.AppendChar((char)tolower(firstChar));
-			rawName++;
+			char c = (char) tolower(firstChar);
+
+			char camelCaseToken[256];
+			SecureFormat(camelCaseToken, sizeof camelCaseToken, "%c%s", c, rawName + 1);
+
+			if (IsCPPKeyword(camelCaseToken))
+			{
+				sb << prefix;
+				camelCaseToken[0] = (char) toupper(c);
+			}
+
+			sb << camelCaseToken;
+			return;
 		}
 	}
 
 	sb << rawName;
+}
+
+namespace Rococo::IO
+{
+	void PrintOverwriteReport();
 }
 
 fstring enumAsBytePrefix = "TEnumAsByte<"_fstring;

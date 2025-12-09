@@ -2623,9 +2623,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyCameraShake.cpp">
       <Filter>natives</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyPyTestObject.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LensFile.cpp">
       <Filter>natives</Filter>
     </ClCompile>
@@ -4756,15 +4753,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewGrid.cpp">
       <Filter>natives</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonEmitter.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonModule.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonScriptModuleInput.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSequence.cpp">
       <Filter>natives</Filter>
     </ClCompile>
@@ -5237,24 +5225,6 @@
       <Filter>natives</Filter>
     </ClCompile>
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueVisibility.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestChildObject.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestObject.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestStructDelegate.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestTypeHint.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestVectorDelegate.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PythonObjectHandle.cpp">
       <Filter>natives</Filter>
     </ClCompile>
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\QAStateTreeEditorData.cpp">
@@ -9016,9 +8986,6 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyCameraShake.hpp">
       <Filter>natives</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyPyTestObject.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LensFile.hpp">
       <Filter>natives</Filter>
     </ClInclude>
@@ -11149,15 +11116,6 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewGrid.hpp">
       <Filter>natives</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonEmitter.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonModule.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonScriptModuleInput.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSequence.hpp">
       <Filter>natives</Filter>
     </ClInclude>
@@ -11630,24 +11588,6 @@
       <Filter>natives</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueVisibility.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestChildObject.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestObject.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestStructDelegate.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestTypeHint.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestVectorDelegate.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PythonObjectHandle.hpp">
       <Filter>natives</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\QAStateTreeEditorData.hpp">

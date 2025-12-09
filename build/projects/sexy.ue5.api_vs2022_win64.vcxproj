@@ -1112,7 +1112,6 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LandscapeSplinesComponent.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LandscapeStreamingProxy.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyCameraShake.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyPyTestObject.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LensFile.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LevelBounds.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\LevelCapture.hpp" />
@@ -1823,9 +1822,6 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewAxis_InterpParamVector2D.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewAxis_InterpParamVector4.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewGrid.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonEmitter.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonModule.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonScriptModuleInput.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSequence.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSimCache.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSystem.hpp" />
@@ -1984,12 +1980,6 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueSoftObject.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueTransform.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueVisibility.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestChildObject.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestObject.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestStructDelegate.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestTypeHint.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestVectorDelegate.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\PythonObjectHandle.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\QAStateTreeEditorData.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\QuartzClockHandle.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RadialFalloff.hpp" />
@@ -3245,7 +3235,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LandscapeSplinesComponent.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LandscapeStreamingProxy.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyCameraShake.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LegacyPyTestObject.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LensFile.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LevelBounds.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\LevelCapture.cpp" />
@@ -3956,9 +3945,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewAxis_InterpParamVector2D.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewAxis_InterpParamVector4.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPreviewGrid.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonEmitter.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonModule.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraPythonScriptModuleInput.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSequence.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSimCache.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\NiagaraSystem.cpp" />
@@ -4117,12 +4103,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueSoftObject.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueTransform.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PropertyValueVisibility.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestChildObject.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestObject.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestStructDelegate.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestTypeHint.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PyTestVectorDelegate.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\PythonObjectHandle.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\QAStateTreeEditorData.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\QuartzClockHandle.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\RadialFalloff.cpp" />

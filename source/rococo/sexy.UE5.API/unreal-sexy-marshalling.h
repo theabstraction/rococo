@@ -59,7 +59,12 @@ namespace Rococo::UE::Native
 		template<class KEY, class VALUE>
 		struct R_TMap
 		{
-			int unknown;
+			struct PAIR
+			{
+				KEY key;
+				VALUE value;
+			};
+			PAIR* data;
 		};
 
 		struct R_FString

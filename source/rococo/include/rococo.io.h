@@ -105,8 +105,12 @@ namespace Rococo::IO
 	ROCOCO_API void EnsureUserDocumentFolderExists(crwstr subdirectory);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text);
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text);
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, cstr filename, const fstring& text);
+
+	// Throws an exception if file could not be saved, otherwise returns true if files matched and write was skipped or false if file was overwritten
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text);
+
+	// Throws an exception if file could not be saved, otherwise returns true if files matched and write was skipped or false if file was overwritten
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, cstr filename, const fstring& text);
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
 	ROCOCO_API bool IsFileExistant(const char* path);
 	ROCOCO_API bool IsFileExistant(crwstr path);

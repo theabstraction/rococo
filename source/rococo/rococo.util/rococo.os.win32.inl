@@ -2538,7 +2538,7 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text)
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text)
 	{
 		std::vector<wchar_t> fullPath;
 		GetFullPathFromTarget(target, filename, OUT fullPath);
@@ -2586,13 +2586,15 @@ namespace Rococo::IO
 		{
 			SaveAsciiTextFile(target, fullPath.data(), text);
 		}
+
+		return onLoad.match;
 	}
 
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const char* filename, const fstring& text)
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, const char* filename, const fstring& text)
 	{
 		WideFilePath wPath;
 		Assign(wPath, filename);
-		SaveAsciiTextFileIfDifferent(target, wPath, text);
+		return SaveAsciiTextFileIfDifferent(target, wPath, text);
 	}
 
 	ROCOCO_API crwstr FindChar(crwstr token, char c)
