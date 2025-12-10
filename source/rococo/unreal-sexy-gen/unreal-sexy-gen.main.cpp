@@ -4,6 +4,7 @@
 #include <rococo.os.h>
 #include <rococo.strings.h>
 #include <rococo.hashtable.h>
+#include <rococo.io.h>
 
 #include <vector>
 
@@ -29,6 +30,7 @@ void ParseStructDef(cr_sex sDef);
 void ParseClassTree(cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
+crwstr GetOutputDirectory();
 
 int FindDelegateSize(cstr name)
 {
@@ -121,45 +123,6 @@ void PrintUnknownsAscending();
 namespace Rococo::IO
 {
 	void PrintOverwriteReport();
-}
-
-int mainProtected(int, char*[])
-{
-	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(32768, 0, "main");
-	Auto<ISParser> sParser = CreateSexParser_2_0(*allocator, SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
-
-	crwstr filename = L"D:\\work\\Rococo.Reflect\\S-API\\all-classes.sexml";
-	ParseClassFile(filename, *sParser);
-	PrintUnknownsAscending();
-
-	printf("\nNumber of classes: %d\n", g_nClassesParsed);
-	printf("Number of methods in API: %d\n", g_nMethodsParsed);
-	printf("Number of methods that could not be marshaled: %d\n", g_nMethodsNotMarshaled);
-
-	double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
-	printf("API coverage: %2.2f%%\n", 100.0 - failureRate);
-
-	IO::PrintOverwriteReport();
-	
-	return 0;
-}
-
-int main(int argc, char* argv[])
-{
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-
-	try
-	{
-		return mainProtected(argc, argv);
-	}
-	catch (IException& ex)
-	{
-		std::vector<char> err;
-		err.resize(64_kilobytes);
-		Rococo::OS::BuildExceptionString(err.data(), err.size(), ex, true);
-		printf("%s", err.data());
-		return ex.ErrorCode();
-	}
 }
 
 std::vector<struct UnrealClassDef*> allClasses;
@@ -368,14 +331,14 @@ const IMarshalType* FindPrimitiveType(cstr argType)
 	return i != marshalArgTypes.end() ? i->second : nullptr;
 }
 
-stringmap<int> mapUnknownToUsage;
+stringmap<int> g_mapUnknownToUsage;
 
 void MarkUnknown(cstr type)
 {
-	auto i = mapUnknownToUsage.find(type);
-	if (i == mapUnknownToUsage.end())
+	auto i = g_mapUnknownToUsage.find(type);
+	if (i == g_mapUnknownToUsage.end())
 	{
-		mapUnknownToUsage.insert(type, 1);
+		g_mapUnknownToUsage.insert(type, 1);
 	}
 	else
 	{
@@ -387,13 +350,18 @@ void MarkUnknown(cstr type)
 
 void PrintUnknownsAscending()
 {
+	if (g_mapUnknownToUsage.empty())
+	{
+		return;
+	}
+
 	struct Usage
 	{
 		cstr item;
 		int count;
 	};
 	std::vector<Usage> elements;
-	for (auto& i : mapUnknownToUsage)
+	for (auto& i : g_mapUnknownToUsage)
 	{
 		Usage u{ i.first, i.second };
 		elements.push_back(u);
@@ -574,7 +542,7 @@ IUnrealEnumDef* FindEnum(cstr name)
 void ParseEnumDef(cr_sex sDef)
 {
 	UnrealEnumDef* def = new UnrealEnumDef(sDef);
-	GenEnumDef(*def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
+	GenEnumDef(*def, GetOutputDirectory());
 
 	if (!g_unrealEnums.insert(def->Name(), def).second)
 	{
@@ -818,7 +786,7 @@ void ParseStructDef(cr_sex sDef)
 	UnrealStructDef* def = new UnrealStructDef(sDef);
 	try
 	{
-		GenStructDef(*def, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
+		GenStructDef(*def, GetOutputDirectory());
 		if (knownStructs.insert(def->TypeName(), def).second == false)
 		{
 			Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
@@ -835,7 +803,7 @@ void GenDelegateDef(cstr typeName, int sizeInBytes, crwstr path);
 
 void ParseDelegateDef(cstr typeName, int sizeInBytes)
 {
-	GenDelegateDef(typeName, sizeInBytes, L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\");
+	GenDelegateDef(typeName, sizeInBytes, GetOutputDirectory());
 }
 
 bool IsCPPKeyword(cstr token)
@@ -1406,15 +1374,12 @@ struct UnrealClassDef : IUnrealClass
 	}
 };
 
-void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sexyDirectory);
+void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory);
 
 void ParseClassDef(cr_sex sDef)
 {
 	UnrealClassDef* def = new UnrealClassDef(sDef);
-	GenClassDef(*def,
-		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\natives\\",
-		L"D:\\work\\rococo\\source\\rococo\\sexy.UE5.API\\sexy-files\\"
-	);
+	GenClassDef(*def, GetOutputDirectory());
 
 	allClasses.push_back(def);
 
@@ -1431,3 +1396,84 @@ void ParseClassDef(cr_sex sDef)
 	}
 }
 
+WideFilePath g_outDir;
+
+crwstr GetOutputDirectory()
+{
+	return g_outDir;
+}
+
+int mainProtected(int argc, char* argv[])
+{
+	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(32768, 0, "main");
+	Auto<ISParser> sParser = CreateSexParser_2_0(*allocator, SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
+
+	fstring sexml = "-SEXML:"_fstring;
+	fstring output = "-OUTDIR:"_fstring;
+
+	cstr sexmlFile = nullptr;
+	cstr outDir = nullptr;
+
+	for (int i = 0; i < argc; i++)
+	{
+		cstr arg = argv[i];
+		if (StartsWith(arg, sexml))
+		{
+			sexmlFile = arg + sexml.length;
+		}
+
+		if (StartsWith(arg, output))
+		{
+			outDir = arg + output.length;
+		}
+	}
+
+	if (sexmlFile == nullptr || outDir == nullptr)
+	{
+		printf("Usage: unreal-sexy-gen.exe -SEXML:<sexml-file-path-and-filename> -OUTDIR:<output-directory>\n");
+		return -1;
+	}
+
+	Format(g_outDir, L"%hs%hs", outDir, EndsWith(outDir, "\\") ? "" : "\\");
+
+	if (!Rococo::IO::IsDirectory(g_outDir.buf))
+	{
+		printf("%ws does not appear to be a directory", g_outDir.buf);
+		return -1;
+	}
+
+	WideFilePath wPath;
+	Format(wPath, L"%hs", sexmlFile);
+	ParseClassFile(wPath, *sParser);
+
+	PrintUnknownsAscending();
+
+	printf("\nNumber of classes: %d\n", g_nClassesParsed);
+	printf("Number of methods in API: %d\n", g_nMethodsParsed);
+	printf("Number of methods that could not be marshaled: %d\n", g_nMethodsNotMarshaled);
+
+	double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
+	printf("API coverage: %2.2f%%\n", 100.0 - failureRate);
+
+	IO::PrintOverwriteReport();
+
+	return 0;
+}
+
+int main(int argc, char* argv[])
+{
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+
+	try
+	{
+		return mainProtected(argc, argv);
+	}
+	catch (IException& ex)
+	{
+		std::vector<char> err;
+		err.resize(64_kilobytes);
+		Rococo::OS::BuildExceptionString(err.data(), err.size(), ex, true);
+		printf("%s", err.data());
+		return ex.ErrorCode() != 0 ? ex.ErrorCode() : -1;
+	}
+}

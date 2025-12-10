@@ -48,8 +48,14 @@ namespace Rococo::IO
 	}
 }
 
-void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sexyDirectory)
+void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory)
 {
+	WideFilePath nativeDirectory;
+	Format(nativeDirectory, L"%snatives\\", outputDirectory);
+
+	WideFilePath sexyDirectory;
+	Format(sexyDirectory, L"%ssexy-files\\", outputDirectory);
+
 	cstr shortName = classDef.ShortName();
 	cstr packageName = UsePackageForFolders ? classDef.PackageName() : "";
 
@@ -1502,8 +1508,11 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 	}
 }
 
-void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory)
+void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory)
 {
+	WideFilePath nativeDirectory;
+	Format(nativeDirectory, L"%snatives\\", outputDirectory);
+
 	cstr structName = structDef.TypeName();
 	cstr packageName = UsePackageForFolders ? structDef.Package() : "";
 
@@ -1565,7 +1574,7 @@ void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path)
 	auto& sbHPP = dsbHPP->Builder();
 
 	WideFilePath wTargetHPPFile;
-	Format(wTargetHPPFile, L"%lsDelegate/%hs.hpp", path, typeName);
+	Format(wTargetHPPFile, L"%lsnatives\\Delegate\\%hs.hpp", path, typeName);
 	IO::ToSysPath(wTargetHPPFile.buf);
 
 	sbHPP << R"(#pragma once
@@ -1587,8 +1596,11 @@ namespace Rococo::UE::Native::Delegate
 
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& structDef, StringBuilder& sb);
 
-void GenEnumDef(IUnrealEnumDef& enumDef, crwstr nativeDirectory)
+void GenEnumDef(IUnrealEnumDef& enumDef, crwstr outputDirectory)
 {
+	WideFilePath nativeDirectory;
+	Format(nativeDirectory, L"%snatives\\", outputDirectory);
+
 	cstr structName = enumDef.Name();
 	cstr packageName = UsePackageForFolders ? enumDef.Package() : "";
 
