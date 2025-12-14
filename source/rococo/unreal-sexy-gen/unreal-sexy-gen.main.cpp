@@ -331,7 +331,7 @@ const IMarshalType* FindPrimitiveType(cstr argType)
 	return i != marshalArgTypes.end() ? i->second : nullptr;
 }
 
-stringmap<int> g_mapUnknownToUsage;
+Rococo::stringmap<int> g_mapUnknownToUsage;
 
 void MarkUnknown(cstr type)
 {
@@ -841,7 +841,7 @@ void AppendIdentifier(StringBuilder& sb, cstr rawName)
 		}
 		else
 		{
-			char c = (char) tolower(firstChar);
+			char c = (char)tolower(firstChar);
 
 			char camelCaseToken[256];
 			SecureFormat(camelCaseToken, sizeof camelCaseToken, "%c%s", c, rawName + 1);
@@ -849,7 +849,7 @@ void AppendIdentifier(StringBuilder& sb, cstr rawName)
 			if (IsCPPKeyword(camelCaseToken))
 			{
 				sb << prefix;
-				camelCaseToken[0] = (char) toupper(c);
+				camelCaseToken[0] = (char)toupper(c);
 			}
 
 			sb << camelCaseToken;
@@ -933,6 +933,14 @@ bool IsKnownElementType(cstr argType)
 		}
 	}
 
+	if (EndsWith(argType, "^"))
+	{
+		char sansRef[256];
+		CopyString(sansRef, sizeof sansRef, argType);
+		sansRef[strlen(argType) - 1] = 0;
+		return IsKnownElementType(sansRef);
+	}
+
 	return false;
 }
 
@@ -980,6 +988,8 @@ bool LooksLikeObjectPointer(cstr p)
 
 	return false;
 }
+
+static stringmap<int> g_UnresolvedArgType;
 
 struct UnrealFunctionArg : IUnrealArg
 {
@@ -1079,6 +1089,13 @@ struct UnrealFunctionArg : IUnrealArg
 		{
 			return IsKnownElementType(elementType) && IsKnownElementType(keyType);
 		}
+
+		if (Eq(argType, "TDelegate"))
+		{
+			return IsKnownElementType(elementType);
+		}
+
+		g_UnresolvedArgType.insert(argType, 0);
 				
 		return false;
 	}
@@ -1451,6 +1468,18 @@ int mainProtected(int argc, char* argv[])
 	printf("\nNumber of classes: %d\n", g_nClassesParsed);
 	printf("Number of methods in API: %d\n", g_nMethodsParsed);
 	printf("Number of methods that could not be marshaled: %d\n", g_nMethodsNotMarshaled);
+
+	if (!g_UnresolvedArgType.empty())
+	{
+		printf("Unknown arg types:\n");
+
+		for (auto& p : g_UnresolvedArgType)
+		{
+			printf("%s\n", (cstr)p.first);
+		}
+
+		printf("\n");
+	}
 
 	double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
 	printf("API coverage: %2.2f%%\n", 100.0 - failureRate);

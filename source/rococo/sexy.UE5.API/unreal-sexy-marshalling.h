@@ -5,7 +5,7 @@
 
 class UClass;
 class UObject;
-class UMethod;
+class UFunction;
 typedef int UnknownType;
 
 #pragma pack(push, 1)
@@ -141,12 +141,15 @@ namespace Rococo::UE::Native
 
 namespace Rococo::UE5::Marshal
 {
+	UClass& GetStaticClassRef(crwstr fullPath);
 	int64 ConstructUObject(Rococo::Script::NativeCallEnvironment& e);
-	UMethod* GetNCEUMethod(Rococo::Script::NativeCallEnvironment& e);
-	UMethod& GetMethod(UClass& classRef, crwstr methodName);
+	UFunction* GetNCEUMethod(Rococo::Script::NativeCallEnvironment& e);
 	UObject* GetNCEUObject(Rococo::Script::NativeCallEnvironment& e, int64 objectHandle);
-	void ValidateArgs(UMethod* methodRef, void* args, size_t argSize);
-	void ProcessEvent(UObject* object, UMethod* methodRef, void* args);
+	void ValidateArgs(UFunction* methodRef, void* args, size_t argSize);
+	void ProcessEvent(UObject* object, UFunction* methodRef, void* args);
+	void ScriptUFunction(Rococo::Script::IPublicScriptSystem& ss, const Rococo::Compiler::INamespace& ns, cstr implementationName, int lineNumber, UClass& classRef, Rococo::Script::FN_NATIVE_CALL nativeCall, crwstr methodName, cstr scriptSignature);
 }
+
+#define TEXT(x) L ## x
 
 #pragma pack(pop)

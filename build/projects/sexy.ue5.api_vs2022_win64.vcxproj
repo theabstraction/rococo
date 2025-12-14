@@ -68,7 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);SEXY_MARSHALLING_API=__declspec(dllexport);TCHAR=wchar_t;ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -155,7 +155,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllexport);ROCOCO_SEXML_API=__declspec(dllimport);SEXY_MARSHALLING_API=__declspec(dllexport);TCHAR=wchar_t;ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -485,8 +485,6 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BoxFalloff.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BoxReflectionCapture.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BoxReflectionCaptureComponent.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_GameInstance_C.hpp" />
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_RococoTestAPI_C.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownCharacter_C.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownController_C.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownGameMode_C.hpp" />
@@ -2359,6 +2357,7 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\WrapBoxSlot.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\ZeroOutRootBoneModifier.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.h" />
+    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.resolvers.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\AbcImportSettings.cpp" />
@@ -2608,8 +2607,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BoxFalloff.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BoxReflectionCapture.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BoxReflectionCaptureComponent.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_GameInstance_C.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_RococoTestAPI_C.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownCharacter_C.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownController_C.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownGameMode_C.cpp" />
@@ -4481,7 +4478,7 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\WrapBox.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\WrapBoxSlot.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\ZeroOutRootBoneModifier.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\simulated-UE5-api.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy.marshalling.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

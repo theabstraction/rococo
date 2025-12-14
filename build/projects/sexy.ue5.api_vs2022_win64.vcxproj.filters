@@ -742,12 +742,6 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BoxReflectionCaptureComponent.cpp">
       <Filter>natives</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_GameInstance_C.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_RococoTestAPI_C.cpp">
-      <Filter>natives</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownCharacter_C.cpp">
       <Filter>natives</Filter>
     </ClCompile>
@@ -6361,7 +6355,7 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\natives\ZeroOutRootBoneModifier.cpp">
       <Filter>natives</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\simulated-UE5-api.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy.marshalling.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\AbcImportSettings.hpp">
@@ -7103,12 +7097,6 @@
       <Filter>natives</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BoxReflectionCaptureComponent.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_GameInstance_C.hpp">
-      <Filter>natives</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_RococoTestAPI_C.hpp">
       <Filter>natives</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\BP_TopDownCharacter_C.hpp">
@@ -12725,6 +12713,7 @@
       <Filter>natives</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.h" />
+    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.resolvers.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="natives">

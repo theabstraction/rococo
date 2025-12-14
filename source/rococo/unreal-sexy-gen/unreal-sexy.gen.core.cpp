@@ -446,7 +446,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	}
 
 	sb << "\t\tUObject* object = GetNCEUObject(nce, objectHandle);\n";
-	sb << "\t\tUMethod* methodRef = GetNCEUMethod(nce);\n";
+	sb << "\t\UFunction* methodRef = GetNCEUMethod(nce);\n";
 	sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
 	sb << "\t\tProcessEvent(object, methodRef, &args);\n";
 
@@ -885,8 +885,9 @@ namespace
 	sb << "}\n\n";
 
 	sb << "namespace Rococo::UE::Native\n{\n";
-	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(IPublicScriptSystem& ss, UClass* classRef)\n", classDef.ShortName());
+	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(IPublicScriptSystem& ss)\n", classDef.ShortName());
 	sb << "\t{\n";
+	sb.AppendFormat("\t\tUClass& classRef = GetStaticClassRef(TEXT(\"%s.%s\"));\n\n", classDef.PackageName(), classDef.ShortName());
 
 	sb << "\t\tconst INamespace& nsHandles = ss.AddNativeNamespace(\"UE.Handles\");\n";
 	for (auto& known : knownObjects)
@@ -912,9 +913,11 @@ namespace
 		
 	AppendCompactName(sb, classDef.ShortName());
 		
-	sb <<", classRef, \"Construct";
+	sb <<", &classRef, \"Construct";
 	AppendCompactName(sb, classDef.ShortName());
 	sb << " -> (Int64 objectHandle)\", __FILE__, __LINE__);\n";
+
+	sb << "\n";
 
 	for (size_t i = 0; i < classDef.MethodCount(); i++)
 	{
@@ -922,18 +925,24 @@ namespace
 
 		if (!method.HasSexyCounterpart())
 		{
-			sb << "// ";
+			sb << "/* ";
 		}
 
-		sb << "\t\tss.AddNativeCall(ns, ";
+		sb << "\t\tScriptUFunction(ss, ns, __FUNCTION__, __LINE__, classRef, ";
+		
+		// L"ActorHasTag", "ActorHasTag (int64 objectHandle) (R_FName tag) -> (bool returnValue)");
+
 		AppendCompactName(sb, classDef.ShortName());
 		sb << "_";
 		method.AppendFunctionName(sb);
-		sb << ", &GetMethod(*classRef, L\"";
+
+		sb << ", ";
+		
+		sb << "TEXT(\"";
 
 		method.AppendFunctionName(sb);
-
-		sb << "\"), \"";
+		
+		sb << "\"),\n\t\t\t\"";
 		method.AppendFunctionName(sb);
 
 		BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
@@ -965,7 +974,14 @@ namespace
 			sb << ")";
 		}
 
-		sb << "\", __FILE__, __LINE__);\n";
+		sb << "\");\n";
+
+		if (!method.HasSexyCounterpart())
+		{
+			sb << "*/";
+		}
+
+		sb << "\n";
 	}
 
 	sb << "\t}\n";
