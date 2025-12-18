@@ -3,6 +3,7 @@
 #include <rococo.types.h>
 #include <sexy.script.h>
 #include <rococo.strings.h>
+#include <rococo.hashtable.h>
 
 #include "unreal-sexy-marshalling.resolvers.h"
 
@@ -12,6 +13,7 @@ class UObject;
 class UIKRigDefinition;
 
 #include <stdio.h>
+#include <vector>
 
 namespace Rococo::UE5::Marshal
 {
@@ -44,6 +46,286 @@ namespace Rococo::UE5::Marshal
 		va_end(args);
 
 		throw ex;
+	}
+}
+
+using namespace Rococo::Sex;
+using namespace Rococo::Strings;
+
+namespace Rococo::UE
+{
+	namespace Native
+	{
+		void RegisterNatives(ISexyNativeRegistry& registry);
+	}
+	namespace Implementation
+	{
+		HString FormatSexyNamespaceFromPath(cstr path)
+		{
+			if (!path || *path != '/')
+			{
+				Throw(0, "Unexpected, path did not begin with a forward slash");
+			}
+
+			char ns[256];
+			StackStringBuilder sb(ns, sizeof ns);
+
+			cstr start = path + 1;
+
+			while (*start != 0)
+			{
+				cstr next = FindChar(start, '/');
+				if (next)
+				{
+					Substring token{ start, next };
+
+					char buffer[256];
+					token.CopyWithTruncate(buffer, sizeof buffer);
+
+					sb << buffer;
+					sb << ".";
+
+					start = next + 1;
+				}
+				else
+				{
+					sb << start;
+					break;
+				}
+			}
+
+			return ns;
+		}
+
+		struct SexyNativeRegistry : ISexyNativeRegistrySupervisor, ISexyNativeRegistry
+		{
+			struct Entry
+			{
+				HString package;
+				HString sexyNS;
+				HString className;
+				FN_AddSexyNatives_Unreal fnAddNatives;
+			};
+
+			std::vector<Entry> entries;
+			stringmap<std::vector<int>> mapPackageToEntries;
+			stringmap<std::vector<HString>> mapPackageToSubspaces;
+
+			void AddNativeAPI(cstr package, cstr className, FN_AddSexyNatives_Unreal fnAddNatives) override
+			{
+				int index = (int) entries.size();
+				entries.push_back({ package, FormatSexyNamespaceFromPath(package), className, fnAddNatives });
+
+				auto mapping = mapPackageToEntries.insert(package, std::vector<int>()).first;
+				mapping->second.push_back(index);
+			}
+
+			void LazyInit()
+			{
+				for (auto& m : mapPackageToEntries)
+				{
+					cstr package = m.first;
+					auto subpaceMapping = mapPackageToSubspaces.insert(package, std::vector<HString>());
+
+					for (auto& other : mapPackageToEntries)
+					{
+						cstr otherName = other.first;
+						if (otherName == package)
+						{
+							// Same pointer, so skip.
+							continue;
+						}
+
+						if (other.first.length() > m.first.length())
+						{
+							if (strncmp(otherName, package, m.first.length()) == 0)
+							{
+								// Other has the same prefix, but dont word prefix match, but namespace match
+								if (otherName[m.first.length()] == '.')
+								{
+									subpaceMapping.first->second.push_back(otherName);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+
+			void Throw(const Rococo::Sex::ISExpression* referenceSrc, int referenceStartIndex, int index, cstr format, ...)
+			{
+				char err[512];
+
+				va_list args;
+				va_start(args, format);
+				SafeVFormat(err, sizeof err, format, args);
+				va_end(args);
+
+				if (referenceSrc)
+				{
+					const Sex::ISExpression* src = referenceSrc;
+					if (referenceStartIndex > 0 && referenceStartIndex + index < referenceSrc->NumberOfElements())
+					{
+						src = &referenceSrc->GetElement(referenceStartIndex + index);
+					}
+
+					Rococo::Sex::Throw(*src, "%s", err);
+				}
+				else
+				{
+					Rococo::Throw(0, "%s", err);
+				}
+			}
+
+			std::vector<bool> isIndexUsed;
+
+			void AddAllClassesInNamespace(cstr ns, Rococo::Script::IPublicScriptSystem& ss)
+			{
+				auto mapping = mapPackageToEntries.find(ns);
+				if (mapping == mapPackageToEntries.end())
+				{
+					Rococo::Throw(0, "Namespace not found: %s. Expecting <namespace>.<class-filter>. E.g 'Game.TopDown.Blueprints.*'", ns);
+				}
+
+				for (auto index : mapping->second)
+				{
+#ifdef _DEBUG
+					if (index < 0 || index >= entries.size())
+					{
+						Rococo::Throw(0, "Bad API. Bad index %d for %s", index, __FUNCTION__);
+					}
+#endif
+					if (!isIndexUsed[index])
+					{
+						isIndexUsed[index] = true;
+						auto& entry = entries[index];
+						entry.fnAddNatives(ss);
+					}
+				}
+			}
+
+			void AddClassToNamespace(cstr ns, cstr className, Rococo::Script::IPublicScriptSystem& ss)
+			{
+				auto mapping = mapPackageToEntries.find(ns);
+				if (mapping == mapPackageToEntries.end())
+				{
+					Rococo::Throw(0, "Namespace not found: %s. Expecting <namespace>.<class-filter>. E.g 'Game.TopDown.Blueprints.*'", ns);
+				}
+
+
+				for (auto index : mapping->second)
+				{
+#ifdef _DEBUG
+					if (index < 0 || index >= entries.size())
+					{
+						Rococo::Throw(0, "Bad API. Bad index %d for %s", index, __FUNCTION__);
+					}
+#endif
+					auto& entry = entries[index];
+					if (Eq(entry.className, className))
+					{
+						if (!isIndexUsed[index])
+						{
+							isIndexUsed[index] = true;
+							entry.fnAddNatives(ss);
+						}
+						return;
+					}
+				}
+
+				// No className match
+				auto subspace = mapPackageToSubspaces.find(ns);
+				if (subspace == mapPackageToSubspaces.end())
+				{
+					Rococo::Throw(0, "Namespace %s matched but class not found: %s. Expecting <namespace>.<class-filter>. E.g 'Game.TopDown.Blueprints.*'", ns, className);
+				}
+				else
+				{
+					Rococo::Throw(0, "Namespace %s.%s matched, but expecting a trailing classname, * or **. Expecting <namespace>.<class-filter>. E.g 'Game.TopDown.Blueprints.*'", ns, className);
+				}
+			}
+
+			void AddAllClassesInAllSubspacesOfNamespaceRecursive(cstr ns, Rococo::Script::IPublicScriptSystem& ss)
+			{
+				AddAllClassesInNamespace(ns, ss);
+
+				auto mapping = mapPackageToSubspaces.find(ns);
+				if (mapping == mapPackageToSubspaces.end())
+				{
+					Rococo::Throw(0, "Namespace not found: %s. Expecting <namespace>.<class-filter>. E.g 'Game.TopDown.Blueprints.*'", ns);
+				}
+
+				for (auto& subspace : mapping->second)
+				{
+					AddAllClassesInAllSubspacesOfNamespaceRecursive(subspace, ss);
+				}
+			}
+
+			void RegisterPackagesByFilters(const Rococo::Sex::ISExpression* referenceSrc, int referenceStartIndex, cstr filters[], int numberOfFilters, Rococo::Script::IPublicScriptSystem& ss) override
+			{
+				/* Filters have the format
+				   <Namespace>.* => select all classes in BranchN, with subspaces ignored
+				   <Namespace>.** => select all classes of namespace and all subspaces of namespace (i.e recursive descent)
+				   <Namespace>.<ClassName> => select class in BranchN 
+
+				   Example:
+				   Game.TopDown.Blueprints.* to select all classes in namespace Game.TopDown.Blueprints
+				*/
+
+				if (isIndexUsed.empty())
+				{
+					LazyInit();
+					isIndexUsed.resize(entries.size());
+				}
+
+				std::fill(isIndexUsed.begin(), isIndexUsed.end(), false);
+
+				for (int i = 0; i < numberOfFilters; i++)
+				{
+					cstr filter = filters[i];
+
+					NamespaceSplitter splitter(filter);
+
+					cstr ns, className;
+					if (!splitter.SplitTail(OUT ns, OUT className))
+					{
+						// No namespace separator!
+						Throw(referenceSrc, referenceStartIndex, i, "Bad filter #%d: %s. No namespace separator characters: '.'. Expecting <namespace>.<class-filter>. E.g 'Game.TopDown.Blueprints.*'", i + 1, filters[i]);
+					}
+
+					try
+					{
+						if (Eq(className, "*"))
+						{
+							AddAllClassesInNamespace(ns, ss);
+						}
+						else if (Eq(className, "**"))
+						{
+							AddAllClassesInAllSubspacesOfNamespaceRecursive(ns, ss);
+						}
+						else
+						{
+							AddClassToNamespace(ns, className, ss);
+						}
+					}
+					catch (IException& ex)
+					{
+						Throw(referenceSrc, referenceStartIndex, i, "Bad filter #%d: %s. %s", i + 1, filters[i], ex.Message());
+					}
+				}
+			}
+		};
+	}
+
+	SEXY_MARSHALLING_API ISexyNativeRegistrySupervisor* CreateRegistryForEverything()
+	{
+		auto* registry = new Implementation::SexyNativeRegistry();
+		Native::RegisterNatives(*registry);
+		return registry;
 	}
 }
 

@@ -10,6 +10,24 @@ typedef int UnknownType;
 
 #pragma pack(push, 1)
 
+namespace Rococo::UE
+{
+	typedef void (*FN_AddSexyNatives_Unreal)(Rococo::Script::IPublicScriptSystem& ss);
+
+	ROCOCO_INTERFACE ISexyNativeRegistry
+	{
+		virtual void AddNativeAPI(cstr package, cstr className, FN_AddSexyNatives_Unreal fnAddNatives) = 0;
+	};
+
+	ROCOCO_INTERFACE ISexyNativeRegistrySupervisor
+	{
+		virtual void RegisterPackagesByFilters(const Rococo::Sex::ISExpression* referenceSrc, int referenceStartIndex, cstr filters[], int numberOfFilters, Rococo::Script::IPublicScriptSystem &ss) = 0;
+		virtual void Free();
+	};
+
+	SEXY_MARSHALLING_API ISexyNativeRegistrySupervisor* CreateRegistryForEverything();
+}
+
 namespace Rococo::UE::Native
 {
 	namespace Delegate
@@ -135,7 +153,7 @@ namespace Rococo::UE::Native
 		struct R_TEnum
 		{
 			INNER value;
-		};
+		}; 
 	}
 }
 

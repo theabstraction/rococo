@@ -3,6 +3,7 @@
 #include <rococo.io.h>
 #include <rococo.os.h>
 #include <rococo.hashtable.h>
+#include <algorithm>
 
 using namespace Rococo;
 using namespace Rococo::Strings;
@@ -23,6 +24,11 @@ IUnrealStruct* FindStruct(cstr name);
 IUnrealEnumDef* FindEnum(cstr name);
 
 const bool UsePackageForFolders = false;
+
+namespace Rococo::Unreal
+{
+	HString FormatCPPNamespaceFromPath(cstr path);
+}
 
 namespace Rococo::IO
 {
@@ -48,6 +54,15 @@ namespace Rococo::IO
 	}
 }
 
+std::vector<HString> allCppFileNames;
+
+void AddCppFileName(crwstr filename)
+{
+	HString newFilename;
+	Format(OUT newFilename, "%ls", filename);
+	allCppFileNames.push_back(newFilename);
+}
+
 void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory)
 {
 	WideFilePath nativeDirectory;
@@ -58,9 +73,11 @@ void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory)
 
 	cstr shortName = classDef.ShortName();
 	cstr packageName = UsePackageForFolders ? classDef.PackageName() : "";
+	cstr slash = "";
 
 	if (*packageName == '/')
 	{
+		slash = "/";
 		packageName++;
 	}
 
@@ -80,15 +97,18 @@ void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory)
 	auto& sbSXY = dsbSXY->Builder();
 
 	WideFilePath wTargetCPPFile;
-	Format(wTargetCPPFile, L"%ls%hs\\%hs.cpp", nativeDirectory, packageName, shortName);
+	Format(wTargetCPPFile, L"%ls%hs%s%hs.cpp", nativeDirectory, packageName, slash, shortName);
+
+	AddCppFileName(wTargetCPPFile);
+
 	IO::ToSysPath(wTargetCPPFile.buf);
 
 	WideFilePath wTargetHPPFile;
-	Format(wTargetHPPFile, L"%ls%hs\\%hs.hpp", nativeDirectory, packageName, shortName);
+	Format(wTargetHPPFile, L"%ls%hs%s%hs.hpp", nativeDirectory, packageName, slash, shortName);
 	IO::ToSysPath(wTargetHPPFile.buf);
 
 	WideFilePath wTargetSXYFile;
-	Format(wTargetSXYFile, L"%ls%hs\\%hs.sxy", sexyDirectory, packageName, shortName);
+	Format(wTargetSXYFile, L"%ls%hs%s%hs.sxy", sexyDirectory, packageName, slash, shortName);
 	IO::ToSysPath(wTargetSXYFile.buf);
 
 	BuildSexyNativesCPP(classDef, sbCPP);
@@ -446,7 +466,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	}
 
 	sb << "\t\tUObject* object = GetNCEUObject(nce, objectHandle);\n";
-	sb << "\t\UFunction* methodRef = GetNCEUMethod(nce);\n";
+	sb << "\t\tUFunction* methodRef = GetNCEUMethod(nce);\n";
 	sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
 	sb << "\t\tProcessEvent(object, methodRef, &args);\n";
 
@@ -984,6 +1004,15 @@ namespace
 		sb << "\n";
 	}
 
+	sb << "\t}\n";
+	sb << "}\n";
+
+	sb << "namespace Rococo::UE::Native::" << FormatCPPNamespaceFromPath(classDef.PackageName()) << "\n";
+	sb << "{\n";
+	sb << "\tvoid RegisterNatives_" << classDef.ShortName() << "(ISexyNativeRegistry& registry)\n";
+	sb << "\t{\n";
+	sb << "\t\tregistry.AddNativeAPI(\"" << classDef.PackageName() << "\", \"" << classDef.ShortName() << "\", ";
+	sb.AppendFormat("AddSexyNatives_Unreal_%s);\n", classDef.ShortName());
 	sb << "\t}\n";
 	sb << "}\n";
 }
@@ -1697,4 +1726,215 @@ namespace Rococo::UE::Native::Enum
 	sb << "\t};\n";
 
 	sb << "}\n";
+}
+
+namespace Rococo::Unreal
+{
+	HString FormatCPPNamespaceFromPath(cstr path)
+	{
+		if (!path || *path != '/')
+		{
+			Throw(0, "Unexpected, path did not begin with a forward slash");
+		}
+
+		char ns[256];
+		StackStringBuilder sb(ns, sizeof ns);
+		
+		cstr start = path + 1;
+
+		while (*start != 0)
+		{
+			cstr next = FindChar(start, '/');
+			if (next)
+			{
+				Substring token{ start, next };
+
+				char buffer[256];
+				token.CopyWithTruncate(buffer, sizeof buffer);
+
+				sb << buffer;
+				sb << "::";
+
+				start = next + 1;
+			}
+			else
+			{
+				sb << start;
+				break;
+			}
+		}
+
+		return ns;
+	}
+
+	struct ClassSystem: public IClassSystem
+	{		
+		WideFilePath wNativeDirectory;
+
+		struct ClassRep
+		{
+			HString package;
+			HString cppNS;
+			HString className;
+		};
+
+		std::vector<ClassRep> classes;
+
+		ClassSystem(crwstr outputDirectory)
+		{
+			Format(wNativeDirectory, L"%snatives\\", outputDirectory);
+		}
+
+		void CommitHeader()
+		{
+			AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(16_kilobytes);
+			auto& sb = dsb->Builder();
+			sb << "#include \"../unreal-sexy-marshalling.h\"\n\n";
+
+			HString previousNamespace = "";
+
+			int nsCount = 0;
+
+			for (auto& rep : classes)
+			{
+				if (previousNamespace != rep.cppNS)
+				{
+					if (nsCount > 0)
+					{
+						sb << "}\n\n";
+					}
+					nsCount++;
+
+					sb << "namespace Rococo::UE::Native::" << rep.cppNS << "\n";					
+					sb << "{\n";
+				}
+				
+				sb << "\tvoid RegisterNatives_" << rep.className << "(ISexyNativeRegistry &registry);\n";
+
+				previousNamespace = rep.cppNS;
+			}
+
+			if (nsCount > 0)
+			{
+				sb << "}\n\n";
+			}
+
+
+			WideFilePath wTargetHPPFile;
+			Format(wTargetHPPFile, L"%ls/sexy-register.h", wNativeDirectory.buf);
+			IO::ToSysPath(wTargetHPPFile.buf);
+
+			Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sb);
+		}
+
+		void CommitSource()
+		{
+			AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(16_kilobytes);
+			auto& sb = dsb->Builder();
+
+			sb << "#include \"sexy-register.h\"\n\n";
+			sb << "namespace Rococo::UE::Native\n";
+			sb << "{\n";
+			sb << "\tvoid RegisterNatives(ISexyNativeRegistry& registry)\n";
+			sb << "\t{\n";
+
+			for (auto& rep : classes)
+			{
+				sb << "\t\t" << rep.cppNS << "::RegisterNatives_" << rep.className << "(registry);\n";
+			}
+
+			sb << "\t}\n";
+			sb << "}\n";
+
+			WideFilePath wTargetCPPFile;
+			Format(wTargetCPPFile, L"%ls/sexy-register.cpp", wNativeDirectory.buf);
+			IO::ToSysPath(wTargetCPPFile.buf);
+
+			Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
+		}
+
+		void Commit() override
+		{
+			CommitHeader();
+			CommitSource();
+
+			WideFilePath wTargetCPPFile;
+			Format(wTargetCPPFile, L"%ls../all-files.inl", wNativeDirectory.buf);
+			IO::ToSysPath(wTargetCPPFile.buf);
+
+			AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(16_kilobytes);
+			auto& sb = dsb->Builder();
+
+			int index = 0;
+
+			std::sort(allCppFileNames.begin(), allCppFileNames.end(), 
+				[](const HString& a, const HString& b)
+				{
+					return _stricmp(a, b) < 0;
+				}
+			);
+
+			for (auto& filename : allCppFileNames)
+			{
+				if ((index % 100) == 0)
+				{
+					if (sb.Length() > 0)
+					{
+						Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
+					}
+
+					Format(wTargetCPPFile, L"%ls../all-files-%02.2d.cpp", wNativeDirectory.buf, 1 + (index / 100));
+					IO::ToSysPath(wTargetCPPFile.buf);
+					sb.Clear();
+				}
+
+				index++;
+
+				sb << "#include \"" << filename.c_str() << "\"\n";
+			}
+
+			if (sb.Length() > 0)
+			{
+				Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
+			}
+		}
+
+		virtual ~ClassSystem()
+		{
+			
+		}
+
+		void AddClass(IUnrealClass& classRef) override
+		{
+			classes.push_back({ classRef.PackageName(), FormatCPPNamespaceFromPath(classRef.PackageName()), classRef.ShortName() });
+
+			std::sort(classes.begin(), classes.end(),
+				[](const ClassRep& a, const ClassRep& b) 
+				{
+					int diff = _stricmp(a.cppNS, b.cppNS);
+					if (diff < 0)
+					{
+						return true;
+					}
+
+					if (diff == 0)
+					{
+						return _stricmp(a.className, b.className) < 0;
+					}
+
+					return false;
+				}
+			);
+		}
+
+		void Free() override
+		{
+			delete this;
+		}
+	};
+
+	IClassSystem* CreateClassSystem(crwstr outputDirectory)
+	{
+		return new ClassSystem(outputDirectory);
+	}
 }

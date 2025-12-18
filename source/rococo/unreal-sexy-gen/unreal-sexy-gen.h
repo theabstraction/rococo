@@ -89,4 +89,13 @@ namespace Rococo::Unreal
 	{
 		virtual cstr CPPName() const = 0;
 	};
+
+	ROCOCO_INTERFACE IClassSystem
+	{
+		virtual void AddClass(IUnrealClass& classRef) = 0;
+		virtual void Commit() = 0;
+		virtual void Free() = 0;
+	};
+
+	IClassSystem* CreateClassSystem(crwstr outputDirectory);
 }

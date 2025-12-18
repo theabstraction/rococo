@@ -24,7 +24,7 @@ int g_nMethodsParsed = 0;
 int g_nMethodsNotMarshaled = 0;
 Rococo::stringmap<int> knownDelegatesVsSize;
 
-void ParseClassDef(cr_sex sClassDef);
+void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem);
 void ParseEnumDef(cr_sex sEnumDef);
 void ParseStructDef(cr_sex sDef);
 void ParseClassTree(cr_sex sRoot);
@@ -204,6 +204,8 @@ void ParseClassTree(cr_sex sRoot)
 
 	printf("\nProcessing %d UClasses", classCount);
 
+	AutoFree<IClassSystem> classSystem = CreateClassSystem(GetOutputDirectory());
+
 	classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -211,13 +213,15 @@ void ParseClassTree(cr_sex sRoot)
 		cr_sex sDirective = GetAtomicArg(sClassDef, 0);
 		if (Eq(sDirective.c_str(), "UClass"))
 		{
-			ParseClassDef(sClassDef);
+			ParseClassDef(sClassDef, *classSystem);
 			if ((classCount++ % 100) == 0)
 			{
 				printf(".");
 			}
 		}
 	}
+
+	classSystem->Commit();
 
 	printf("\nProcessing %llu delegates", knownDelegatesVsSize.size());
 	for (auto& d : knownDelegatesVsSize)
@@ -1393,9 +1397,10 @@ struct UnrealClassDef : IUnrealClass
 
 void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory);
 
-void ParseClassDef(cr_sex sDef)
+void ParseClassDef(cr_sex sDef, IClassSystem& classSystem)
 {
 	UnrealClassDef* def = new UnrealClassDef(sDef);
+	classSystem.AddClass(*def);
 	GenClassDef(*def, GetOutputDirectory());
 
 	allClasses.push_back(def);

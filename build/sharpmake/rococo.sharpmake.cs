@@ -618,6 +618,7 @@ namespace Rococo
     {
         public SexyUE5APILib() : base("sexy.UE5.API")
         {
+            SourceFilesExcludeRegex.Add(@"natives.*\.cpp$");
         }
 
         [Configure()]
@@ -625,6 +626,9 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Defines.Add("SEXY_MARSHALLING_API=__declspec(dllexport)");
+            conf.Defines.Add("TCHAR=wchar_t");
         }
     }
 
