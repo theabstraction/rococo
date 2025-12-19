@@ -22,6 +22,7 @@ auto objectPtrPrefix = "TObjectPtr<"_fstring;
 int g_nClassesParsed = 0;
 int g_nMethodsParsed = 0;
 int g_nMethodsNotMarshaled = 0;
+bool g_unityBuild = false;
 Rococo::stringmap<int> knownDelegatesVsSize;
 
 void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem);
@@ -1448,6 +1449,11 @@ int mainProtected(int argc, char* argv[])
 		{
 			outDir = arg + output.length;
 		}
+
+		if (EqI(arg, "-UnityBuild"))
+		{
+			g_unityBuild = true;
+		}
 	}
 
 	if (sexmlFile == nullptr || outDir == nullptr)
@@ -1494,6 +1500,9 @@ int mainProtected(int argc, char* argv[])
 	return 0;
 }
 
+// Note this code isn't particularly well written, its full of globals and ad-hoc logic, and it doesn't care about memory leaks.
+// This is all okay, because it's a top-down script that doesn't do anything sophisticated. 
+// The code it generates is where we target our quality.
 int main(int argc, char* argv[])
 {
 	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);

@@ -15,6 +15,8 @@ extern fstring subclassOfPrefix;
 extern fstring scriptInterfacePrefix;
 extern fstring objectPtrPrefix;
 
+extern bool g_unityBuild;
+
 fstring delegatePrefix = "TDelegate<"_fstring;
 
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb);
@@ -1853,21 +1855,16 @@ namespace Rococo::Unreal
 			Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
 		}
 
-		void Commit() override
+		void CommitUnityBuild()
 		{
-			CommitHeader();
-			CommitSource();
-
 			WideFilePath wTargetCPPFile;
-			Format(wTargetCPPFile, L"%ls../all-files.inl", wNativeDirectory.buf);
-			IO::ToSysPath(wTargetCPPFile.buf);
 
 			AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(16_kilobytes);
 			auto& sb = dsb->Builder();
 
 			int index = 0;
 
-			std::sort(allCppFileNames.begin(), allCppFileNames.end(), 
+			std::sort(allCppFileNames.begin(), allCppFileNames.end(),
 				[](const HString& a, const HString& b)
 				{
 					return _stricmp(a, b) < 0;
@@ -1896,6 +1893,17 @@ namespace Rococo::Unreal
 			if (sb.Length() > 0)
 			{
 				Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
+			}
+		}
+
+		void Commit() override
+		{
+			CommitHeader();
+			CommitSource();
+
+			if (g_unityBuild)
+			{
+				CommitUnityBuild();
 			}
 		}
 
