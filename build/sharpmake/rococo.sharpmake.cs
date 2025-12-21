@@ -1646,6 +1646,10 @@ namespace Rococo
             conf.Defines.Add("UNICODE");
             conf.Defines.Add("_ITERATOR_DEBUG_LEVEL=0");
             conf.SolutionFolder = " - SexyStudio";
+
+            string cmdLine = string.Format(@"C:\Program Files\Notepad++\notepad++.exe");
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
+            conf.VcxprojUserFile.LocalDebuggerCommand = cmdLine;
         }
     }
 

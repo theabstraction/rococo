@@ -1,4 +1,9 @@
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <rococo.target.h>
+#include <Windows.h>
+#include <rococo.window.h>
+
 #include <winerror.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
@@ -14,7 +19,6 @@ using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::AutoComplete;
 using namespace Rococo::Windows;
-using namespace MSWindows;
 
 auto DLL_NAME = L"sexystudio.dll";
 
@@ -2365,7 +2369,7 @@ void MainProtected(HMODULE hLib)
 int main()
 {
 	WideFilePath directory;
-	if (!GetModuleFileNameW(HMODULE::Null(), directory.buf, directory.CAPACITY)) return GetLastError();
+	if (!GetModuleFileNameW(NULL, directory.buf, directory.CAPACITY)) return GetLastError();
 	Rococo::IO::StripLastSubpath(directory.buf);
 
 	// path now contains the directory
@@ -2377,7 +2381,7 @@ int main()
 	{
 		U8FilePath msg;
 		Format(msg, "Could not load library: %ls", pathToDLL.buf);
-		MessageBoxA(HWND::Null(), msg, ErrorCaption, MB_ICONERROR);
+		MessageBoxA(NULL, msg, ErrorCaption, MB_ICONERROR);
 		return GetLastError();
 	}
 
