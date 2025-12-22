@@ -1438,6 +1438,26 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoSexyStudioLibProject : RococoProject
+    {
+        public RococoSexyStudioLibProject() : base("sexystudio-lib")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoSexInferenceProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.SolutionFolder = " - SexyStudio";
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllexport)");
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoSexyStudioProject : RococoProject
     {
         public RococoSexyStudioProject() : base("sexystudio")
@@ -1449,6 +1469,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoSexyStudioLibProject>(target);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             ImportSexyScriptProject(conf,target);
@@ -1456,6 +1477,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
             conf.SolutionFolder = " - SexyStudio";
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllimport)");
         }
     }
 
@@ -2194,6 +2216,7 @@ namespace Rococo
             conf.AddProject<RococoSexyStudioAppProject>(target);
             conf.AddProject<RococoSexyStudioTestProject>(target);
             conf.AddProject<RococoSexyStudio4NPPProject>(target);
+            conf.AddProject<RococoSexyStudioLibProject>(target);
         }
 
         public static void AddControlFlowGraphStudio(Solution.Configuration conf, Target target)
@@ -2395,6 +2418,7 @@ namespace Rococo
             arguments.Generate<RococoMPlatProject>();
             arguments.Generate<RococoMPlatDynamicProject>();
             arguments.Generate<RococoMHostProject>();
+            arguments.Generate<RococoSexyStudioLibProject>();
             arguments.Generate<RococoSexyStudioProject>();
             arguments.Generate<RococoSexyStudioAppProject>();
             arguments.Generate<RococoSexyStudioTestProject>();
