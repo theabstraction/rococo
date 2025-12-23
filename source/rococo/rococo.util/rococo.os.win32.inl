@@ -2834,6 +2834,21 @@ namespace Rococo::IO
 		operator T* () { return instance; }
 	};
 
+	ROCOCO_API uint64 GetFileLength(cstr filename)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA data;
+		if (!GetFileAttributesExA(filename, GetFileExInfoStandard, &data))
+		{
+			return 0;
+		}
+
+		ULARGE_INTEGER len;
+		len.HighPart = data.nFileSizeHigh;
+		len.LowPart = data.nFileSizeLow;
+
+		return len.QuadPart;
+	}
+
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity)
 	{
 		return ChooseDirectory(name, capacity, "Rococo App");

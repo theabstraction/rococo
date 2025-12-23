@@ -1,5 +1,7 @@
-#include "sexystudio.api.h"
+#include <rococo.types.h>
 #include <rococo.strings.h>
+#include <rococo.events.h>
+#include "sexystudio.theme.h"
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;

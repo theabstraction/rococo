@@ -29,6 +29,8 @@
 #include <rococo.debugging.h>
 #include <rococo.functional.h>
 #include <rococo.api.qualifiers.h>
+#include "sexystudio.theme.h"
+#include "../sexystudio-lib/sexystudio.database.h"
 
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "ComCtl32.lib")
@@ -55,6 +57,167 @@ auto evMetaUpdated = "sexystudio.meta.updated"_event;
 namespace Rococo::SexyStudio
 {
 	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree);
+
+	void PopulateBranchWithSTree(IGuiTree& tree, ISParserTree& srcTree)
+	{
+		auto branchId = tree.AppendItem(0);
+		tree.SetItemText(branchId, srcTree.Source().Name());
+	}
+
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree)
+	{
+		tree.Clear();
+		database.Clear();
+
+		struct ANON : IEventCallback<IO::FileItemData>
+		{
+			float count = 0;
+			IDBProgress* progress;
+
+			void OnEvent(IO::FileItemData& item) override
+			{
+				if (item.isDirectory)
+				{
+					char progressText[1024];
+					SafeFormat(progressText, "Evaluating directory...\r\n   %ls", item.fullPath);
+					progress->SetProgress(0.0f, progressText);
+				}
+				count += 1.0f;
+			}
+		} incFileCounter;
+
+		incFileCounter.progress = &progress;
+
+		struct ANONCOUNTER : IEventCallback<IO::FileItemData>
+		{
+			IGuiTree* tree;
+			ISexyDatabase* database;
+			IDBProgress* progress;
+			ISourceTree* sourceTree;
+			float totalCount = 0;
+			float count = 0;
+
+			void OnEvent(IO::FileItemData& item) override
+			{
+				count += 1.0f;
+
+				auto idItem = tree->AppendItem((ID_TREE_ITEM)item.containerContext);
+
+				U8FilePath itemText;
+				Format(itemText, "%ls", item.itemRelContainer);
+				tree->SetItemText(idItem, itemText);
+
+				if (item.isDirectory)
+				{
+					tree->SetItemImage(idItem, 0);
+					tree->SetItemExpandedImage(idItem, 1);
+
+					char progressText[1024];
+					SafeFormat(progressText, "Scanning directory...\r\n  %ls", item.fullPath);
+
+					float percent = clamp(totalCount == 0 ? 50.0f : 100.0f * count / totalCount, 0.0f, 99.9f);
+					progress->SetProgress(percent, progressText);
+				}
+				else
+				{
+					if (EndsWith(item.fullPath, L".sxy"))
+					{
+						U8FilePath u8Path;
+						Format(u8Path, "%ls", item.fullPath);
+
+						char progressText[1024];
+						SafeFormat(progressText, "Parsing SXY file...\r\n  %ls", item.fullPath);
+
+						float percent = clamp(totalCount == 0 ? 50.0f : 100.0f * count / totalCount, 0.0f, 99.9f);
+						progress->SetProgress(percent, progressText);
+
+						database->UpdateFile_SXY(u8Path);
+
+						tree->SetContext(idItem, 0);
+
+						tree->SetItemImage(idItem, 2);
+
+						sourceTree->Add(idItem, u8Path, 1);
+					}
+					else
+					{
+						tree->SetItemImage(idItem, 3);
+					}
+				}
+
+				item.outContext = (void*)idItem;
+			}
+		} cb;
+
+		cb.tree = &tree;
+		cb.database = &database;
+		cb.progress = &progress;
+		cb.sourceTree = &sourceTree;
+
+		WideFilePath scriptPath;
+		Format(scriptPath, L"%hs", database.Solution().GetScriptFolder());
+
+		auto hRoot = tree.AppendItem(0);
+		tree.SetItemText(hRoot, "!scripts/");
+
+		for (size_t i = 0; i < 100; i++)
+		{
+			auto atom = database.Config().GetSearchPath(i);
+			if (!atom.isActive)
+				continue;
+
+			U8FilePath sysPath;
+			database.PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
+
+			if (Rococo::IO::IsDirectory(sysPath))
+			{
+				WideFilePath wPath;
+				Assign(wPath, sysPath);
+				Rococo::IO::ForEachFileInDirectory(wPath, incFileCounter, true, nullptr);
+				cb.totalCount = incFileCounter.count;
+			}
+		}
+
+		try
+		{
+			for (size_t i = 0; i < 100; i++)
+			{
+				auto atom = database.Config().GetSearchPath(i);
+				if (!atom.isActive)
+					continue;
+
+				U8FilePath sysPath;
+				database.PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
+
+				auto hSearchPath = tree.AppendItem(hRoot);
+				tree.SetItemText(hSearchPath, atom.pingPath);
+
+				if (Rococo::IO::IsDirectory(sysPath))
+				{
+					WideFilePath wPath;
+					Assign(wPath, sysPath);
+					Rococo::IO::ForEachFileInDirectory(wPath, cb, true, (void*)hSearchPath);
+				}
+				else
+				{
+					char msg[256];
+					SafeFormat(msg, "Could not find %s", sysPath.buf);
+					tree.SetItemText(hSearchPath, msg);
+				}
+			}
+		}
+		catch (IException& ex)
+		{
+			auto hError = tree.AppendItem(hRoot);
+			tree.SetItemText(hError, "Error recursing search paths");
+			auto hErrorMsg = tree.AppendItem(hError);
+			tree.SetItemText(hErrorMsg, ex.Message());
+			return;
+		}
+
+		database.Sort();
+	}
+
 }
 
 void ValidateMemory()
@@ -109,64 +272,6 @@ void OpenSexyFile(ISexyStudioEventHandler& evHandler, ISolution& solution, IWind
 	catch (IException& ex)
 	{
 		Rococo::Windows::ShowErrorBox(mainWindow, ex, "SexyStudio - Error");
-	}
-}
-
-namespace Rococo::SexyStudio
-{
-	void PopulateWithFullNamespaceName(const ISxyNamespace& ns, IStringPopulator& populator)
-	{
-		// Suppose there are 3 subspaces with 2 characters each as in: AB.CD.EF, then the total length is 9 characters, with the final being the terminating null.
-		// The total length is the sum of the lengths of the subspace strings + number of subspace strings
-		size_t totalLength = 0;
-		if (ns.GetParent() == nullptr)
-		{
-			populator.Populate("");
-			return;
-		}
-
-		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
-		{
-			totalLength += strlen(n->Name()) + 1;
-		}
-
-		char* temp = (char*)_alloca(totalLength + 1);
-		temp[totalLength] = 0;
-		cstr writeEnd = temp + totalLength;
-		char* writePos = (char*)writeEnd;
-
-		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
-		{
-			size_t len = strlen(n->Name());
-			writePos -= (len + 1);
-			if (writePos < temp)
-			{
-				// We dont' have enough space for the operation, which is unexpected.
-				populator.Populate("<error>");
-				return;
-			}
-
-			*writePos = '.';
-			memcpy(writePos + 1, n->Name(), len);
-		}
-
-		populator.Populate(writePos + 1);
-	}
-
-	void GetFullNamespaceName(char* fullName, size_t bufferCapacity, const ISxyNamespace& ns)
-	{
-		struct ANON : IStringPopulator
-		{
-			char* fullName = nullptr;
-			size_t capacity = 0;
-			void Populate(cstr text) override
-			{
-				CopyString(fullName, capacity, text);
-			}
-		} populator;
-		populator.capacity = bufferCapacity;
-		populator.fullName = fullName;
-		PopulateWithFullNamespaceName(ns, populator);
 	}
 }
 
@@ -522,7 +627,7 @@ private:
 				if (pingPath.buf[0] == '!')
 				{
 					U8FilePath sysPath;
-					database.PingPathToSysPath(pingPath, sysPath);
+					database.PingPathResolver().PingPathToSysPath(pingPath, sysPath);
 					PopulateTreeWithPackage(sysPath, database);
 				}
 			}
@@ -557,7 +662,7 @@ private:
 			cstr path = pathCache->GetFileName(i);
 
 			U8FilePath pingPath;
-			database.SysPathToPingPath(path, pingPath);
+			database.PingPathResolver().SysPathToPingPath(path, pingPath);
 
 			bool isASelectedPackage = false;
 
@@ -638,7 +743,7 @@ public:
 		projectTab->SetTooltip("Project View");
 
 
-		IVariableList* projectSettings = CreateVariableList(projectTab->Children(), database);
+		IVariableList* projectSettings = CreateVariableList(projectTab->Children(), database.PingPathResolver());
 		projectSettings->SetVisible(true);
 
 		Widgets::AnchorToParentTop(*projectSettings, 0);
@@ -677,7 +782,7 @@ public:
 		}
 
 		U8FilePath sysPackagePath;
-		database.PingPathToSysPath("!packages", sysPackagePath);
+		database.PingPathResolver().PingPathToSysPath("!packages", sysPackagePath);
 
 		PopulatePackageViewWithCheckboxes(sysPackagePath);
 
@@ -1784,7 +1889,7 @@ public:
 		classTab = &tabs->AddTab();
 		classTab->SetName("Class View");
 
-		IVariableList* searchBar = CreateVariableList(classTab->Children(), database);
+		IVariableList* searchBar = CreateVariableList(classTab->Children(), database.PingPathResolver());
 		searchBar->SetVisible(true);
 
 		Widgets::AnchorToParentTop(*searchBar, 0);

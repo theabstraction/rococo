@@ -35,13 +35,6 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyFieldEnumerator
-	{
-		virtual void OnFieldType(Strings::cr_substring fieldType, Strings::cr_substring searchRoot) = 0;
-		virtual void OnField(cstr fieldName, Strings::cr_substring memberSearchToken) = 0;
-		virtual void OnHintFound(Strings::cr_substring hint) = 0;
-	};
-
 	enum class EIDECloseResponse
 	{
 		Continue,

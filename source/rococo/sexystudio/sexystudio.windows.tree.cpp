@@ -1,4 +1,5 @@
 #include "sexystudio.impl.h"
+#include "sexystudio.theme.h"
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;

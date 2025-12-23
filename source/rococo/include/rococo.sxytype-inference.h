@@ -7,9 +7,14 @@
 # define ROCOCO_MISC_UTILS_API ROCOCO_API_IMPORT
 #endif
 
-namespace Rococo::SexyStudio
+namespace Rococo
 {
-	struct ISexyFieldEnumerator;
+	ROCOCO_INTERFACE ISexyFieldEnumerator
+	{
+		virtual void OnFieldType(Strings::cr_substring fieldType, Strings::cr_substring searchRoot) = 0;
+		virtual void OnField(cstr fieldName, Strings::cr_substring memberSearchToken) = 0;
+		virtual void OnHintFound(Strings::cr_substring hint) = 0;
+	};
 }
 
 namespace Rococo::Sex::Inference
@@ -50,5 +55,6 @@ namespace Rococo::Sex::Inference
 	};
 
 	ROCOCO_MISC_UTILS_API TypeInference GetLocalTypeFromCurrentDocument(bool& isThis, Strings::cr_substring candidate, Strings::cr_substring document, int depth = 0);
-	ROCOCO_MISC_UTILS_API void EnumerateLocalFields(Rococo::SexyStudio::ISexyFieldEnumerator& fieldEnumerator, Strings::cr_substring searchTerm, Strings::cr_substring type, Strings::cr_substring file);
+
+	ROCOCO_MISC_UTILS_API void EnumerateLocalFields(ISexyFieldEnumerator& fieldEnumerator, Strings::cr_substring searchTerm, Strings::cr_substring type, Strings::cr_substring file);;
 }

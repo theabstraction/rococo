@@ -1,5 +1,6 @@
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
+#include <rococo.events.h>
 
 using namespace Rococo;
 using namespace Rococo::SexyStudio;

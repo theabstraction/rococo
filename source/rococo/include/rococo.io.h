@@ -100,6 +100,7 @@ namespace Rococo::IO
 	struct IUnicode16Writer;
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity, cstr title);
+	ROCOCO_API uint64 GetFileLength(cstr filename);
 	ROCOCO_API bool IsDirectory(crwstr filename);
 	ROCOCO_API bool IsDirectory(cstr filename);
 	ROCOCO_API void EnsureUserDocumentFolderExists(crwstr subdirectory);

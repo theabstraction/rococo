@@ -1,10 +1,12 @@
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
-#include <shobjidl.h>
-#include <shlobj_core.h>
 #include <rococo.auto-release.h>
+#include <rococo.events.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
+#include "sexystudio.theme.h"
+#include <shobjidl.h>
+#include <shlobj_core.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

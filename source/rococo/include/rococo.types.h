@@ -256,6 +256,12 @@ namespace Rococo
 	typedef FilePath<ROCOCO_WIDECHAR>  WideFilePath;
 	typedef FilePath<char>	   U8FilePath;
 
+	ROCOCO_INTERFACE IPingPathResolver
+	{
+		virtual void PingPathToSysPath(cstr pingPath, U8FilePath & sysPath) = 0;
+		virtual void SysPathToPingPath(cstr sysPath, U8FilePath& pingPath) = 0;
+	};
+
 	union WindowHandle
 	{
 		size_t sValue;
@@ -393,6 +399,7 @@ namespace Rococo
 	namespace Sex
 	{
 		DECLARE_ROCOCO_INTERFACE ISExpression;
+		typedef const ISExpression& cr_sex;
 	}
 
 	namespace Strings

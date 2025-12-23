@@ -143,7 +143,8 @@
       <AdditionalDependencies>rococo.sex.inference.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio-lib.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexystudio-lib.lib</ImportLibrary>
@@ -229,16 +230,20 @@
       <AdditionalDependencies>rococo.sex.inference.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexystudio-lib.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexystudio-lib.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\sexystudio-lib\sexystudio.api.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio-lib\sexystudio.database.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\rococo\sexystudio-lib\sexystudio-lib.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio-lib\sexystudio.database.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio-lib\sexystudio.projects.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

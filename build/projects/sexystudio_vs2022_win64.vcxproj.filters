@@ -3,12 +3,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexystudio\sexstudio.windows.ide.win32.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.database.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.delegates.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.layouts.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.preview.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.projects.cpp" />
-    <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.rc" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.themes.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.widgets.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio\sexystudio.windows.button.cpp" />
@@ -24,7 +21,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexystudio\resource.h" />
-    <ClInclude Include="..\..\source\rococo\sexystudio\sexystudio.api.h" />
     <ClInclude Include="..\..\source\rococo\sexystudio\sexystudio.impl.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio\sexystudio.theme.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\source\rococo\sexystudio\sexystudio.rc" />
   </ItemGroup>
 </Project>

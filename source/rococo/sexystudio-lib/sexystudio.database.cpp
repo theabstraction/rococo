@@ -20,6 +20,8 @@
 
 #include "rococo.sxytype-inference.h"
 
+#include "sexystudio.database.h"
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::SexyStudio;
@@ -27,44 +29,99 @@ using namespace Rococo::Strings;
 
 fstring pckPrefix = "[package]:"_fstring;
 
-cstr AlwaysGetAtomic(cr_sex s)
-{
-	return IsAtomic(s) ? s.c_str() : "<expected atomic argument>";
-}
-
-cstr AlwaysGetAtomic(cr_sex s, int index)
-{
-	if (index < 0 || index >= s.NumberOfElements()) return "<invalid subexpression index>";
-	return IsAtomic(s[index]) ? s[index].c_str() : "<expected atomic argument>";
-}
-
-int CountDots(cr_substring prefix)
-{
-	int dots = 0;
-
-	for (auto p = prefix.start; p < prefix.finish; ++p)
-	{
-		char c = *p;
-
-		switch (c)
-		{
-		case '(':
-		case ')':
-		case '\r':
-		case '\n':
-		case '\t':
-			return dots;
-		case '.':
-			dots++;
-			break;
-		}
-	}
-
-	return dots;
-}
-
 namespace Rococo::SexyStudio
 {
+	cstr AlwaysGetAtomic(cr_sex s)
+	{
+		return IsAtomic(s) ? s.c_str() : "<expected atomic argument>";
+	}
+
+	cstr AlwaysGetAtomic(cr_sex s, int index)
+	{
+		if (index < 0 || index >= s.NumberOfElements()) return "<invalid subexpression index>";
+		return IsAtomic(s[index]) ? s[index].c_str() : "<expected atomic argument>";
+	}
+
+	int CountDots(cr_substring prefix)
+	{
+		int dots = 0;
+
+		for (auto p = prefix.start; p < prefix.finish; ++p)
+		{
+			char c = *p;
+
+			switch (c)
+			{
+			case '(':
+			case ')':
+			case '\r':
+			case '\n':
+			case '\t':
+				return dots;
+			case '.':
+				dots++;
+				break;
+			}
+		}
+
+		return dots;
+	}
+
+	void PopulateWithFullNamespaceName(const ISxyNamespace& ns, IStringPopulator& populator)
+	{
+		// Suppose there are 3 subspaces with 2 characters each as in: AB.CD.EF, then the total length is 9 characters, with the final being the terminating null.
+		// The total length is the sum of the lengths of the subspace strings + number of subspace strings
+		size_t totalLength = 0;
+		if (ns.GetParent() == nullptr)
+		{
+			populator.Populate("");
+			return;
+		}
+
+		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+		{
+			totalLength += strlen(n->Name()) + 1;
+		}
+
+		char* temp = (char*)_alloca(totalLength + 1);
+		temp[totalLength] = 0;
+		cstr writeEnd = temp + totalLength;
+		char* writePos = (char*)writeEnd;
+
+		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+		{
+			size_t len = strlen(n->Name());
+			writePos -= (len + 1);
+			if (writePos < temp)
+			{
+				// We dont' have enough space for the operation, which is unexpected.
+				populator.Populate("<error>");
+				return;
+			}
+
+			*writePos = '.';
+			memcpy(writePos + 1, n->Name(), len);
+		}
+
+		populator.Populate(writePos + 1);
+	}
+
+	SEXYSTUDIO_API void GetFullNamespaceName(char* fullName, size_t bufferCapacity, const ISxyNamespace& ns)
+	{
+		struct ANON : IStringPopulator
+		{
+			char* fullName = nullptr;
+			size_t capacity = 0;
+			void Populate(cstr text) override
+			{
+				CopyString(fullName, capacity, text);
+			}
+		} populator;
+		populator.capacity = bufferCapacity;
+		populator.fullName = fullName;
+		PopulateWithFullNamespaceName(ns, populator);
+	}
+
 	ParseKeyword keywordNamespace("namespace");
 	ParseKeyword keywordInterface("interface");
 	ParseKeyword keywordStruct("struct");
@@ -77,7 +134,7 @@ namespace Rococo::SexyStudio
 	ParseKeyword keywordClass("class");
 	AtomicArg ParseAtomic;
 
-	cstr FindDot(cstr s)
+	SEXYSTUDIO_API cstr FindDot(cstr s)
 	{
 		while (*s != '.' && *s != 0)
 		{
@@ -1910,7 +1967,7 @@ namespace ANON
 		}
 	};
 
-	struct SexyDatabase : ISexyDatabaseSupervisor
+	struct SexyDatabase : ISexyDatabaseSupervisor, IPingPathResolver
 	{
 		IFactoryConfig& config;
 		AutoRelease<ISParser> sparser;
@@ -1936,6 +1993,11 @@ namespace ANON
 		~SexyDatabase()
 		{
 			
+		}
+
+		IPingPathResolver& PingPathResolver() override
+		{
+			return *this;
 		}
 
 		bool HasResource(cstr id) const override
@@ -2165,7 +2227,7 @@ namespace ANON
 				i = filenameToFile.insert(std::make_pair(filename, new File_SXY(filename))).first;
 				auto& file = *i->second;
 
-				uint64 len = GetFileLength(fullpathToSxy);
+				uint64 len = IO::GetFileLength(fullpathToSxy);
 
 				if (len > 32_megabytes)
 				{
@@ -3980,12 +4042,12 @@ namespace Rococo::SexyStudio
 {
 	void PopulateWithFullNamespaceName(const ISxyNamespace& ns, IStringPopulator& populator);
 
-	ISexyDatabaseSupervisor* CreateSexyDatabase(IFactoryConfig& config)
+	SEXYSTUDIO_API ISexyDatabaseSupervisor* CreateSexyDatabase(IFactoryConfig& config)
 	{
 		return new ANON::SexyDatabase(config);
 	}
 
-	void AppendFullName(const ISxyNamespace& ns, REF StringBuilder& sb)
+	SEXYSTUDIO_API void AppendFullName(const ISxyNamespace& ns, REF StringBuilder& sb)
 	{
 		struct ANON : IStringPopulator
 		{
