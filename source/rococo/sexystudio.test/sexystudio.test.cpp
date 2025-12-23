@@ -25,7 +25,8 @@ auto DLL_NAME = L"sexystudio.dll";
 cstr ErrorCaption = "SexyStudio Standalone App - error!";
 
 #include <rococo.sexystudio.api.h>
-#include "..\sexystudio\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.database.h"
 
 #include <cstdio>
 

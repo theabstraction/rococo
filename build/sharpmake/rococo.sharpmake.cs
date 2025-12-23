@@ -1651,6 +1651,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.SolutionFolder = " - SexyStudio";
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllimport)");
         }
     }
 
