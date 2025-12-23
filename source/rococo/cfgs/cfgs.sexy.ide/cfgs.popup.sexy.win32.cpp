@@ -7,7 +7,7 @@
 #include <CommCtrl.h>
 #include "cfgs.sexy.ide.h"
 #include <rococo.sexystudio.api.h>
-#include "..\sexystudio\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.database.h"
 #include <rococo.functional.h>
 #include <rococo.strings.h>
 #include <stdio.h>

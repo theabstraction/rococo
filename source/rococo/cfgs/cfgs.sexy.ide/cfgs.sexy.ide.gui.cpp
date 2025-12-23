@@ -1,5 +1,6 @@
 #include "cfgs.sexy.ide.h"
-#include "..\sexystudio\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.database.h"
 #include <rococo.strings.h>
 #include <rococo.cfgs.h>
 #include <rococo.functional.h>

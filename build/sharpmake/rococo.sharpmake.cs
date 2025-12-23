@@ -1575,6 +1575,7 @@ namespace Rococo
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
             conf.Defines.Add("CFGS_CONTEXT_POPUP_API=__declspec(dllexport)");
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllimport)");
         }
     }
 

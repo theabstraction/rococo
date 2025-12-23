@@ -5,9 +5,10 @@
 #include <rococo.events.h>
 #include <rococo.sexml.h>
 #include <rococo.functional.h>
-#include <..\sexystudio\sexystudio.api.h>
+#include <..\sexystudio-lib\sexystudio.database.h>
 #include <stdio.h>
 #include <rococo.hashtable.h>
+#include <rococo.time.h>
 #include <sexy.types.h>
 #include <rococo.strings.ex.h>
 #include <Sexy.S-Parser.h>
