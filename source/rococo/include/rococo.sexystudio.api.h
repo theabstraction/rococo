@@ -82,14 +82,16 @@ namespace Rococo::SexyStudio
 		virtual void UpdateAutoComplete(AutoComplete::ISexyEditor& editor, crwstr filepath = nullptr) = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyStudioInstance1
+	ROCOCO_INTERFACE ISexyDatabaseSet
 	{
-		virtual ISexyStudioCompletionGaffer& Gaffer() = 0;
-		virtual ISexyStudioGUI& Gui() = 0;
-
 		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
 		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
+	};
 
+	ROCOCO_INTERFACE ISexyStudioInstance1: ISexyDatabaseSet
+	{
+		virtual ISexyStudioCompletionGaffer& Gaffer() = 0;
+		virtual ISexyStudioGUI& Gui() = 0;		
 		virtual void Activate() = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Free() = 0;

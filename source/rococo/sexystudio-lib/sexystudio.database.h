@@ -220,7 +220,7 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE ISexyDatabase
 	{
-		virtual IPingPathResolver & PingPathResolver() = 0;
+		virtual IPingPathResolver& PingPathResolver() = 0;
 		virtual bool AreTypesEquivalent(cstr a, cstr b) const = 0;
 		virtual void Clear() = 0;
 		virtual IFactoryConfig& Config() = 0;

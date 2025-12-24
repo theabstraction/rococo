@@ -2834,6 +2834,79 @@ namespace Rococo::IO
 		operator T* () { return instance; }
 	};
 
+	struct LocalFolderPath
+	{
+		PWSTR path = nullptr;
+
+		LocalFolderPath()
+		{
+			HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
+			if (FAILED(hr) || path == nullptr)
+			{
+				Throw(hr, "Failed to identify FOLDERID_LocalAppData folder. Win32 issue?");
+			}
+
+			if (wcslen(path) > 128)
+			{
+				CoTaskMemFree(path);
+				path = nullptr;
+				Throw(E_FAIL, "Cannot run sexy studio. FOLDERID_LocalAppData path > 128 characters.");
+			}
+		}
+
+		~LocalFolderPath()
+		{
+			if (path)
+			{
+				CoTaskMemFree(path);
+			}
+		}
+
+		operator crwstr () const
+		{
+			return path;
+		}
+	};
+
+	ROCOCO_API U8FilePath GetRococoPath()
+	{
+		LocalFolderPath localFolderPath;
+
+		struct OnLoad : IStringPopulator
+		{
+			U8FilePath path;
+			void Populate(cstr text) override
+			{
+				Format(path, "%hs", text);
+			}
+		} onLoad;
+
+		WideFilePath wPath;
+		Format(wPath, L"%s\\19th-Century-Software\\rococo.cfg", (crwstr)localFolderPath);
+
+		try
+		{
+			Rococo::IO::LoadAsciiTextFile(onLoad, wPath);
+			return onLoad.path;
+		}
+		catch (...)
+		{
+			Format(onLoad.path, "C:\\work\\rococo\\");
+			if (IO::IsDirectory(onLoad.path))
+			{
+				return onLoad.path;
+			}
+
+			Format(onLoad.path, "D:\\work\\rococo\\");
+			if (IO::IsDirectory(onLoad.path))
+			{
+				return onLoad.path;
+			}
+
+			throw;
+		}
+	}
+
 	ROCOCO_API uint64 GetFileLength(cstr filename)
 	{
 		WIN32_FILE_ATTRIBUTE_DATA data;

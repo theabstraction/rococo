@@ -571,7 +571,7 @@ private:
 	WidgetContext wc;
 	FactoryConfig& config;
 	IIDEFrame& ideFrame;
-	ISexyDatabase& database;
+	ISexyDatabaseSet& databaseSet;
 	AutoFree<ISourceTree> idToSourceMap = CreateSourceTree();
 	IGuiTree* fileBrowser = nullptr;
 	ITab* projectTab = nullptr;
@@ -610,11 +610,11 @@ private:
 			StringCat(contentPath.buf, "\\", U8FilePath::CAPACITY);
 		}
 
-		database.Solution().SetContentFolder(contentPath);
+		databaseSet.GetDatabase().Solution().SetContentFolder(contentPath);
 
 		config.content = contentPath;
 
-		PopulateTreeWithSXYFiles(*fileBrowser, database, ideFrame, *idToSourceMap);
+		PopulateTreeWithSXYFiles(*fileBrowser, databaseSet.GetDatabase(), ideFrame, *idToSourceMap);
 		ideFrame.SetProgress(100.0f, "Populated file browser");
 
 		int nPackages = packageView->GetNumberOfRows();
@@ -627,16 +627,16 @@ private:
 				if (pingPath.buf[0] == '!')
 				{
 					U8FilePath sysPath;
-					database.PingPathResolver().PingPathToSysPath(pingPath, sysPath);
-					PopulateTreeWithPackage(sysPath, database);
+					databaseSet.GetDatabase().PingPathResolver().PingPathToSysPath(pingPath, sysPath);
+					PopulateTreeWithPackage(sysPath, databaseSet.GetDatabase());
 				}
 			}
 		}
 
-		database.Sort();
+		databaseSet.GetDatabase().Sort();
 
 		TEventArgs<ISexyDatabase*> args;
-		args.value = &database;
+		args.value = &databaseSet.GetDatabase();
 		wc.publisher.Publish(args, evMetaUpdated);
 	}
 
@@ -662,7 +662,7 @@ private:
 			cstr path = pathCache->GetFileName(i);
 
 			U8FilePath pingPath;
-			database.PingPathResolver().SysPathToPingPath(path, pingPath);
+			databaseSet.GetDatabase().PingPathResolver().SysPathToPingPath(path, pingPath);
 
 			bool isASelectedPackage = false;
 
@@ -722,15 +722,15 @@ private:
 		SyncContent();
 	}
 public:
-	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabase& _database, FactoryConfig& _config): 
+	PropertySheets(ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabaseSet& _databaseSet, FactoryConfig& _config): 
 		wc(screen.Children()->Context()),
 		config(_config),
 		ideFrame(_ideFrame),
-		database(_database),
+		databaseSet(_databaseSet),
 		packageViewEventHandler(*this),
 		searchPathEventHandler(*this)
 	{
-		Format(contentPath, "%s", database.Solution().GetContentFolder());
+		Format(contentPath, "%s", databaseSet.GetDatabase().Solution().GetContentFolder());
 		Format(projectPath, "%s", config.projectPath.c_str());
 
 		screen.SetBackgroundColour(RGBAb(128, 192, 128));
@@ -743,7 +743,7 @@ public:
 		projectTab->SetTooltip("Project View");
 
 
-		IVariableList* projectSettings = CreateVariableList(projectTab->Children(), database.PingPathResolver());
+		IVariableList* projectSettings = CreateVariableList(projectTab->Children(), databaseSet.GetDatabase().PingPathResolver());
 		projectSettings->SetVisible(true);
 
 		Widgets::AnchorToParentTop(*projectSettings, 0);
@@ -782,7 +782,7 @@ public:
 		}
 
 		U8FilePath sysPackagePath;
-		database.PingPathResolver().PingPathToSysPath("!packages", sysPackagePath);
+		databaseSet.GetDatabase().PingPathResolver().PingPathToSysPath("!packages", sysPackagePath);
 
 		PopulatePackageViewWithCheckboxes(sysPackagePath);
 
@@ -825,14 +825,14 @@ public:
 		}
 	}
 
-	void SetContent(const U8FilePath& newPath)
+	void SetContent(cstr newPath)
 	{
 		if (Eq(contentPath, newPath))
 		{
 			return;
 		}
 
-		contentPath = newPath;
+		Assign(contentPath, newPath);
 
 		SyncContent();
 	}
@@ -843,7 +843,7 @@ public:
 		fileBrowser->Collapse();
 	}
 
-	ISexyDatabase& Database() { return database;  }
+	ISexyDatabase& Database() { return databaseSet.GetDatabase();  }
 
 	void SelectProjectTab()
 	{
@@ -863,18 +863,18 @@ public:
 
 		if (id == COMMAND_OPEN_FILE)
 		{
-			OpenSexyFile(ideFrame.Events(), database.Solution(), ideFrame.Window(), popupTargetFile.c_str(), popupTargetFileLine);
+			OpenSexyFile(ideFrame.Events(), databaseSet.GetDatabase().Solution(), ideFrame.Window(), popupTargetFile.c_str(), popupTargetFileLine);
 		}
 		else if (id == COMMAND_FOCUS_PROJECT)
 		{
 			try
 			{
-				database.FocusProject(popupTargetFile);
+				databaseSet.GetDatabase().FocusProject(popupTargetFile);
 
-				database.Sort();
+				databaseSet.GetDatabase().Sort();
 
 				TEventArgs<ISexyDatabase*> args;
-				args.value = &database;
+				args.value = &databaseSet.GetDatabase();
 				wc.publisher.Publish(args, evMetaUpdated);
 			}
 			catch (IException& ex)
@@ -942,7 +942,7 @@ private:
 	WidgetContext wc;
 	FactoryConfig& config;
 	ISplitScreen& screen;
-	ISexyDatabase& database;
+	ISexyDatabaseSet& databaseSet;
 	IGuiTree* classTree;
 	ITab* classTab = nullptr;
 	ISexyStudioEventHandler& eventHandler;
@@ -956,7 +956,7 @@ private:
 	{
 		if (id == OPEN_ITEM && popupSourceModule.length() > 0)
 		{
-			OpenSexyFile(eventHandler, database.Solution(), screen.Window(), popupSourceModule, popupSourceModuleLineNumber);
+			OpenSexyFile(eventHandler, databaseSet.GetDatabase().Solution(), screen.Window(), popupSourceModule, popupSourceModuleLineNumber);
 		}
 	}
 
@@ -1437,7 +1437,7 @@ private:
 
 	void AddRootSubspacesToSearchResults()
 	{
-		auto& root = database.GetRootNamespace();
+		auto& root = databaseSet.GetDatabase().GetRootNamespace();
 
 		for (int i = 0; i < root.SubspaceCount(); ++i)
 		{
@@ -1728,7 +1728,7 @@ private:
 
 		searchResults->ClearItems();
 
-		auto& root = database.GetRootNamespace();
+		auto& root = databaseSet.GetDatabase().GetRootNamespace();
 		AppendToSearchTermsRecursive(root, searchTerm, searchTerm);
 
 		if (*searchTerm != 0 && searchArrayResults.empty())
@@ -1868,7 +1868,7 @@ private:
 		else if (ev == evSearchSelected)
 		{
 			auto& selectedItem = As<TEventArgs<cstr>>(ev);
-			SearchSelectedRecursive(selectedItem, database.GetRootNamespace());
+			SearchSelectedRecursive(selectedItem, databaseSet.GetDatabase().GetRootNamespace());
 			searchResults->SetVisible(false);
 			SetFocus(classTree->TreeWindow());
 		}
@@ -1878,8 +1878,8 @@ private:
 	IAsciiStringEditor* searchEditor = nullptr;
 	IFloatingListWidget* searchResults = nullptr;
 public:
-	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabase& _database, ISexyStudioEventHandler& _eventHandler, FactoryConfig& _config) : 
-		wc(_wc), config(_config), screen(_screen), database(_database), eventHandler(_eventHandler)
+	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabaseSet& _databaseSet, ISexyStudioEventHandler& _eventHandler, FactoryConfig& _config) : 
+		wc(_wc), config(_config), screen(_screen), databaseSet(_databaseSet), eventHandler(_eventHandler)
 	{
 		screen.SetBackgroundColour(RGBAb(128, 128, 192));
 
@@ -1889,7 +1889,7 @@ public:
 		classTab = &tabs->AddTab();
 		classTab->SetName("Class View");
 
-		IVariableList* searchBar = CreateVariableList(classTab->Children(), database.PingPathResolver());
+		IVariableList* searchBar = CreateVariableList(classTab->Children(), databaseSet.GetDatabase().PingPathResolver());
 		searchBar->SetVisible(true);
 
 		Widgets::AnchorToParentTop(*searchBar, 0);
@@ -1964,7 +1964,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 {
 	Factory& host;
 	AutoFree<IPublisherSupervisor> publisher;
-	AutoFree<ISexyDatabaseSupervisor> database;
+	AutoFree<ISexyDatabaseSupervisor> blankDatabase;
 	FactoryConfig& config;
 	Font smallCaptionFont;
 	WidgetContext context;
@@ -2183,8 +2183,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			// We need (#<a> with at least one character a before we start autocomplete. Generally Sexy enumeration macros will have some standard prefix
 		}
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring::Null(), *database, doc);
-		database->ForEachAutoCompleteMacroCandidate(token, routeTextToAutoComplete);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring::Null(), GetDatabase(), doc);
+		GetDatabase().ForEachAutoCompleteMacroCandidate(token, routeTextToAutoComplete);
 	}
 
 	void ShowAutocompleteDataForVariable(ISexyEditor& editor, cr_substring candidate, int64 tokenDisplacementFromCaret)
@@ -2208,7 +2208,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			variable.start += thisDot.length;
 		}
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidateInDoc, *database, doc);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), candidateInDoc, GetDatabase(), doc);
 
 		Rococo::Sex::Inference::TypeInference inference;
 		bool isThis;
@@ -2238,9 +2238,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			{
 				if (inference.templateContainer)
 				{
-					database->EnumerateTemplateMethods(variable, inference, routeTextToAutoComplete);
+					GetDatabase().EnumerateTemplateMethods(variable, inference, routeTextToAutoComplete);
 				}
-				else if (database->EnumerateVariableAndFieldList(variable, inference.declarationType, routeTextToAutoComplete))
+				else if (GetDatabase().EnumerateVariableAndFieldList(variable, inference.declarationType, routeTextToAutoComplete))
 				{
 
 				}
@@ -2261,8 +2261,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 	{
 		Substring token = Rococo::Sex::Inference::GetFirstTokenFromLeft(candidate);
 
-		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring::Null(), *database, doc);
-		database->ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
+		RouteTextToAutoComplete routeTextToAutoComplete(editor.AutoCompleteBuilder(), Substring::Null(), GetDatabase(), doc);
+		GetDatabase().ForEachAutoCompleteCandidate(token, routeTextToAutoComplete);
 
 		callTipArgs[0] = 0;
 
@@ -2327,19 +2327,19 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 	ISexyDatabase& GetDatabase()
 	{
-		return *database;
+		return (currentProjectIndex == -1)  ? *blankDatabase : *projects[currentProjectIndex].database;
 	}
 
 	const ISexyDatabase& GetDatabase() const
 	{
-		return *database;
+		return  (currentProjectIndex == -1) ? *blankDatabase : *projects[currentProjectIndex].database;
 	}
 
 	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config, Factory& _host) :
 		host(_host),
 		config(_config),
 		publisher(Rococo::Events::CreatePublisher()),
-		database(CreateSexyDatabase(_config)),
+		blankDatabase(CreateSexyDatabase(_config)),
 		smallCaptionFont(MakeDefaultFont()),
 		context{ *publisher, smallCaptionFont },
 		theme{ UseNamedTheme("Classic", context.publisher) },
@@ -2371,7 +2371,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			{
 				try
 				{
-					database->SetContentPath(config.content);
+					blankDatabase->SetContentPath(config.content);
 					if (failcount > 0)
 					{
 						config.Save();
@@ -2407,9 +2407,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			}
 		}
 	
-
-		sheets = new PropertySheets(*projectView, *ide, *database, config);
-		explorer = new SexyExplorer(context, *sourceView, *database, eventHandler, config);
+		sheets = new PropertySheets(*projectView, *ide, *this, config);
+		explorer = new SexyExplorer(context, *sourceView, *this, eventHandler, config);
 
 		publisher->Subscribe(this, evIDEClose);
 		publisher->Subscribe(this, evIDEMax);
@@ -2505,7 +2504,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		size_t len = type.Length() + 1;
 		auto* buf = (char*)alloca(len);
 		type.CopyWithTruncate(buf, len);
-		return database->FindInterface(buf, ppNamespace);
+		return GetDatabase().FindInterface(buf, ppNamespace);
 	}
 
 	int interfaceDepth = 0;
@@ -3000,52 +2999,160 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 	U8FilePath lastAutoRebasePath;
 
-	void Rebase(crwstr fullPathToSXYfile)
+	struct Project
+	{
+		AutoFree<ISexyDatabaseSupervisor> database;
+		std::wstring contentRoot;
+		HString content;
+		HString projectPath;
+		std::vector<SearchPathDesc> searchPaths;
+		std::vector<HString> packages;
+
+		Project()
+		{
+
+		}
+
+		Project(const char* sexyStudioConfigSexml)
+		{
+			Rococo::OS::LoadSXMLBySysPath(sexyStudioConfigSexml,
+				[this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+				{
+					size_t startIndex = 0;
+					auto& dDirectories = GetDirective(topLevelDirectives, "Directories", IN OUT startIndex);
+
+					content = AsString(dDirectories["content"]).c_str();
+					projectPath = AsString(dDirectories["project"]).c_str();;
+
+					searchPaths.clear();
+
+					size_t searchIndex = 0;
+					while (auto* pSearchPath = FindDirective(dDirectories.Children(), "SearchPath", IN OUT searchIndex))
+					{
+						auto& dSearchPath = *pSearchPath;
+						cstr path = AsString(dSearchPath["path"]).c_str();
+						bool isActive = AsBool(dSearchPath["isActive"]);
+						searchPaths.push_back({ path, isActive });
+					}
+
+					auto& dPackages = GetDirective(topLevelDirectives, "Packages", IN OUT startIndex);
+					auto& aPackages = AsStringList(dPackages["selected-packages"]);
+					for (int i = 0; i < aPackages.NumberOfElements(); i++)
+					{
+						fstring path = aPackages[i];
+						packages.push_back((cstr)path);
+					}
+				}
+			);
+		}
+	};
+
+	int FindProjectIndexByRoot(crwstr filename) const
+	{
+		for (int index = 0; index < projects.size(); index++)
+		{
+			crwstr contentRoot = projects[index].contentRoot.c_str();
+			if (StartsWith(filename, contentRoot))
+			{
+				return index;
+			}
+		}
+
+		return -1;
+	}
+
+	int AddNewProjectByConfig(const char* sexyStudioConfigSexml)
+	{
+		projects.emplace(projects.end(), Project(sexyStudioConfigSexml));
+		return (int) (projects.size() - 1);
+
+		auto& p = projects.back();
+		p.database = CreateSexyDatabase(config);
+		p.database->SetContentPath(p.content);
+	}
+
+	// Returns the project index
+	[[nodiscard]] int AddNewProject(crwstr fullPathToSXYfile)
 	{
 		U8FilePath u8Path;
 		Assign(u8Path, fullPathToSXYfile);
 
-		if (!EndsWith(u8Path, ".sxy"))
-		{
-			return;
-		}
-
 		Substring s = Substring::ToSubstring(u8Path);
 
+		// Recurse through container directories looking for sexystudio.config.sexml
 		for (;;)
 		{
 			cstr lastSlash = Strings::ReverseFind(Rococo::IO::DirectorySeparatorChar(), s);
 			if (!lastSlash)
 			{
-				return;
+				break;
 			}
 
 			s = { s.start, lastSlash };
 
-			cstr earlierSlash = Strings::ReverseFind(Rococo::IO::DirectorySeparatorChar(), s);
+			*const_cast<char*>(lastSlash) = 0;
 
-			if (!earlierSlash)
+			U8FilePath sexyStudioConfig;
+			Format(sexyStudioConfig, "%s%csexystudio.config.sexml", s.start, Rococo::IO::DirectorySeparatorChar());
+
+			if (!IO::IsFileExistant(sexyStudioConfig))
 			{
-				return;
+				continue;
 			}
 
-			Substring candidate = { earlierSlash + 1, lastSlash };
-
-			if (Eq(candidate, "content") || Eq(candidate, "Content") || Eq(candidate, "CONTENT"))
+			try
 			{
-				U8FilePath contentPath;
-				Substring t{ s.start, lastSlash + 1 };
-				t.CopyWithTruncate(contentPath.buf, contentPath.CAPACITY);
-
-				if (!Eq(lastAutoRebasePath, contentPath))
-				{
-					lastAutoRebasePath = contentPath;
-					database->SetContentPath(contentPath);
-
-					sheets->SetContent(contentPath);
-					return;
-				}
+				return AddNewProjectByConfig(sexyStudioConfig);
 			}
+			catch (...)
+			{
+				break;
+			}
+		}
+
+		// No project found
+		return -1;
+	}
+
+	std::vector<Project> projects;
+
+	std::unordered_map<std::wstring, int> mapFilenameToProjectIndex;
+
+	int currentProjectIndex = -1;
+
+	void Rebase(crwstr fullPathToSXYfile)
+	{
+		if (!EndsWith(fullPathToSXYfile, L".sxy"))
+		{
+			return;
+		}
+
+		auto i = mapFilenameToProjectIndex.find(fullPathToSXYfile);
+		if (i == mapFilenameToProjectIndex.end())
+		{
+			int projectIndex = FindProjectIndexByRoot(fullPathToSXYfile);
+			if (projectIndex >= 0)
+			{
+				i = mapFilenameToProjectIndex.insert(std::pair<const std::wstring, int>(fullPathToSXYfile, projectIndex)).first;
+			}
+			else
+			{
+				projectIndex = AddNewProject(fullPathToSXYfile);
+				i = mapFilenameToProjectIndex.insert(std::pair<const std::wstring, int>(fullPathToSXYfile, projectIndex)).first;
+			}
+		}
+
+		int projectIndex = i->second;
+
+		if (projectIndex == -1)
+		{
+			return;
+		}
+
+		if (projectIndex != currentProjectIndex)
+		{
+			currentProjectIndex = projectIndex;
+			sheets->SetContent(projects[currentProjectIndex].content.c_str());
 		}
 	}
 
@@ -3122,7 +3229,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 	void PopulateImplicitNamespaces(cr_substring doc)
 	{
-		auto* implicits = database->GetRootNamespace().ImplicitNamespaces();
+		auto* implicits = GetDatabase().GetRootNamespace().ImplicitNamespaces();
 		implicits->ClearImplicitNamespaces();
 
 		ForEachCompoundDirectiveWithAtLeastOneArg("using"_fstring, doc, [this, &implicits](cr_substring fqNamespaceArg)
@@ -3191,7 +3298,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			return;
 		}
 
-		auto* type = database->FindType(fqName);
+		auto* type = GetDatabase().FindType(fqName);
 		if (type)
 		{
 			auto* localType = type->LocalType();
@@ -3203,14 +3310,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			return;
 		}
 
-		auto* pInterface = database->FindInterface(fqName);
+		auto* pInterface = GetDatabase().FindInterface(fqName);
 		if (pInterface)
 		{
 			editor.GotoDefinition(docToken, pInterface->SourcePath(), pInterface->GetDefinition().Start().y);
 			return;
 		}
 
-		auto* f = database->FindFunction(fqName);
+		auto* f = GetDatabase().FindFunction(fqName);
 		if (f)
 		{
 			auto* localFunction = f->LocalFunction();
@@ -3407,7 +3514,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 	// Buffer should be 1024 bytes
 	void GetHintForCandidate(cr_substring prefix, char args[1024]) override
 	{
-		database->GetHintForCandidate(prefix, args);
+		GetDatabase().GetHintForCandidate(prefix, args);
 	}
 
 	bool isRunning = true;

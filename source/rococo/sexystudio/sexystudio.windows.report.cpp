@@ -9,80 +9,6 @@ using namespace Rococo::Windows;
 
 namespace Rococo::SexyStudio
 {
-	struct LocalFolderPath
-	{
-		PWSTR path = nullptr;
-
-		LocalFolderPath()
-		{
-			HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
-			if (FAILED(hr) || path == nullptr)
-			{
-				Throw(hr, "Failed to identify user documents folder. Win32 issue?");
-			}
-
-			if (wcslen(path) > 128)
-			{
-				CoTaskMemFree(path);
-				path = nullptr;
-				Throw(E_FAIL, "Cannot run sexy studio. FOLDERID_LocalDocuments path > 128 characters.");
-			}
-		}
-
-		~LocalFolderPath()
-		{
-			if (path)
-			{
-				CoTaskMemFree(path);
-			}
-		}
-
-		operator crwstr () const
-		{
-			return path;
-		}
-	};
-
-	U8FilePath GetRococoPath()
-	{
-		LocalFolderPath localFolderPath;		
-
-		struct OnLoad : IStringPopulator
-		{
-			U8FilePath path;
-			void Populate(cstr text) override
-			{
-				Format(path, "%hs", text);
-			}
-		} onLoad;
-
-		WideFilePath wPath;
-		Format(wPath, L"%s\\19th-Century-Software\\rococo.cfg", (crwstr)localFolderPath);
-
-		try
-		{
-			Rococo::IO::LoadAsciiTextFile(onLoad, wPath);
-		}
-		catch (...)
-		{
-			Format(onLoad.path, "C:\\work\\rococo\\");
-			if (IO::IsDirectory(onLoad.path))
-			{
-				return onLoad.path;
-			}
-
-			Format(onLoad.path, "D:\\work\\rococo\\");
-			if (IO::IsDirectory(onLoad.path))
-			{
-				return onLoad.path;
-			}
-
-			throw;
-		}
-
-		return onLoad.path;
-	}
-
 	bool DoesTestPathExist(cstr root)
 	{
 		cstr testSubPath = "textures\\report-checkboxes";
@@ -104,7 +30,7 @@ namespace Rococo::SexyStudio
 			return pluginPath;
 		}
 
-		U8FilePath rococoPath = GetRococoPath();
+		U8FilePath rococoPath = IO::GetRococoPath();
 		U8FilePath contentPath;
 		Format(contentPath, "%scontent\\sexy-studio", rococoPath.buf);
 

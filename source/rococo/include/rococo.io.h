@@ -101,6 +101,10 @@ namespace Rococo::IO
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity, cstr title);
 	ROCOCO_API uint64 GetFileLength(cstr filename);
+
+	// Get the Rococo installation path from $LocalApp$\19th-Century-Software\rococo.cfg
+	// If that fails it will try C:\work\rococo, and if that fails it will try D:\work\rococo. If nothing works it will throw an exception
+	ROCOCO_API U8FilePath GetRococoPath();
 	ROCOCO_API bool IsDirectory(crwstr filename);
 	ROCOCO_API bool IsDirectory(cstr filename);
 	ROCOCO_API void EnsureUserDocumentFolderExists(crwstr subdirectory);
