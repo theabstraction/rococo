@@ -31,7 +31,10 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE IFactoryConfig
 	{
+		virtual cstr GetPackage(size_t index) const = 0;
+		virtual cstr GetProjectPath() const = 0;
 		virtual SearchPathDescAtom GetSearchPath(size_t index) const = 0;
+		virtual void SetSearchPathActivity(size_t index, bool isActive) = 0;
 	};
 
 
@@ -198,7 +201,7 @@ namespace Rococo::SexyStudio
 		virtual cstr GetPackagePingPath(cstr packageName) const = 0;
 		virtual cstr GetPackageRoot() const = 0;
 		virtual cstr GetPackageSourceFolder(cstr packagePath) const = 0;
-		virtual void SetContentFolder(cstr path) = 0;
+		virtual void SetConfigDirectory(cstr sysConfigDirectory) = 0;
 	};
 
 	struct SourceAndLine

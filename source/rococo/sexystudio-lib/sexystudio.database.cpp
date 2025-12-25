@@ -1784,7 +1784,7 @@ namespace ANON
 			return scriptPath;
 		}
 
-		void SetContentFolder(cstr path) override
+		void SetConfigDirectory(cstr path) override
 		{
 			Format(contentPath, "%s", path);
 			Format(packageRoot, "%s", path);
@@ -2023,7 +2023,7 @@ namespace ANON
 
 		void SetContentPath(cstr contentFolder) override
 		{
-			solutionFile.SetContentFolder(contentFolder);
+			solutionFile.SetConfigDirectory(contentFolder);
 
 			WideFilePath wContentFolder;
 			Assign(wContentFolder, contentFolder);

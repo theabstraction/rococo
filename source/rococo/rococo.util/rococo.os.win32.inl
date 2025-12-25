@@ -529,6 +529,8 @@ namespace Rococo
 
 		ROCOCO_API void NormalizePath(WideFilePath& path)
 		{
+			ToSysPath(path.buf);
+
 			WideFilePath out;
 			HRESULT hr = PathCchCanonicalizeEx(OUT out.buf, WideFilePath::CAPACITY, path, PATHCCH_NONE);
 			if FAILED(hr)
@@ -537,6 +539,23 @@ namespace Rococo
 			}
 
 			path = out;
+		}
+
+		ROCOCO_API void NormalizePath(U8FilePath& path)
+		{
+			WideFilePath in;
+			Assign(in, path);
+
+			ToSysPath(in.buf);
+
+			WideFilePath out;
+			HRESULT hr = PathCchCanonicalizeEx(OUT out.buf, WideFilePath::CAPACITY, in, PATHCCH_NONE);
+			if FAILED(hr)
+			{
+				Throw(hr, "Failed to normalize path for %ls", path.buf);
+			}
+
+			Assign(path, out);
 		}
 
 		ROCOCO_API void GetExeName(U8FilePath& path)

@@ -86,6 +86,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
 		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
+		virtual void SetConfigDirectory(cstr sysPathToConfigDirectory) = 0;
 	};
 
 	ROCOCO_INTERFACE ISexyStudioInstance1: ISexyDatabaseSet
