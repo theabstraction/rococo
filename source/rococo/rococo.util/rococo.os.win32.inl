@@ -3451,27 +3451,43 @@ namespace Rococo::IO
 		searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
 	}
 
-	struct PathCache : IPathCacheSupervisor
+	struct PathCache : IPathCacheSupervisor, IEventCallback<U8FileItemData>
 	{
 		stringmap<int> files;
 		mutable std::vector<cstr> results; // These point to the persistent strings in the stringmap, so will be valid for the lifetime of the file map
 
-		void AddPathsFromDirectory(const char* directory, bool recurse) override
+		std::vector<HString> legalExtensions;
+
+		void AddLegalExtension(cstr legalExtension)
 		{
-			struct ANON : IEventCallback<U8FileItemData>
+			legalExtensions.push_back(legalExtension);
+		}
+
+		void OnEvent(U8FileItemData& item)
+		{
+			if (!item.isDirectory)
 			{
-				stringmap<int>* files;
-				void OnEvent(U8FileItemData& item)
+				if (!legalExtensions.empty())
 				{
-					if (!item.isDirectory)
+					for (const HString& ext : legalExtensions)
 					{
-						files->insert(item.fullPath, 0);
+						if (EndsWith(item.fullPath, ext))
+						{
+							files.insert(item.fullPath, 0);
+							return;
+						}
 					}
 				}
-			} onFile;
-			onFile.files = &files;
+				else
+				{
+					files.insert(item.fullPath, 0);
+				}				
+			}
+		}
 
-			ForEachFileInDirectory(directory, onFile, recurse, nullptr);
+		void AddPathsFromDirectory(const char* directory, bool recurse) override
+		{
+			ForEachFileInDirectory(directory, *this, recurse, nullptr);
 
 			results.clear();
 		}

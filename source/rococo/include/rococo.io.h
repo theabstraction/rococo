@@ -176,6 +176,7 @@ namespace Rococo::IO
 
 	ROCOCO_INTERFACE IPathCache
 	{
+		virtual void AddLegalExtension(cstr legalExtension) = 0;
 		virtual void AddPathsFromDirectory(const char* directory, bool recurse) = 0;
 		virtual void Sort() = 0;
 		virtual size_t NumberOfFiles() const = 0;

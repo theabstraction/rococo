@@ -29,14 +29,18 @@ namespace Rococo::SexyStudio
 		bool isActive;
 	};
 
-	ROCOCO_INTERFACE IFactoryConfig
+	ROCOCO_INTERFACE ISearchPaths
+	{
+		virtual SearchPathDescAtom GetSearchPath(size_t index) const = 0;
+	};
+
+	ROCOCO_INTERFACE IFactoryConfig : ISearchPaths
 	{
 		virtual cstr GetPackage(size_t index) const = 0;
 		virtual cstr GetProjectPath() const = 0;
-		virtual SearchPathDescAtom GetSearchPath(size_t index) const = 0;
+		
 		virtual void SetSearchPathActivity(size_t index, bool isActive) = 0;
 	};
-
 
 	ROCOCO_INTERFACE ISXYFile
 	{

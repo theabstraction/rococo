@@ -64,11 +64,8 @@ namespace Rococo::SexyStudio
 		tree.SetItemText(branchId, srcTree.Source().Name());
 	}
 
-	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree)
+	void PopulateTreeWithSXYFiles_Protected(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree, ID_TREE_ITEM hRoot)
 	{
-		tree.Clear();
-		database.Clear();
-
 		struct ANON : IEventCallback<IO::FileItemData>
 		{
 			float count = 0;
@@ -154,17 +151,18 @@ namespace Rococo::SexyStudio
 		cb.progress = &progress;
 		cb.sourceTree = &sourceTree;
 
-		WideFilePath scriptPath;
-		Format(scriptPath, L"%hs", database.Solution().GetScriptFolder());
-
-		auto hRoot = tree.AppendItem(0);
-		tree.SetItemText(hRoot, "!scripts/");
-
-		for (size_t i = 0; i < 100; i++)
+		for (size_t i = 0;; i++)
 		{
 			auto atom = database.Config().GetSearchPath(i);
+			if (!atom.pingPath)
+			{
+				break;
+			}
+
 			if (!atom.isActive)
+			{
 				continue;
+			}
 
 			U8FilePath sysPath;
 			database.PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
@@ -178,33 +176,54 @@ namespace Rococo::SexyStudio
 			}
 		}
 
+		for (size_t i = 0;; i++)
+		{
+			auto atom = database.Config().GetSearchPath(i);
+			if (!atom.pingPath)
+			{
+				break;
+			}
+
+			if (!atom.isActive)
+			{
+				continue;
+			}
+
+			U8FilePath sysPath;
+			database.PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
+
+			auto hSearchPath = tree.AppendItem(hRoot);
+			tree.SetItemText(hSearchPath, atom.pingPath);
+
+			if (Rococo::IO::IsDirectory(sysPath))
+			{
+				WideFilePath wPath;
+				Assign(wPath, sysPath);
+				Rococo::IO::ForEachFileInDirectory(wPath, cb, true, (void*)hSearchPath);
+			}
+			else
+			{
+				char msg[256];
+				SafeFormat(msg, "Could not find %s", sysPath.buf);
+				tree.SetItemText(hSearchPath, msg);
+			}
+		}
+	}
+
+	void PopulateTreeWithSXYFiles(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree)
+	{
+		tree.Clear();
+		database.Clear();
+
+		WideFilePath scriptPath;
+		Format(scriptPath, L"%hs", database.Solution().GetScriptFolder());
+
+		auto hRoot = tree.AppendItem(0);
+		tree.SetItemText(hRoot, "!scripts/");
+
 		try
 		{
-			for (size_t i = 0; i < 100; i++)
-			{
-				auto atom = database.Config().GetSearchPath(i);
-				if (!atom.isActive)
-					continue;
-
-				U8FilePath sysPath;
-				database.PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
-
-				auto hSearchPath = tree.AppendItem(hRoot);
-				tree.SetItemText(hSearchPath, atom.pingPath);
-
-				if (Rococo::IO::IsDirectory(sysPath))
-				{
-					WideFilePath wPath;
-					Assign(wPath, sysPath);
-					Rococo::IO::ForEachFileInDirectory(wPath, cb, true, (void*)hSearchPath);
-				}
-				else
-				{
-					char msg[256];
-					SafeFormat(msg, "Could not find %s", sysPath.buf);
-					tree.SetItemText(hSearchPath, msg);
-				}
-			}
+			PopulateTreeWithSXYFiles_Protected(tree, database, progress, sourceTree, hRoot);
 		}
 		catch (IException& ex)
 		{
@@ -558,6 +577,7 @@ private:
 
 		try
 		{
+			pathCache->AddLegalExtension(".sxyz");
 			pathCache->AddPathsFromDirectory(packagePath, false);
 			pathCache->Sort();
 		}
@@ -2965,12 +2985,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		SearchPathDescAtom GetSearchPath(size_t index) const override
 		{
-			if (index == searchPaths.size())
-			{
-				return { projectPath.c_str(), true };
-			}
-
-			if (index > searchPaths.size())
+			if (index >= searchPaths.size())
 			{
 				return { nullptr, false };
 			}
