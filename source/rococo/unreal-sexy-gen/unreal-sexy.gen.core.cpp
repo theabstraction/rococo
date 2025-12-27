@@ -678,6 +678,12 @@ void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
 	}
 }
 
+void GetClassNameAsSxyType(char* buffer, size_t capacity, IUnrealClass& classRef)
+{
+	StackStringBuilder sb(buffer, capacity);
+	AppendNameAsSxyType(sb, classRef);
+}
+
 void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 {
 	// Example /Engine/AI/
@@ -760,6 +766,13 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 		sb.Undo(-1);
 	}
 }
+
+void GetPackageNameAsSxyType(char* buffer, size_t capacity, IUnrealClass& classRef)
+{
+	StackStringBuilder sb(buffer, capacity);
+	AppendPackageAsSexyNamespace(sb, classRef);
+}
+
 
 template<class LAMBDA>
 void ForEachArgumentOfEachMethod(IUnrealClass& classDef, LAMBDA lambda)
@@ -1099,6 +1112,16 @@ namespace
 		for (auto* input : inputs)
 		{
 			sb << "(";
+
+			if (input->IsConst())
+			{
+				sb << "const ";
+			}
+			else if (input->IsRef())
+			{
+				sb << "populates ";
+			}
+
 			AppendType(sb, *input, true);
 			sb << " ";
 			input->AppendName(sb, true);
@@ -1555,9 +1578,22 @@ namespace Rococo::UE::Native
 	sb << "}\n";
 }
 
-void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg)
+void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutability)
 {
 	sb << "(";
+
+	if (addMutability)
+	{
+		if (arg.IsConst())
+		{
+			sb << "const ";
+		}
+		else if (arg.IsRef())
+		{
+			sb << "populates ";
+		}
+	}
+
 	AppendType(sb, arg, true);
 	sb << " ";
 	arg.AppendName(sb, true);
@@ -1566,38 +1602,32 @@ void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg)
 
 void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 {
-	sb << "(using UE.Native.";
-	AppendPackageAsSexyNamespace(sb, classRef);
+	char sxyName[256];
+	GetClassNameAsSxyType(sxyName, sizeof sxyName, classRef);
+
+	char sexyNs[256];
+	GetPackageNameAsSxyType(sexyNs, sizeof sexyNs, classRef);
+
+	sb << "(using UE.Native." << sexyNs;
 	sb << ")\n\n";
 
-	sb << "(class ";
-	AppendNameAsSxyType(sb, classRef);
-	sb << " (defines UE.";
-	AppendPackageAsSexyNamespace(sb, classRef);
-	sb << ".I";
-	AppendNameAsSxyType(sb, classRef);
+	sb << "(class " << sxyName;
+	sb << " (defines UE." << sexyNs;
+	sb << ".I" << sxyName;
 	sb << ")\n";
 	sb << "\t(Int64 objectHandle)\n";
 	sb << ")\n\n";
 
-	sb << "(factory UE.";
+	sb << "(factory UE." << sexyNs;
 
-	AppendPackageAsSexyNamespace(sb, classRef);
+	sb << ".New" << sxyName;
 
-	sb << ".New";
+	sb << " UE." << sexyNs;
 
-	AppendNameAsSxyType(sb, classRef);
-
-	sb << " UE.";
-
-	AppendPackageAsSexyNamespace(sb, classRef);
-
-	sb << ".I";
-	AppendNameAsSxyType(sb, classRef);
+	sb << ".I" << sxyName;
 
 	sb << " ()\n";
-	sb << "\t(construct ";
-	AppendNameAsSxyType(sb, classRef);
+	sb << "\t(construct " << sxyName;
 	sb << ")\n";
 	sb << ")\n";
 
@@ -1605,10 +1635,10 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 	std::vector<IUnrealArg*> outputs;
 
 	sb << "\n(method ";
-	AppendNameAsSxyType(sb, classRef);
+	sb << sxyName;
 	sb << ".Construct :\n";
 	sb << "\t(Construct";
-	AppendNameAsSxyType(sb, classRef);
+	sb << sxyName;
 	sb << " -> this.ObjectHandle)\n";
 	sb << ")\n";
 
@@ -1617,8 +1647,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 		auto& method = classRef.GetFunction(i);
 
 		sb << "\n(method ";
-		AppendNameAsSxyType(sb, classRef);
-
+		sb << sxyName;
 		sb << ".";
 
 		method.AppendFunctionName(sb);
@@ -1632,14 +1661,14 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 
 		for (auto* input : inputs)
 		{
-			AppendUnrealArgAsSexyPair(sb, *input);
+			AppendUnrealArgAsSexyPair(sb, *input, true);
 		}
 
 		sb << " -> ";
 
 		for (auto* output : outputs)
 		{
-			AppendUnrealArgAsSexyPair(sb, *output);
+			AppendUnrealArgAsSexyPair(sb, *output, false);
 		}
 
 		sb << ":\n";

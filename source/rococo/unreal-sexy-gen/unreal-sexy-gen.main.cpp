@@ -1242,6 +1242,17 @@ struct UnrealFunctionArg : IUnrealArg
 		{
 			return false;
 		}
+		
+		cstr p = ArgType();
+
+		if (*p == 'F')
+		{
+			auto* structType = FindStruct(p + 1);
+			if (structType)
+			{
+				return false;
+			}
+		}
 
 		if (IsPtr())
 		{
@@ -1249,7 +1260,6 @@ struct UnrealFunctionArg : IUnrealArg
 			return false;
 		}
 
-		cstr p = argType.c_str();
 		if (Eq(p, "FString") || Eq(p, "FString^"))
 		{
 			// FString is marshalled as FStringImage, a derived type, passed by mutable reference
