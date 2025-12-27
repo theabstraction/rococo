@@ -275,7 +275,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 	auto* enumType = FindEnum(argType);
 	if (enumType)
 	{
-		sb << "R_" << enumType->Name();
+		sb << enumType->Name();
 		return;
 	}
 
@@ -294,7 +294,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 		{
 			Throw(0, "Could not find inner type %s", innerType);
 		}
-		sb.AppendFormat("R_TEnumAsByte<R_%s>", enumRef->Name());
+		sb << enumRef->Name();
 		return;
 	}
 
@@ -1592,6 +1592,20 @@ void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutab
 		{
 			sb << "populates ";
 		}
+		else
+		{
+			cstr p = arg.ArgType();
+			if (*p == 'F')
+			{
+				auto* structType = FindStruct(p + 1);
+				if (structType)
+				{
+					// The arg has been passed by value, but requires marshalling by const reference in Sexy
+					// Sexy structs always are passed by reference, but we must add the const by hand
+					sb << "const ";
+				}
+			}
+		}
 	}
 
 	AppendType(sb, arg, true);
@@ -1684,10 +1698,21 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 			sb << " ";
 		}
 
+		bool isFirst = true;
+
 		for (auto* input : inputs)
 		{
+			if (!isFirst)
+			{
+				sb << " ";
+			}
+
+			isFirst = false;
+
 			input->AppendName(sb, true);
 		}
+
+		isFirst = true;
 
 		if (!outputs.empty())
 		{
@@ -1695,6 +1720,13 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 
 			for (auto* output : outputs)
 			{
+				if (!isFirst)
+				{
+					sb << " ";
+				}
+
+				isFirst = false;
+
 				output->AppendName(sb, true);
 			}
 		}
