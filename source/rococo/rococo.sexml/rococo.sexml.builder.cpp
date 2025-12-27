@@ -39,7 +39,7 @@ namespace Rococo::Sex::SEXML
 
 			void AddTab()
 			{
-				sb.AppendChar(isCompact ? ' ': '\t');
+				sb.AppendChar('\t');
 			}
 
 			void AddDepthTabs()
@@ -52,15 +52,8 @@ namespace Rococo::Sex::SEXML
 
 			void PrepareNewToken()
 			{	
-				if (isCompact)
-				{
-					sb << " ";
-				}
-				else
-				{
-					sb << "\n";
-					AddDepthTabs();
-				}
+				sb << "\n";
+				AddDepthTabs();
 			}
 
 			ISEXMLBuilder& AddDirective(cstr name) override

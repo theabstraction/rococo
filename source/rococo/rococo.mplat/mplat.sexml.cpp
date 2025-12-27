@@ -172,7 +172,7 @@ namespace Rococo
 {
 	void SaveAsSexML(cstr userDocName, Reflection::IReflectionTarget& target)
 	{
-		Rococo::OS::SaveUserSEXML("", userDocName, [&target](Rococo::Sex::SEXML::ISEXMLBuilder& builder)
+		Rococo::OS::SaveUserSEXML("", userDocName, true, [&target](Rococo::Sex::SEXML::ISEXMLBuilder& builder)
 			{				
 				Rococo::SEXML::Impl::SXMLBuilderVisitor visitor(builder);
 				target.Visit(visitor);

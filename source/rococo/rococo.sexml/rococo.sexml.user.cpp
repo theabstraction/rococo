@@ -117,7 +117,7 @@ namespace Rococo::OS
 		onLoad.Invoke(*root);
 	}
 
-	ROCOCO_SEXML_API void SaveUserSEXML(cstr organization, cstr section, Function<void(ISEXMLBuilder& builder)> onBuild)
+	ROCOCO_SEXML_API void SaveUserSEXML(cstr organization, cstr section, bool isCompact, Function<void(ISEXMLBuilder& builder)> onBuild)
 	{
 		if (section == nullptr || *section == 0)
 		{
@@ -138,7 +138,7 @@ namespace Rococo::OS
 		Rococo::Strings::Format(wDir, _RW_TEXT("%hs\\%hs.sexml"), organization, section);
 
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
-		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);
+		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), isCompact);
 
 		try
 		{
@@ -269,10 +269,10 @@ namespace Rococo::OS
 		LoadSXMLBySysPath(wPath, onLoad);
 	}
 
-	ROCOCO_SEXML_API void SaveSXMLBySysPath(crwstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(crwstr filename, bool isCompact, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
 	{
 		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
-		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), false);
+		AutoFree<ISEXMLBuilder> pBuilder = CreateSEXMLBuilder(dsb->Builder(), isCompact);
 
 		try
 		{
@@ -287,10 +287,10 @@ namespace Rococo::OS
 		IO::SaveAsciiTextFile(IO::TargetDirectory_Root, filename, *dsb->Builder());
 	}
 
-	ROCOCO_SEXML_API void SaveSXMLBySysPath(cstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(cstr filename, bool isCompact, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild)
 	{
 		WideFilePath wPath;
 		Assign(wPath, filename);
-		SaveSXMLBySysPath(wPath, onBuild);
+		SaveSXMLBySysPath(wPath, isCompact, onBuild);
 	}
 }

@@ -38,7 +38,7 @@ namespace Rococo::SexyStudio
 	{
 		virtual cstr GetPackage(size_t index) const = 0;
 		virtual cstr GetProjectPath() const = 0;
-		
+		virtual crwstr ConfigPath() const = 0;
 		virtual void SetSearchPathActivity(size_t index, bool isActive) = 0;
 	};
 

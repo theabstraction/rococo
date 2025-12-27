@@ -159,7 +159,7 @@ namespace Rococo::CFGS
 
 		void SaveCosmetics()
 		{
-			OS::SaveUserSEXML(nullptr, "cfgs.sexy.cosmetics",
+			OS::SaveUserSEXML(nullptr, "cfgs.sexy.cosmetics", true,
 				[this](ISEXMLBuilder& builder)
 				{
 					builder.AddDirective("Header");

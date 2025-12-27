@@ -66,10 +66,15 @@ namespace Rococo::SexyStudio
 
 	void PopulateTreeWithSXYFiles_Protected(IGuiTree& tree, ISexyDatabase& database, IDBProgress& progress, ISourceTree& sourceTree, ID_TREE_ITEM hRoot)
 	{
-		struct ANON : IEventCallback<IO::FileItemData>
+		struct FileCounterWithProgress : IEventCallback<IO::FileItemData>
 		{
 			float count = 0;
 			IDBProgress* progress;
+
+			IEventCallback<IO::FileItemData>& Advance()
+			{
+				return *this;
+			}
 
 			void OnEvent(IO::FileItemData& item) override
 			{
@@ -81,11 +86,36 @@ namespace Rococo::SexyStudio
 				}
 				count += 1.0f;
 			}
-		} incFileCounter;
+		} fileCounter;
 
-		incFileCounter.progress = &progress;
+		fileCounter.progress = &progress;
 
-		struct ANONCOUNTER : IEventCallback<IO::FileItemData>
+
+		for (size_t i = 0;; i++)
+		{
+			auto atom = database.Config().GetSearchPath(i);
+			if (!atom.pingPath)
+			{
+				break;
+			}
+
+			if (!atom.isActive)
+			{
+				continue;
+			}
+
+			U8FilePath sysPath;
+			database.PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
+
+			if (Rococo::IO::IsDirectory(sysPath))
+			{
+				WideFilePath wPath;
+				Assign(wPath, sysPath);
+				Rococo::IO::ForEachFileInDirectory(wPath, fileCounter.Advance(), true, nullptr);
+			}
+		}
+
+		struct DatabaseViewBuilder : IEventCallback<IO::FileItemData>
 		{
 			IGuiTree* tree;
 			ISexyDatabase* database;
@@ -93,6 +123,11 @@ namespace Rococo::SexyStudio
 			ISourceTree* sourceTree;
 			float totalCount = 0;
 			float count = 0;
+
+			IEventCallback<IO::FileItemData>& AppendFile()
+			{
+				return *this;
+			}
 
 			void OnEvent(IO::FileItemData& item) override
 			{
@@ -144,37 +179,13 @@ namespace Rococo::SexyStudio
 
 				item.outContext = (void*)idItem;
 			}
-		} cb;
+		} databaseViewBuilder;
 
-		cb.tree = &tree;
-		cb.database = &database;
-		cb.progress = &progress;
-		cb.sourceTree = &sourceTree;
-
-		for (size_t i = 0;; i++)
-		{
-			auto atom = database.Config().GetSearchPath(i);
-			if (!atom.pingPath)
-			{
-				break;
-			}
-
-			if (!atom.isActive)
-			{
-				continue;
-			}
-
-			U8FilePath sysPath;
-			database.PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
-
-			if (Rococo::IO::IsDirectory(sysPath))
-			{
-				WideFilePath wPath;
-				Assign(wPath, sysPath);
-				Rococo::IO::ForEachFileInDirectory(wPath, incFileCounter, true, nullptr);
-				cb.totalCount = incFileCounter.count;
-			}
-		}
+		databaseViewBuilder.tree = &tree;
+		databaseViewBuilder.database = &database;
+		databaseViewBuilder.progress = &progress;
+		databaseViewBuilder.sourceTree = &sourceTree;
+		databaseViewBuilder.totalCount = fileCounter.count;
 
 		for (size_t i = 0;; i++)
 		{
@@ -199,7 +210,7 @@ namespace Rococo::SexyStudio
 			{
 				WideFilePath wPath;
 				Assign(wPath, sysPath);
-				Rococo::IO::ForEachFileInDirectory(wPath, cb, true, (void*)hSearchPath);
+				Rococo::IO::ForEachFileInDirectory(wPath, databaseViewBuilder.AppendFile(), true, (void*)hSearchPath);
 			}
 			else
 			{
@@ -302,17 +313,19 @@ struct SearchPathDesc
 	bool isActive;
 };
 
-struct FactoryConfig: IFactoryConfig
+struct DefaulConfig: IFactoryConfig
 {
 	int searchPathHeight = 240;
 	int packageViewFontHeight = -13;
 	int searchViewFontHeight = -13;
 
-	U8FilePath fileName;
-
-	FactoryConfig()
+	DefaulConfig()
 	{
-		Rococo::OS::GetUserSEXMLFullPath(fileName, nullptr, "sexystudio.config");
+	}
+
+	crwstr ConfigPath() const
+	{
+		return nullptr;
 	}
 
 	SearchPathDescAtom GetSearchPath(size_t index) const override
@@ -340,7 +353,7 @@ struct FactoryConfig: IFactoryConfig
 
 	void CreateLayoutFile()
 	{
-		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.layout",
+		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.layout", true,
 			[this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 			{
 				sb.AddDirective("PropertySheets");
@@ -469,7 +482,7 @@ class PropertySheets: IObserver, IGuiTreeRenderer, IGuiTreeEvents, ISourceChange
 {
 private:
 	WidgetContext wc;
-	FactoryConfig& config;
+	DefaulConfig& config;
 	IIDEFrame& ideFrame;
 	ISexyDatabaseSet& databaseSet;
 	AutoFree<ISourceTree> idToSourceMap = CreateSourceTree();
@@ -667,7 +680,7 @@ private:
 		SyncContent();
 	}
 public:
-	PropertySheets(FactoryConfig& _config, ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabaseSet& _databaseSet):
+	PropertySheets(DefaulConfig& _config, ISplitScreen& screen, IIDEFrame& _ideFrame, ISexyDatabaseSet& _databaseSet):
 		wc(screen.Children()->Context()),
 		config(_config),
 		ideFrame(_ideFrame),
@@ -872,7 +885,7 @@ class SexyExplorer: IObserver, IGuiTreeEvents
 {
 private:
 	WidgetContext wc;
-	FactoryConfig& config;
+	DefaulConfig& config;
 	ISplitScreen& screen;
 	ISexyDatabaseSet& databaseSet;
 	IGuiTree* classTree;
@@ -1810,7 +1823,7 @@ private:
 	IAsciiStringEditor* searchEditor = nullptr;
 	IFloatingListWidget* searchResults = nullptr;
 public:
-	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabaseSet& _databaseSet, ISexyStudioEventHandler& _eventHandler, FactoryConfig& _config) : 
+	SexyExplorer(WidgetContext _wc, ISplitScreen& _screen, ISexyDatabaseSet& _databaseSet, ISexyStudioEventHandler& _eventHandler, DefaulConfig& _config) : 
 		wc(_wc), config(_config), screen(_screen), databaseSet(_databaseSet), eventHandler(_eventHandler)
 	{
 		screen.SetBackgroundColour(RGBAb(128, 128, 192));
@@ -1892,12 +1905,15 @@ struct Factory;
 
 void ShowPreviewPopup(IWindow& hParent, const char* token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler);
 
+const fstring sexyStudioDefaults = "SexyStudio.Defaults"_fstring;
+const fstring configDefaultFullName = "Config.Default.FullName"_fstring;
+
 struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI, ISexyStudioCompletionGaffer
 {
 	Factory& host;
 	AutoFree<IPublisherSupervisor> publisher;
 	AutoFree<ISexyDatabaseSupervisor> blankDatabase;
-	FactoryConfig& config;
+	DefaulConfig& config;
 	Font smallCaptionFont;
 	WidgetContext context;
 	AutoFree<ITheme> theme;
@@ -2267,7 +2283,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		return  (currentProjectIndex == -1) ? *blankDatabase : *projects[currentProjectIndex]->database;
 	}
 
-	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, FactoryConfig& _config, Factory& _host) :
+	SexyStudioIDE(IWindow& topLevelWindow, ISexyStudioEventHandler& evHandler, DefaulConfig& _config, Factory& _host) :
 		host(_host),
 		config(_config),
 		publisher(Rococo::Events::CreatePublisher()),
@@ -2277,6 +2293,36 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		theme{ UseNamedTheme("Classic", context.publisher) },
 		eventHandler(evHandler)
 	{
+		try
+		{
+			Rococo::OS::LoadUserSEXML(nullptr, sexyStudioDefaults,
+				[this](const Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)
+				{
+					size_t index = 0;
+					auto* directive = FindDirective(topLevelDirectives, sexyStudioDefaults, REF index);
+					if (directive)
+					{
+						auto& aDefaultConfigFile = (*directive)[configDefaultFullName];
+						cstr defaultConfigFile = AsString(aDefaultConfigFile).c_str();
+
+						U8FilePath container;
+						Assign(container, defaultConfigFile);
+						IO::ToSysPath(container.buf);
+
+						if (EndsWith(defaultConfigFile, "\\sexystudio.config.sexml") && IO::IsFileExistant(defaultConfigFile))
+						{
+							IO::MakeContainerDirectory(container.buf);
+							SetConfigDirectory(container.buf);
+						}
+					}
+				}
+			);
+		}
+		catch (...)
+		{
+
+		}
+
 		ide = CreateMainIDEFrame(context, topLevelWindow, evHandler);
 		Widgets::SetText(*ide, "Sexy Studio");
 
@@ -2908,6 +2954,11 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		}
 
+		crwstr ConfigPath() const
+		{
+			return configPath.c_str();
+		}
+
 		Project(const char* sexyStudioConfigSexml)
 		{
 			WideFilePath wPath;
@@ -3018,7 +3069,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			try
 			{
 				crwstr wConfigPath = configPath.c_str();
-				Rococo::OS::SaveSXMLBySysPath(wConfigPath,
+				Rococo::OS::SaveSXMLBySysPath(wConfigPath, true,
 					[this, wConfigPath](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 					{
 						sb.AddDirective("Directories");
@@ -3683,7 +3734,7 @@ const char* const URL_factory = "Rococo.SexyStudio.ISexyStudioFactory1";
 
 struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 {
-	FactoryConfig config;
+	DefaulConfig config;
 	int refCount = 1;
 
 	Factory()
@@ -3750,6 +3801,29 @@ struct Factory: Rococo::SexyStudio::ISexyStudioFactory1
 
 SexyStudioIDE::~SexyStudioIDE()
 {
+	try
+	{
+		crwstr configPath = GetDatabase().Config().ConfigPath();
+		if (configPath)
+		{
+			U8FilePath u8Path;
+			Assign(u8Path, configPath);
+
+			Rococo::OS::SaveUserSEXML(nullptr, sexyStudioDefaults, true, 
+				[this, &u8Path](Sex::SEXML::ISEXMLBuilder& builder)
+				{
+					builder.AddDirective(sexyStudioDefaults);
+						builder.AddStringLiteral(configDefaultFullName, u8Path);
+					builder.CloseDirective();
+				}
+			);
+		}
+	}
+	catch (...)
+	{
+
+	}
+
 	delete explorer;
 	delete sheets;
 
