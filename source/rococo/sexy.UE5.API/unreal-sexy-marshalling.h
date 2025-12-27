@@ -157,7 +157,7 @@ namespace Rococo::UE::Native
 	}
 }
 
-namespace Rococo::UE5::Marshal
+namespace Rococo::UE::Marshal
 {
 	UClass& GetStaticClassRef(crwstr fullPath);
 	int64 ConstructUObject(Rococo::Script::NativeCallEnvironment& e);

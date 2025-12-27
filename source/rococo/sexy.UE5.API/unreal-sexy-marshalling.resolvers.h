@@ -4,7 +4,7 @@ class UObject;
 class UClass;
 class UFunction;
 
-namespace Rococo::UE5::Marshal::Resolver
+namespace Rococo::UE::Marshal::Resolver
 {
 	enum class EMessageLevel
 	{

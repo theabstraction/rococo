@@ -15,7 +15,7 @@ class UIKRigDefinition;
 #include <stdio.h>
 #include <vector>
 
-namespace Rococo::UE5::Marshal
+namespace Rococo::UE::Marshal
 {
 	struct MarshalException : IException
 	{
@@ -329,11 +329,11 @@ namespace Rococo::UE
 	}
 }
 
-namespace Rococo::UE5::Marshal::Resolver
+namespace Rococo::UE::Marshal::Resolver
 {
 	[[noreturn]] void ThrowResolver(cstr filename, int lineNumber, cstr functionName)
 	{
-		ThrowException("Rococo::UE5::Marshal::Resolver::SetReflectionResolver must be invoked first in call to %s from %s line %d", functionName, filename, lineNumber);
+		ThrowException("Rococo::UE::Marshal::Resolver::SetReflectionResolver must be invoked first in call to %s from %s line %d", functionName, filename, lineNumber);
 	}
 
 	struct UndefinedResolver : IResolver
@@ -439,7 +439,7 @@ namespace Rococo::UE5::Marshal::Resolver
 	}
 }
 
-namespace Rococo::UE5::Marshal
+namespace Rococo::UE::Marshal
 {
 	int64 ConstructUObject(Rococo::Script::NativeCallEnvironment& e)
 	{

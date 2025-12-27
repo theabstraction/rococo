@@ -550,7 +550,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
 
-            string cmdLine = string.Format(@"-UnityBuild -SEXML:{0}\..\Rococo.Reflect\S-API\all-classes.sexml -OUTDIR:{1}rococo\sexy.UE5.API\", Roots.RococoRootPath, Roots.RococoSourcePath);
+            string cmdLine = string.Format(@"-UnityBuild -SEXML:{0}\..\Rococo.Reflect\S-API\all-classes.sexml -OUTDIR:{1}sexy.UE5.API\", Roots.RococoRootPath, Roots.RococoSourcePath);
             conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
             conf.VcxprojUserFile.LocalDebuggerCommandArguments = cmdLine;
         }

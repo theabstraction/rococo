@@ -88,6 +88,7 @@ namespace Rococo::Unreal
 	ROCOCO_INTERFACE IMarshalType
 	{
 		virtual cstr CPPName() const = 0;
+		virtual cstr SXYName() const = 0;
 	};
 
 	ROCOCO_INTERFACE IClassSystem

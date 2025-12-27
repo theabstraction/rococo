@@ -259,6 +259,11 @@ struct MarshalType_Int32: IMarshalType
 	{
 		return "int32";
 	}
+
+	cstr SXYName() const override
+	{
+		return "Int32";
+	}
 } s_mt_Int32;
 
 struct MarshalType_Int64 : IMarshalType
@@ -266,6 +271,11 @@ struct MarshalType_Int64 : IMarshalType
 	cstr CPPName() const override
 	{
 		return "int64";
+	}
+
+	cstr SXYName() const override
+	{
+		return "Int64";
 	}
 } s_mt_Int64;
 
@@ -275,6 +285,11 @@ struct MarshalType_float : IMarshalType
 	{
 		return "float";
 	}
+
+	cstr SXYName() const override
+	{
+		return "Float32";
+	}
 } s_mt_float;
 
 struct MarshalType_double : IMarshalType
@@ -282,6 +297,11 @@ struct MarshalType_double : IMarshalType
 	cstr CPPName() const override
 	{
 		return "double";
+	}
+
+	cstr SXYName() const override
+	{
+		return "Float64";
 	}
 } s_mt_double;
 
@@ -291,6 +311,11 @@ struct MarshalType_bool : IMarshalType
 	{
 		return "bool";
 	}
+
+	cstr SXYName() const override
+	{
+		return "Bool";
+	}
 } s_mt_bool;
 
 struct MarshalType_FString : IMarshalType
@@ -298,6 +323,11 @@ struct MarshalType_FString : IMarshalType
 	cstr CPPName() const override
 	{
 		return "R_FString";
+	}
+
+	cstr SXYName() const override
+	{
+		return "IString";
 	}
 } s_mt_FString;
 
@@ -307,6 +337,11 @@ struct MarshalType_FName : IMarshalType
 	{
 		return "R_FName";
 	}
+
+	cstr SXYName() const override
+	{
+		return "FName";
+	}
 } s_mt_FName;
 
 struct MarshalType_FText : IMarshalType
@@ -314,6 +349,11 @@ struct MarshalType_FText : IMarshalType
 	cstr CPPName() const override
 	{
 		return "R_FText";
+	}
+
+	cstr SXYName() const override
+	{
+		return "FText";
 	}
 } s_mt_FText;
 

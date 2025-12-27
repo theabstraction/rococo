@@ -243,25 +243,133 @@ bool TryGetEnumAsByte(char* innerType, size_t capacity, cstr argType)
 
 int FindDelegateSize(cstr name);
 
-void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType)
+void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 {
 	if (EndsWith(argType, "^"))
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_Private(sb, valueType, makeSexyVariableType);
+		AppendNonContainerType_SXY_Private(sb, valueType);
 		return;
 	}
 
 	if (*argType == 'U' && EndsWith(argType, "*"))
 	{
-		MarshalNameTypeAsHandle(sb, argType, makeSexyVariableType);
+		MarshalNameTypeAsHandle(sb, argType, true);
 		return;
 	}
 
 	if (*argType == 'A' && EndsWith(argType, "*"))
 	{
-		MarshalNameTypeAsHandle(sb, argType, makeSexyVariableType);
+		MarshalNameTypeAsHandle(sb, argType, true);
+		return;
+	}
+
+	auto* primitive = FindPrimitiveType(argType);
+	if (primitive)
+	{
+		sb << primitive->SXYName();
+		return;
+	}
+
+	auto* enumType = FindEnum(argType);
+	if (enumType)
+	{
+		sb << "R_" << enumType->Name();
+		return;
+	}
+
+	int delegateSize = FindDelegateSize(argType);
+	if (delegateSize)
+	{
+		sb << argType;
+		return;
+	}
+
+	char innerType[256];
+	if (TryGetEnumAsByte(innerType, sizeof innerType, argType))
+	{
+		auto* enumRef = FindEnum(innerType);
+		if (!enumRef)
+		{
+			Throw(0, "Could not find inner type %s", innerType);
+		}
+		sb.AppendFormat("R_TEnumAsByte<R_%s>", enumRef->Name());
+		return;
+	}
+
+	if (*argType == 'F')
+	{
+		auto* structType = FindStruct(argType + 1);
+		if (structType)
+		{
+			sb << argType;
+			return;
+		}
+	}
+
+	if (StartsWith(argType, softObjectPtrPrefix))
+	{
+		cstr endToken = FindChar(argType, '>');
+		cstr startToken = argType + softObjectPtrPrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		sb.AppendFormat("R_TSoftObjectPtr<%s>", innerType);
+		return;
+	}
+
+	if (StartsWith(argType, subclassOfPrefix))
+	{
+		cstr endToken = FindChar(argType, '>');
+		cstr startToken = argType + subclassOfPrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		sb.AppendFormat("R_TSubclassOf<%s>", innerType);
+		return;
+	}
+
+	if (StartsWith(argType, scriptInterfacePrefix))
+	{
+		cstr endToken = FindChar(argType, '>');
+		cstr startToken = argType + scriptInterfacePrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		sb.AppendFormat("R_TScriptInterface<%s>", innerType);
+		return;
+	}
+
+	if (StartsWith(argType, objectPtrPrefix))
+	{
+		cstr endToken = FindChar(argType, '>');
+		cstr startToken = argType + objectPtrPrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		sb.AppendFormat("R_TObjectPtr<%s>", innerType);
+		return;
+	}
+
+	MarkUnknown(argType);
+
+	sb << "UnknownType /*";
+	AppendTypeSansRef(sb, argType);
+	sb << "*/";
+}
+
+void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType)
+{
+	if (EndsWith(argType, "^"))
+	{
+		char valueType[256];
+		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
+		AppendNonContainerType_CPP_Private(sb, valueType);
+		return;
+	}
+
+	if (*argType == 'U' && EndsWith(argType, "*"))
+	{
+		MarshalNameTypeAsHandle(sb, argType, false);
+		return;
+	}
+
+	if (*argType == 'A' && EndsWith(argType, "*"))
+	{
+		MarshalNameTypeAsHandle(sb, argType, false);
 		return;
 	}
 
@@ -349,6 +457,18 @@ void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSe
 	sb << "UnknownType /*";
 	AppendTypeSansRef(sb, argType);
 	sb << "*/";
+}
+
+void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType)
+{
+	if (makeSexyVariableType)
+	{
+		AppendNonContainerType_SXY_Private(sb, argType);
+	}
+	else
+	{
+		AppendNonContainerType_CPP_Private(sb, argType);
+	}
 }
 
 void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType)
@@ -880,7 +1000,7 @@ using namespace Rococo::UE::Native;
 using namespace Rococo::UE::Native::Delegate;
 using namespace Rococo::UE::Native::Enum;
 using namespace Rococo::UE::Native::Struct;
-using namespace Rococo::UE5::Marshal;
+using namespace Rococo::UE::Marshal;
 
 namespace 
 {
@@ -969,7 +1089,7 @@ namespace
 
 		BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
 
-		sb << " (int64 objectHandle)";
+		sb << " (Int64 objectHandle)";
 
 		if (!inputs.empty())
 		{
@@ -1435,6 +1555,15 @@ namespace Rococo::UE::Native
 	sb << "}\n";
 }
 
+void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg)
+{
+	sb << "(";
+	AppendType(sb, arg, true);
+	sb << " ";
+	arg.AppendName(sb, true);
+	sb << ")";
+}
+
 void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 {
 	sb << "(using UE.Native.";
@@ -1448,7 +1577,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 	sb << ".I";
 	AppendNameAsSxyType(sb, classRef);
 	sb << ")\n";
-	sb << "\t(int64 objectHandle)\n";
+	sb << "\t(Int64 objectHandle)\n";
 	sb << ")\n\n";
 
 	sb << "(factory UE.";
@@ -1503,22 +1632,14 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 
 		for (auto* input : inputs)
 		{
-			sb << "(";
-			AppendType(sb, *input, true);
-			sb << " ";
-			input->AppendName(sb, true);
-			sb << ")";
+			AppendUnrealArgAsSexyPair(sb, *input);
 		}
 
 		sb << " -> ";
 
 		for (auto* output : outputs)
 		{
-			sb << "(";
-			AppendType(sb, *output, true);
-			sb << " ";
-			output->AppendName(sb, true);
-			sb << ")";
+			AppendUnrealArgAsSexyPair(sb, *output);
 		}
 
 		sb << ":\n";
