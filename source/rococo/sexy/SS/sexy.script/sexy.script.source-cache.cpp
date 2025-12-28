@@ -596,7 +596,7 @@ namespace Rococo
 
 	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
 	{
-		ScriptCompileArgs args{ ss };
+		ScriptCompileArgs args{ ss, mainModule };
 		onCompile.OnCompile(args);
 
 		sources.RegisterPackages(ss);

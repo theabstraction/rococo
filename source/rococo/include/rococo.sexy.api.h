@@ -93,6 +93,7 @@ namespace Rococo
 	struct ScriptCompileArgs
 	{
 		Rococo::Script::IPublicScriptSystem& ss;
+		Rococo::Sex::ISParserTree& mainTree;
 	};
 
 	struct ScriptPerformanceStats

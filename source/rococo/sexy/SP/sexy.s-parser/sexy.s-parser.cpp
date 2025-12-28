@@ -142,7 +142,7 @@ namespace Rococo
 	{
 		using namespace Rococo::IO;
 
-		bool IsToken(cr_sex s, cstr text)
+		SEXY_SPARSER_API bool IsToken(cr_sex s, cstr text)
 		{
 			return IsAtomic(s) && AreEqual(s.String(), text);
 		}

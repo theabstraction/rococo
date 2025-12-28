@@ -626,6 +626,30 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
 {
 	cstr className = classRef.ShortName();
+
+	char curtailedClassName[256];
+
+	// Often we have a class definition in which the package and name look like this: /Fruit/Apple Apple_C
+	// We could create a namespace Fruit.Apple with class AppleC, but it looks more user-friendly to have namespace Fruit with class Apple
+	// So if the trailing subpspace of the namespace matches the class sans _C, convert to this user-friendly representation
+	if (EndsWith(className, "_C"))
+	{
+		Substring viewClassName = Substring::ToSubstring(className);
+		viewClassName.finish -= 2;
+
+		Substring viewPackage = Substring::ToSubstring(classRef.PackageName());
+
+		cstr finalSlash = ReverseFind('/', viewPackage);
+		if (finalSlash)
+		{
+			Substring packageTrailer{ finalSlash + 1, viewPackage.finish };
+			if (Eq(viewClassName, packageTrailer.start))
+			{
+				viewClassName.CopyWithTruncate(curtailedClassName, sizeof curtailedClassName);
+				className = curtailedClassName;
+			}
+		}
+	}
 	
 	char firstChar = *className++;
 
@@ -688,6 +712,32 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 {
 	// Example /Engine/AI/
 	cstr packageName = classRef.PackageName();
+	cstr className = classRef.ShortName();
+
+	char curtailedPackageName[256];
+	// Often we have a class definition in which the package and name look like this: /Fruit/Apple Apple_C
+	// We could create a namespace Fruit.Apple with class AppleC, but it looks more user-friendly to have namespace Fruit with class Apple
+	// So if the trailing subpspace of the namespace matches the class sans _C, convert to this user-friendly representation
+	if (EndsWith(className, "_C"))
+	{
+		Substring viewClassName = Substring::ToSubstring(className);
+		viewClassName.finish -= 2;
+
+		Substring viewPackage = Substring::ToSubstring(classRef.PackageName());
+
+		cstr finalSlash = ReverseFind('/', viewPackage);
+		if (finalSlash)
+		{
+			Substring packageTrailer{ finalSlash + 1, viewPackage.finish };
+			if (Eq(viewClassName, packageTrailer.start))
+			{
+				Substring packageRoot{ packageName, finalSlash };
+				packageRoot.CopyWithTruncate(curtailedPackageName, sizeof curtailedPackageName);
+				packageName = curtailedPackageName;
+			}
+		}
+	}
+
 	if (*packageName == '/')
 	{
 		packageName++;
@@ -1622,7 +1672,10 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 	char sexyNs[256];
 	GetPackageNameAsSxyType(sexyNs, sizeof sexyNs, classRef);
 
-	sb << "(using UE.Native." << sexyNs;
+	sb << "(namespace UE." << sexyNs;
+	sb << ")\n\n";
+
+	sb << "(using UE." << sexyNs;
 	sb << ")\n\n";
 
 	sb << "(class " << sxyName;
@@ -1651,7 +1704,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 	sb << "\n(method ";
 	sb << sxyName;
 	sb << ".Construct :\n";
-	sb << "\t(Construct";
+	sb << "\t(Native." << sxyName << ".Construct";
 	sb << sxyName;
 	sb << " -> this.ObjectHandle)\n";
 	sb << ")\n";
@@ -1687,7 +1740,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 
 		sb << ":\n";
 
-		sb << "\t(";
+		sb << "\t(Native." << sxyName << ".";
 
 		method.AppendFunctionName(sb);
 

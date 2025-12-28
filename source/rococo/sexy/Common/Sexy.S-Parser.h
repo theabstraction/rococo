@@ -79,7 +79,7 @@ namespace Rococo::Sex
 		return s.Type() == EXPRESSION_TYPE_NULL;
 	}
 
-	bool IsToken(cr_sex s, cstr text);
+	SEXY_SPARSER_API bool IsToken(cr_sex s, cstr text);
 
 	class ParseException: public IException
 	{
