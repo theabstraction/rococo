@@ -98,5 +98,5 @@ namespace Rococo::Unreal
 		virtual void Free() = 0;
 	};
 
-	IClassSystem* CreateClassSystem(crwstr outputDirectory);
+	IClassSystem* CreateClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory);
 }

@@ -65,13 +65,13 @@ void AddCppFileName(crwstr filename)
 	allCppFileNames.push_back(newFilename);
 }
 
-void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory)
+void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutputDirectory)
 {
 	WideFilePath nativeDirectory;
 	Format(nativeDirectory, L"%snatives\\", outputDirectory);
 
-	WideFilePath sexyDirectory;
-	Format(sexyDirectory, L"%ssexy-files\\", outputDirectory);
+	WideFilePath sexyScriptsDirectory;
+	Format(sexyScriptsDirectory, L"%s", sxyOutputDirectory);
 
 	cstr shortName = classDef.ShortName();
 	cstr packageName = UsePackageForFolders ? classDef.PackageName() : "";
@@ -99,18 +99,18 @@ void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory)
 	auto& sbSXY = dsbSXY->Builder();
 
 	WideFilePath wTargetCPPFile;
-	Format(wTargetCPPFile, L"%ls%hs%s%hs.cpp", nativeDirectory, packageName, slash, shortName);
+	Format(wTargetCPPFile, L"%ls%hs%hs%hs.cpp", nativeDirectory.buf, packageName, slash, shortName);
 
 	AddCppFileName(wTargetCPPFile);
 
 	IO::ToSysPath(wTargetCPPFile.buf);
 
 	WideFilePath wTargetHPPFile;
-	Format(wTargetHPPFile, L"%ls%hs%s%hs.hpp", nativeDirectory, packageName, slash, shortName);
+	Format(wTargetHPPFile, L"%ls%hs%hs%hs.hpp", nativeDirectory.buf, packageName, slash, shortName);
 	IO::ToSysPath(wTargetHPPFile.buf);
 
 	WideFilePath wTargetSXYFile;
-	Format(wTargetSXYFile, L"%ls%hs%s%hs.sxy", sexyDirectory, packageName, slash, shortName);
+	Format(wTargetSXYFile, L"%lsclasses\\%hs%hs%hs.sxy", sexyScriptsDirectory.buf, packageName, slash, shortName);
 	IO::ToSysPath(wTargetSXYFile.buf);
 
 	BuildSexyNativesCPP(classDef, sbCPP);
@@ -2007,6 +2007,7 @@ namespace Rococo::Unreal
 	struct ClassSystem: public IClassSystem
 	{		
 		WideFilePath wNativeDirectory;
+		WideFilePath wSxyDirectory;
 
 		struct ClassRep
 		{
@@ -2017,9 +2018,10 @@ namespace Rococo::Unreal
 
 		std::vector<ClassRep> classes;
 
-		ClassSystem(crwstr outputDirectory)
+		ClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory)
 		{
 			Format(wNativeDirectory, L"%snatives\\", outputDirectory);
+			Format(wSxyDirectory, L"%sclasses\\", sxyOutputDirectory);
 		}
 
 		void CommitHeader()
@@ -2176,8 +2178,8 @@ namespace Rococo::Unreal
 		}
 	};
 
-	IClassSystem* CreateClassSystem(crwstr outputDirectory)
+	IClassSystem* CreateClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory)
 	{
-		return new ClassSystem(outputDirectory);
+		return new ClassSystem(outputDirectory, sxyOutputDirectory);
 	}
 }

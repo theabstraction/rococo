@@ -32,6 +32,7 @@ void ParseClassTree(cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 crwstr GetOutputDirectory();
+crwstr GetSxyOutputDirectory();
 
 int FindDelegateSize(cstr name)
 {
@@ -205,7 +206,7 @@ void ParseClassTree(cr_sex sRoot)
 
 	printf("\nProcessing %d UClasses", classCount);
 
-	AutoFree<IClassSystem> classSystem = CreateClassSystem(GetOutputDirectory());
+	AutoFree<IClassSystem> classSystem = CreateClassSystem(GetOutputDirectory(), GetSxyOutputDirectory());
 
 	classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
@@ -1446,13 +1447,13 @@ struct UnrealClassDef : IUnrealClass
 	}
 };
 
-void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory);
+void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory);
 
 void ParseClassDef(cr_sex sDef, IClassSystem& classSystem)
 {
 	UnrealClassDef* def = new UnrealClassDef(sDef);
 	classSystem.AddClass(*def);
-	GenClassDef(*def, GetOutputDirectory());
+	GenClassDef(*def, GetOutputDirectory(), GetSxyOutputDirectory());
 
 	allClasses.push_back(def);
 
@@ -1470,10 +1471,16 @@ void ParseClassDef(cr_sex sDef, IClassSystem& classSystem)
 }
 
 WideFilePath g_outDir;
+WideFilePath g_sxyOutDir;
 
 crwstr GetOutputDirectory()
 {
 	return g_outDir;
+}
+
+crwstr GetSxyOutputDirectory()
+{
+	return g_sxyOutDir;
 }
 
 int mainProtected(int argc, char* argv[])
@@ -1481,11 +1488,18 @@ int mainProtected(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> allocator = Rococo::Memory::CreateBlockAllocator(32768, 0, "main");
 	Auto<ISParser> sParser = CreateSexParser_2_0(*allocator, SEXY_STANDARD_MAX_ATOMIC_STRING_LENGTH);
 
+	// This is the input
 	fstring sexml = "-SEXML:"_fstring;
+
+	// This is where the .cpp and .hpp go
 	fstring output = "-OUTDIR:"_fstring;
+
+	// This is where the .sxy files go
+	fstring sxyOutput = "-SXYOUTDIR:"_fstring;
 
 	cstr sexmlFile = nullptr;
 	cstr outDir = nullptr;
+	cstr sxyOutDir = nullptr;
 
 	for (int i = 0; i < argc; i++)
 	{
@@ -1500,15 +1514,20 @@ int mainProtected(int argc, char* argv[])
 			outDir = arg + output.length;
 		}
 
+		if (StartsWith(arg, sxyOutput))
+		{
+			sxyOutDir = arg + sxyOutput.length;
+		}
+
 		if (EqI(arg, "-UnityBuild"))
 		{
 			g_unityBuild = true;
 		}
 	}
 
-	if (sexmlFile == nullptr || outDir == nullptr)
+	if (sexmlFile == nullptr || outDir == nullptr || sxyOutDir == nullptr)
 	{
-		printf("Usage: unreal-sexy-gen.exe -SEXML:<sexml-file-path-and-filename> -OUTDIR:<output-directory>\n");
+		printf("Usage: unreal-sexy-gen.exe -SEXML:<sexml-file-path-and-filename> -OUTDIR:<output-directory> -SXYOUTDIR:<sxy-output-directory>\n");
 		return -1;
 	}
 
@@ -1517,6 +1536,14 @@ int mainProtected(int argc, char* argv[])
 	if (!Rococo::IO::IsDirectory(g_outDir.buf))
 	{
 		printf("%ws does not appear to be a directory", g_outDir.buf);
+		return -1;
+	}
+
+	Format(g_sxyOutDir, L"%hs%hs", sxyOutDir, EndsWith(sxyOutDir, "\\") ? "" : "\\");
+
+	if (!Rococo::IO::IsDirectory(g_sxyOutDir.buf))
+	{
+		printf("%ws does not appear to be a directory", g_sxyOutDir.buf);
 		return -1;
 	}
 
