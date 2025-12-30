@@ -31,6 +31,17 @@ namespace Rococo
             }
         }
 
+        // This gives the root of the Rococo.Reflect project. Rather than put it in the rococo directory, it is made a sibling and given its own repo
+        // Ultimately FAB requires self-contained repos, and we can't sell the rococo directory through the FAB website since it does not confirm to FAB's directory specification
+        // Ergo we have a synchronized subset of Rococo as part of Rococo.Reflect's third-party plugin directories
+        public static string RococoReflectPath
+        {
+            get
+            {
+                return Path.Combine(Roots.RococoRootPath, @"..\Rococo.Reflect\");
+            }
+        }
+
         public static string RococoProjectPath
         {
             get
@@ -550,7 +561,9 @@ namespace Rococo
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
 
-            string cmdLine = string.Format(@"-UnityBuild -SEXML:{0}\..\Rococo.Reflect\S-API\all-classes.sexml -OUTDIR:{1}sexy.UE5.API\  -SXYOUTDIR:{1}sexy.UE5.API\sexy-files", Roots.RococoRootPath, Roots.RococoSourcePath);
+            string sexyFileDir = string.Format(@"{0}RococoUE5SexportTest\Content\rococo-content\scripts\native", Roots.RococoReflectPath);
+
+            string cmdLine = string.Format(@"-UnityBuild -SEXML:{0}\..\Rococo.Reflect\S-API\all-classes.sexml -OUTDIR:{1}\source\rococo\sexy.UE5.API\ -SXYOUTDIR:{2}", Roots.RococoRootPath, Roots.RococoRootPath, sexyFileDir);
             conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
             conf.VcxprojUserFile.LocalDebuggerCommandArguments = cmdLine;
         }
