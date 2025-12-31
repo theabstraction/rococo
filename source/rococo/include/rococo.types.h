@@ -508,6 +508,7 @@ namespace Rococo
 			d(t);
 			t = src.t;
 			src.t = nullptr;
+			return *this;
 		}
 
 		FORCE_INLINE ~AutoFree()

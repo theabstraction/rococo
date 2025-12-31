@@ -1067,6 +1067,8 @@ namespace Rococo::Script
 		int numberOfNativeSources = 4;
 
 		IScriptSystemFactory& ssFactory;
+
+		IScriptSystemHook* hook = nullptr;
 	public:
 		CScriptSystem(IScriptSystemFactory& _ssFactory, TMapNameToSTree& _nativeSources, const ProgramInitParameters& pip, ILog& _logger) :
 
@@ -1218,6 +1220,11 @@ namespace Rococo::Script
 		TSexyVector<Sex::ISExpressionProxy*>& SProxies()
 		{
 			return expressionProxies;
+		}
+
+		void AddCompilationHook(IScriptSystemHook* hook) override
+		{
+			this->hook = hook;
 		}
 
 		ISExpressionBuilder* CreateMacroTransform(cr_sex src) override
@@ -2307,6 +2314,11 @@ namespace Rococo::Script
 			UNUSED(declarationBuilder); // We currently does not declare anything here, the nativecall map built here is later used in PartialCompile(...)
 
 			Clear();
+
+			if (hook)
+			{
+				hook->OnBeginPartialCompilePostClear(*this);
+			}
 
 			for (auto i : nsToSecurity)
 			{

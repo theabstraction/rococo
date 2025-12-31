@@ -334,6 +334,11 @@ namespace Rococo {
 			// A method that generalized fputs
 			virtual int PutString(cstr text) = 0;
 		};
+
+		ROCOCO_INTERFACE IScriptSystemHook
+		{
+			virtual void OnBeginPartialCompilePostClear(IPublicScriptSystem& ss) = 0;
+		};
 		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
@@ -428,6 +433,9 @@ namespace Rococo {
 			virtual void ReleaseTree(Sex::ISParserTree* tree) = 0;
 			virtual void ThrowNative(int errorNumber, cstr source, cstr message) = 0;
 			virtual Sex::ISParserTree* GetSourceCode(const Compiler::IModule& module) const = 0;
+
+			// Adds a compilation hook. If one existed prior to the call, it is overwritten
+			virtual void AddCompilationHook(IScriptSystemHook* hook) = 0;
 
 			// Call this from within a C++ script function to pass the message up to the try catch block of the sexy script file.
 			// Since it is the virtual machine that has its stack corrected, and not C++, you should immediately return from the calling function after invoking this method

@@ -1693,7 +1693,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 
 	sb << ".I" << sxyName;
 
-	sb << " ()\n";
+	sb << " :\n";
 	sb << "\t(construct " << sxyName;
 	sb << ")\n";
 	sb << ")\n";
@@ -1852,14 +1852,14 @@ void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path)
 		typeName = mutedTypeName;
 	}
 
-	AutoFree<IDynamicStringBuilder> dsbHPP = CreateDynamicStringBuilder(16_kilobytes);
-	auto& sbHPP = dsbHPP->Builder();
+	char delegateBody[256];
+	StackStringBuilder sb(delegateBody, sizeof delegateBody);
 
 	WideFilePath wTargetHPPFile;
 	Format(wTargetHPPFile, L"%lsnatives\\Delegate\\%hs.hpp", path, typeName);
 	IO::ToSysPath(wTargetHPPFile.buf);
 
-	sbHPP << R"(#pragma once
+	sb << R"(#pragma once
 
 namespace Rococo::UE::Native::Delegate
 {
@@ -1869,11 +1869,11 @@ namespace Rococo::UE::Native::Delegate
 << "\t{\n"
 << "\t\t";
 
-	sbHPP.AppendFormat("char _opaque_data[%d];\n", sizeInBytes);
+	sb.AppendFormat("char _opaque_data[%d];\n", sizeInBytes);
 
-	sbHPP << "\t};\n}\n";
+	sb << "\t};\n}\n";
 
-	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sb);
 }
 
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& structDef, StringBuilder& sb);
@@ -2135,6 +2135,24 @@ namespace Rococo::Unreal
 
 		void Commit() override
 		{
+			std::sort(classes.begin(), classes.end(),
+				[](const ClassRep& a, const ClassRep& b)
+				{
+					int diff = _stricmp(a.cppNS, b.cppNS);
+					if (diff < 0)
+					{
+						return true;
+					}
+
+					if (diff == 0)
+					{
+						return _stricmp(a.className, b.className) < 0;
+					}
+
+					return false;
+				}
+			);
+
 			CommitHeader();
 			CommitSource();
 
@@ -2152,24 +2170,6 @@ namespace Rococo::Unreal
 		void AddClass(IUnrealClass& classRef) override
 		{
 			classes.push_back({ classRef.PackageName(), FormatCPPNamespaceFromPath(classRef.PackageName()), classRef.ShortName() });
-
-			std::sort(classes.begin(), classes.end(),
-				[](const ClassRep& a, const ClassRep& b) 
-				{
-					int diff = _stricmp(a.cppNS, b.cppNS);
-					if (diff < 0)
-					{
-						return true;
-					}
-
-					if (diff == 0)
-					{
-						return _stricmp(a.className, b.className) < 0;
-					}
-
-					return false;
-				}
-			);
 		}
 
 		void Free() override
