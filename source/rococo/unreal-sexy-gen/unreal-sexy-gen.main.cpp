@@ -1325,9 +1325,41 @@ struct UnrealFunctionDef : IUnrealFunction
 		}
 	}
 
-	void AppendFunctionName(StringBuilder& sb) const override
+	void AppendFunctionName(StringBuilder& sb, bool makeSexyVariableName) const override
 	{
-		sb << name;
+		if (makeSexyVariableName)
+		{
+			const char* p = name;
+
+			char firstChar = *p++;
+			if (isupper(firstChar))
+			{
+				sb.AppendChar(firstChar);
+			}
+			else if (islower(firstChar))
+			{
+				sb.AppendChar((char) toupper(firstChar));
+			}
+			else
+			{
+				// E.g Function 123 gets converted to M123
+				sb.AppendChar('M');
+				p--;
+			}
+
+			for (; *p != 0; p++)
+			{
+				char c = *p;
+				if (IsAlphaNumeric(c))
+				{
+					sb.AppendChar(c);
+				}
+			}
+		}
+		else
+		{
+			sb << name;
+		}
 
 		if (Eq(name, "Construct") || Eq(name, "Destruct"))
 		{

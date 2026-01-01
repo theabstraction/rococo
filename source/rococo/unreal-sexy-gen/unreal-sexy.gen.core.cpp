@@ -194,7 +194,7 @@ void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVari
 {
 	if (makeSexyVariableType)
 	{
-		sb << "H";
+		sb << "UE.Handles.H";
 	}
 
 	sb << nameType;
@@ -1098,7 +1098,7 @@ namespace
 	for (auto& known : knownObjects)
 	{
 		cstr type = known.first;
-		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FUNCTION__, __LINE__, \"H%s\");\n", type);
+		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"H%s\");\n", type);
 	}
 
 	sb << "\n";
@@ -1717,7 +1717,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 		sb << sxyName;
 		sb << ".";
 
-		method.AppendFunctionName(sb);
+		method.AppendFunctionName(sb, true);
 
 		BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
 
@@ -1742,7 +1742,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 
 		sb << "\t(Native." << sxyName << ".";
 
-		method.AppendFunctionName(sb);
+		method.AppendFunctionName(sb, true);
 
 		sb << " this.objectHandle";
 

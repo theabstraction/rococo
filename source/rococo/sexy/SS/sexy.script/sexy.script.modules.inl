@@ -57,13 +57,32 @@ namespace Rococo::Script
 	{
 		if (!arg.TryResolveArgument())
 		{
+			char commentary[256] = { 0 };
+
+			cstr body, tail;
+			NamespaceSplitter splitter(type);
+			if (splitter.SplitTail(body, tail))
+			{
+				if (isupper(*body))
+				{										
+					if (arg.Parent().Object().GetRootNamespace().FindSubspace(body))
+					{
+						SafeFormat(commentary, ". The namespace %s was recognized.", body);
+					}
+					else
+					{
+						SafeFormat(commentary, ". The namespace %s was not recognized.", body);
+					}
+				}
+			}
+
 			if (genericArgType != NULL)
 			{
-				Throw(e, "Unknown type in argument: *** %s *** %s %s of function %s", type, genericArgType, id, source);
+				Throw(e, "Unknown type in argument: *** %s *** %s %s of function %s%s", type, genericArgType, id, source, commentary);
 			}
 			else
 			{
-				Throw(e, "Unknown type in argument (*** %s *** %s of function %s", type, id, source);
+				Throw(e, "Unknown type in argument (*** %s *** %s of function %s%s", type, id, source, commentary);
 			}
 		}
 	}

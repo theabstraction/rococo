@@ -19,9 +19,14 @@ namespace Rococo::UE
 		virtual void AddNativeAPI(cstr package, cstr className, FN_AddSexyNatives_Unreal fnAddNatives) = 0;
 	};
 
+	ROCOCO_INTERFACE IClassMatch
+	{
+		virtual void OnMatch(cstr ns, cstr className) = 0;
+	};
+
 	ROCOCO_INTERFACE ISexyNativeRegistrySupervisor
 	{
-		virtual void RegisterPackagesByFilters(const Rococo::Sex::ISExpression* referenceSrc, int referenceStartIndex, cstr filters[], int numberOfFilters, Rococo::Script::IPublicScriptSystem &ss) = 0;
+		virtual void RegisterPackagesByFilters(const Rococo::Sex::ISExpression* referenceSrc, int referenceStartIndex, cstr filters[], int numberOfFilters, Rococo::Script::IPublicScriptSystem &ss, IClassMatch& onMatch) = 0;
 		virtual void Free();
 	};
 

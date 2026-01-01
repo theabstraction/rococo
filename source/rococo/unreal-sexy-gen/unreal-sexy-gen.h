@@ -41,7 +41,7 @@ namespace Rococo::Unreal
 	{
 		// Returns true is Sexy can marshal the function call
 		virtual bool HasSexyCounterpart() const = 0;
-		virtual void AppendFunctionName(Strings::StringBuilder& sb) const = 0;
+		virtual void AppendFunctionName(Strings::StringBuilder& sb, bool makeSexyVariableName = false) const = 0;
 		virtual IUnrealArg* GetArg(size_t index) = 0;
 		virtual cstr Name() const = 0;
 	};
