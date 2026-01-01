@@ -2,6 +2,7 @@
 
 #include <rococo.types.h>
 #include <sexy.script.h>
+#include <Sexy.S-Parser.h>
 #include <rococo.strings.h>
 #include <rococo.hashtable.h>
 
@@ -80,19 +81,26 @@ namespace Rococo::UE
 				{
 					Substring token{ start, next };
 
-					char buffer[256];
-					token.CopyWithTruncate(buffer, sizeof buffer);
+					for (char c : token)
+					{
+						sb.AppendChar(c);
+					}
 
-					sb << buffer;
-					sb << ".";
+					sb.AppendChar('.');
 
 					start = next + 1;
 				}
 				else
 				{
-					sb << start;
 					break;
 				}
+			}
+
+			ns[sb.Length() - 1] = 0; // Eliminate the trailing dot
+
+			if (sb.Length() >= (sizeof ns) - 1)
+			{
+				Throw(0, "FormatSexyNamespaceFromPath: Error truncation of %s", path);
 			}
 
 			return ns;
@@ -106,11 +114,14 @@ namespace Rococo::UE
 				HString sexyNS;
 				HString className;
 				FN_AddSexyNatives_Unreal fnAddNatives;
+				int namespaceIndex = -1;
 			};
 
 			std::vector<ClassEntry> classes;
 			stringmap<std::vector<int>> mapNamespaceToClassEntryIndices;
 			stringmap<std::vector<HString>> mapNamespaceToSubspaces;
+
+			std::vector<cstr> namespaces;
 
 			void AddNativeAPI(cstr package, cstr className, FN_AddSexyNatives_Unreal fnAddNatives) override
 			{
@@ -184,6 +195,7 @@ namespace Rococo::UE
 			}
 
 			std::vector<bool> isIndexUsed;
+			std::vector<bool> isNamespaceIndexUsed;
 
 			void AddAllClassesInNamespace(cstr ns, Rococo::Script::IPublicScriptSystem& ss, IClassMatch& onMatch)
 			{
@@ -205,8 +217,35 @@ namespace Rococo::UE
 					{
 						isIndexUsed[index] = true;
 						auto& entry = classes[index];
-						entry.fnAddNatives(ss);
-						onMatch.OnMatch(ns, entry.className);
+
+						try
+						{
+							entry.fnAddNatives(ss);
+						}
+						catch (ParseException& pex)
+						{
+							if (pex.Source())
+							{
+								Rococo::Sex::Throw(*pex.Source(), "Error adding native calls for %s: %s", entry.package.c_str(), pex.Message());
+							}
+							else
+							{
+								Rococo::Throw(0, "Error adding native calls for %s: %s.\nSource %s line %d pos %d", entry.package.c_str(), pex.Message(), pex.Name(), pex.Start().y, pex.Start().x);
+							}
+						}
+						catch (IException& ex)
+						{
+							Rococo::Throw(ex.ErrorCode(), "Error adding native calls for %s: %s", entry.package.c_str(), ex.Message());
+						}
+
+						char fullNs[Rococo::MAX_FQ_NAME_LEN];
+						SafeFormat(fullNs, "UE.%s", ns);
+						onMatch.OnMatch(fullNs, entry.className);
+
+						if (!isNamespaceIndexUsed[entry.namespaceIndex])
+						{							
+							isNamespaceIndexUsed[entry.namespaceIndex] = true;
+						}
 					}
 				}
 			}
@@ -235,7 +274,14 @@ namespace Rococo::UE
 						{
 							isIndexUsed[index] = true;
 							entry.fnAddNatives(ss);
+							char fullNs[Rococo::MAX_FQ_NAME_LEN];
+							SafeFormat(fullNs, "UE.%s", ns);
 							onMatch.OnMatch(ns, entry.className);
+
+							if (!isNamespaceIndexUsed[entry.namespaceIndex])
+							{
+								isNamespaceIndexUsed[entry.namespaceIndex] = true;
+							}
 						}
 						return;
 					}
@@ -286,19 +332,47 @@ namespace Rococo::UE
 					isIndexUsed.resize(classes.size());
 				}
 
+				if (isNamespaceIndexUsed.empty())
+				{
+					for (auto& i : mapNamespaceToClassEntryIndices)
+					{
+						namespaces.push_back(i.first);
+						
+						for (int classIndex : i.second)
+						{
+							classes[classIndex].namespaceIndex = (int) (namespaces.size() - 1);
+						}
+					}
+					isNamespaceIndexUsed.resize(namespaces.size());
+				}
+
 				std::fill(isIndexUsed.begin(), isIndexUsed.end(), false);
+				std::fill(isNamespaceIndexUsed.begin(), isNamespaceIndexUsed.end(), false);
 
 				for (int i = 0; i < numberOfFilters; i++)
 				{
 					cstr filter = filters[i];
 
-					NamespaceSplitter splitter(filter);
+					NamespaceSplitter filterSplitter(filter);
 
-					cstr ns, className;
-					if (!splitter.SplitTail(OUT ns, OUT className))
+					cstr nsWithUE, className;
+					if (!filterSplitter.SplitTail(OUT nsWithUE, OUT className))
 					{
 						// No namespace separator!
 						Throw(referenceSrc, referenceStartIndex, i, "Bad filter #%d: %s. No namespace separator characters: '.'. Expecting <namespace>.<class-filter>. E.g 'Game.TopDown.Blueprints.*'", i + 1, filters[i]);
+					}
+
+					NamespaceSplitter nsSplitter(nsWithUE);
+
+					cstr ue, ns;
+					if (!nsSplitter.SplitHead(ue, ns))
+					{
+						Rococo::Throw(0, "Expecting namespace in filter to begin with UE and have at least one subspace, but no subpace was found");
+					}
+
+					if (!Eq(ue, "UE"))
+					{
+						Rococo::Throw(0, "Expecting namespace in filter to begin with UE but it begain with %s", ue);
 					}
 
 					try
@@ -502,6 +576,7 @@ namespace Rococo::UE::Marshal
 			LogMarshallingError("No method found named '%ls' in class marshalling code defined at %s line %d", methodName, implementationName, lineNumber);
 			return;
 		}
+
 		ss.AddNativeCall(ns, nativeCall, method, scriptSignature, implementationName, lineNumber);
 	}
 

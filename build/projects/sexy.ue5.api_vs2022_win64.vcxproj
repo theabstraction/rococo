@@ -68,7 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);SEXY_MARSHALLING_API=__declspec(dllexport);TCHAR=wchar_t;WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYUTIL_API=__declspec(dllimport);SEXY_MARSHALLING_API=__declspec(dllexport);TCHAR=wchar_t;WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -154,7 +154,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SEXYUTIL_API=__declspec(dllimport);SEXY_MARSHALLING_API=__declspec(dllexport);TCHAR=wchar_t;WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYUTIL_API=__declspec(dllimport);SEXY_MARSHALLING_API=__declspec(dllexport);TCHAR=wchar_t;WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -226,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -6669,6 +6669,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="sexy.script_vs2022_win64.vcxproj">
+      <Project>{18F4E289-D814-2BE5-97CF-FC0D7748887B}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
     <ProjectReference Include="sexy.util_vs2022_win64.vcxproj">
       <Project>{3E686747-BC5F-FFE1-B4A3-7E531F4122E2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

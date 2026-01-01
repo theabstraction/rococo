@@ -140,6 +140,24 @@ void AppendCompactName(StringBuilder& sb, cstr p)
 	}
 }
 
+void AppendContractedName(StringBuilder& sb, cstr p)
+{
+	while (*p != 0)
+	{
+		char c = *p++;
+		switch (c)
+		{
+		case '-':
+		case ' ':
+		case '_':
+			break;
+		default:
+			sb.AppendChar(c);
+			break;
+		}
+	}
+}
+
 void BuildCPPInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUnrealArg*>& outputs, IUnrealFunction& method)
 {
 	inputs.clear();
@@ -196,8 +214,15 @@ void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVari
 	{
 		sb << "UE.Handles.H";
 	}
-
-	sb << nameType;
+	
+	if (makeSexyVariableType)
+	{
+		AppendContractedName(sb, nameType);
+	}
+	else
+	{
+		sb << nameType;
+	}
 
 	if (makeSexyVariableType)
 	{
@@ -1098,7 +1123,11 @@ namespace
 	for (auto& known : knownObjects)
 	{
 		cstr type = known.first;
-		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"H%s\");\n", type);
+		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"H");
+		
+		AppendContractedName(sb, type);
+
+		sb << "\");\n";
 	}
 
 	sb << "\n";
@@ -1108,8 +1137,26 @@ namespace
 	sb << "UE.Native.";
 
 	AppendPackageAsSexyNamespace(sb, classDef);
+
+	sb << ".NS";
+	sb << classDef.ClassIndex();
 			
 	sb << "\");\n";
+
+	sb << "\t\tRococo::Script::AddNativeCallSecurity(ss, \"";
+	
+	sb << "UE.Native.";
+
+	AppendPackageAsSexyNamespace(sb, classDef);
+
+	sb << ".NS";
+	sb << classDef.ClassIndex();
+
+	sb << "\"";
+
+	sb << ", \"!scripts/native/classes/";
+	
+	sb << classDef.ShortName() << ".sxy\");\n";
 
 	std::vector<IUnrealArg*> inputs;
 	std::vector<IUnrealArg*> outputs;
@@ -1119,7 +1166,7 @@ namespace
 	AppendCompactName(sb, classDef.ShortName());
 		
 	sb <<", &classRef, \"Construct";
-	AppendCompactName(sb, classDef.ShortName());
+	AppendContractedName(sb, classDef.ShortName());
 	sb << " -> (Int64 objectHandle)\", __FILE__, __LINE__);\n";
 
 	sb << "\n";
@@ -1148,7 +1195,7 @@ namespace
 		method.AppendFunctionName(sb);
 		
 		sb << "\"),\n\t\t\t\"";
-		method.AppendFunctionName(sb);
+		method.AppendFunctionName(sb, true);
 
 		BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
 
@@ -1169,7 +1216,7 @@ namespace
 			}
 			else if (input->IsRef())
 			{
-				sb << "populates ";
+				sb << "out ";
 			}
 
 			AppendType(sb, *input, true);
@@ -1640,7 +1687,7 @@ void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutab
 		}
 		else if (arg.IsRef())
 		{
-			sb << "populates ";
+			sb << "out ";
 		}
 		else
 		{

@@ -173,6 +173,13 @@ namespace Rococo::UE::Marshal
 	void ScriptUFunction(Rococo::Script::IPublicScriptSystem& ss, const Rococo::Compiler::INamespace& ns, cstr implementationName, int lineNumber, UClass& classRef, Rococo::Script::FN_NATIVE_CALL nativeCall, crwstr methodName, cstr scriptSignature);
 }
 
+namespace Rococo::Script
+{
+	SCRIPTEXPORT_API void AddNativeCallSecurity(IPublicScriptSystem& ss, cstr nativeNamespace, cstr permittedPingPath);
+}
+
+#ifndef TEXT
 #define TEXT(x) L ## x
+#endif
 
 #pragma pack(pop)

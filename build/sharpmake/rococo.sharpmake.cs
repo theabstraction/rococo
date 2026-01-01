@@ -642,6 +642,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            ImportSexyScriptProject(conf, target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.Defines.Add("SEXY_MARSHALLING_API=__declspec(dllexport)");

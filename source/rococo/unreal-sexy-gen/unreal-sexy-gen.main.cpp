@@ -28,7 +28,7 @@ Rococo::stringmap<int> knownDelegatesVsSize;
 void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem);
 void ParseEnumDef(cr_sex sEnumDef);
 void ParseStructDef(cr_sex sDef);
-void ParseClassTree(cr_sex sRoot);
+void GenerateCodeFromClassTree(cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 crwstr GetOutputDirectory();
@@ -109,7 +109,7 @@ void ParseClassFile(crwstr filename, ISParser& parser)
 	try
 	{
 		Auto<ISParserTree> tree = parser.CreateTree(*src);
-		ParseClassTree(tree->Root());
+		GenerateCodeFromClassTree(tree->Root());
 	}
 	catch (ParseException& ex)
 	{
@@ -131,7 +131,7 @@ std::vector<struct UnrealClassDef*> allClasses;
 
 void ParseDelegateDef(cstr typeName, int sizeInBytes);
 
-void ParseClassTree(cr_sex sRoot)
+void GenerateCodeFromClassTree(cr_sex sRoot)
 {
 	int enumCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
@@ -1374,14 +1374,17 @@ struct UnrealFunctionDef : IUnrealFunction
 	}
 };
 
+size_t nextIndex = 1;
+
 struct UnrealClassDef : IUnrealClass
 {
 	HString name;
 	HString package;
+	size_t classIndex;
 
 	std::vector<UnrealFunctionDef*> functions;
 
-	UnrealClassDef(cr_sex sDef)
+	UnrealClassDef(cr_sex sDef): classIndex(nextIndex++)
 	{
 		if (sDef.NumberOfElements() < 3)
 		{
@@ -1456,6 +1459,11 @@ struct UnrealClassDef : IUnrealClass
 		{
 			delete f;
 		}
+	}
+
+	size_t ClassIndex() const override
+	{
+		return classIndex;
 	}
 
 	size_t MethodCount() const override

@@ -700,7 +700,7 @@ namespace Rococo
 
 		bool IsCapital(char c) { return (c >= 'A' && c <= 'Z'); }
 		bool IsLowerCase(char c) { return (c >= 'a' && c <= 'z'); }
-		bool IsNumeral(char c) { return c >= '0' && c < '9'; }
+		bool IsNumeral(char c) { return c >= '0' && c <= '9'; }
 		bool IsAlpha(char c) { return IsCapital(c) || IsLowerCase(c); }
 		bool IsAlphaNumeral(char c) { return IsAlpha(c) || IsNumeral(c); }
 
