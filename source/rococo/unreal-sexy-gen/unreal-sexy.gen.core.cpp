@@ -344,10 +344,9 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 
 	if (StartsWith(argType, subclassOfPrefix))
 	{
-		cstr endToken = FindChar(argType, '>');
-		cstr startToken = argType + subclassOfPrefix.length;
-		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		sb.AppendFormat("R_TSubclassOf<%s>", innerType);
+		// The handle does not retain the innter type, as subclass template TSubclassOf, wraps a UClass pointer.
+		// This leaves the script language agnostic towards the class type
+		sb << "HUClass";
 		return;
 	}
 
@@ -362,10 +361,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 
 	if (StartsWith(argType, objectPtrPrefix))
 	{
-		cstr endToken = FindChar(argType, '>');
-		cstr startToken = argType + objectPtrPrefix.length;
-		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		sb.AppendFormat("R_TObjectPtr<%s>", innerType);
+		sb << "HUObject";
 		return;
 	}
 
@@ -1180,7 +1176,7 @@ namespace
 			sb << "/* ";
 		}
 
-		sb << "\t\tScriptUFunction(ss, ns, __FUNCTION__, __LINE__, classRef, ";
+		sb << "\t\tScriptUFunction(ss, ns, __FILE__, __LINE__, classRef, ";
 		
 		// L"ActorHasTag", "ActorHasTag (int64 objectHandle) (R_FName tag) -> (bool returnValue)");
 
@@ -1214,7 +1210,7 @@ namespace
 			{
 				sb << "const ";
 			}
-			else if (input->IsRef())
+			else if (input->IsCPPOutput())
 			{
 				sb << "out ";
 			}
@@ -1230,6 +1226,7 @@ namespace
 		for (auto* output : outputs)
 		{
 			sb << "(";
+
 			AppendType(sb, *output, true);
 			sb << " ";
 			output->AppendName(sb, true);
@@ -1685,7 +1682,7 @@ void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutab
 		{
 			sb << "const ";
 		}
-		else if (arg.IsRef())
+		else if (arg.IsCPPOutput())
 		{
 			sb << "out ";
 		}

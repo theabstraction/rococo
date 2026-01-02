@@ -262,7 +262,7 @@ namespace Rococo::UE
 				for (auto index : mapping->second)
 				{
 #ifdef _DEBUG
-					if (index < 0 || index >= entries.size())
+					if (index < 0 || index >= classes.size())
 					{
 						Rococo::Throw(0, "Bad API. Bad index %d for %s", index, __FUNCTION__);
 					}

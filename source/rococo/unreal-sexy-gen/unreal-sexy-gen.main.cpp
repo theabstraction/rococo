@@ -1241,8 +1241,11 @@ struct UnrealFunctionArg : IUnrealArg
 	{
 		if (!IsCPPOutput())
 		{
+			// All inputs C++ are inputs when martialled into sexy script
 			return false;
 		}
+
+		// Some outputs become inputs by mutable reference to struct, which populate the struct
 		
 		cstr p = ArgType();
 
@@ -1255,6 +1258,16 @@ struct UnrealFunctionArg : IUnrealArg
 			}
 		}
 
+		if (StartsWith(p, subclassOfPrefix))
+		{
+			return false;
+		}
+
+		if (StartsWith(p, softObjectPtrPrefix))
+		{
+			return false;
+		}
+
 		if (IsPtr())
 		{
 			// We want to emit a handle, but handles are derived types passed by mutable reference
@@ -1263,7 +1276,7 @@ struct UnrealFunctionArg : IUnrealArg
 
 		if (Eq(p, "FString") || Eq(p, "FString^"))
 		{
-			// FString is marshalled as FStringImage, a derived type, passed by mutable reference
+			// FString is marshalled as FStringImage
 			return false;
 		}
 

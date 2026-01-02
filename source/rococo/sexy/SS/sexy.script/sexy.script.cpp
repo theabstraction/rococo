@@ -697,6 +697,10 @@ namespace Rococo::Script
 
 		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(nativeName, false), &archetype, popBytes);
 
+		char commentary[512];
+		SafeFormat(commentary, "Src: %s #%d", sourceFile, lineNumber);
+		f.SetCommentary(commentary);
+
 		if (security) f.AddSecurity(*security);
 
 		for (int i = mapIndex + 1; i < archetype.NumberOfElements(); ++i)

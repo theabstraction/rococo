@@ -111,6 +111,8 @@ namespace Rococo::Compiler
 		virtual void SetProxy(ID_BYTECODE id) = 0;
 
 		virtual void AddSecurity(const Rococo::Script::NativeSecurityHandler& security) = 0;
+
+		virtual void SetCommentary(cstr commentary) = 0;
 	};
 
 	ROCOCO_INTERFACE IFunctionAliasBuilder : public IFunctionAlias
