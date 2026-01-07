@@ -15,9 +15,11 @@ using namespace Rococo::Sex;
 using namespace Rococo::Strings;
 using namespace Rococo::Unreal;
 
-auto subclassOfPrefix = "TSubclassOf<"_fstring;
-auto scriptInterfacePrefix = "TScriptInterface<"_fstring;
-auto objectPtrPrefix = "TObjectPtr<"_fstring;
+fstring subclassOfPrefix = "TSubclassOf<"_fstring;
+fstring scriptInterfacePrefix = "TScriptInterface<"_fstring;
+fstring objectPtrPrefix = "TObjectPtr<"_fstring;
+fstring enumAsBytePrefix = "TEnumAsByte<"_fstring;
+fstring softObjectPtrPrefix = "TSoftObjectPtr<"_fstring;
 
 int g_nClassesParsed = 0;
 int g_nMethodsParsed = 0;
@@ -25,14 +27,169 @@ int g_nMethodsNotMarshaled = 0;
 bool g_unityBuild = false;
 Rococo::stringmap<int> knownDelegatesVsSize;
 
-void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem);
-void ParseEnumDef(cr_sex sEnumDef);
-void ParseStructDef(cr_sex sDef);
-void GenerateCodeFromClassTree(cr_sex sRoot);
+struct ObjectDatabase;
+
+void GenEnumDef(IUnrealEnumDef& def, crwstr nativeDirectory);
+void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem, ObjectDatabase& enums);
+
+struct UnrealEnumDef;
+
+const IMarshalType* FindPrimitiveType(cstr argType);
+IUnrealStruct* FindStruct(cstr name);
+
+void ParseStructDef(cr_sex sDef, IEnums& enums);
+void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 crwstr GetOutputDirectory();
 crwstr GetSxyOutputDirectory();
+
+struct Enums : IEnums
+{
+	stringmap<UnrealEnumDef*> unrealEnums;
+
+	void Add(cr_sex sEnumDef);
+	const IUnrealEnumDef* FindEnum(cstr name) const override;
+
+	~Enums();
+};
+
+
+struct ObjectDatabase : IObjectSearcher
+{
+	Enums enums;
+
+	mutable stringmap<int> unresolvedArgType;
+
+	ObjectDatabase()
+	{
+
+	}
+
+	void AddEnum(cr_sex sEnumDef)
+	{
+		enums.Add(sEnumDef);
+	}
+
+	bool HasSexyCounterpart(cstr argType, cstr elementType, cstr keyType) const override
+	{
+		if (IsKnownElementType(argType))
+		{
+			return true;
+		}
+
+		if (Eq(argType, "TArray") || Eq(argType, "TSet"))
+		{
+			return IsKnownElementType(elementType);
+		}
+
+		if (Eq(argType, "TMap"))
+		{
+			return IsKnownElementType(elementType) && IsKnownElementType(keyType);
+		}
+
+		if (Eq(argType, "TDelegate"))
+		{
+			return IsKnownElementType(elementType);
+		}
+
+		unresolvedArgType.insert(argType, 0);
+
+		return false;
+	}
+
+	bool IsKnownElementType(cstr argType) const override
+	{
+		cstr p = argType;
+
+		if (*p == 'U' && EndsWith(p, "*"))
+		{
+			return true;
+		}
+
+		if (*p == 'A' && EndsWith(p, "*"))
+		{
+			return true;
+		}
+
+		auto* primitive = FindPrimitiveType(p);
+		if (primitive)
+		{
+			return true;
+		}
+
+		auto* enumType = enums.FindEnum(p);
+		if (enumType)
+		{
+			return true;
+		}
+
+		if (StartsWith(p, enumAsBytePrefix))
+		{
+			cstr innerTypeStart = p + enumAsBytePrefix.length;
+			cstr templateDelimeter = FindChar(innerTypeStart, '>');
+			if (!templateDelimeter)
+			{
+				Throw(0, "Cannot find template delimeter '>' for %s", p);
+			}
+
+			size_t len = templateDelimeter - innerTypeStart;
+
+			char innerType[256];
+			CopyString(innerType, sizeof innerType, innerTypeStart, len);
+			enumType = enums.FindEnum(innerType);
+			if (enumType)
+			{
+				return true;
+			}
+		}
+
+		if (StartsWith(p, subclassOfPrefix))
+		{
+			return true;
+		}
+
+		if (StartsWith(p, softObjectPtrPrefix))
+		{
+			return true;
+		}
+
+		if (*p == 'F')
+		{
+			auto* structType = FindStruct(p + 1);
+			if (structType)
+			{
+				return true;
+			}
+		}
+
+		if (EndsWith(argType, "^"))
+		{
+			char sansRef[256];
+			CopyString(sansRef, sizeof sansRef, argType);
+			sansRef[strlen(argType) - 1] = 0;
+			return IsKnownElementType(sansRef);
+		}
+
+		return false;
+	}
+
+	void PrintUnresolvedErrors(FILE* fp)
+	{
+		if (!unresolvedArgType.empty())
+		{
+			fprintf(fp, "Unknown arg types:\n");
+
+			for (auto& p : unresolvedArgType)
+			{
+				fprintf(fp, "%s\n", (cstr)p.first);
+			}
+
+			fprintf(fp, "\n");
+		}
+	}
+};
+
 
 int FindDelegateSize(cstr name)
 {
@@ -102,14 +259,14 @@ bool DoExpressionsMatchRecursive(cr_sex a, cr_sex b, int startingIndex)
 	return true;
 }
 
-void ParseClassFile(crwstr filename, ISParser& parser)
+void ParseClassFile(ObjectDatabase& database, crwstr filename, ISParser& parser)
 {
 	Auto<ISourceCode> src = parser.LoadSource(filename, { 1,1 });
 
 	try
 	{
 		Auto<ISParserTree> tree = parser.CreateTree(*src);
-		GenerateCodeFromClassTree(tree->Root());
+		GenerateCodeFromClassTree(database, tree->Root());
 	}
 	catch (ParseException& ex)
 	{
@@ -127,11 +284,9 @@ namespace Rococo::IO
 	void PrintOverwriteReport();
 }
 
-std::vector<struct UnrealClassDef*> allClasses;
-
 void ParseDelegateDef(cstr typeName, int sizeInBytes);
 
-void GenerateCodeFromClassTree(cr_sex sRoot)
+void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 {
 	int enumCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
@@ -155,7 +310,8 @@ void GenerateCodeFromClassTree(cr_sex sRoot)
 
 		if (Eq(sEnumDirective.c_str(), "UEnum"))
 		{
-			ParseEnumDef(sEnumDef);
+			database.AddEnum(sEnumDef);
+			
 			if ((enumCount++ % 100) == 0)
 			{
 				printf(".");
@@ -185,7 +341,7 @@ void GenerateCodeFromClassTree(cr_sex sRoot)
 
 		if (Eq(sDirective.c_str(), "UStruct"))
 		{
-			ParseStructDef(sStructDef);
+			ParseStructDef(sStructDef, database.enums);
 			if ((structCount++ % 100) == 0)
 			{
 				printf(".");
@@ -215,7 +371,8 @@ void GenerateCodeFromClassTree(cr_sex sRoot)
 		cr_sex sDirective = GetAtomicArg(sClassDef, 0);
 		if (Eq(sDirective.c_str(), "UClass"))
 		{
-			ParseClassDef(sClassDef, *classSystem);
+			ParseClassDef(sClassDef, *classSystem, database);
+
 			if ((classCount++ % 100) == 0)
 			{
 				printf(".");
@@ -497,6 +654,11 @@ struct UnrealEnumDef: IUnrealEnumDef
 		}
 	}
 
+	void Free()
+	{
+		delete this;
+	}
+
 	cstr Name() const override
 	{
 		return name;
@@ -550,14 +712,23 @@ struct UnrealEnumDef: IUnrealEnumDef
 	}
 };
 
-void GenEnumDef(IUnrealEnumDef& def, crwstr nativeDirectory);
-
-stringmap<UnrealEnumDef*> g_unrealEnums; // This will leak, but get cleared up at exit.
-
-IUnrealEnumDef* FindEnum(cstr name)
+void Enums::Add(cr_sex sEnumDef)
 {
-	auto i = g_unrealEnums.find(name);
-	if (i != g_unrealEnums.end())
+	AutoFree<UnrealEnumDef> def = new UnrealEnumDef(sEnumDef);
+	GenEnumDef(*def, GetOutputDirectory());
+
+	if (!unrealEnums.insert(def->Name(), def).second)
+	{
+		Throw(sEnumDef, "Duplicate enum name: %s", def->Name());
+	}
+
+	def.Detach();
+}
+
+const IUnrealEnumDef* Enums::FindEnum(cstr name) const
+{
+	auto i = unrealEnums.find(name);
+	if (i != unrealEnums.end())
 	{
 		return i->second;
 	}
@@ -585,14 +756,11 @@ IUnrealEnumDef* FindEnum(cstr name)
 	return nullptr;
 }
 
-void ParseEnumDef(cr_sex sDef)
+Enums::~Enums()
 {
-	UnrealEnumDef* def = new UnrealEnumDef(sDef);
-	GenEnumDef(*def, GetOutputDirectory());
-
-	if (!g_unrealEnums.insert(def->Name(), def).second)
+	for (auto& i : unrealEnums)
 	{
-		Throw(sDef, "Duplicate enum name: %s", def->Name());
+		delete i.second;
 	}
 }
 
@@ -805,7 +973,7 @@ struct UnrealStructDef : IUnrealStruct
 	}
 };
 
-void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory);
+void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory, IEnums& enums);
 
 stringmap<UnrealStructDef*> knownStructs;
 
@@ -827,12 +995,12 @@ IUnrealStruct* FindStruct(cstr name)
 	return i == knownStructs.end() ? nullptr : i->second;
 }
 
-void ParseStructDef(cr_sex sDef)
+void ParseStructDef(cr_sex sDef, IEnums& enums)
 {
 	UnrealStructDef* def = new UnrealStructDef(sDef);
 	try
 	{
-		GenStructDef(*def, GetOutputDirectory());
+		GenStructDef(*def, GetOutputDirectory(), enums);
 		if (knownStructs.insert(def->TypeName(), def).second == false)
 		{
 			Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
@@ -911,85 +1079,6 @@ namespace Rococo::IO
 	void PrintOverwriteReport();
 }
 
-fstring enumAsBytePrefix = "TEnumAsByte<"_fstring;
-fstring softObjectPtrPrefix = "TSoftObjectPtr<"_fstring;
-
-bool IsKnownElementType(cstr argType)
-{
-	cstr p = argType;
-
-	if (*p == 'U' && EndsWith(p, "*"))
-	{
-		return true;
-	}
-
-	if (*p == 'A' && EndsWith(p, "*"))
-	{
-		return true;
-	}
-
-	auto* primitive = FindPrimitiveType(p);
-	if (primitive)
-	{
-		return true;
-	}
-
-	auto* enumType = FindEnum(p);
-	if (enumType)
-	{
-		return true;
-	}
-
-	if (StartsWith(p, enumAsBytePrefix))
-	{
-		cstr innerTypeStart = p + enumAsBytePrefix.length;
-		cstr templateDelimeter = FindChar(innerTypeStart, '>');
-		if (!templateDelimeter)
-		{
-			Throw(0, "Cannot find template delimeter '>' for %s", p);
-		}
-
-		size_t len = templateDelimeter - innerTypeStart;
-
-		char innerType[256];
-		CopyString(innerType, sizeof innerType, innerTypeStart, len);
-		enumType = FindEnum(innerType);
-		if (enumType)
-		{
-			return true;
-		}
-	}
-
-	if (StartsWith(p, subclassOfPrefix))
-	{
-		return true;
-	}
-
-	if (StartsWith(p, softObjectPtrPrefix))
-	{
-		return true;
-	}
-
-	if (*p == 'F')
-	{
-		auto* structType = FindStruct(p + 1);
-		if (structType)
-		{
-			return true;
-		}
-	}
-
-	if (EndsWith(argType, "^"))
-	{
-		char sansRef[256];
-		CopyString(sansRef, sizeof sansRef, argType);
-		sansRef[strlen(argType) - 1] = 0;
-		return IsKnownElementType(sansRef);
-	}
-
-	return false;
-}
-
 bool IsArgKeyword(cstr token)
 {
 	if (!IsLowerCase(*token))
@@ -1035,11 +1124,10 @@ bool LooksLikeObjectPointer(cstr p)
 	return false;
 }
 
-static stringmap<int> g_UnresolvedArgType;
-
 struct UnrealFunctionArg : IUnrealArg
 {
 	cr_sex sFnArgDef;
+	IObjectSearcher& searcher;
 	HString argName;
 	HString argType;
 	HString elementType;
@@ -1048,7 +1136,7 @@ struct UnrealFunctionArg : IUnrealArg
 	bool isRef = false;
 	bool isContainer = false;
 
-	UnrealFunctionArg(cr_sex sFunctionArgDef): sFnArgDef(sFunctionArgDef)
+	UnrealFunctionArg(cr_sex sFunctionArgDef, IObjectSearcher& _searcher): sFnArgDef(sFunctionArgDef), searcher(_searcher)
 	{
 		for (int i = 0; i < sFunctionArgDef.NumberOfElements(); i++)
 		{
@@ -1121,29 +1209,7 @@ struct UnrealFunctionArg : IUnrealArg
 
 	bool HasSexyCounterpart() const override
 	{
-		if (IsKnownElementType(argType))
-		{
-			return true;
-		}
-
-		if (Eq(argType, "TArray") || Eq(argType, "TSet"))
-		{
-			return IsKnownElementType(elementType);
-		}
-
-		if (Eq(argType, "TMap"))
-		{
-			return IsKnownElementType(elementType) && IsKnownElementType(keyType);
-		}
-
-		if (Eq(argType, "TDelegate"))
-		{
-			return IsKnownElementType(elementType);
-		}
-
-		g_UnresolvedArgType.insert(argType, 0);
-				
-		return false;
+		return searcher.HasSexyCounterpart(argType, elementType, keyType);
 	}
 
 	void AppendName(StringBuilder& sb, bool makeSexyVariableName = false) const override
@@ -1287,18 +1353,19 @@ struct UnrealFunctionArg : IUnrealArg
 struct UnrealFunctionDef : IUnrealFunction
 {
 	cr_sex fDef;
+	ObjectDatabase& database;
 	HString name;
 
 	std::vector<UnrealFunctionArg*> args;
 
-	UnrealFunctionDef(cr_sex f): fDef(f), name(GetAtomicArg(fDef, 2).c_str())
+	UnrealFunctionDef(cr_sex f, ObjectDatabase& _db): fDef(f), database(_db), name(GetAtomicArg(fDef, 2).c_str())
 	{
 		// Example: (' Method0 DivideFloats (visible read-only double A) (visible read-only double B) (out double NewParam))
 		for (int i = 3; i < fDef.NumberOfElements(); i++)
 		{
 			try
 			{
-				args.push_back(new UnrealFunctionArg(fDef[i]));
+				args.push_back(new UnrealFunctionArg(fDef[i], database));
 			}
 			catch (ParseException& pex)
 			{
@@ -1391,13 +1458,14 @@ size_t nextIndex = 1;
 
 struct UnrealClassDef : IUnrealClass
 {
+	ObjectDatabase& database;
 	HString name;
 	HString package;
 	size_t classIndex;
 
 	std::vector<UnrealFunctionDef*> functions;
 
-	UnrealClassDef(cr_sex sDef): classIndex(nextIndex++)
+	UnrealClassDef(cr_sex sDef, ObjectDatabase& _db): database(_db), classIndex(nextIndex++)
 	{
 		if (sDef.NumberOfElements() < 3)
 		{
@@ -1447,7 +1515,7 @@ struct UnrealClassDef : IUnrealClass
 							}
 
 							// Raw method definition. e.g (' Method0 AllowSelectionModifiers (const FScriptTypedElementHandle^ InElementHandle) (return bool ReturnValue))
-							functions.push_back(new UnrealFunctionDef(sDirective));
+							functions.push_back(new UnrealFunctionDef(sDirective, database));
 						}
 					}
 
@@ -1500,22 +1568,20 @@ struct UnrealClassDef : IUnrealClass
 	}
 };
 
-void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory);
+void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums);
 
-void ParseClassDef(cr_sex sDef, IClassSystem& classSystem)
+void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& database)
 {
-	UnrealClassDef* def = new UnrealClassDef(sDef);
-	classSystem.AddClass(*def);
-	GenClassDef(*def, GetOutputDirectory(), GetSxyOutputDirectory());
-
-	allClasses.push_back(def);
+	UnrealClassDef def(sDef, database);
+	classSystem.AddClass(def);
+	GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums);
 
 	g_nClassesParsed++;
-	g_nMethodsParsed += (int) def->MethodCount();
+	g_nMethodsParsed += (int) def.MethodCount();
 
-	for (int i = 0; i < def->MethodCount(); i++)
+	for (int i = 0; i < def.MethodCount(); i++)
 	{
-		auto& method = def->GetFunction(i);
+		auto& method = def.GetFunction(i);
 		if (!method.HasSexyCounterpart())
 		{
 			g_nMethodsNotMarshaled++;
@@ -1602,25 +1668,17 @@ int mainProtected(int argc, char* argv[])
 
 	WideFilePath wPath;
 	Format(wPath, L"%hs", sexmlFile);
-	ParseClassFile(wPath, *sParser);
+
+	ObjectDatabase database;
+
+	ParseClassFile(database, wPath, *sParser);
 
 	PrintUnknownsAscending();
 
 	printf("\nNumber of classes: %d\n", g_nClassesParsed);
 	printf("Number of methods in API: %d\n", g_nMethodsParsed);
 	printf("Number of methods that could not be marshaled: %d\n", g_nMethodsNotMarshaled);
-
-	if (!g_UnresolvedArgType.empty())
-	{
-		printf("Unknown arg types:\n");
-
-		for (auto& p : g_UnresolvedArgType)
-		{
-			printf("%s\n", (cstr)p.first);
-		}
-
-		printf("\n");
-	}
+	database.PrintUnresolvedErrors(stderr);
 
 	double failureRate = 100.0 * (double)g_nMethodsNotMarshaled / (double)g_nMethodsParsed;
 	printf("API coverage: %2.2f%%\n", 100.0 - failureRate);

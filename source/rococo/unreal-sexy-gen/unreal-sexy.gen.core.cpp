@@ -19,11 +19,10 @@ extern bool g_unityBuild;
 
 fstring delegatePrefix = "TDelegate<"_fstring;
 
-void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb);
+void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums);
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb);
-void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb);
+void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums);
 IUnrealStruct* FindStruct(cstr name);
-IUnrealEnumDef* FindEnum(cstr name);
 
 const bool UsePackageForFolders = false;
 
@@ -65,7 +64,7 @@ void AddCppFileName(crwstr filename)
 	allCppFileNames.push_back(newFilename);
 }
 
-void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutputDirectory)
+void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& enums)
 {
 	WideFilePath nativeDirectory;
 	Format(nativeDirectory, L"%snatives\\", outputDirectory);
@@ -113,9 +112,9 @@ void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutpu
 	Format(wTargetSXYFile, L"%lsclasses\\%hs%hs%hs.sxy", sexyScriptsDirectory.buf, packageName, slash, shortName);
 	IO::ToSysPath(wTargetSXYFile.buf);
 
-	BuildSexyNativesCPP(classDef, sbCPP);
+	BuildSexyNativesCPP(classDef, sbCPP, enums);
 	BuildSexyNativesHPP(classDef, sbHPP);
-	BuildSexyFiles(classDef, sbSXY);
+	BuildSexyFiles(classDef, sbSXY, enums);
 
 	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
 	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
@@ -242,7 +241,7 @@ void AppendTypeSansRef(StringBuilder& sb, cstr argType)
 	}
 }
 
-bool TryGetEnumAsByte(char* innerType, size_t capacity, cstr argType)
+bool TryGetEnumAsByte(char* innerType, size_t capacity, cstr argType, IEnums& enums)
 {
 	if (StartsWith(argType, enumAsBytePrefix))
 	{
@@ -256,7 +255,7 @@ bool TryGetEnumAsByte(char* innerType, size_t capacity, cstr argType)
 		size_t len = templateDelimeter - innerTypeStart;
 
 		CopyString(innerType, capacity, innerTypeStart, len);
-		auto* enumType = FindEnum(innerType);
+		auto* enumType = enums.FindEnum(innerType);
 		if (enumType)
 		{
 			return true;
@@ -268,13 +267,13 @@ bool TryGetEnumAsByte(char* innerType, size_t capacity, cstr argType)
 
 int FindDelegateSize(cstr name);
 
-void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
+void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums& enums)
 {
 	if (EndsWith(argType, "^"))
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_SXY_Private(sb, valueType);
+		AppendNonContainerType_SXY_Private(sb, valueType, enums);
 		return;
 	}
 
@@ -297,7 +296,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 		return;
 	}
 
-	auto* enumType = FindEnum(argType);
+	auto* enumType = enums.FindEnum(argType);
 	if (enumType)
 	{
 		sb << enumType->Name();
@@ -312,9 +311,9 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 	}
 
 	char innerType[256];
-	if (TryGetEnumAsByte(innerType, sizeof innerType, argType))
+	if (TryGetEnumAsByte(innerType, sizeof innerType, argType, enums))
 	{
-		auto* enumRef = FindEnum(innerType);
+		auto* enumRef = enums.FindEnum(innerType);
 		if (!enumRef)
 		{
 			Throw(0, "Could not find inner type %s", innerType);
@@ -372,13 +371,13 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType)
 	sb << "*/";
 }
 
-void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType)
+void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums& enums)
 {
 	if (EndsWith(argType, "^"))
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_CPP_Private(sb, valueType);
+		AppendNonContainerType_CPP_Private(sb, valueType, enums);
 		return;
 	}
 
@@ -401,7 +400,7 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType)
 		return;
 	}
 
-	auto* enumType = FindEnum(argType);
+	auto* enumType = enums.FindEnum(argType);
 	if (enumType)
 	{
 		sb << "R_" << enumType->Name();
@@ -416,9 +415,9 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType)
 	}
 
 	char innerType[256];
-	if (TryGetEnumAsByte(innerType, sizeof innerType, argType))
+	if (TryGetEnumAsByte(innerType, sizeof innerType, argType, enums))
 	{
-		auto* enumRef = FindEnum(innerType);
+		auto* enumRef = enums.FindEnum(innerType);
 		if (!enumRef)
 		{
 			Throw(0, "Could not find inner type %s", innerType);
@@ -480,19 +479,19 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType)
 	sb << "*/";
 }
 
-void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType)
+void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType, IEnums& enums)
 {
 	if (makeSexyVariableType)
 	{
-		AppendNonContainerType_SXY_Private(sb, argType);
+		AppendNonContainerType_SXY_Private(sb, argType, enums);
 	}
 	else
 	{
-		AppendNonContainerType_CPP_Private(sb, argType);
+		AppendNonContainerType_CPP_Private(sb, argType, enums);
 	}
 }
 
-void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType)
+void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums)
 {
 	cstr argType = arg.ArgType();
 
@@ -503,7 +502,7 @@ void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType)
 		sb << "<";
 		if (*arg.KeyType() != 0)
 		{
-			AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType);
+			AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType, enums);
 			sb << ",";
 		}
 
@@ -512,17 +511,17 @@ void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType)
 			sb << "R_";
 		}
 
-		AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType);
+		AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType, enums);
 		sb << ">";
 	}
 	else
 	{
-		AppendNonContainerType_Private(sb, argType, makeSexyVariableType);
+		AppendNonContainerType_Private(sb, argType, makeSexyVariableType, enums);
 	}
 }
 
 
-void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb)
+void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb, IEnums& enums)
 {
 	sb << "\n\tvoid ";
 	AppendCompactName(sb, classDef.ShortName());
@@ -549,7 +548,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		sb << "\t\t\t";
 
-		AppendType(sb, *arg, false);
+		AppendType(sb, *arg, false, enums);
 
 		if (arg->IsRef() && !arg->IsPtr())
 		{
@@ -580,7 +579,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	{
 		sb << "\t\t";
 
-		AppendType(sb, *input, false);
+		AppendType(sb, *input, false, enums);
 
 		sb << " in_";
 		input->AppendName(sb, true);
@@ -617,7 +616,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	{
 		sb << "\n\t\t";
 
-		AppendType(sb, *output, false);
+		AppendType(sb, *output, false, enums);
 
 		if (output->IsRef() && !output->IsPtr())
 		{
@@ -874,7 +873,7 @@ void GetTypeWithoutRef(char* buffer, size_t capacity, cstr type)
 	}
 }
 
-void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg& arg, cstr argType)
+void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg& arg, cstr argType, IEnums& enums)
 {
 	if (*argType == 'F')
 	{
@@ -892,18 +891,18 @@ void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealAr
 	else if (*argType == 'T')
 	{
 		char innerType[256];
-		if (TryGetEnumAsByte(innerType, sizeof innerType, argType))
+		if (TryGetEnumAsByte(innerType, sizeof innerType, argType, enums))
 		{
 			if (requiredStructs.insert(innerType, 0).second)
 			{
-				auto* enumDef = FindEnum(innerType);
+				auto* enumDef = enums.FindEnum(innerType);
 				sb.AppendFormat("#include \"Enum/%s.hpp\"\n", enumDef->Name());
 				return;
 			}
 		}
 	}
 
-	auto* enumDef = FindEnum(argType);
+	auto* enumDef = enums.FindEnum(argType);
 	if (enumDef)
 	{
 		if (requiredStructs.insert(enumDef->Name(), 0).second)
@@ -925,18 +924,18 @@ void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealAr
 	}
 }
 
-void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg& arg)
+void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg& arg, IEnums& enums)
 {
 	if (arg.IsContainer())
 	{
 		if (*arg.KeyType())
 		{
-			AppendHeaders(requiredStructs, sb, arg, arg.KeyType());
+			AppendHeaders(requiredStructs, sb, arg, arg.KeyType(), enums);
 		}
-		AppendHeaders(requiredStructs, sb, arg, arg.ElementType());
+		AppendHeaders(requiredStructs, sb, arg, arg.ElementType(), enums);
 	}
 
-	AppendHeaders(requiredStructs, sb, arg, arg.ArgType());
+	AppendHeaders(requiredStructs, sb, arg, arg.ArgType(), enums);
 }
 
 bool TryGetInnerType(char* innerType, size_t capacity, cstr argType, fstring prefix)
@@ -965,7 +964,7 @@ bool TryGetInnerType(char* innerType, size_t capacity, cstr argType, fstring pre
 	return false;
 }
 
-void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
+void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums)
 {
 	sb <<
 
@@ -976,9 +975,9 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb)
 	stringmap<int> requiredStructs;
 
 	ForEachArgumentOfEachMethod(classDef,
-		[&requiredStructs, &sb](IUnrealArg& arg)
+		[&requiredStructs, &sb, &enums](IUnrealArg& arg)
 		{
-			AppendHeaders(REF requiredStructs, sb, arg);
+			AppendHeaders(REF requiredStructs, sb, arg, enums);
 		}
 	);
 
@@ -1105,7 +1104,7 @@ namespace
 	for (size_t i = 0; i < classDef.MethodCount(); i++)
 	{
 		auto& method = classDef.GetFunction(i);
-		BuildMethod(classDef, method, sb);
+		BuildMethod(classDef, method, sb, enums);
 	}
 
 	sb << "}\n\n";
@@ -1215,7 +1214,7 @@ namespace
 				sb << "out ";
 			}
 
-			AppendType(sb, *input, true);
+			AppendType(sb, *input, true, enums);
 			sb << " ";
 			input->AppendName(sb, true);
 			sb << ")";
@@ -1227,7 +1226,7 @@ namespace
 		{
 			sb << "(";
 
-			AppendType(sb, *output, true);
+			AppendType(sb, *output, true, enums);
 			sb << " ";
 			output->AppendName(sb, true);
 			sb << ")";
@@ -1288,7 +1287,7 @@ void BuildHardCodedTypes()
 	hardcodedTypes.insert("FText", { "R_FText", nullptr });
 }
 
-void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealType)
+void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealType, IEnums& enums)
 {
 	if (Eq(unrealType, "TArray"))
 	{
@@ -1326,7 +1325,7 @@ void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealT
 		return;
 	}
 
-	auto* enumDef = FindEnum(unrealType);
+	auto* enumDef = enums.FindEnum(unrealType);
 	if (enumDef)
 	{
 		SafeFormat(buffer, capacity, "Enum::R_%s", unrealType);
@@ -1343,7 +1342,7 @@ void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealT
 	SafeFormat(buffer, capacity, "%s%s", STRUCT_PREFIX, unrealType + 1);	
 }
 
-void AppendHeaderForType(StringBuilder& sb, cstr typeName)
+void AppendHeaderForType(StringBuilder& sb, cstr typeName, IEnums& enums)
 {
 	if (StartsWith(typeName, softObjectPtrPrefix))
 	{
@@ -1367,18 +1366,18 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName)
 		cstr endToken = FindChar(typeName, '>');
 		cstr startToken = typeName + enumAsBytePrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		AppendHeaderForType(sb, innerType);
+		AppendHeaderForType(sb, innerType, enums);
 		return;
 	}
 
 	fstring prefices[] = { softObjectPtrPrefix, subclassOfPrefix, ""_fstring };
 	if (TryGetInnerType(innerType, sizeof innerType, typeName, prefices))
 	{
-		AppendHeaderForType(sb, innerType);
+		AppendHeaderForType(sb, innerType, enums);
 		return;
 	}
 
-	auto* enumDef = FindEnum(typeName);
+	auto* enumDef = enums.FindEnum(typeName);
 	if (enumDef)
 	{
 		sb.AppendFormat("#include \"Enum/%s.hpp\"\n", enumDef->Name());
@@ -1410,7 +1409,7 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName)
 
 void AddDelegate(cstr elementType, int delegateSize);
 
-void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
+void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums)
 {
 	BuildHardCodedTypes();
 
@@ -1430,13 +1429,13 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 
 		if (Eq(e.TypeName(), "TArray") || Eq(e.TypeName(), "TSet"))
 		{
-			AppendHeaderForType(sb, e.InnerValueType());
+			AppendHeaderForType(sb, e.InnerValueType(), enums);
 			continue;
 		}
 		else if (Eq(e.TypeName(), "TMap"))
 		{
-			AppendHeaderForType(sb, e.InnerKeyType());
-			AppendHeaderForType(sb, e.InnerValueType());
+			AppendHeaderForType(sb, e.InnerKeyType(), enums);
+			AppendHeaderForType(sb, e.InnerValueType(), enums);
 			continue;
 		}
 		else if (StartsWith(e.TypeName(), "TDelegate<"))
@@ -1451,7 +1450,7 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb)
 		}
 		else
 		{
-			AppendHeaderForType(sb, e.TypeName());
+			AppendHeaderForType(sb, e.TypeName(), enums);
 		}
 	}
 
@@ -1530,25 +1529,25 @@ namespace Rococo::UE::Native::Struct
 
 		if (Eq(e.TypeName(), "TArray"))
 		{
-			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType(), enums);
 			sb.AppendFormat("\t\tR_TArray<%s> ", innerType);
 		}
 		else if (Eq(e.TypeName(), "TSet"))
 		{
-			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType(), enums);
 			sb.AppendFormat("\t\tR_TSet<%s> ", innerType);
 		}
 		else if (Eq(e.TypeName(), "TMap"))
 		{
-			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType());
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType(), enums);
 
 			char keyType[256];
-			InnerUnrealTypeToMarshalledType(keyType, sizeof keyType, e.InnerKeyType());
+			InnerUnrealTypeToMarshalledType(keyType, sizeof keyType, e.InnerKeyType(), enums);
 			sb.AppendFormat("\t\tR_TMap<%s,%s> ", keyType, innerType);
 		}
 		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), enumAsBytePrefix))
 		{
-			auto* enumRef = FindEnum(innerType);
+			auto* enumRef = enums.FindEnum(innerType);
 			sb.AppendFormat("\t\tEnum::R_TEnumAsByte<Enum::R_%s> ", enumRef ? enumRef->Name() : innerType);
 		}
 		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), subclassOfPrefix))
@@ -1576,7 +1575,7 @@ namespace Rococo::UE::Native::Struct
 			}
 			else
 			{
-				auto* enumRef = FindEnum(e.TypeName());
+				auto* enumRef = enums.FindEnum(e.TypeName());
 				if (enumRef)
 				{
 					cstr enumInnerType;
@@ -1672,7 +1671,7 @@ namespace Rococo::UE::Native
 	sb << "}\n";
 }
 
-void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutability)
+void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutability, IEnums& enums)
 {
 	sb << "(";
 
@@ -1702,13 +1701,13 @@ void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutab
 		}
 	}
 
-	AppendType(sb, arg, true);
+	AppendType(sb, arg, true, enums);
 	sb << " ";
 	arg.AppendName(sb, true);
 	sb << ")";
 }
 
-void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
+void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums)
 {
 	char sxyName[256];
 	GetClassNameAsSxyType(sxyName, sizeof sxyName, classRef);
@@ -1772,14 +1771,14 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 
 		for (auto* input : inputs)
 		{
-			AppendUnrealArgAsSexyPair(sb, *input, true);
+			AppendUnrealArgAsSexyPair(sb, *input, true, enums);
 		}
 
 		sb << " -> ";
 
 		for (auto* output : outputs)
 		{
-			AppendUnrealArgAsSexyPair(sb, *output, false);
+			AppendUnrealArgAsSexyPair(sb, *output, false, enums);
 		}
 
 		sb << ":\n";
@@ -1834,7 +1833,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb)
 	}
 }
 
-void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory)
+void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums)
 {
 	WideFilePath nativeDirectory;
 	Format(nativeDirectory, L"%snatives\\", outputDirectory);
@@ -1875,7 +1874,7 @@ void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory)
 	//IO::ToSysPath(wTargetSXYFile.buf);
 
 	//BuildSexyNativesCPP(classDef, sbCPP);
-	BuildSexyNativeStructsHPP(structDef, sbHPP);
+	BuildSexyNativeStructsHPP(structDef, sbHPP, enums);
 	//BuildSexyFiles(classDef, sbSXY);
 
 	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
@@ -2211,7 +2210,7 @@ namespace Rococo::Unreal
 			
 		}
 
-		void AddClass(IUnrealClass& classRef) override
+		void AddClass(const IUnrealClass& classRef) override
 		{
 			classes.push_back({ classRef.PackageName(), FormatCPPNamespaceFromPath(classRef.PackageName()), classRef.ShortName() });
 		}

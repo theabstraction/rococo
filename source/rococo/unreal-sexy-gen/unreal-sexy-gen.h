@@ -19,6 +19,17 @@ namespace Rococo::Unreal
 		virtual size_t GetUnderlyingSize() const = 0;
 	};
 
+	ROCOCO_INTERFACE IEnums
+	{
+		virtual const IUnrealEnumDef* FindEnum(cstr name) const = 0;
+	};
+
+	ROCOCO_INTERFACE IObjectSearcher
+	{
+		virtual bool HasSexyCounterpart(cstr argType, cstr elementType, cstr keyType) const = 0;
+		virtual bool IsKnownElementType(cstr argType) const = 0;
+	};
+
 	ROCOCO_INTERFACE IUnrealArg
 	{
 		virtual void AppendName(Strings::StringBuilder & sb, bool makeSexyVariableName = false) const = 0;
@@ -94,7 +105,7 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IClassSystem
 	{
-		virtual void AddClass(IUnrealClass& classRef) = 0;
+		virtual void AddClass(const IUnrealClass& classRef) = 0;
 		virtual void Commit() = 0;
 		virtual void Free() = 0;
 	};
