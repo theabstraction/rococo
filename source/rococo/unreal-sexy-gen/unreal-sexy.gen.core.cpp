@@ -658,6 +658,90 @@ void GetClassNameAsSxyType(char* buffer, size_t capacity, IUnrealClass& classRef
 	AppendNameAsSxyType(sb, classRef);
 }
 
+void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealStruct& structRef)
+{
+	// Example /Engine/AI/
+	cstr packageName = structRef.Package();
+
+	if (*packageName == '/')
+	{
+		packageName++;
+	}
+
+	char firstChar = *packageName++;
+
+	if (IsLowerCase(firstChar))
+	{
+		// Lower case - but Sexy namespaces must be pascal case, so convert to pascal case
+		sb.AppendChar((char)toupper(firstChar));
+	}
+	else if (isupper(firstChar))
+	{
+		sb.AppendChar(firstChar);
+	}
+	else if (IsNumeric(firstChar))
+	{
+		// Illegal first character, so add a prefix
+		sb << "NS";
+		sb.AppendChar(firstChar);
+	}
+	else
+	{
+		Throw(0, "Cannot transform package name to Sexy namespace. Bad first character: %s %s", structRef.Package(), structRef.TypeName());
+	}
+
+	int subspaceCharCount = 1;
+
+	for (cstr p = packageName; *p != 0; p++)
+	{
+		char c = *p;
+
+		if (c == '/')
+		{
+			if (subspaceCharCount > 0)
+			{
+				sb.AppendChar('.');
+				subspaceCharCount = 0;
+			}
+		}
+		else if (IsAlphaNumeric(c))
+		{
+			if (subspaceCharCount == 0)
+			{
+				// We must begin with a capital letter
+				if (islower(c))
+				{
+					sb.AppendChar((char)toupper(c));
+				}
+				else if (isupper(c))
+				{
+					sb.AppendChar(c);
+				}
+				else
+				{
+					sb << "N"; // For want of a better prefix
+					sb.AppendChar(c);
+				}
+			}
+			else
+			{
+				sb.AppendChar(c);
+			}
+			subspaceCharCount++;
+		}
+		else
+		{
+			// Skip character, assume it to be blankspace
+		}
+	}
+
+	if (subspaceCharCount == 0)
+	{
+		// We finished on a trailing dot, which is not permitted
+		sb.Undo(-1);
+	}
+}
+
 void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 {
 	// Example /Engine/AI/
@@ -1337,9 +1421,36 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName, IEnums& enums)
 	}
 }
 
-void BuildSexyNativeStructsSXY(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums, IDelegates& delegates)
+void BuildSexyNativeStructsSXY(IUnrealStruct& structDef, StringBuilder& sb)
 {
+	char sxyStructName[128];
+	SafeFormat(sxyStructName, "%s", structDef.TypeName());
 
+	char sxyNS[128];
+	SecureFormat(sxyNS, "%s", structDef.Package());
+
+	int len = sb.Length();
+
+	sb << "(rock UEF" << sxyStructName;
+
+	while (sb.Length() - len < 64)
+	{
+		sb << " ";
+	}
+	
+	len = sb.Length();
+	sb << " " << structDef.SizeOf();
+	
+	while (sb.Length() - len < 4)
+	{
+		sb << " ";
+	}
+	
+	sb << " UE.";
+	
+	AppendPackageAsSexyNamespace(sb, structDef);
+	
+	sb << "." << sxyStructName << ")\n";
 }
 
 void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums, IDelegates& delegates)
@@ -1811,7 +1922,7 @@ namespace Rococo::Unreal
 			IO::ToSysPath(wTargetHPPFile.buf);
 
 			BuildSexyNativeStructsHPP(structDef, sbHPP, enums, delegates);
-			BuildSexyNativeStructsSXY(structDef, dsbAllStructsSXY->Builder(), enums, delegates);
+			BuildSexyNativeStructsSXY(structDef, dsbAllStructsSXY->Builder());
 
 			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
 		}
