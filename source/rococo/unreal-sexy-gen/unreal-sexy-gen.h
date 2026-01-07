@@ -24,12 +24,6 @@ namespace Rococo::Unreal
 		virtual const IUnrealEnumDef* FindEnum(cstr name) const = 0;
 	};
 
-	ROCOCO_INTERFACE IObjectSearcher
-	{
-		virtual bool HasSexyCounterpart(cstr argType, cstr elementType, cstr keyType) const = 0;
-		virtual bool IsKnownElementType(cstr argType) const = 0;
-	};
-
 	ROCOCO_INTERFACE IUnrealArg
 	{
 		virtual void AppendName(Strings::StringBuilder & sb, bool makeSexyVariableName = false) const = 0;
@@ -95,6 +89,18 @@ namespace Rococo::Unreal
 
 		// Returns the element at the given index
 		virtual IUnrealStructElement& operator[](size_t index) = 0;
+	};
+
+	ROCOCO_INTERFACE IStructs
+	{
+		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
+	};
+
+	ROCOCO_INTERFACE IObjectSearcher
+	{
+		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
+		virtual bool HasSexyCounterpart(cstr argType, cstr elementType, cstr keyType) const = 0;
+		virtual bool IsKnownElementType(cstr argType) const = 0;
 	};
 
 	ROCOCO_INTERFACE IMarshalType

@@ -35,14 +35,24 @@ void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem, ObjectDatabase& 
 struct UnrealEnumDef;
 
 const IMarshalType* FindPrimitiveType(cstr argType);
-IUnrealStruct* FindStruct(cstr name);
 
-void ParseStructDef(cr_sex sDef, IEnums& enums);
 void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 crwstr GetOutputDirectory();
 crwstr GetSxyOutputDirectory();
+
+struct UnrealStructDef;
+
+struct Structs : IStructs
+{
+	stringmap<UnrealStructDef*> structs;
+
+	const IUnrealStruct* FindStruct(cstr name) const override;
+	void ParseStructDef(cr_sex sDef, IEnums& enums);
+
+	~Structs();
+};
 
 struct Enums : IEnums
 {
@@ -58,6 +68,7 @@ struct Enums : IEnums
 struct ObjectDatabase : IObjectSearcher
 {
 	Enums enums;
+	Structs structs;
 
 	mutable stringmap<int> unresolvedArgType;
 
@@ -69,6 +80,11 @@ struct ObjectDatabase : IObjectSearcher
 	void AddEnum(cr_sex sEnumDef)
 	{
 		enums.Add(sEnumDef);
+	}
+
+	const IUnrealStruct* FindStruct(cstr name) const override
+	{
+		return structs.FindStruct(name);
 	}
 
 	bool HasSexyCounterpart(cstr argType, cstr elementType, cstr keyType) const override
@@ -156,7 +172,7 @@ struct ObjectDatabase : IObjectSearcher
 
 		if (*p == 'F')
 		{
-			auto* structType = FindStruct(p + 1);
+			auto* structType = structs.FindStruct(p + 1);
 			if (structType)
 			{
 				return true;
@@ -341,7 +357,7 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 
 		if (Eq(sDirective.c_str(), "UStruct"))
 		{
-			ParseStructDef(sStructDef, database.enums);
+			database.structs.ParseStructDef(sStructDef, database.enums);
 			if ((structCount++ % 100) == 0)
 			{
 				printf(".");
@@ -942,6 +958,11 @@ struct UnrealStructDef : IUnrealStruct
 		}
 	}
 
+	void Free()
+	{
+		delete this;
+	}
+
 	cstr TypeName() const override
 	{
 		return typeName;
@@ -975,12 +996,10 @@ struct UnrealStructDef : IUnrealStruct
 
 void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory, IEnums& enums);
 
-stringmap<UnrealStructDef*> knownStructs;
-
-IUnrealStruct* FindStruct(cstr name)
+const IUnrealStruct* Structs::FindStruct(cstr name) const
 {
-	auto i = knownStructs.find(name);
-	if (i == knownStructs.end())
+	auto i = structs.find(name);
+	if (i == structs.end())
 	{
 		if (EndsWith(name, "^"))
 		{
@@ -992,19 +1011,29 @@ IUnrealStruct* FindStruct(cstr name)
 		}
 	}
 
-	return i == knownStructs.end() ? nullptr : i->second;
+	return i == structs.end() ? nullptr : i->second;
 }
 
-void ParseStructDef(cr_sex sDef, IEnums& enums)
+Structs::~Structs()
 {
-	UnrealStructDef* def = new UnrealStructDef(sDef);
+	for (auto& i : structs)
+	{
+		delete i.second;
+	}
+}
+
+void Structs::ParseStructDef(cr_sex sDef, IEnums& enums)
+{
+	AutoFree<UnrealStructDef> def = new UnrealStructDef(sDef);
 	try
 	{
 		GenStructDef(*def, GetOutputDirectory(), enums);
-		if (knownStructs.insert(def->TypeName(), def).second == false)
+		if (structs.insert(def->TypeName(), def).second == false)
 		{
 			Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
 		}
+
+		def.Detach();
 	}
 	catch (...)
 	{
@@ -1317,7 +1346,7 @@ struct UnrealFunctionArg : IUnrealArg
 
 		if (*p == 'F')
 		{
-			auto* structType = FindStruct(p + 1);
+			const auto* structType = searcher.FindStruct(p + 1);
 			if (structType)
 			{
 				return false;
@@ -1568,13 +1597,13 @@ struct UnrealClassDef : IUnrealClass
 	}
 };
 
-void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums);
+void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs);
 
 void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& database)
 {
 	UnrealClassDef def(sDef, database);
 	classSystem.AddClass(def);
-	GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums);
+	GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums, database.structs);
 
 	g_nClassesParsed++;
 	g_nMethodsParsed += (int) def.MethodCount();
