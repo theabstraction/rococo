@@ -33,8 +33,6 @@ void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem, ObjectDatabase& 
 
 struct UnrealEnumDef;
 
-const IMarshalType* FindPrimitiveType(cstr argType);
-
 void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
 void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
@@ -46,9 +44,16 @@ struct UnrealStructDef;
 struct Structs : IStructs
 {
 	stringmap<UnrealStructDef*> structs;
+	stringmap<IMarshalType*> marshalArgTypes;
+	stringmap<int> mapUnknownToUsage;;
 
+	Structs();
+
+	const IMarshalType* FindPrimitiveType(cstr argType) const override;
 	const IUnrealStruct* FindStruct(cstr name) const override;
+	void MarkUnknown(cstr type) override;
 	void ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates);
+	void PrintUnknownsAscending(FILE* fp);
 
 	~Structs();
 };
@@ -155,7 +160,7 @@ struct ObjectDatabase : IObjectSearcher
 			return true;
 		}
 
-		auto* primitive = FindPrimitiveType(p);
+		auto* primitive = structs.FindPrimitiveType(p);
 		if (primitive)
 		{
 			return true;
@@ -313,8 +318,6 @@ void ParseClassFile(ObjectDatabase& database, crwstr filename, ISParser& parser)
 	}
 }
 
-void PrintUnknownsAscending();
-
 namespace Rococo::IO
 {
 	void PrintOverwriteReport();
@@ -438,8 +441,6 @@ void ValidateToken(cr_sex s, cstr matchThis, cstr context)
 
 #include <rococo.hashtable.h>
 
-Rococo::stringmap<IMarshalType*> marshalArgTypes;
-
 struct MarshalType_Int32: IMarshalType
 {
 	cstr CPPName() const override
@@ -450,6 +451,10 @@ struct MarshalType_Int32: IMarshalType
 	cstr SXYName() const override
 	{
 		return "Int32";
+	}
+
+	void Free() override
+	{
 	}
 } s_mt_Int32;
 
@@ -464,6 +469,10 @@ struct MarshalType_Int64 : IMarshalType
 	{
 		return "Int64";
 	}
+
+	void Free() override
+	{
+	}
 } s_mt_Int64;
 
 struct MarshalType_float : IMarshalType
@@ -476,6 +485,10 @@ struct MarshalType_float : IMarshalType
 	cstr SXYName() const override
 	{
 		return "Float32";
+	}
+
+	void Free() override
+	{
 	}
 } s_mt_float;
 
@@ -490,6 +503,10 @@ struct MarshalType_double : IMarshalType
 	{
 		return "Float64";
 	}
+
+	void Free() override
+	{
+	}
 } s_mt_double;
 
 struct MarshalType_bool : IMarshalType
@@ -502,6 +519,10 @@ struct MarshalType_bool : IMarshalType
 	cstr SXYName() const override
 	{
 		return "Bool";
+	}
+
+	void Free() override
+	{
 	}
 } s_mt_bool;
 
@@ -516,6 +537,10 @@ struct MarshalType_FString : IMarshalType
 	{
 		return "IString";
 	}
+
+	void Free() override
+	{
+	}
 } s_mt_FString;
 
 struct MarshalType_FName : IMarshalType
@@ -528,6 +553,10 @@ struct MarshalType_FName : IMarshalType
 	cstr SXYName() const override
 	{
 		return "FName";
+	}
+
+	void Free() override
+	{
 	}
 } s_mt_FName;
 
@@ -542,35 +571,37 @@ struct MarshalType_FText : IMarshalType
 	{
 		return "FText";
 	}
+
+	void Free() override
+	{
+	}
 } s_mt_FText;
 
-const IMarshalType* FindPrimitiveType(cstr argType)
+Structs::Structs()
 {
-	if (marshalArgTypes.size() == 0)
-	{
-		marshalArgTypes.insert("uint8", &s_mt_Int32);
-		marshalArgTypes.insert("int32", &s_mt_Int32);
-		marshalArgTypes.insert("int64", &s_mt_Int32);
-		marshalArgTypes.insert("float", &s_mt_float);
-		marshalArgTypes.insert("double", &s_mt_double);
-		marshalArgTypes.insert("bool", &s_mt_bool);
-		marshalArgTypes.insert("FString", &s_mt_FString);
-		marshalArgTypes.insert("FName", &s_mt_FName);
-		marshalArgTypes.insert("FText", &s_mt_FText);
-	}
+	marshalArgTypes.insert("uint8", &s_mt_Int32);
+	marshalArgTypes.insert("int32", &s_mt_Int32);
+	marshalArgTypes.insert("int64", &s_mt_Int32);
+	marshalArgTypes.insert("float", &s_mt_float);
+	marshalArgTypes.insert("double", &s_mt_double);
+	marshalArgTypes.insert("bool", &s_mt_bool);
+	marshalArgTypes.insert("FString", &s_mt_FString);
+	marshalArgTypes.insert("FName", &s_mt_FName);
+	marshalArgTypes.insert("FText", &s_mt_FText);
+}
 
+const IMarshalType* Structs::FindPrimitiveType(cstr argType) const
+{
 	auto i = marshalArgTypes.find(argType);
 	return i != marshalArgTypes.end() ? i->second : nullptr;
 }
 
-Rococo::stringmap<int> g_mapUnknownToUsage;
-
-void MarkUnknown(cstr type)
+void Structs::MarkUnknown(cstr type)
 {
-	auto i = g_mapUnknownToUsage.find(type);
-	if (i == g_mapUnknownToUsage.end())
+	auto i = mapUnknownToUsage.find(type);
+	if (i == mapUnknownToUsage.end())
 	{
-		g_mapUnknownToUsage.insert(type, 1);
+		mapUnknownToUsage.insert(type, 1);
 	}
 	else
 	{
@@ -580,9 +611,9 @@ void MarkUnknown(cstr type)
 
 #include <algorithm>
 
-void PrintUnknownsAscending()
+void Structs::PrintUnknownsAscending(FILE* fp)
 {
-	if (g_mapUnknownToUsage.empty())
+	if (mapUnknownToUsage.empty())
 	{
 		return;
 	}
@@ -593,7 +624,7 @@ void PrintUnknownsAscending()
 		int count;
 	};
 	std::vector<Usage> elements;
-	for (auto& i : g_mapUnknownToUsage)
+	for (auto& i : mapUnknownToUsage)
 	{
 		Usage u{ i.first, i.second };
 		elements.push_back(u);
@@ -606,15 +637,15 @@ void PrintUnknownsAscending()
 		}
 	);
 
-	printf("\n-------------------------------\n");
-	printf("\nUnknown Type - [Occurence Rate]\n");
+	fprintf(fp, "\n-------------------------------\n");
+	fprintf(fp, "\nUnknown Type - [Occurence Rate]\n");
 
 	for (auto& u : elements)
 	{
-		printf("%s - [%d]\n", u.item, u.count);
+		fprintf(fp, "%s - [%d]\n", u.item, u.count);
 	}
 
-	printf("\n-------------------------------\n");
+	fprintf(fp, "\n-------------------------------\n");
 }
 
 
@@ -1032,6 +1063,11 @@ Structs::~Structs()
 	for (auto& i : structs)
 	{
 		delete i.second;
+	}
+
+	for (auto& i : marshalArgTypes)
+	{
+		i.second->Free();
 	}
 }
 
@@ -1708,7 +1744,7 @@ int mainProtected(int argc, char* argv[])
 
 	ParseClassFile(database, wPath, *sParser);
 
-	PrintUnknownsAscending();
+	database.structs.PrintUnknownsAscending(stderr);
 
 	printf("\nNumber of classes: %d\n", g_nClassesParsed);
 	printf("Number of methods in API: %d\n", g_nMethodsParsed);

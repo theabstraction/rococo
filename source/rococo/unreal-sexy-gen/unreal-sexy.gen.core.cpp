@@ -228,9 +228,6 @@ void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVari
 	}
 }
 
-const IMarshalType* FindPrimitiveType(cstr argType);
-void MarkUnknown(cstr type);
-
 void AppendTypeSansRef(StringBuilder& sb, cstr argType)
 {
 	cstr p = argType;
@@ -286,7 +283,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		return;
 	}
 
-	auto* primitive = FindPrimitiveType(argType);
+	auto* primitive = structs.FindPrimitiveType(argType);
 	if (primitive)
 	{
 		sb << primitive->SXYName();
@@ -361,7 +358,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		return;
 	}
 
-	MarkUnknown(argType);
+	structs.MarkUnknown(argType);
 
 	sb << "UnknownType /*";
 	AppendTypeSansRef(sb, argType);
@@ -390,7 +387,7 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums&
 		return;
 	}
 
-	auto* primitive = FindPrimitiveType(argType);
+	auto* primitive = structs.FindPrimitiveType(argType);
 	if (primitive)
 	{
 		sb << primitive->CPPName();
@@ -469,7 +466,7 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums&
 		return;
 	}
 
-	MarkUnknown(argType);
+	structs.MarkUnknown(argType);
 
 	sb << "UnknownType /*";
 	AppendTypeSansRef(sb, argType);

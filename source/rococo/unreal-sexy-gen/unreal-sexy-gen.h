@@ -91,9 +91,18 @@ namespace Rococo::Unreal
 		virtual IUnrealStructElement& operator[](size_t index) = 0;
 	};
 
+	ROCOCO_INTERFACE IMarshalType
+	{
+		virtual cstr CPPName() const = 0;
+		virtual cstr SXYName() const = 0;
+		virtual void Free() = 0;
+	};
+
 	ROCOCO_INTERFACE IStructs
 	{
+		virtual const IMarshalType* FindPrimitiveType(cstr argType) const = 0;
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
+		virtual void MarkUnknown(cstr type) = 0;
 	};
 
 	ROCOCO_INTERFACE IDelegates
@@ -107,12 +116,6 @@ namespace Rococo::Unreal
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
 		virtual bool HasSexyCounterpart(cstr argType, cstr elementType, cstr keyType) const = 0;
 		virtual bool IsKnownElementType(cstr argType) const = 0;
-	};
-
-	ROCOCO_INTERFACE IMarshalType
-	{
-		virtual cstr CPPName() const = 0;
-		virtual cstr SXYName() const = 0;
 	};
 
 	ROCOCO_INTERFACE IClassSystem
