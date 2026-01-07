@@ -126,4 +126,14 @@ namespace Rococo::Unreal
 	};
 
 	IClassSystem* CreateClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory);
+
+	ROCOCO_INTERFACE IAPIGenerator
+	{
+		virtual void Free() = 0;
+		virtual void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates) = 0;
+		virtual	void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path) = 0;
+		virtual void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums, IDelegates& delegates) = 0;
+	};
+
+	IAPIGenerator* CreateAPIGenerator();
 }

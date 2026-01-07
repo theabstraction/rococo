@@ -29,7 +29,7 @@ bool g_unityBuild = false;
 struct ObjectDatabase;
 
 void GenEnumDef(IUnrealEnumDef& def, crwstr nativeDirectory);
-void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem, ObjectDatabase& enums);
+void ParseClassDef(cr_sex sClassDef, IClassSystem& classSystem, ObjectDatabase& enums, IAPIGenerator& generator);
 
 struct UnrealEnumDef;
 
@@ -52,7 +52,7 @@ struct Structs : IStructs
 	const IMarshalType* FindPrimitiveType(cstr argType) const override;
 	const IUnrealStruct* FindStruct(cstr name) const override;
 	void MarkUnknown(cstr type) override;
-	void ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates);
+	void ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates, IAPIGenerator& generator);
 	void PrintUnknownsAscending(FILE* fp);
 
 	~Structs();
@@ -68,8 +68,6 @@ struct Enums : IEnums
 	~Enums();
 };
 
-void GenDelegateDef(cstr typeName, int sizeInBytes, crwstr path);
-
 struct Delegates: IDelegates
 {
 	Rococo::stringmap<int> delegatesVsSize;
@@ -82,7 +80,7 @@ struct Delegates: IDelegates
 		return i == delegatesVsSize.end() ? 0 : i->second;
 	}
 
-	void GenerateDelegates(FILE* fpReport)
+	void GenerateDelegates(FILE* fpReport, IAPIGenerator& generator)
 	{
 		if (fpReport) fprintf(fpReport, "\nProcessing %llu delegates", delegatesVsSize.size());
 
@@ -91,7 +89,7 @@ struct Delegates: IDelegates
 			cstr typeName = d.first;
 			int sizeInBytes = d.second;
 
-			GenDelegateDef(typeName, sizeInBytes, GetOutputDirectory());
+			generator.GenDelegateDef(typeName, sizeInBytes, GetOutputDirectory());
 		}
 	}
 };
@@ -327,6 +325,8 @@ void ParseDelegateDef(cstr typeName, int sizeInBytes);
 
 void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 {
+	AutoFree<IAPIGenerator> generator = CreateAPIGenerator();
+
 	int enumCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -380,7 +380,7 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 
 		if (Eq(sDirective.c_str(), "UStruct"))
 		{
-			database.structs.ParseStructDef(sStructDef, database.enums, database.delegates);
+			database.structs.ParseStructDef(sStructDef, database.enums, database.delegates, *generator);
 			if ((structCount++ % 100) == 0)
 			{
 				printf(".");
@@ -410,7 +410,7 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 		cr_sex sDirective = GetAtomicArg(sClassDef, 0);
 		if (Eq(sDirective.c_str(), "UClass"))
 		{
-			ParseClassDef(sClassDef, *classSystem, database);
+			ParseClassDef(sClassDef, *classSystem, database, *generator);
 
 			if ((classCount++ % 100) == 0)
 			{
@@ -421,7 +421,7 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 
 	classSystem->Commit();
 
-	database.delegates.GenerateDelegates(stdout);
+	database.delegates.GenerateDelegates(stdout, *generator);
 }
 
 void ValidateToken(cr_sex s, cstr matchThis, cstr context)
@@ -1038,8 +1038,6 @@ struct UnrealStructDef : IUnrealStruct
 	}
 };
 
-void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory, IEnums& enums, IDelegates& delegates);
-
 const IUnrealStruct* Structs::FindStruct(cstr name) const
 {
 	auto i = structs.find(name);
@@ -1071,12 +1069,12 @@ Structs::~Structs()
 	}
 }
 
-void Structs::ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates)
+void Structs::ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates, IAPIGenerator& generator)
 {
 	AutoFree<UnrealStructDef> def = new UnrealStructDef(sDef);
 	try
 	{
-		GenStructDef(*def, GetOutputDirectory(), enums, delegates);
+		generator.GenStructDef(*def, GetOutputDirectory(), enums, delegates);
 		if (structs.insert(def->TypeName(), def).second == false)
 		{
 			Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
@@ -1639,13 +1637,11 @@ struct UnrealClassDef : IUnrealClass
 	}
 };
 
-void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates);
-
-void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& database)
+void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& database, IAPIGenerator& generator)
 {
 	UnrealClassDef def(sDef, database);
 	classSystem.AddClass(def);
-	GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums, database.structs, database.delegates);
+	generator.GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums, database.structs, database.delegates);
 
 	g_nClassesParsed++;
 	g_nMethodsParsed += (int) def.MethodCount();

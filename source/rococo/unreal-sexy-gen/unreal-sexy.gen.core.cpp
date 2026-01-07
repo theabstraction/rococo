@@ -56,70 +56,6 @@ namespace Rococo::IO
 
 std::vector<HString> allCppFileNames;
 
-void AddCppFileName(crwstr filename)
-{
-	HString newFilename;
-	Format(OUT newFilename, "%ls", filename);
-	allCppFileNames.push_back(newFilename);
-}
-
-void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates)
-{
-	WideFilePath nativeDirectory;
-	Format(nativeDirectory, L"%snatives\\", outputDirectory);
-
-	WideFilePath sexyScriptsDirectory;
-	Format(sexyScriptsDirectory, L"%s", sxyOutputDirectory);
-
-	cstr shortName = classDef.ShortName();
-	cstr packageName = UsePackageForFolders ? classDef.PackageName() : "";
-	cstr slash = "";
-
-	if (*packageName == '/')
-	{
-		slash = "/";
-		packageName++;
-	}
-
-	AutoFree<IDynamicStringBuilder> dsbCPP = CreateDynamicStringBuilder(64_kilobytes);
-
-	// .cpp builder
-	auto& sbCPP = dsbCPP->Builder();
-
-	AutoFree<IDynamicStringBuilder> dsbHPP = CreateDynamicStringBuilder(16_kilobytes);
-
-	// .HPP builder
-	auto& sbHPP = dsbHPP->Builder();
-
-	AutoFree<IDynamicStringBuilder> dsbSXY = CreateDynamicStringBuilder(64_kilobytes);
-
-	// .sxy builder
-	auto& sbSXY = dsbSXY->Builder();
-
-	WideFilePath wTargetCPPFile;
-	Format(wTargetCPPFile, L"%ls%hs%hs%hs.cpp", nativeDirectory.buf, packageName, slash, shortName);
-
-	AddCppFileName(wTargetCPPFile);
-
-	IO::ToSysPath(wTargetCPPFile.buf);
-
-	WideFilePath wTargetHPPFile;
-	Format(wTargetHPPFile, L"%ls%hs%hs%hs.hpp", nativeDirectory.buf, packageName, slash, shortName);
-	IO::ToSysPath(wTargetHPPFile.buf);
-
-	WideFilePath wTargetSXYFile;
-	Format(wTargetSXYFile, L"%lsclasses\\%hs%hs%hs.sxy", sexyScriptsDirectory.buf, packageName, slash, shortName);
-	IO::ToSysPath(wTargetSXYFile.buf);
-
-	BuildSexyNativesCPP(classDef, sbCPP, enums, structs, delegates);
-	BuildSexyNativesHPP(classDef, sbHPP);
-	BuildSexyFiles(classDef, sbSXY, enums, structs, delegates);
-
-	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
-	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
-	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
-}
-
 void AppendCompactName(StringBuilder& sb, cstr p)
 {
 	while (*p != 0)
@@ -1825,76 +1761,64 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 	}
 }
 
-void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums, IDelegates& delegates)
+namespace Rococo::Unreal
 {
-	WideFilePath nativeDirectory;
-	Format(nativeDirectory, L"%snatives\\", outputDirectory);
-
-	cstr structName = structDef.TypeName();
-	cstr packageName = UsePackageForFolders ? structDef.Package() : "";
-
-	if (*packageName == '/')
+	struct APIGenerator : public IAPIGenerator
 	{
-		packageName++;
-	}
+		void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums, IDelegates& delegates) override
+		{
+			WideFilePath nativeDirectory;
+			Format(nativeDirectory, L"%snatives\\", outputDirectory);
 
-	//AutoFree<IDynamicStringBuilder> dsbCPP = CreateDynamicStringBuilder(64_kilobytes);
+			cstr structName = structDef.TypeName();
+			cstr packageName = UsePackageForFolders ? structDef.Package() : "";
 
-	// .cpp builder
-	//auto& sbCPP = dsbCPP->Builder();
+			if (*packageName == '/')
+			{
+				packageName++;
+			}
 
-	AutoFree<IDynamicStringBuilder> dsbHPP = CreateDynamicStringBuilder(16_kilobytes);
+			AutoFree<IDynamicStringBuilder> dsbHPP = CreateDynamicStringBuilder(16_kilobytes);
 
-	// .HPP builder
-	auto& sbHPP = dsbHPP->Builder();
+			auto& sbHPP = dsbHPP->Builder();
 
-	AutoFree<IDynamicStringBuilder> dsbSXY = CreateDynamicStringBuilder(64_kilobytes);
+			AutoFree<IDynamicStringBuilder> dsbSXY = CreateDynamicStringBuilder(64_kilobytes);
 
-	// .sxy builder
-	//auto& sbSXY = dsbSXY->Builder();
+			WideFilePath wTargetHPPFile;
+			Format(wTargetHPPFile, L"%lsStruct/%hs/%hs.hpp", nativeDirectory, packageName, structName);
+			IO::ToSysPath(wTargetHPPFile.buf);
 
-	//WideFilePath wTargetCPPFile;
-	//Format(wTargetCPPFile, L"%ls%hs\\%hs.cpp", nativeDirectory, packageName, shortName);
-	//IO::ToSysPath(wTargetCPPFile.buf);
+			BuildSexyNativeStructsHPP(structDef, sbHPP, enums, delegates);
 
-	WideFilePath wTargetHPPFile;
-	Format(wTargetHPPFile, L"%lsStruct/%hs/%hs.hpp", nativeDirectory, packageName, structName);
-	IO::ToSysPath(wTargetHPPFile.buf);
+			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+		}
 
-	//WideFilePath wTargetSXYFile;
-	//Format(wTargetSXYFile, L"%ls%hs\\%hs.sxy", sexyDirectory, packageName, shortName);
-	//IO::ToSysPath(wTargetSXYFile.buf);
+		void Free() override
+		{
+			delete this;
+		}
 
-	//BuildSexyNativesCPP(classDef, sbCPP);
-	BuildSexyNativeStructsHPP(structDef, sbHPP, enums, delegates);
-	//BuildSexyFiles(classDef, sbSXY);
+		void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path) override
+		{
+			cstr typeName = rawTypeName;
 
-	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
-	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
-	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
-}
+			char mutedTypeName[256];
 
-void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path)
-{
-	cstr typeName = rawTypeName;
+			if (EndsWith(rawTypeName, "^"))
+			{
+				CopyString(mutedTypeName, sizeof mutedTypeName, rawTypeName);
+				mutedTypeName[strlen(mutedTypeName) - 1] = 0;
+				typeName = mutedTypeName;
+			}
 
-	char mutedTypeName[256];
+			char delegateBody[256];
+			StackStringBuilder sb(delegateBody, sizeof delegateBody);
 
-	if (EndsWith(rawTypeName, "^"))
-	{
-		CopyString(mutedTypeName, sizeof mutedTypeName, rawTypeName);
-		mutedTypeName[strlen(mutedTypeName) - 1] = 0;
-		typeName = mutedTypeName;
-	}
+			WideFilePath wTargetHPPFile;
+			Format(wTargetHPPFile, L"%lsnatives\\Delegate\\%hs.hpp", path, typeName);
+			IO::ToSysPath(wTargetHPPFile.buf);
 
-	char delegateBody[256];
-	StackStringBuilder sb(delegateBody, sizeof delegateBody);
-
-	WideFilePath wTargetHPPFile;
-	Format(wTargetHPPFile, L"%lsnatives\\Delegate\\%hs.hpp", path, typeName);
-	IO::ToSysPath(wTargetHPPFile.buf);
-
-	sb << R"(#pragma once
+			sb << R"(#pragma once
 
 namespace Rococo::UE::Native::Delegate
 {
@@ -1904,11 +1828,82 @@ namespace Rococo::UE::Native::Delegate
 << "\t{\n"
 << "\t\t";
 
-	sb.AppendFormat("char _opaque_data[%d];\n", sizeInBytes);
+			sb.AppendFormat("char _opaque_data[%d];\n", sizeInBytes);
 
-	sb << "\t};\n}\n";
+			sb << "\t};\n}\n";
 
-	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sb);
+			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sb);
+		}
+
+		void AddCppFileName(crwstr filename)
+		{
+			HString newFilename;
+			Format(OUT newFilename, "%ls", filename);
+			allCppFileNames.push_back(newFilename);
+		}
+
+		void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates) override
+		{
+			WideFilePath nativeDirectory;
+			Format(nativeDirectory, L"%snatives\\", outputDirectory);
+
+			WideFilePath sexyScriptsDirectory;
+			Format(sexyScriptsDirectory, L"%s", sxyOutputDirectory);
+
+			cstr shortName = classDef.ShortName();
+			cstr packageName = UsePackageForFolders ? classDef.PackageName() : "";
+			cstr slash = "";
+
+			if (*packageName == '/')
+			{
+				slash = "/";
+				packageName++;
+			}
+
+			AutoFree<IDynamicStringBuilder> dsbCPP = CreateDynamicStringBuilder(64_kilobytes);
+
+			// .cpp builder
+			auto& sbCPP = dsbCPP->Builder();
+
+			AutoFree<IDynamicStringBuilder> dsbHPP = CreateDynamicStringBuilder(16_kilobytes);
+
+			// .HPP builder
+			auto& sbHPP = dsbHPP->Builder();
+
+			AutoFree<IDynamicStringBuilder> dsbSXY = CreateDynamicStringBuilder(64_kilobytes);
+
+			// .sxy builder
+			auto& sbSXY = dsbSXY->Builder();
+
+			WideFilePath wTargetCPPFile;
+			Format(wTargetCPPFile, L"%ls%hs%hs%hs.cpp", nativeDirectory.buf, packageName, slash, shortName);
+
+			AddCppFileName(wTargetCPPFile);
+
+			IO::ToSysPath(wTargetCPPFile.buf);
+
+			WideFilePath wTargetHPPFile;
+			Format(wTargetHPPFile, L"%ls%hs%hs%hs.hpp", nativeDirectory.buf, packageName, slash, shortName);
+			IO::ToSysPath(wTargetHPPFile.buf);
+
+			WideFilePath wTargetSXYFile;
+			Format(wTargetSXYFile, L"%lsclasses\\%hs%hs%hs.sxy", sexyScriptsDirectory.buf, packageName, slash, shortName);
+			IO::ToSysPath(wTargetSXYFile.buf);
+
+			BuildSexyNativesCPP(classDef, sbCPP, enums, structs, delegates);
+			BuildSexyNativesHPP(classDef, sbHPP);
+			BuildSexyFiles(classDef, sbSXY, enums, structs, delegates);
+
+			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
+			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
+			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
+		}
+	};
+
+	IAPIGenerator* CreateAPIGenerator()
+	{
+		return new APIGenerator();
+	}
 }
 
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& structDef, StringBuilder& sb);
@@ -1926,11 +1921,6 @@ void GenEnumDef(IUnrealEnumDef& enumDef, crwstr outputDirectory)
 		packageName++;
 	}
 
-	//AutoFree<IDynamicStringBuilder> dsbCPP = CreateDynamicStringBuilder(64_kilobytes);
-
-	// .cpp builder
-	//auto& sbCPP = dsbCPP->Builder();
-
 	AutoFree<IDynamicStringBuilder> dsbHPP = CreateDynamicStringBuilder(16_kilobytes);
 
 	// .HPP builder
@@ -1938,28 +1928,13 @@ void GenEnumDef(IUnrealEnumDef& enumDef, crwstr outputDirectory)
 
 	AutoFree<IDynamicStringBuilder> dsbSXY = CreateDynamicStringBuilder(64_kilobytes);
 
-	// .sxy builder
-	//auto& sbSXY = dsbSXY->Builder();
-
-	//WideFilePath wTargetCPPFile;
-	//Format(wTargetCPPFile, L"%ls%hs\\%hs.cpp", nativeDirectory, packageName, shortName);
-	//IO::ToSysPath(wTargetCPPFile.buf);
-
 	WideFilePath wTargetHPPFile;
 	Format(wTargetHPPFile, L"%lsEnum\\%hs\\%hs.hpp", nativeDirectory, packageName, structName);
 	IO::ToSysPath(wTargetHPPFile.buf);
 
-	//WideFilePath wTargetSXYFile;
-	//Format(wTargetSXYFile, L"%ls%hs\\%hs.sxy", sexyDirectory, packageName, shortName);
-	//IO::ToSysPath(wTargetSXYFile.buf);
-
-	//BuildSexyNativesCPP(classDef, sbCPP);
 	BuildSexyNativeEnumHPP(enumDef, sbHPP);
-	//BuildSexyFiles(classDef, sbSXY);
 
-	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
 	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
-	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *sbSXY);
 }
 
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& enumDef, StringBuilder& sb)
