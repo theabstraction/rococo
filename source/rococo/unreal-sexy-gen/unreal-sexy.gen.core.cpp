@@ -1337,6 +1337,11 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName, IEnums& enums)
 	}
 }
 
+void BuildSexyNativeStructsSXY(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums, IDelegates& delegates)
+{
+
+}
+
 void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums, IDelegates& delegates)
 {
 	BuildHardCodedTypes();
@@ -1765,6 +1770,25 @@ namespace Rococo::Unreal
 {
 	struct APIGenerator : public IAPIGenerator
 	{
+		AutoFree<IDynamicStringBuilder> dsbAllStructsSXY = CreateDynamicStringBuilder(4_megabytes);
+
+		APIGenerator()
+		{
+			
+		}
+
+		void Commit(crwstr sxyOutputDirectory) override
+		{
+			WideFilePath sexyScriptsDirectory;
+			Format(sexyScriptsDirectory, L"%s", sxyOutputDirectory);
+
+			WideFilePath wTargetSXYFile;
+			Format(wTargetSXYFile, L"%lsnative-structs.sxy", sexyScriptsDirectory.buf);
+			IO::ToSysPath(wTargetSXYFile.buf);
+
+			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetSXYFile, *dsbAllStructsSXY->Builder());
+		}
+
 		void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums, IDelegates& delegates) override
 		{
 			WideFilePath nativeDirectory;
@@ -1782,13 +1806,12 @@ namespace Rococo::Unreal
 
 			auto& sbHPP = dsbHPP->Builder();
 
-			AutoFree<IDynamicStringBuilder> dsbSXY = CreateDynamicStringBuilder(64_kilobytes);
-
 			WideFilePath wTargetHPPFile;
 			Format(wTargetHPPFile, L"%lsStruct/%hs/%hs.hpp", nativeDirectory, packageName, structName);
 			IO::ToSysPath(wTargetHPPFile.buf);
 
 			BuildSexyNativeStructsHPP(structDef, sbHPP, enums, delegates);
+			BuildSexyNativeStructsSXY(structDef, dsbAllStructsSXY->Builder(), enums, delegates);
 
 			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
 		}

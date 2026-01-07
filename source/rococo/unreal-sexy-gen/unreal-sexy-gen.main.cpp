@@ -421,6 +421,8 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 
 	classSystem->Commit();
 
+	generator->Commit(GetSxyOutputDirectory());
+
 	database.delegates.GenerateDelegates(stdout, *generator);
 }
 

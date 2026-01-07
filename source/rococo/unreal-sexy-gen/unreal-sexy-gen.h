@@ -129,6 +129,7 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IAPIGenerator
 	{
+		virtual void Commit(crwstr sxyOutputDirectory) = 0;
 		virtual void Free() = 0;
 		virtual void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates) = 0;
 		virtual	void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path) = 0;
