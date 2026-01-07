@@ -25,7 +25,6 @@ int g_nClassesParsed = 0;
 int g_nMethodsParsed = 0;
 int g_nMethodsNotMarshaled = 0;
 bool g_unityBuild = false;
-Rococo::stringmap<int> knownDelegatesVsSize;
 
 struct ObjectDatabase;
 
@@ -49,7 +48,7 @@ struct Structs : IStructs
 	stringmap<UnrealStructDef*> structs;
 
 	const IUnrealStruct* FindStruct(cstr name) const override;
-	void ParseStructDef(cr_sex sDef, IEnums& enums);
+	void ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates);
 
 	~Structs();
 };
@@ -64,11 +63,39 @@ struct Enums : IEnums
 	~Enums();
 };
 
+void GenDelegateDef(cstr typeName, int sizeInBytes, crwstr path);
+
+struct Delegates: IDelegates
+{
+	Rococo::stringmap<int> delegatesVsSize;
+
+	void AddDelegate(cstr elementType, int delegateSize);
+
+	size_t FindDelegateSize(cstr name) const override
+	{
+		auto i = delegatesVsSize.find(name);
+		return i == delegatesVsSize.end() ? 0 : i->second;
+	}
+
+	void GenerateDelegates(FILE* fpReport)
+	{
+		if (fpReport) fprintf(fpReport, "\nProcessing %llu delegates", delegatesVsSize.size());
+
+		for (auto& d : delegatesVsSize)
+		{
+			cstr typeName = d.first;
+			int sizeInBytes = d.second;
+
+			GenDelegateDef(typeName, sizeInBytes, GetOutputDirectory());
+		}
+	}
+};
 
 struct ObjectDatabase : IObjectSearcher
 {
 	Enums enums;
 	Structs structs;
+	Delegates delegates;
 
 	mutable stringmap<int> unresolvedArgType;
 
@@ -206,29 +233,22 @@ struct ObjectDatabase : IObjectSearcher
 	}
 };
 
-
-int FindDelegateSize(cstr name)
+void Delegates::AddDelegate(cstr elementType, int delegateSize)
 {
-	auto i = knownDelegatesVsSize.find(name);
-	return i == knownDelegatesVsSize.end() ? 0 : i->second;
-}
-
-void AddDelegate(cstr elementType, int delegateSize)
-{
-	auto j = knownDelegatesVsSize.find(elementType);
-	if (j == knownDelegatesVsSize.end())
+	auto j = delegatesVsSize.find(elementType);
+	if (j == delegatesVsSize.end())
 	{
 		if (EndsWith(elementType, "^"))
 		{
 			char valueWithNoRef[256];
 			CopyString(valueWithNoRef, sizeof valueWithNoRef, elementType);
 			valueWithNoRef[strlen(valueWithNoRef) - 1] = 0;
-			knownDelegatesVsSize.insert(valueWithNoRef, delegateSize);
+			delegatesVsSize.insert(valueWithNoRef, delegateSize);
 
 		}
 		else
 		{
-			knownDelegatesVsSize.insert(elementType, delegateSize);
+			delegatesVsSize.insert(elementType, delegateSize);
 		}
 	}
 	else
@@ -357,7 +377,7 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 
 		if (Eq(sDirective.c_str(), "UStruct"))
 		{
-			database.structs.ParseStructDef(sStructDef, database.enums);
+			database.structs.ParseStructDef(sStructDef, database.enums, database.delegates);
 			if ((structCount++ % 100) == 0)
 			{
 				printf(".");
@@ -398,14 +418,7 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 
 	classSystem->Commit();
 
-	printf("\nProcessing %llu delegates", knownDelegatesVsSize.size());
-	for (auto& d : knownDelegatesVsSize)
-	{
-		cstr typeName = d.first;
-		int sizeInBytes = d.second;
-
-		ParseDelegateDef(typeName, sizeInBytes);
-	}
+	database.delegates.GenerateDelegates(stdout);
 }
 
 void ValidateToken(cr_sex s, cstr matchThis, cstr context)
@@ -994,7 +1007,7 @@ struct UnrealStructDef : IUnrealStruct
 	}
 };
 
-void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory, IEnums& enums);
+void GenStructDef(IUnrealStruct& structDef, crwstr nativeDirectory, IEnums& enums, IDelegates& delegates);
 
 const IUnrealStruct* Structs::FindStruct(cstr name) const
 {
@@ -1022,12 +1035,12 @@ Structs::~Structs()
 	}
 }
 
-void Structs::ParseStructDef(cr_sex sDef, IEnums& enums)
+void Structs::ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates)
 {
 	AutoFree<UnrealStructDef> def = new UnrealStructDef(sDef);
 	try
 	{
-		GenStructDef(*def, GetOutputDirectory(), enums);
+		GenStructDef(*def, GetOutputDirectory(), enums, delegates);
 		if (structs.insert(def->TypeName(), def).second == false)
 		{
 			Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
@@ -1040,13 +1053,6 @@ void Structs::ParseStructDef(cr_sex sDef, IEnums& enums)
 		printf("Error generating struct definition for %s\n", def->TypeName());
 		throw;
 	}
-}
-
-void GenDelegateDef(cstr typeName, int sizeInBytes, crwstr path);
-
-void ParseDelegateDef(cstr typeName, int sizeInBytes)
-{
-	GenDelegateDef(typeName, sizeInBytes, GetOutputDirectory());
 }
 
 bool IsCPPKeyword(cstr token)
@@ -1165,7 +1171,7 @@ struct UnrealFunctionArg : IUnrealArg
 	bool isRef = false;
 	bool isContainer = false;
 
-	UnrealFunctionArg(cr_sex sFunctionArgDef, IObjectSearcher& _searcher): sFnArgDef(sFunctionArgDef), searcher(_searcher)
+	UnrealFunctionArg(cr_sex sFunctionArgDef, IObjectSearcher& _searcher, IDelegates& delegates): sFnArgDef(sFunctionArgDef), searcher(_searcher)
 	{
 		for (int i = 0; i < sFunctionArgDef.NumberOfElements(); i++)
 		{
@@ -1217,7 +1223,7 @@ struct UnrealFunctionArg : IUnrealArg
 				cr_sex sLastArg = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1];
 				int delegateSize = atoi(sLastArg.c_str());
 
-				AddDelegate(elementType, delegateSize);
+				delegates.AddDelegate(elementType, delegateSize);
 				
 				break;
 			}
@@ -1394,7 +1400,7 @@ struct UnrealFunctionDef : IUnrealFunction
 		{
 			try
 			{
-				args.push_back(new UnrealFunctionArg(fDef[i], database));
+				args.push_back(new UnrealFunctionArg(fDef[i], database, database.delegates));
 			}
 			catch (ParseException& pex)
 			{
@@ -1597,13 +1603,13 @@ struct UnrealClassDef : IUnrealClass
 	}
 };
 
-void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs);
+void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates);
 
 void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& database)
 {
 	UnrealClassDef def(sDef, database);
 	classSystem.AddClass(def);
-	GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums, database.structs);
+	GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums, database.structs, database.delegates);
 
 	g_nClassesParsed++;
 	g_nMethodsParsed += (int) def.MethodCount();

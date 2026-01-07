@@ -19,9 +19,9 @@ extern bool g_unityBuild;
 
 fstring delegatePrefix = "TDelegate<"_fstring;
 
-void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums, IStructs& structs);
+void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates);
 void BuildSexyNativesHPP(IUnrealClass& classDef, StringBuilder& sb);
-void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums, IStructs& structs);
+void BuildSexyFiles(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates);
 
 const bool UsePackageForFolders = false;
 
@@ -63,7 +63,7 @@ void AddCppFileName(crwstr filename)
 	allCppFileNames.push_back(newFilename);
 }
 
-void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& enums, IStructs& structs)
+void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	WideFilePath nativeDirectory;
 	Format(nativeDirectory, L"%snatives\\", outputDirectory);
@@ -111,9 +111,9 @@ void GenClassDef(IUnrealClass& classDef, crwstr outputDirectory, crwstr sxyOutpu
 	Format(wTargetSXYFile, L"%lsclasses\\%hs%hs%hs.sxy", sexyScriptsDirectory.buf, packageName, slash, shortName);
 	IO::ToSysPath(wTargetSXYFile.buf);
 
-	BuildSexyNativesCPP(classDef, sbCPP, enums, structs);
+	BuildSexyNativesCPP(classDef, sbCPP, enums, structs, delegates);
 	BuildSexyNativesHPP(classDef, sbHPP);
-	BuildSexyFiles(classDef, sbSXY, enums, structs);
+	BuildSexyFiles(classDef, sbSXY, enums, structs, delegates);
 
 	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);
 	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
@@ -264,15 +264,13 @@ bool TryGetEnumAsByte(char* innerType, size_t capacity, cstr argType, IEnums& en
 	return false;
 }
 
-int FindDelegateSize(cstr name);
-
-void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums& enums, IStructs& structs)
+void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	if (EndsWith(argType, "^"))
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_SXY_Private(sb, valueType, enums, structs);
+		AppendNonContainerType_SXY_Private(sb, valueType, enums, structs, delegates);
 		return;
 	}
 
@@ -302,7 +300,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		return;
 	}
 
-	int delegateSize = FindDelegateSize(argType);
+	size_t delegateSize = delegates.FindDelegateSize(argType);
 	if (delegateSize)
 	{
 		sb << argType;
@@ -370,13 +368,13 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 	sb << "*/";
 }
 
-void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums& enums, IStructs& structs)
+void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	if (EndsWith(argType, "^"))
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_CPP_Private(sb, valueType, enums, structs);
+		AppendNonContainerType_CPP_Private(sb, valueType, enums, structs, delegates);
 		return;
 	}
 
@@ -406,7 +404,7 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums&
 		return;
 	}
 
-	int delegateSize = FindDelegateSize(argType);
+	size_t delegateSize = delegates.FindDelegateSize(argType);
 	if (delegateSize)
 	{
 		sb << argType;
@@ -478,19 +476,19 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums&
 	sb << "*/";
 }
 
-void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs)
+void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	if (makeSexyVariableType)
 	{
-		AppendNonContainerType_SXY_Private(sb, argType, enums, structs);
+		AppendNonContainerType_SXY_Private(sb, argType, enums, structs, delegates);
 	}
 	else
 	{
-		AppendNonContainerType_CPP_Private(sb, argType, enums, structs);
+		AppendNonContainerType_CPP_Private(sb, argType, enums, structs, delegates);
 	}
 }
 
-void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs)
+void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	cstr argType = arg.ArgType();
 
@@ -501,7 +499,7 @@ void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType, I
 		sb << "<";
 		if (*arg.KeyType() != 0)
 		{
-			AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType, enums, structs);
+			AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType, enums, structs, delegates);
 			sb << ",";
 		}
 
@@ -510,17 +508,17 @@ void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType, I
 			sb << "R_";
 		}
 
-		AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType, enums, structs);
+		AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType, enums, structs, delegates);
 		sb << ">";
 	}
 	else
 	{
-		AppendNonContainerType_Private(sb, argType, makeSexyVariableType, enums, structs);
+		AppendNonContainerType_Private(sb, argType, makeSexyVariableType, enums, structs, delegates);
 	}
 }
 
 
-void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb, IEnums& enums, IStructs& structs)
+void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	sb << "\n\tvoid ";
 	AppendCompactName(sb, classDef.ShortName());
@@ -547,7 +545,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		sb << "\t\t\t";
 
-		AppendType(sb, *arg, false, enums, structs);
+		AppendType(sb, *arg, false, enums, structs, delegates);
 
 		if (arg->IsRef() && !arg->IsPtr())
 		{
@@ -578,7 +576,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	{
 		sb << "\t\t";
 
-		AppendType(sb, *input, false, enums, structs);
+		AppendType(sb, *input, false, enums, structs, delegates);
 
 		sb << " in_";
 		input->AppendName(sb, true);
@@ -615,7 +613,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	{
 		sb << "\n\t\t";
 
-		AppendType(sb, *output, false, enums, structs);
+		AppendType(sb, *output, false, enums, structs, delegates);
 
 		if (output->IsRef() && !output->IsPtr())
 		{
@@ -963,7 +961,7 @@ bool TryGetInnerType(char* innerType, size_t capacity, cstr argType, fstring pre
 	return false;
 }
 
-void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums, IStructs& structs)
+void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	sb <<
 
@@ -1103,7 +1101,7 @@ namespace
 	for (size_t i = 0; i < classDef.MethodCount(); i++)
 	{
 		auto& method = classDef.GetFunction(i);
-		BuildMethod(classDef, method, sb, enums, structs);
+		BuildMethod(classDef, method, sb, enums, structs, delegates);
 	}
 
 	sb << "}\n\n";
@@ -1213,7 +1211,7 @@ namespace
 				sb << "out ";
 			}
 
-			AppendType(sb, *input, true, enums, structs);
+			AppendType(sb, *input, true, enums, structs, delegates);
 			sb << " ";
 			input->AppendName(sb, true);
 			sb << ")";
@@ -1225,7 +1223,7 @@ namespace
 		{
 			sb << "(";
 
-			AppendType(sb, *output, true, enums, structs);
+			AppendType(sb, *output, true, enums, structs, delegates);
 			sb << " ";
 			output->AppendName(sb, true);
 			sb << ")";
@@ -1406,9 +1404,7 @@ void AppendHeaderForType(StringBuilder& sb, cstr typeName, IEnums& enums)
 	}
 }
 
-void AddDelegate(cstr elementType, int delegateSize);
-
-void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums)
+void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums, IDelegates& delegates)
 {
 	BuildHardCodedTypes();
 
@@ -1443,7 +1439,7 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnu
 			if (TryGetInnerType(delegateType, sizeof delegateType, e.TypeName(), "TDelegate<"_fstring))
 			{
 				sb.AppendFormat("#include \"Delegate/%s.hpp\"\n", delegateType);
-				AddDelegate(delegateType, e.SizeOf());
+				delegates.AddDelegate(delegateType, e.SizeOf());
 			}
 			continue;
 		}
@@ -1670,7 +1666,7 @@ namespace Rococo::UE::Native
 	sb << "}\n";
 }
 
-void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutability, IEnums& enums, IStructs& structs)
+void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutability, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	sb << "(";
 
@@ -1700,13 +1696,13 @@ void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutab
 		}
 	}
 
-	AppendType(sb, arg, true, enums, structs);
+	AppendType(sb, arg, true, enums, structs, delegates);
 	sb << " ";
 	arg.AppendName(sb, true);
 	sb << ")";
 }
 
-void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IStructs& structs)
+void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	char sxyName[256];
 	GetClassNameAsSxyType(sxyName, sizeof sxyName, classRef);
@@ -1770,14 +1766,14 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 
 		for (auto* input : inputs)
 		{
-			AppendUnrealArgAsSexyPair(sb, *input, true, enums, structs);
+			AppendUnrealArgAsSexyPair(sb, *input, true, enums, structs, delegates);
 		}
 
 		sb << " -> ";
 
 		for (auto* output : outputs)
 		{
-			AppendUnrealArgAsSexyPair(sb, *output, false, enums, structs);
+			AppendUnrealArgAsSexyPair(sb, *output, false, enums, structs, delegates);
 		}
 
 		sb << ":\n";
@@ -1832,7 +1828,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 	}
 }
 
-void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums)
+void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums, IDelegates& delegates)
 {
 	WideFilePath nativeDirectory;
 	Format(nativeDirectory, L"%snatives\\", outputDirectory);
@@ -1873,7 +1869,7 @@ void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enum
 	//IO::ToSysPath(wTargetSXYFile.buf);
 
 	//BuildSexyNativesCPP(classDef, sbCPP);
-	BuildSexyNativeStructsHPP(structDef, sbHPP, enums);
+	BuildSexyNativeStructsHPP(structDef, sbHPP, enums, delegates);
 	//BuildSexyFiles(classDef, sbSXY);
 
 	//IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sbCPP);

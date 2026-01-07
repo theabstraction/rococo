@@ -96,6 +96,12 @@ namespace Rococo::Unreal
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
 	};
 
+	ROCOCO_INTERFACE IDelegates
+	{
+		virtual void AddDelegate(cstr elementType, int delegateSize) = 0;
+		virtual size_t FindDelegateSize(cstr name) const = 0;
+	};
+
 	ROCOCO_INTERFACE IObjectSearcher
 	{
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
