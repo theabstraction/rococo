@@ -610,7 +610,7 @@ namespace Anon
 			ResolveTypesInIntrinsics(*this, pSrcErr);
 		}
 
-		bool ResolveDefinitions(const void **pSrcError) override
+		bool ResolveDefinitions(const void **pSrcError, size_t startIndex, size_t endIndex) override
 		{
 			if (!ResolveStructures(*this, pSrcError))
 			{
@@ -623,16 +623,22 @@ namespace Anon
 				return false;
 			}
 
-			for (auto i = modules.begin(); i != modules.end(); ++i)
+			for(auto i = startIndex; i < endIndex; ++i)
 			{
-				Module* module = *i;
+				Module* module = modules[i];
 				if (!module->ResolveDefinitions())
 				{
 					return false;
 				}
 			}
 
-			intrinsics->ResolveDefinitions();
+			if (startIndex == 0)
+			{
+				if (!intrinsics->ResolveDefinitions())
+				{
+					return false;
+				}
+			}
 
 			return true;
 		}

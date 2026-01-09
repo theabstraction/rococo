@@ -16783,9 +16783,17 @@ R"(
 		   }
 	   };
 
-	   ss.AddNativeCall(ns, MessageDispatcher::Dispatch, nullptr, "DispatchMessage (Sys.DispatchEventHandler handler) -> ", __FILE__, __LINE__, true, 0);
+	   IModule* srcModule = ss.AddTree(*tree);
 
-	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   ss.SetNativeCallTarget(srcModule);
+	   ss.AddNativeCall(ns, MessageDispatcher::Dispatch, nullptr, "DispatchMessage (Sys.DispatchEventHandler handler) -> ", __FILE__, __LINE__, true, 0);
+	   ss.SetNativeCallTarget(nullptr);
+	   ss.Compile();
+
+	   const INamespace* entryPointNS = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+	   SetProgramAndEntryPoint(ss.PublicProgramObject(), *entryPointNS, "Main");
+
+	   auto& vm = ss.PublicProgramObject().VirtualMachine();
 
 	   vm.Push(1815); // Allocate stack space for the int32 result
 	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
@@ -18627,18 +18635,14 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestRock);
-
-		/*
-		TEST(TestEmptyMap);
-
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
+		TestLists();
 		TestMaps();
-		*/
+	
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

@@ -65,21 +65,51 @@ namespace Rococo { namespace Compiler { namespace Impl
 		
 		~FunctionRegistry()
 		{
-			Clear();
+			Clear(true);
 		}
 
-		virtual void Clear()
+		virtual void Clear(bool alsoClearNatives)
 		{		
-			if (managesLifetime)
+			if (alsoClearNatives)
 			{
-				for(auto i = functionsByName.begin(); i != functionsByName.end(); ++i)
+				if (managesLifetime)
 				{
-					 i->second->Free();
+					for (auto i = functionsByName.begin(); i != functionsByName.end(); ++i)
+					{
+						i->second->Free();
+					}
 				}
+
+				functionsByName.clear();
+				functions.clear();
 			}
-			
-			functionsByName.clear();
-			functions.clear();
+			else
+			{
+				auto i = functionsByName.begin();
+				while (i != functionsByName.end())
+				{
+					auto* f = i->second;
+					if (!f->IsNative())
+					{
+						i = functionsByName.erase(i);
+					}
+					else
+					{
+						i++;
+					}
+				}
+				
+				auto removeAt = std::remove_if(functions.begin(), functions.end(), [](const FunctionAlias& f) { return !f.GetFunction().IsNative(); });
+
+				if (managesLifetime)
+				{
+					for (auto j = removeAt; j != functions.end(); j++)
+					{
+						static_cast<IFunctionBuilder&>(j->GetFunction()).Free();
+					}
+				}
+				functions.erase(removeAt, functions.end());
+			}
 		}
 
 		virtual int size() const

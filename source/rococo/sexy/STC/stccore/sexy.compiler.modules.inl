@@ -136,7 +136,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		void Clear() override
 		{
-			functions.Clear();
+			functions.Clear(false);
 			structures.Clear();
 			prefixes.clear();
 			ClearClosures();

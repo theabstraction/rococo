@@ -343,6 +343,9 @@ namespace Rococo {
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
+
+			// Determines which module subsequent AddNativeCall(...) methods will target. Resolution of native call arguments occurs when the module is compiled.
+			virtual void SetNativeCallTarget(Compiler::IModule* module) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
 			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, const NativeCallSecurity& security) = 0;
 			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, cstr permittedPingPath) = 0;

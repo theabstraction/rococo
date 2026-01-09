@@ -696,6 +696,7 @@ namespace Rococo::Script
 		}
 
 		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(nativeName, false), &archetype, popBytes);
+		f.DeclareNative();
 
 		char commentary[512];
 		SafeFormat(commentary, "Src: %s #%d", sourceFile, lineNumber);
@@ -2510,8 +2511,7 @@ namespace Rococo::Script
 			}
 
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace(), false);
-			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
-
+			
 			scripts->CompileBytecode();
 
 			BuildExtraSymbols();
@@ -2528,6 +2528,8 @@ namespace Rococo::Script
 		void Compile(StringBuilder* declarationBuilder) override
 		{
 			BeginPartialCompilation(declarationBuilder);
+
+			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
 
 			scripts->EnterCompileLimits(0, numberOfNativeSources);
 			PartialCompile(declarationBuilder);
@@ -2603,6 +2605,13 @@ namespace Rococo::Script
 			AddNativeCallSecurityForNS(ns, security);
 		}
 
+		Compiler::IModuleBuilder* nativeCallTargetModule = nullptr;
+
+		void SetNativeCallTarget(Compiler::IModule* module) override
+		{
+			nativeCallTargetModule = static_cast<Compiler::IModuleBuilder*>(module);
+		}
+
 		void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName, int popBytes) override
 		{
 			enum { MAX_ARCHETYPE_LEN = 1024 };
@@ -2653,7 +2662,9 @@ namespace Rococo::Script
 			try
 			{
 				Auto<ISParserTree> tree = SParser().CreateTree(src());
-				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN sourceFile, IN lineNumber, IN checkName, IN popBytes, IN security);
+
+				auto* module = nativeCallTargetModule == nullptr ? &ProgramObject().IntrinsicModule() : nativeCallTargetModule;
+				AddNativeCallViaTree(REF nativeCalls, REF *module, IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN sourceFile, IN lineNumber, IN checkName, IN popBytes, IN security);
 				nativeCallIndex++;
 			}
 			catch (ParseException& e)

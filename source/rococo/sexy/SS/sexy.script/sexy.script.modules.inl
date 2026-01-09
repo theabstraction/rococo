@@ -850,9 +850,6 @@ namespace Rococo::Script
 
 	void AppendInvokeCallDestructor(CCompileEnvironment& ce, const IStructure& s, cstr name, int SFoffset)
 	{
-		TokenBuffer destructorName;
-		StringPrint(destructorName, ("%s.Destruct"), s.Name());
-		
 		if (!IsNullType(s))
 		{
 			if (s == ce.StructList())
@@ -877,7 +874,18 @@ namespace Rococo::Script
 			}
 
 			// Regular class			
-			const IFunction* f = s.Module().FindFunction(destructorName);
+			const IFunction* f;
+			TokenBuffer destructorName;
+			if (s.IsPersistent())
+			{
+				StringPrint(destructorName, ("%s.Destruct"), s.Name());
+				f = s.Module().FindFunction(destructorName);
+			}
+			else
+			{
+				StringPrint(destructorName, ("--%s"), s.Name());
+				f = s.Module().FindNativeFactory(destructorName);
+			}
 			if (f == NULL)
 			{
 				// concrete class without destructor
@@ -2510,7 +2518,11 @@ namespace Rococo::Script
 			ForEachUncompiledScript(fnctorComputeArchetypes);
 
 			const void* pSrcError = nullptr;
-			if (!programObject.ResolveDefinitions(&pSrcError))
+
+			size_t startIndex = limits.startingIndex;
+			size_t endIndex = limits.maxModuleCount == 0 ? scripts.size() : limits.maxModuleCount;
+
+			if (!programObject.ResolveDefinitions(&pSrcError, startIndex, endIndex))
 			{
 				if (pSrcError)
 				{
@@ -4710,7 +4722,7 @@ namespace Rococo::Script
 	{
 		for(auto j = localStructures.begin(); j != localStructures.end(); ++j)
 		{
-			if (!j->Struct->IsSealed())
+			if (!j->Struct->IsStrongType())
 			{
 				for (int i = 2; i < j->StructDef->NumberOfElements(); i++)
 				{

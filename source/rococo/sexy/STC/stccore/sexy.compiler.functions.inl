@@ -291,6 +291,18 @@ namespace Anon
 			return popBytes;
 		}
 
+		bool isNative = false;
+
+		void DeclareNative() override
+		{
+			isNative = true;
+		}
+
+		bool IsNative() const override
+		{
+			return isNative;
+		}
+
 		void Free() override
 		{
 			delete this;

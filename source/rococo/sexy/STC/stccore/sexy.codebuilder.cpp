@@ -1342,7 +1342,7 @@ namespace Anon
 			const IArgument& arg = f.Arg(i);
 			if (arg.ResolvedType() == NULL)
 			{
-				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "Could not resolve type (Arg #%d) %s %s", i, arg.TypeString(), arg.Name());
+				Throw(ERRORCODE_NULL_POINTER, __SEXFUNCTION__, "Could not resolve type (Arg #%d) %s %s of %s", i, arg.TypeString(), arg.Name(), f.Name());
 			}
 
 			int varOffset = 0;

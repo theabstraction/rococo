@@ -99,7 +99,7 @@ namespace Rococo::Compiler
 		virtual IArgumentBuilder& AddArrayOutput(const NameString& name, const TypeString& genericType, void* userdata) = 0;
 		virtual bool TryResolveArguments() = 0;
 		virtual void ValidateArguments() = 0;
-
+		virtual void DeclareNative() = 0; // Native functions are not released on a recompile
 		virtual ICodeBuilder& Builder() = 0;
 		virtual IModuleBuilder& Module() = 0;
 		virtual IFunctionBuilder* Parent() = 0;
@@ -270,7 +270,7 @@ namespace Rococo::Compiler
 		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) = 0;
 		virtual IStructureBuilder& AddRockStruct(cstr name, cstr origin, int lineNumber, size_t alignedSize) = 0;
 		virtual void ResolveNativeTypes(const void** pSrcErr) = 0;
-		virtual bool ResolveDefinitions(const void** pSrcErr) = 0;
+		virtual bool ResolveDefinitions(const void** pSrcErr, size_t startIndex, size_t endIndex) = 0;
 		virtual cstr RegisterSymbol(cstr text) = 0;
 		virtual CommonStructures& Common() = 0;
 		virtual void InitCommon() = 0;
