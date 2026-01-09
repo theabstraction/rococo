@@ -3989,8 +3989,6 @@ namespace ANON
 						InsertMacro(s, macroName, file);
 					}
 				)) continue;
-
-
 				// Example (factory $.NewUIStack $.IUIStack : (construct UIStack))
 				enum { MAX_ARGS_PER_FACTORY = 128 };
 				if (match_compound(sRoot[i], MAX_ARGS_PER_FACTORY, keywordFactory, ParseAtomic, ParseAtomic,

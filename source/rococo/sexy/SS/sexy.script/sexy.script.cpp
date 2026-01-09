@@ -680,7 +680,7 @@ namespace Rococo::Script
 		if (mapIndex < 0)
 		{
 			char fullError[512];
-			SafeFormat(fullError, 512, "Cannot find the mapping token -> in the archetype: %s.%s. %s line %d", ns.FullName()->Buffer, publicName, sourceFile, lineNumber);
+			SafeFormat(fullError, 512, "Cannot find the mapping token -> in the archetype: %s. %s. %s line %d", ns.FullName()->Buffer, publicName, sourceFile, lineNumber);
 			Throw(archetype, fullError);
 		}
 
@@ -876,6 +876,83 @@ namespace Rococo::Script
 			handleTypes.insert(fqName, HandleType{ origin, lineNumber });
 		}
 
+		struct RockType
+		{
+			HString origin;
+			int lineNumber;
+			size_t alignedSize;
+		};
+
+		stringmap<RockType> rockTypes;
+
+		
+		size_t /* aligned size */ CreateRockType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, size_t sizeOfNativeType) override
+		{
+			if (origin == nullptr)
+			{
+				origin = __FUNCTION__;
+				lineNumber = __LINE__;
+			}
+
+			if (typeName == nullptr || *typeName == 0)
+			{
+				Throw(0, __FUNCTION__ ": null [typeName]");
+			}
+
+			enum { MAX_HANDLE_NAME_LEN = 63 };
+
+			if (strlen(typeName) > MAX_HANDLE_NAME_LEN)
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length", typeName);
+			}
+
+			if (!isupper(*typeName))
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter", typeName);
+			}
+
+			for (cstr p = typeName + 1; *p != 0; p++)
+			{
+				if (!IsAlphaNumeric(*p))
+				{
+					Throw(0, __FUNCTION__ ": [typeName=%s] must consist of alphanumerics", typeName);
+				}
+			}
+
+			if (&ns == &PublicProgramObject().GetRootNamespace())
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed. Pick a subspace", typeName);
+			}
+
+			if (sizeOfNativeType >= 1_megabytes)
+			{
+				Throw(0, __FUNCTION__ ": [sizeOfNativeType] limited to 1 megabyte");
+			}
+
+			// Round size upwards to the nearest multiple of 8 (sizeof int64)
+			size_t alignedSize = (sizeOfNativeType + 7) & 0xFFFFFFF8;
+			if (alignedSize == 0)
+			{
+				// Sexy types require a minimum size
+				alignedSize = 8;
+			}
+
+			char fqName[256];
+			SafeFormat(fqName, "%s.%s", ns.FullName()->Buffer, typeName);
+			auto i = rockTypes.insert(fqName, RockType{ origin, lineNumber, alignedSize });
+			if (!i.second)
+			{
+				const auto& rock = i.first->second;
+				// Duplicate
+				if (alignedSize != rock.alignedSize)
+				{
+					Throw(0, __FUNCTION__ ": Inconsistent rock definitions\n%s %d vs %s %d, with size %llu != size %llu\n", origin, lineNumber, rock.origin.c_str(), rock.lineNumber, alignedSize, rock.alignedSize);
+				}
+			}
+
+			return alignedSize;
+		}
+
 		void RegisterHandles()
 		{
 			for (auto& item : handleTypes)
@@ -891,6 +968,24 @@ namespace Rococo::Script
 
 				auto& ns = AddNativeNamespace(body);
 				RegisterHandleType(ns, tail, item.second.origin, item.second.lineNumber);
+			}
+		}
+
+		void RegisterRocks()
+		{
+			for (auto& rock : rockTypes)
+			{
+				cstr fqNSandName = rock.first;
+				NamespaceSplitter splitter(fqNSandName);
+
+				cstr ns, name;
+				if (!splitter.SplitTail(OUT ns, OUT name))
+				{
+					Throw(0, __FUNCTION__ ": expected to be able to split %s", fqNSandName);
+				}
+
+				auto& nsRef = AddNativeNamespace(ns);
+				RegisterRockType(nsRef, name, rock.second.origin, rock.second.lineNumber, rock.second.alignedSize);
 			}
 		}
 
@@ -912,6 +1007,26 @@ namespace Rococo::Script
 				Throw(0, __FUNCTION__  ": %s (line %d): current alias for [%s] in namespace does not match the newly created handle type", origin, lineNumber, typeName);
 			}
 		}
+
+		void RegisterRockType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber, size_t alignedSize)
+		{
+			IStructureBuilder& s = progObjProxy->AddRockStruct(typeName, origin, lineNumber, alignedSize);
+			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
+			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
+
+			auto* currentAlias = nb.FindStructure(typeName);
+			if (currentAlias == nullptr)
+			{
+				nb.Alias(typeName, s);
+				return;
+			}
+
+			if (currentAlias != &s)
+			{
+				Throw(0, __FUNCTION__  ": %s (line %d): current alias for [%s] in namespace does not match the newly created rock type", origin, lineNumber, typeName);
+			}
+		}
+
 
 		int64 GetScriptContext() const override
 		{
@@ -2346,6 +2461,7 @@ namespace Rococo::Script
 			stringPool = NewStringPool();
 
 			RegisterHandles();
+			RegisterRocks();
 
 			INamespaceBuilder& sysTime = progObjProxy->GetRootNamespace().AddNamespace("Sys.Time", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			AddNativeCall(sysTime, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);

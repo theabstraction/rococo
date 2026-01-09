@@ -405,41 +405,42 @@ namespace Rococo {
 
 		ROCOCO_INTERFACE IStructure
 		{
-			virtual IPublicProgramObject& Object() const = 0;
-			virtual cstr Name() const = 0;
-			virtual const StructurePrototype& Prototype() const = 0;
-			virtual const IModule& Module() const = 0;
+			virtual [[nodiscard]] IPublicProgramObject& Object() const = 0;
+			virtual [[nodiscard]] cstr Name() const = 0;
+			virtual [[nodiscard]] const StructurePrototype& Prototype() const = 0;
+			virtual [[nodiscard]] const IModule& Module() const = 0;
 
-			virtual bool HasInterfaceMembers() const = 0;
-			virtual bool IsPersistent() const = 0;
-			virtual int MemberCount() const = 0;
-			virtual const IMember& GetMember(int index) const = 0;
-			virtual int SizeOfStruct() const = 0;
-			virtual const SexyVarType VarType() const = 0;
-			virtual const IArchetype* Archetype() const = 0;
-			virtual bool IsResolved() const = 0;
-			virtual int InterfaceCount() const = 0;
-			virtual const IObjectInterface& GetInterface(int index) const = 0;
+			virtual [[nodiscard]] bool HasInterfaceMembers() const = 0;
+			virtual [[nodiscard]] bool IsPersistent() const = 0;
+			virtual [[nodiscard]] bool IsSealed() const = 0;
+			virtual [[nodiscard]] int MemberCount() const = 0;
+			virtual [[nodiscard]] const IMember& GetMember(int index) const = 0;
+			virtual [[nodiscard]] int SizeOfStruct() const = 0;
+			virtual [[nodiscard]] const SexyVarType VarType() const = 0;
+			virtual [[nodiscard]] const IArchetype* Archetype() const = 0;
+			virtual [[nodiscard]] bool IsResolved() const = 0;
+			virtual [[nodiscard]] int InterfaceCount() const = 0;
+			virtual [[nodiscard]] const IObjectInterface& GetInterface(int index) const = 0;
 
-			virtual const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const = 0;
-			virtual ID_BYTECODE GetDestructorId() const = 0;
-			virtual const Sex::ISExpression* Definition() const = 0;
-			virtual const IFunction* Constructor() const = 0;
+			virtual [[nodiscard]] const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const = 0;
+			virtual [[nodiscard]] ID_BYTECODE GetDestructorId() const = 0;
+			virtual [[nodiscard]] const Sex::ISExpression* Definition() const = 0;
+			virtual [[nodiscard]] const IFunction* Constructor() const = 0;
 
-			virtual int32 AttributeCount() const = 0;
+			virtual [[nodiscard]] int32 AttributeCount() const = 0;
 
-			virtual bool IsNullType() const = 0;
-			virtual bool IsStrongType() const = 0;
+			virtual [[nodiscard]] bool IsNullType() const = 0;
+			virtual [[nodiscard]] bool IsStrongType() const = 0;
 
 			// Enumerate methods and cache the result permanently in the IStructure and return the result
-			virtual int CountMethodsInDefiningModule() const = 0;
+			virtual [[nodiscard]] int CountMethodsInDefiningModule() const = 0;
 
 			// Enumerate methods and cache the result permanently in the IStructure and return the cached method reference
-			virtual const IArchetype& GetMethodFromModule(int methodIndex) const = 0;
+			virtual [[nodiscard]] const IArchetype& GetMethodFromModule(int methodIndex) const = 0;
 
 			// Retrieve the ith attribute. isCustom is an out parameter, and is set to true if element 1 of the returned attributeDef was a system attribute
 			// System attributes are specified by using atomic tokens rather than string literals and are validated against the known list of system attributes.
-			virtual Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) const = 0;
+			virtual [[nodiscard]] Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) const = 0;
 		};
 
 		inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; }

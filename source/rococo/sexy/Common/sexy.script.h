@@ -358,6 +358,13 @@ namespace Rococo {
 			// [origin] and [lineNumber] give the source line that invoked CreateHandleType
 			virtual void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) = 0;
 
+			// Find or create a native opaque struct object - a rock - and aliases into the namespace.
+			// The [typeName] must be unique.
+			// [origin] and [lineNumber] give the source line that invoked CreateRockType
+			// Warning: the actual size of the struct may exceed that specified in the argument for virtual machine alignment requirements
+			// Returns the aligned size of the struct.
+			virtual size_t CreateRockType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, size_t nSizeofStruct) = 0;
+
 			// Override the script system string writing function, this is used for Sys.Print et al
 			virtual void SetPutString(IPutString* putString) = 0;
 

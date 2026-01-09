@@ -509,11 +509,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 		mutable bool isPersistent = true;
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, SexyVarType type, const Sex::ISExpression* _definition);
-		~Structure();
+		virtual ~Structure();
 
 		bool IsNullType() const override
 		{
 			return isNullType;
+		}
+
+		bool IsSealed() const override
+		{
+			return isSealed;
 		}
 
 		bool IsPersistent() const override

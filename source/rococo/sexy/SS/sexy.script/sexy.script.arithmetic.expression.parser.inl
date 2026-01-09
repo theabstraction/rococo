@@ -713,14 +713,11 @@ namespace Rococo
 		void CompileSizeOfType(CCompileEnvironment& ce, cr_sex valueExpr)
 		{
 			cstr value = valueExpr.c_str();
-
-			UNUSED(value);
-
 			IStructure* s = MatchStructure(valueExpr, ce.Builder.Module());
 
 			if (s == NULL)
 			{
-				Throw(valueExpr, ("Token began with a capital letter. Expected type name."));
+				Throw(*valueExpr.Parent(), "%s: Failed to match structure %s", __FUNCTION__, value);
 			}
 
 			VariantValue sizeOfType;

@@ -139,7 +139,6 @@ namespace Rococo::Script
 			Throw(src, "%s", e.Message());
 		}
 	}
-
 	INamespaceBuilder& ValidateSplitTail
 		(
 			REF NamespaceSplitter& splitter,
@@ -4547,7 +4546,7 @@ namespace Rococo::Script
 		return s;
 	}
 
-	void CScript::ComputeStructureNames()
+		void CScript::ComputeStructureNames()
 	{
 		localStructures.clear();
 
@@ -4711,7 +4710,7 @@ namespace Rococo::Script
 	{
 		for(auto j = localStructures.begin(); j != localStructures.end(); ++j)
 		{
-			if (!j->Struct->IsStrongType())
+			if (!j->Struct->IsSealed())
 			{
 				for (int i = 2; i < j->StructDef->NumberOfElements(); i++)
 				{

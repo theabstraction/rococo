@@ -320,6 +320,7 @@ namespace Rococo
             void AddMapDef(Compiler::ICodeBuilder& builder, cstr name, const Compiler::IStructure& keyType, const Compiler::IStructure& valueType, Sex::cr_sex s);
             void AddMapNodeDef(Compiler::ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, Sex::cr_sex s);
             void AddNodeDef(Compiler::ICodeBuilder& builder, cstr nodeName, const Compiler::IStructure& elementType, Sex::cr_sex s);
+            void AddRockToLocalStructures(Sex::cr_sex sRockDirective);
             Sex::cr_sex GetActiveRoot();
             Sex::cr_sex GetActiveExpression(Sex::cr_sex s);
             void Invoke_S_Macro(Sex::cr_sex sDirective);

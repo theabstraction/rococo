@@ -204,6 +204,11 @@ namespace Rococo
 		return kb * 1024;
 	}
 
+	FORCE_INLINE constexpr lsize_t operator "" _bytes(lsize_t b)
+	{
+		return b;
+	}
+
 	template<int OPTIMAL_SIZE, typename TYPENAME, typename ... ARGS>
 	class ArbitraryFunction;
 

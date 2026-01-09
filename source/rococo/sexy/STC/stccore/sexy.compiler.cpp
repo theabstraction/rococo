@@ -469,6 +469,19 @@ namespace Anon
 			return AddSymbol(symbols, text);
 		}
 
+		void FormatStructOrigin(char* buffer, size_t capacity, const IStructure& s)
+		{
+			auto* sDef = s.Definition();
+			if (!sDef)
+			{
+				*buffer = 0;
+			}
+			else
+			{
+				SafeFormat(buffer, capacity, "Original is in %s line %d pos %d", sDef->Tree().Source().Name(), sDef->Start().y, sDef->Start().x);
+			}
+		}
+
 		IStructureBuilder& AddHandleStruct(cstr name, cstr origin, int lineNumber) override
 		{
 			cstr fieldName = "_NativeValue";
@@ -478,18 +491,9 @@ namespace Anon
 			{
 				if (currentDef->MemberCount() != 1 || !Eq(currentDef->GetMember(0).Name(), fieldName))
 				{
-					auto* sDef = currentDef->Definition();
-					char def[256];
-					if (!sDef)
-					{
-						*def = 0;
-					}
-					else
-					{
-						SafeFormat(def, "Original is in %s line %d pos %d", sDef->Tree().Source().Name(), sDef->Start().y, sDef->Start().x);
-					}
-
-					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and it is not a handle type. %s", origin, lineNumber, name, def);
+					char currentSrc[256];
+					FormatStructOrigin(currentSrc, sizeof currentSrc, *currentDef);
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and it is not a handle type. %s", origin, lineNumber, name, currentSrc);
 				}
 
 				return *currentDef;				
@@ -499,6 +503,47 @@ namespace Anon
 
 			Structure* s = new Structure(name, prototype, *intrinsics, Rococo::SexyVarType_Derivative, NULL);
 			s->AddMember(NameString::From(fieldName), TypeString::From("Int64"));
+			s->PreventPersistence();
+			intrinsics->Structures().Register(s->Name(), *s);
+
+			return *s;
+		}
+
+		IStructureBuilder& AddRockStruct(cstr name, cstr origin, int lineNumber, size_t alignedSize) override
+		{
+			auto* currentDef = intrinsics->Structures().TryGet(name);
+			if (currentDef)
+			{
+				char currentSrc[256];
+				FormatStructOrigin(currentSrc, sizeof currentSrc, *currentDef);
+
+				if (currentDef->SizeOfStruct() != alignedSize)
+				{
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and its size %llu does not match the rock type size %llu. %s", origin, lineNumber, name,  currentSrc);
+				}
+
+				// Rocks are defined as transients (not persistent) and have the first member _rk0
+				if (currentDef->IsPersistent() || !Eq(currentDef->GetMember(0).Name(), "_rk0"))
+				{
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], but the type is not a rock", origin, lineNumber, name, currentSrc);
+				}
+
+				return *currentDef;
+			}
+
+			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, nullptr, false);
+
+			Structure* s = new Structure(name, prototype, *intrinsics, Rococo::SexyVarType_Derivative, NULL);
+
+			// nInts64s = alignedSize / sizeof(int64)
+			size_t nFields = alignedSize >> 3;
+			for (size_t i = 0; i < nFields; i++)
+			{
+				char fieldName[32];
+				SafeFormat(fieldName, "_rk%llu", i);
+				s->AddMember(NameString::From(fieldName), TypeString::From("Int64"));
+			}
+			
 			s->PreventPersistence();
 			intrinsics->Structures().Register(s->Name(), *s);
 

@@ -57,6 +57,7 @@
 #include <rococo.os.win32.h>
 
 #include <limits>
+#include <new>
 
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
@@ -3491,7 +3492,7 @@ R"((namespace EntryPoint)
 			")"				
 			"(namespace EntryPoint)(alias Main EntryPoint.Main)";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestNativeCall");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -3501,6 +3502,91 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		int64 x = vm.PopInt64();
 		validate(170 == x);
+	}
+
+	static bool isMarbleValid = false;
+
+	void TestRock(IPublicScriptSystem& ss)
+	{
+		struct Marble
+		{
+			int64 value1;
+			int64 value2;
+
+			Marble(): value1(1471LL), value2(3875LL)
+			{
+
+			}
+		};
+
+		struct ANON
+		{
+			static void ConstructMarble(NativeCallEnvironment& e)
+			{
+				Marble* marble;
+				ReadInput(0, marble, e);
+				new (marble) Marble();
+			}
+
+			static void DestructMarble(NativeCallEnvironment& e)
+			{
+				Marble* marble;
+				ReadInput(0, marble, e);
+
+				if (marble->value1 != 1471LL)
+				{
+					Throw(0, "err marble value 1: %lld", marble->value1);
+				}
+
+				if (marble->value2 != 3875LL)
+				{
+					Throw(0, "err marble value 2: %lld", marble->value2);
+				}
+
+				isMarbleValid = true;
+			}
+		};
+
+		isMarbleValid = false;
+
+		const INamespace& ns = ss.AddNativeNamespace("Sys.Rock");
+
+		try
+		{
+			ss.CreateRockType(ns, __FILE__, __LINE__, "Marble", 16_bytes);
+
+			ss.AddNativeCall(ns, ANON::ConstructMarble, NULL, "MarbleConstruct (out Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::DestructMarble, NULL, "MarbleDestruct (const Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		cstr srcCode = 
+		R"(
+			(function Main -> (Int32 result):
+
+				(if ((sizeof Sys.Rock.Marble) != 16) 
+					(Sys.Throw 0 "Expecting sizeof marble to be 16 bytes")
+				)
+
+				(Sys.Rock.Marble marble)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
 	}
 
 	static int64 TestNativeHandle_globalHandle = 0;
@@ -18542,6 +18628,9 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		TEST(TestRock);
+
+		/*
 		TEST(TestEmptyMap);
 
 		RunPositiveSuccesses();	
@@ -18550,6 +18639,7 @@ R"(
 		TestArrays();
 		TestLists();
 		TestMaps();
+		*/
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

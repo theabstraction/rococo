@@ -275,7 +275,7 @@ namespace Rococo::Compiler
 
 		if (type[0] != '$' && !IsCapital(type[0]))
 		{
-			logger.Write(("Expecting type name to begin with capital letter"));
+			logger.Write("Expecting type name to begin with capital letter");
 			return NULL;
 		}
 
@@ -322,7 +322,7 @@ namespace Rococo::Compiler
 				if (module.Object().GetWarningLevel() == EWarningLevel::Always)
 				{
 					char buf[256];
-					SafeFormat(buf, "Cannot find structure %s in namespace %s", tail, body);
+					SafeFormat(buf, "Cannot find structure %s in namespace %s.\n", tail, body, ns);
 					logger.Write(buf);
 				}
 			}
@@ -343,7 +343,7 @@ namespace Rococo::Compiler
 				return s;
 			}
 			
-			INamespaceBuilder* sysTypes = module.Object().GetRootNamespace().FindSubspace(("Sys.Type"));
+			INamespaceBuilder* sysTypes = module.Object().GetRootNamespace().FindSubspace("Sys.Type");
 			s = sysTypes->FindStructure(type);
 			if (s != NULL)
 			{
