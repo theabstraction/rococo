@@ -345,6 +345,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return f;
 		}
 
+		const IFunction* FindNativeFactory(cstr name) const override
+		{
+			const IFunction* f = ((Module*)this)->GetNativeFactoryFunctionCore(name);
+			return f;
+		}
+
 		IFunctionBuilder* GetFunctionCore(cstr name)
 		{
 			IFunctionBuilder *f = functions.Get(name);
@@ -366,6 +372,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 
 			return NULL;
+		}
+
+		const IFunction* GetNativeFactoryFunctionCore(cstr name) const
+		{
+			return functions.GetNativeFactoryFunction(name);
 		}
 
 		IFunctionBuilder* FindFunction(cstr name) override

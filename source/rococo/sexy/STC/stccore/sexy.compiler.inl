@@ -56,6 +56,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		typedef TSexyVector<FunctionAlias> TFunctions;
 		typedef TSexyStringMap<IFunctionBuilder*> TFunctionsByName;
 		TFunctions functions;
+		TFunctionsByName nativeFactoryFunctions;
 		TFunctionsByName functionsByName;
 		bool managesLifetime;
 
@@ -90,6 +91,32 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			functions.push_back(FunctionAlias(publicName, f));
 			functionsByName.insert(f.Name(), &f);
+
+			// Native functions are prefixed by an underscore, and native factories have the format _XXX_++FactoryName, or _XXX_--FactoryName for constructors and destructors respectively
+			if (*publicName == '_')
+			{
+				fstring plusplus = "++"_fstring;
+				cstr constructorToken = strstr(publicName + 1, plusplus);
+				if (constructorToken)
+				{
+					if (!nativeFactoryFunctions.insert(constructorToken, &f).second)
+					{
+						Throw(ERRORCODE_BAD_ARGUMENT, __FUNCTION__, "%s registration duplicated", publicName);
+					}
+				}
+				else
+				{
+					fstring negneg = "--"_fstring;
+					cstr destructorToken = strstr(publicName + 1, negneg);
+					if (destructorToken)
+					{
+						if (!nativeFactoryFunctions.insert(destructorToken, &f).second)
+						{
+							Throw(ERRORCODE_BAD_ARGUMENT, __FUNCTION__, "%s registration duplicated", publicName);
+						}
+					}
+				}
+			}
 		}
 
 		virtual int FunctionCount() const
@@ -117,6 +144,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			auto i = functionsByName.find(name);
 			return i != functionsByName.end() ? i->second : NULL;
+		}
+
+		IFunction* GetNativeFactoryFunction(cstr name) const
+		{
+			auto i = nativeFactoryFunctions.find(name);
+			return i != nativeFactoryFunctions.end() ? i->second : NULL;
 		}
 	};
 

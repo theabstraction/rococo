@@ -95,7 +95,6 @@ namespace Rococo { namespace VM
 		uint32 Reserved;
 	};
 
-	struct ICore;
 	struct IVirtualMachine;
 	struct IAssembler;
 	struct IDisassembler;
@@ -115,7 +114,8 @@ namespace Rococo { namespace VM
 		virtual IDisassembler* CreateDisassembler() = 0;
 		virtual ISymbols* CreateSymbolTable() = 0;
 
-		virtual cstr GetCallbackSymbolName(ID_API_CALLBACK id) = 0;
+		virtual cstr GetCallbackSymbolName(ID_API_CALLBACK id) const = 0;
+		virtual ID_API_CALLBACK GetCallbackBySymbolName(cstr symbol) const = 0;
 		virtual bool TryInvoke(ID_API_CALLBACK id, VariantValue* registers) = 0;
 		virtual ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, cstr symbol) = 0;
 		virtual void UnregisterCallback(ID_API_CALLBACK id) = 0;

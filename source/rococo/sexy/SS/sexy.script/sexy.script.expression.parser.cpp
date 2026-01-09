@@ -1909,6 +1909,43 @@ namespace Rococo
 			ce.Builder.AssignTempToVariable(0, id);
 		}
 
+		void AssertNoConstructArgs(const IFunction& constructor, cr_sex sDef)
+		{
+			if (constructor.NumberOfInputs() > 1)
+			{
+				// Something in addition to the implicit 'this' pointer
+
+				char buf[1024];
+				StackStringBuilder ssb(buf, sizeof buf);
+				ssb.AppendFormat("Constructor missing arguments, so default construction not permitted.\t");
+				ssb.AppendFormat("Format is: \n\t(%s ", constructor.Name());
+
+				for (int i = 0; i < constructor.NumberOfInputs() - 1; ++i)
+				{
+					auto& arg = constructor.GetArgument(i);
+					cstr argName = constructor.GetArgName(i);
+					ssb.AppendFormat("(%s %s) ", GetFriendlyName(arg), argName);
+				}
+				Throw(sDef, "%s)\n", (cstr)*ssb);
+			}
+		}
+
+		void AppendConstructor(CCompileEnvironment& ce, const IFunction& constructor, cr_sex sDef, cstr id)
+		{
+			AssertNoConstructArgs(constructor, sDef);
+
+			// Invoke constructor
+			int inputStackAllocCount = PushInputs(ce, sDef, constructor, true, 0);
+			inputStackAllocCount += CompileInstancePointerArg(ce, id);
+
+			AppendFunctionCallAssembly(ce, constructor);
+
+			ce.Builder.MarkExpression(sDef.Parent());
+
+			RepairStack(ce, *sDef.Parent(), constructor);
+			ce.Builder.AssignClosureParentSFtoD6();
+		}
+
 		void CompileAsDefaultVariableDeclaration(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex sDef, bool initializeValues)
 		{	
 			if (type.Prototype().IsClass)
@@ -1918,42 +1955,25 @@ namespace Rococo
 			else
 			{
 				char constructorName[256];
-				SafeFormat(constructorName, "%s.Construct", type.Name());
-				auto* constructor = type.Module().FindFunction(constructorName);
+
+				const IFunction* sxyConstructor;
+				if (type.IsPersistent())
+				{
+					SafeFormat(constructorName, "%s.Construct", type.Name());
+					sxyConstructor = type.Module().FindFunction(constructorName);
+				}
+				else
+				{
+					SafeFormat(constructorName, "++%s", type.Name());
+					sxyConstructor = type.Module().FindNativeFactory(constructorName);
+				}
 
 				AddSymbol(ce.Builder, "%s %s", GetFriendlyName(type), id);
 				AddVariable(ce, NameString::From(id), type);
 				
-				if (constructor)
+				if (sxyConstructor)
 				{
-					if (constructor->NumberOfInputs() > 1)
-					{
-						// Something in addition to the implicit 'this' pointer
-
-						char buf[1024];
-						StackStringBuilder ssb(buf, sizeof buf);
-						ssb.AppendFormat("Constructor missing arguments, so default construction not permitted.\t");
-						ssb.AppendFormat("Format is: \n\t(%s ", constructorName);
-
-						for (int i = 0; i < constructor->NumberOfInputs() - 1; ++i)
-						{
-							auto& arg = constructor->GetArgument(i);
-							cstr argName = constructor->GetArgName(i);
-							ssb.AppendFormat("(%s %s) ", GetFriendlyName(arg), argName);
-						}
-						Throw(sDef, "%s)\n", (cstr)*ssb);
-					}
-
-					// Invoke constructor
-					int inputStackAllocCount = PushInputs(ce, sDef, *constructor, true, 0);
-					inputStackAllocCount += CompileInstancePointerArg(ce, id);
-
-					AppendFunctionCallAssembly(ce, *constructor);
-
-					ce.Builder.MarkExpression(sDef.Parent());
-
-					RepairStack(ce, *sDef.Parent(), *constructor);
-					ce.Builder.AssignClosureParentSFtoD6();
+					AppendConstructor(ce, *sxyConstructor, sDef, id);
 				}	
 				else
 				{

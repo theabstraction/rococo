@@ -3504,7 +3504,7 @@ R"((namespace EntryPoint)
 		validate(170 == x);
 	}
 
-	static bool isMarbleValid = false;
+	static int marbleCode = 0;
 
 	void TestRock(IPublicScriptSystem& ss)
 	{
@@ -3523,6 +3523,7 @@ R"((namespace EntryPoint)
 		{
 			static void ConstructMarble(NativeCallEnvironment& e)
 			{
+				marbleCode += 7;
 				Marble* marble;
 				ReadInput(0, marble, e);
 				new (marble) Marble();
@@ -3530,6 +3531,8 @@ R"((namespace EntryPoint)
 
 			static void DestructMarble(NativeCallEnvironment& e)
 			{
+				marbleCode += 9;
+
 				Marble* marble;
 				ReadInput(0, marble, e);
 
@@ -3542,12 +3545,8 @@ R"((namespace EntryPoint)
 				{
 					Throw(0, "err marble value 2: %lld", marble->value2);
 				}
-
-				isMarbleValid = true;
 			}
 		};
-
-		isMarbleValid = false;
 
 		const INamespace& ns = ss.AddNativeNamespace("Sys.Rock");
 
@@ -3555,8 +3554,8 @@ R"((namespace EntryPoint)
 		{
 			ss.CreateRockType(ns, __FILE__, __LINE__, "Marble", 16_bytes);
 
-			ss.AddNativeCall(ns, ANON::ConstructMarble, NULL, "MarbleConstruct (out Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(ns, ANON::DestructMarble, NULL, "MarbleDestruct (const Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::ConstructMarble, NULL, "++Marble (out Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::DestructMarble, NULL,  "--Marble (const Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
 		}
 		catch (IException& ex)
 		{
@@ -3567,12 +3566,10 @@ R"((namespace EntryPoint)
 		cstr srcCode = 
 		R"(
 			(function Main -> (Int32 result):
-
+				(Sys.Rock.Marble marble)
 				(if ((sizeof Sys.Rock.Marble) != 16) 
 					(Sys.Throw 0 "Expecting sizeof marble to be 16 bytes")
 				)
-
-				(Sys.Rock.Marble marble)
 			)
 			(namespace EntryPoint)(alias Main EntryPoint.Main)
 		)";
@@ -3587,6 +3584,8 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 0);
+
+		validate(marbleCode == 16);
 	}
 
 	static int64 TestNativeHandle_globalHandle = 0;

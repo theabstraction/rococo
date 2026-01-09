@@ -457,6 +457,9 @@ namespace Rococo {
 			virtual const INamespace* DefaultNamespace() const = 0;
 
 			virtual const IFunction* FindFunction(cstr name) const = 0;
+
+			// A native factory is a function defined in C++ whose supplied name was either prefixed ++ for construction, or -- for destruction
+			virtual const IFunction* FindNativeFactory(cstr name) const = 0;
 			virtual const IStructure* FindStructure(cstr name) const = 0;
 
 			virtual cstr Name() const = 0;
