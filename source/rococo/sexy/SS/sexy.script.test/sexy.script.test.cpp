@@ -18593,6 +18593,7 @@ R"(
 		TEST2(TestCoroutine1);
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
+		TEST(TestRock);
 	}
 
 	void RunPositiveFailures()

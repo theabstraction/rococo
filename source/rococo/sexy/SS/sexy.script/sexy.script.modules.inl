@@ -855,14 +855,14 @@ namespace Rococo::Script
 			if (s == ce.StructList())
 			{
 				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
-				AppendInvoke(ce, GetListCallbacks(ce).ListRelease, *(const ISExpression*) s.Definition());
+				AppendInvoke(ce, GetListCallbacks(ce).ListRelease, *(const ISExpression*)s.Definition());
 				return;
 			}
 
 			if (s == ce.StructMap())
 			{
 				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
-				AppendInvoke(ce, GetMapCallbacks(ce).MapRelease,  *(const ISExpression*) s.Definition());
+				AppendInvoke(ce, GetMapCallbacks(ce).MapRelease, *(const ISExpression*)s.Definition());
 				return;
 			}
 
@@ -872,31 +872,35 @@ namespace Rococo::Script
 				AppendInvoke(ce, GetArrayCallbacks(ce).ArrayRelease, *(const ISExpression*)s.Definition());
 				return;
 			}
-
-			// Regular class			
-			const IFunction* f;
-			TokenBuffer destructorName;
-			if (s.IsPersistent())
-			{
-				StringPrint(destructorName, ("%s.Destruct"), s.Name());
-				f = s.Module().FindFunction(destructorName);
-			}
-			else
-			{
-				StringPrint(destructorName, ("--%s"), s.Name());
-				f = s.Module().FindNativeFactory(destructorName);
-			}
-			if (f == NULL)
-			{
-				// concrete class without destructor
-				return;
-			}
 		}
-		
+
+		// Regular class			
+		const IFunction* f;
+		TokenBuffer destructorName;
+		if (s.IsPersistent())
+		{
+			StringPrint(destructorName, ("%s.Destruct"), s.Name());
+			f = s.Module().FindFunction(destructorName);
+		}
+		else
+		{
+			StringPrint(destructorName, ("--%s"), s.Name());
+			f = s.Module().FindNativeFactory(destructorName);
+		}
+		if (f == NULL)
+		{
+			// concrete class without destructor
+			return;
+		}
+
+		CodeSection code;
+		f->Code().GetCodeSection(OUT code);
+
 		TokenBuffer destructorSymbol;
 		StringPrint(destructorSymbol, ("%s %s.Destruct"), GetFriendlyName(s), name);
 		ce.Builder.AddSymbol(destructorSymbol);	
-		ce.Builder.Assembler().Append_CallVirtualFunctionByAddress(SFoffset, sizeof(ID_BYTECODE));
+		ce.Builder.PushVariableRef(name, -1);
+		ce.Builder.Assembler().Append_CallById(code.Id);
 		ce.Builder.Assembler().Append_Pop(sizeof(size_t));
 	}
 
