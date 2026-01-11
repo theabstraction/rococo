@@ -5,7 +5,7 @@
 #include <rococo.strings.h>
 #include <rococo.hashtable.h>
 #include <rococo.io.h>
-
+#include <rococo.functional.h>
 #include <vector>
 
 #include "unreal-sexy-gen.h"
@@ -54,6 +54,8 @@ struct Structs : IStructs
 	void MarkUnknown(cstr type) override;
 	void ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates, IAPIGenerator& generator);
 	void PrintUnknownsAscending(FILE* fp);
+	void GenerateRocks(IAPIGenerator& generator);
+	void EnumerateAll(Rococo::Function<void(Rococo::Unreal::IUnrealStruct& structure)> lambda) override;
 
 	~Structs();
 };
@@ -387,6 +389,8 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 			}
 		}
 	}
+
+	database.structs.GenerateRocks(*generator);
 
 	int classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
@@ -1091,6 +1095,11 @@ void Structs::ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates, 
 	}
 }
 
+void Structs::GenerateRocks(IAPIGenerator& generator)
+{
+	generator.GenRocks(*this, GetOutputDirectory());
+}
+
 bool IsCPPKeyword(cstr token)
 {
 	static stringmap<int> cppKeywords;
@@ -1669,6 +1678,14 @@ crwstr GetOutputDirectory()
 crwstr GetSxyOutputDirectory()
 {
 	return g_sxyOutDir;
+}
+
+void Structs::EnumerateAll(Rococo::Function<void(Rococo::Unreal::IUnrealStruct& structure)> lambda)
+{
+	for (auto& i : this->structs)
+	{
+		lambda(*i.second);
+	}
 }
 
 int mainProtected(int argc, char* argv[])

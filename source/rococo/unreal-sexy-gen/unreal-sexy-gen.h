@@ -1,5 +1,6 @@
 #pragma once
 #include <rococo.types.h>
+#include <rococo.functional.h>
 
 namespace Rococo::Strings
 {
@@ -103,6 +104,7 @@ namespace Rococo::Unreal
 		virtual const IMarshalType* FindPrimitiveType(cstr argType) const = 0;
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
 		virtual void MarkUnknown(cstr type) = 0;
+		virtual void EnumerateAll(Rococo::Function<void (Rococo::Unreal::IUnrealStruct& structure)> lambda) = 0;
 	};
 
 	ROCOCO_INTERFACE IDelegates
@@ -134,6 +136,7 @@ namespace Rococo::Unreal
 		virtual void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates) = 0;
 		virtual	void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path) = 0;
 		virtual void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums, IDelegates& delegates) = 0;
+		virtual void GenRocks(IStructs& structs, crwstr outputDirectory) = 0;
 	};
 
 	IAPIGenerator* CreateAPIGenerator();

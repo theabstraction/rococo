@@ -143,7 +143,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.ue5.api.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\sexy.ue5.api.lib</ImportLibrary>
@@ -229,7 +230,8 @@
       <AdditionalDependencies>rococo.util.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\sexy.ue5.api.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\sexy.ue5.api.lib</ImportLibrary>
@@ -6662,6 +6664,7 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-20.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-21.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-22.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\rocks.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-register.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy.marshalling.cpp" />
   </ItemGroup>

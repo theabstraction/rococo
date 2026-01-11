@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-22.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-register.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy.marshalling.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\rocks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\AbcImportSettings.hpp">

@@ -1453,6 +1453,24 @@ void BuildSexyNativeStructsSXY(IUnrealStruct& structDef, StringBuilder& sb)
 	sb << "." << sxyStructName << ")\n";
 }
 
+void AppendRockDef(StringBuilder& sb, cstr ns, cstr typeName, size_t sizeOfStruct)
+{
+	sb << R"(
+	ss.CreateRockType(ns, __FILE__, __LINE__, )";
+
+	sb << "\"" << typeName << "\", ";
+	sb << sizeOfStruct;
+	sb << ");";
+
+	sb << R"(
+	ss.AddNativeCall(ns, ANON::Construct)" << typeName << ", NULL, \"++";
+	sb << typeName << "(out " << ns << " item)->, __FILE__, __LINE__, false, 0);";
+
+	sb << R"(
+	ss.AddNativeCall(ns, ANON::Destruct)" << typeName << ", NULL, \"++";
+	sb << typeName << "(out " << ns << " item)->, __FILE__, __LINE__, false, 0);";
+}
+
 void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums, IDelegates& delegates)
 {
 	BuildHardCodedTypes();
@@ -1967,6 +1985,37 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t};\n}\n";
 
 			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sb);
+		}
+
+		void GenRock(StringBuilder& sb, IUnrealStruct& structure)
+		{
+			int sizeofStruct = structure.SizeOf();
+
+			char ns[Rococo::MAX_FQ_NAME_LEN];
+			SecureFormat(ns, "%s", structure.Package());
+
+			AppendRockDef(sb, ns, structure.TypeName(), sizeofStruct);
+		}
+
+		void GenRocks(IStructs& structs, crwstr outputDirectory) override
+		{
+			AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
+
+			WideFilePath wTargetCPPFile;
+			Format(wTargetCPPFile, L"%lsrocks.cpp", outputDirectory);
+			IO::ToSysPath(wTargetCPPFile.buf);
+
+			auto& sb = dsb->Builder();
+
+			structs.EnumerateAll(
+				[this, &sb]
+				(IUnrealStruct& structure) 
+				{
+					GenRock(sb, structure);
+				}
+			);
+
+			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
 		}
 
 		void AddCppFileName(crwstr filename)
