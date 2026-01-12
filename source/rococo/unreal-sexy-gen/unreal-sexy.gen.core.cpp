@@ -1982,7 +1982,7 @@ namespace Rococo::UE::Native::Delegate
 
 			sb << "\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.TypeName() << "\", " << sizeofStruct << ");\n";
 			sb << "\t\tss.AddNativeCall(" << compactNS << ", ANON::Construct" << structure.CPPTypeName() << ", NULL, \"++" << structure.CPPTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
-			sb << "\t\tss.AddNativeCall(" << compactNS << ", ANON::Destruct" << structure.CPPTypeName() << ", NULL, \"++" << structure.CPPTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n\n";
+			sb << "\t\tss.AddNativeCall(" << compactNS << ", ANON::Destruct" << structure.CPPTypeName() << ", NULL, \"--" << structure.CPPTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n\n";
 		}
 
 		void GenRocks(IStructs& structs, crwstr outputDirectory) override
