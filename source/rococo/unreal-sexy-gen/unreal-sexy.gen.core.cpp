@@ -1453,24 +1453,6 @@ void BuildSexyNativeStructsSXY(IUnrealStruct& structDef, StringBuilder& sb)
 	sb << "." << sxyStructName << ")\n";
 }
 
-void AppendRockDef(StringBuilder& sb, cstr ns, cstr typeName, size_t sizeOfStruct)
-{
-	sb << R"(
-	ss.CreateRockType(ns, __FILE__, __LINE__, )";
-
-	sb << "\"" << typeName << "\", ";
-	sb << sizeOfStruct;
-	sb << ");";
-
-	sb << R"(
-	ss.AddNativeCall(ns, ANON::Construct)" << typeName << ", NULL, \"++";
-	sb << typeName << "(out " << ns << " item)->, __FILE__, __LINE__, false, 0);";
-
-	sb << R"(
-	ss.AddNativeCall(ns, ANON::Destruct)" << typeName << ", NULL, \"++";
-	sb << typeName << "(out " << ns << " item)->, __FILE__, __LINE__, false, 0);";
-}
-
 void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnums& enums, IDelegates& delegates)
 {
 	BuildHardCodedTypes();
@@ -1987,14 +1969,20 @@ namespace Rococo::UE::Native::Delegate
 			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sb);
 		}
 
-		void GenRock(StringBuilder& sb, IUnrealStruct& structure)
+		void GenRock(StringBuilder& sb, IUnrealStruct& structure, cstr compactNS)
 		{
 			int sizeofStruct = structure.SizeOf();
 
-			char ns[Rococo::MAX_FQ_NAME_LEN];
-			SecureFormat(ns, "%s", structure.Package());
+			char fqName[MAX_FQ_NAME_LEN];
+			StackStringBuilder fqb(fqName, sizeof fqName);
 
-			AppendRockDef(sb, ns, structure.TypeName(), sizeofStruct);
+			AppendPackageAsSexyNamespace(fqb, structure);
+			fqb << ".";
+			fqb << structure.CPPTypeName();
+
+			sb << "\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.TypeName() << "\", " << sizeofStruct << ");\n";
+			sb << "\t\tss.AddNativeCall(" << compactNS << ", ANON::Construct" << structure.CPPTypeName() << ", NULL, \"++" << structure.CPPTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+			sb << "\t\tss.AddNativeCall(" << compactNS << ", ANON::Destruct" << structure.CPPTypeName() << ", NULL, \"++" << structure.CPPTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n\n";
 		}
 
 		void GenRocks(IStructs& structs, crwstr outputDirectory) override
@@ -2007,13 +1995,58 @@ namespace Rococo::UE::Native::Delegate
 
 			auto& sb = dsb->Builder();
 
+			sb << "#include <rococo.types.h>\n";
+			sb << "#include <sexy.script.h>\n\n";
+			sb << "using namespace Rococo::Script;\n\n";
+			sb << "namespace Rococo::Unreal::Rocks\n";
+			sb << "{\n";
+
+			sb << "\tnamespace ANON\n";
+			sb << "\t{\n";
+
 			structs.EnumerateAll(
 				[this, &sb]
-				(IUnrealStruct& structure) 
+				(IUnrealStruct& structure)
 				{
-					GenRock(sb, structure);
+					sb << "\t\tvoid Construct" << structure.CPPTypeName() << "(NativeCallEnvironment&)\n";
+					sb << "\t\t{\n";
+					sb << "\t\t}\n";
+
+					sb << "\t\tvoid Destruct" << structure.CPPTypeName() << "(NativeCallEnvironment&)\n";
+					sb << "\t\t{\n";
+					sb << "\t\t}\n\n";
 				}
 			);
+
+			sb << "\t}\n";
+			sb << "\n";
+
+			sb << "\tvoid RegisterRocks(Rococo::Script::IPublicScriptSystem& ss)\n";
+			sb << "\t{\n";
+
+			stringmap<int> setOfNativeNamespaces;
+
+			structs.EnumerateAll(
+				[this, &sb, &setOfNativeNamespaces]
+				(IUnrealStruct& structure) 
+				{
+					char compactNS[MAX_FQ_NAME_LEN] = "ns";
+					structure.CompactPackageName(compactNS + 2, sizeof compactNS - 2);
+
+					if (setOfNativeNamespaces.find(structure.Package()) == setOfNativeNamespaces.end())
+					{
+						sb << "\t\tauto& ";
+						sb << compactNS;
+						sb << " = ss.AddNativeNamespace(\"UE.";
+						AppendPackageAsSexyNamespace(sb, structure);
+						sb << "\");\n";
+						setOfNativeNamespaces.insert(structure.Package(), 0);
+					}
+					GenRock(sb, structure, compactNS);
+				}
+			);
+			sb << "\t}\n";
+			sb << "}\n";
 
 			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
 		}

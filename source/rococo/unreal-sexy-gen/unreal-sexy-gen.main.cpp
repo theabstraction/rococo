@@ -941,6 +941,7 @@ struct UnrealStructDef : IUnrealStruct
 {
 	HString typeName;
 	HString pathName;
+	HString cppTypeName;
 	int alignment = 0;
 	int sizeofStruct = 0;
 
@@ -998,9 +999,14 @@ struct UnrealStructDef : IUnrealStruct
 		};
 
 		std::sort(elements.begin(), elements.end(), byOffsetAscending);
+
+		char cppTypeNameBuf[MAX_FQ_NAME_LEN];
+		SecureFormat(cppTypeNameBuf, "%s", name);
+		Strings::ReplaceChar(cppTypeNameBuf, sizeof cppTypeNameBuf, ':', '_');
+		cppTypeName = cppTypeNameBuf;
 	}
 
-	~UnrealStructDef()
+	virtual ~UnrealStructDef()
 	{
 		for (auto* e : elements)
 		{
@@ -1013,6 +1019,11 @@ struct UnrealStructDef : IUnrealStruct
 		delete this;
 	}
 
+	cstr CPPTypeName() const
+	{
+		return cppTypeName;
+	}
+
 	cstr TypeName() const override
 	{
 		return typeName;
@@ -1021,6 +1032,28 @@ struct UnrealStructDef : IUnrealStruct
 	cstr Package() const override
 	{
 		return pathName;
+	}
+
+	void CompactPackageName(OUT char* buffer, size_t capacity)
+	{
+		StackStringBuilder sb(buffer, capacity);
+		for (cstr p = pathName.c_str(); *p != 0; p++)
+		{
+			if (*p == '/')
+			{
+				continue;
+			}
+			else
+			{
+				sb.AppendChar(*p);
+			}
+		}
+
+		if (sb.Length() >= capacity - 1)
+		{
+			// Truncation
+			Throw(0, "%s: Truncation of %s", __FUNCTION__, pathName.c_str());
+		}
 	}
 
 	int Alignment() const override

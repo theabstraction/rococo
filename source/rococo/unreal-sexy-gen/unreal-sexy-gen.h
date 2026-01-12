@@ -80,6 +80,11 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IUnrealStruct
 	{
+		// Compacts package names to the output buffer. Example: /Sys/Dog becomes SysDog
+		virtual void CompactPackageName(OUT char* buffer, size_t capacity) = 0;
+
+		// TypeName where colons are replaced with underscores
+		virtual cstr CPPTypeName() const = 0;
 		virtual cstr TypeName() const = 0;
 		virtual cstr Package() const = 0;
 
