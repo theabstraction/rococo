@@ -6638,6 +6638,7 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\WrapBox.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\WrapBoxSlot.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\ZeroOutRootBoneModifier.hpp" />
+    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\rock.marshalling.h" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.h" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.resolvers.h" />
   </ItemGroup>

@@ -19230,6 +19230,7 @@
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.h" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy-marshalling.resolvers.h" />
+    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\rock.marshalling.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="natives">
