@@ -4,15 +4,24 @@
 # define TEXT(x) L ## x
 #endif
 
+namespace Rococo::Script
+{
+	DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;
+}
+
 namespace Rococo::UE::Rocks
 {
-	typedef void (*FN_OF_ONE_POINTER)(void* rock);
-
-	struct StructMethods
+	ROCOCO_INTERFACE IRockFactory
 	{
-		FN_OF_ONE_POINTER Construct;
-		FN_OF_ONE_POINTER Destruct;
+		virtual void Prep() = 0;
+		virtual void Construct(void* pInstance) = 0;
+		virtual void Destruct(void* pInstance) = 0;
 	};
 
-	StructMethods GetStructMethods(const TCHAR* structPathName);
+	ROCOCO_INTERFACE IRockFactories
+	{
+		virtual IRockFactory& BindRockFactory(crwstr classPath) = 0;
+	};
+
+	SEXY_MARSHALLING_API void RegisterRocks(Rococo::Script::IPublicScriptSystem& ss, IRockFactories& factories);
 }

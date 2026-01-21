@@ -942,6 +942,7 @@ struct UnrealStructDef : IUnrealStruct
 	HString typeName;
 	HString pathName;
 	HString cppTypeName;
+	HString sxyTypeName;
 	int alignment = 0;
 	int sizeofStruct = 0;
 
@@ -1004,6 +1005,26 @@ struct UnrealStructDef : IUnrealStruct
 		SecureFormat(cppTypeNameBuf, "%s", name);
 		Strings::ReplaceChar(cppTypeNameBuf, sizeof cppTypeNameBuf, ':', '_');
 		cppTypeName = cppTypeNameBuf;
+
+		char sxyTypeNameBuf[MAX_FQ_NAME_LEN];
+		StackStringBuilder sb(sxyTypeNameBuf, MAX_FQ_NAME_LEN);
+
+		if (!isalpha(*name))
+		{
+			sb.AppendChar('C');
+		}
+
+		for (cstr p = name; *p != 0; p++)
+		{
+			if (isalnum(*p))
+			{
+				sb.AppendChar(*p);
+			}
+		}
+
+		sxyTypeNameBuf[0] = toupper(sxyTypeNameBuf[0]);
+
+		sxyTypeName = sxyTypeNameBuf;
 	}
 
 	virtual ~UnrealStructDef()
@@ -1019,9 +1040,14 @@ struct UnrealStructDef : IUnrealStruct
 		delete this;
 	}
 
-	cstr CPPTypeName() const
+	cstr CPPTypeName() const override
 	{
 		return cppTypeName;
+	}
+
+	cstr SXYTypeName() const override
+	{
+		return sxyTypeName;
 	}
 
 	cstr TypeName() const override

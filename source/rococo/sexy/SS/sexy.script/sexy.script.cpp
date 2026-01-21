@@ -904,30 +904,30 @@ namespace Rococo::Script
 
 			if (strlen(typeName) > MAX_HANDLE_NAME_LEN)
 			{
-				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length", typeName);
+				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length. %s #%d", typeName, origin, lineNumber);
 			}
 
 			if (!isupper(*typeName))
 			{
-				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter", typeName);
+				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter. %s #%d", typeName, origin, lineNumber);
 			}
 
 			for (cstr p = typeName + 1; *p != 0; p++)
 			{
 				if (!IsAlphaNumeric(*p))
 				{
-					Throw(0, __FUNCTION__ ": [typeName=%s] must consist of alphanumerics", typeName);
+					Throw(0, __FUNCTION__ ": [typeName=%s] must only consist of alphanumerics. %s #%d", typeName, origin, lineNumber);
 				}
 			}
 
 			if (&ns == &PublicProgramObject().GetRootNamespace())
 			{
-				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed. Pick a subspace", typeName);
+				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed. Pick a subspace. %s #%d", typeName, origin, lineNumber);
 			}
 
 			if (sizeOfNativeType >= 1_megabytes)
 			{
-				Throw(0, __FUNCTION__ ": [sizeOfNativeType] limited to 1 megabyte");
+				Throw(0, __FUNCTION__ ": [sizeOfNativeType] limited to 1 megabyte. %s #%d", origin, lineNumber);
 			}
 
 			// Round size upwards to the nearest multiple of 8 (sizeof int64)

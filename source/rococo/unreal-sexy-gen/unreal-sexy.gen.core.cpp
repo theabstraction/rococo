@@ -1978,13 +1978,13 @@ namespace Rococo::UE::Native::Delegate
 
 			AppendPackageAsSexyNamespace(fqb, structure);
 			fqb << ".";
-			fqb << structure.CPPTypeName();
+			fqb << structure.SXYTypeName();
 
 			sb << "\t\t{\n";
-			sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.TypeName() << "\", " << sizeofStruct << ");\n";
-			sb << "\t\t\tauto sm = GetStructMethods(TEXT(\"" << structure.Package() << "/" << structure.TypeName() << "\"));\n";
-			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, sm.Construct, \"++" << structure.CPPTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
-			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, sm.Destruct, \"--" << structure.CPPTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n\n";
+			sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+			sb << "\t\t\tIRockFactory& rf = factories.BindRockFactory(TEXT(\"" << structure.Package() << "/" << structure.TypeName() << "\"));\n";
+			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n\n";
 			sb << "\t\t}\n";
 		}
 
@@ -2015,22 +2015,22 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t{\n";
 			sb << "\t\t\tvoid* rock;\n";
 			sb << "\t\t\tReadInput(0, OUT rock, e);\n";
-			sb << "\t\t\tauto* constructInplaceFn = reinterpret_cast<FN_OF_ONE_POINTER>(e.context);\n";
-			sb << "\t\t\tconstructInplaceFn(rock);\n";
+			sb << "\t\t\tauto* rf = reinterpret_cast<IRockFactory*>(e.context);\n";
+			sb << "\t\t\trf->Construct(rock);\n";
 			sb << "\t\t}\n";
 
 			sb << "\t\tvoid DestructUERock(NativeCallEnvironment& e)\n";
 			sb << "\t\t{\n";
 			sb << "\t\t\tvoid* rock;\n";
 			sb << "\t\t\tReadInput(0, OUT rock, e);\n";
-			sb << "\t\t\tauto* destructFn = reinterpret_cast<FN_OF_ONE_POINTER>(e.context);\n";
-			sb << "\t\t\tdestructFn(rock);\n";
+			sb << "\t\t\tauto* rf = reinterpret_cast<IRockFactory*>(e.context);\n";
+			sb << "\t\t\trf->Destruct(rock);\n";
 			sb << "\t\t}\n";
 		
 			sb << "\t}\n";
 			sb << "\n";
 
-			sb << "\tvoid RegisterRocks(Rococo::Script::IPublicScriptSystem& ss)\n";
+			sb << "\tSEXY_MARSHALLING_API void RegisterRocks(Rococo::Script::IPublicScriptSystem& ss, IRockFactories& factories)\n";
 			sb << "\t{\n";
 
 			stringmap<int> setOfNativeNamespaces;

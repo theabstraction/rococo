@@ -590,14 +590,3 @@ namespace Rococo::UE::Marshal
 		return *classPtr;
 	}
 }
-
-#include "rock.marshalling.h"
-
-namespace Rococo::UE::Rocks
-{
-	StructMethods GetStructMethods(crwstr structPathName)
-	{
-		Rococo::UE::Marshal::ThrowException("Could not GetStructMethods for %ls - not implemented", structPathName);
-		// return { NULL, NULL };
-	}
-}
