@@ -3579,6 +3579,8 @@ R"((namespace EntryPoint)
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
+		marbleCode = 0;
+
 		vm.Push(0); // Allocate stack space for the int32 result
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(result);

@@ -142,9 +142,9 @@ void BuildSexyInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUn
 	}
 }
 
-void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVariableType)
+void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVariableType, bool isForElement = false)
 {
-	if (makeSexyVariableType)
+	if (makeSexyVariableType && !isForElement)
 	{
 		sb << "UE.Handles.H";
 	}
@@ -197,7 +197,7 @@ bool TryGetEnumAsByte(char* innerType, size_t capacity, cstr argType, IEnums& en
 	return false;
 }
 
-void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums& enums, IStructs& structs, IDelegates& delegates)
+void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool isForElement = false)
 {
 	if (EndsWith(argType, "^"))
 	{
@@ -209,13 +209,13 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 
 	if (*argType == 'U' && EndsWith(argType, "*"))
 	{
-		MarshalNameTypeAsHandle(sb, argType, true);
+		MarshalNameTypeAsHandle(sb, argType, true, isForElement);
 		return;
 	}
 
 	if (*argType == 'A' && EndsWith(argType, "*"))
 	{
-		MarshalNameTypeAsHandle(sb, argType, true);
+		MarshalNameTypeAsHandle(sb, argType, true, isForElement);
 		return;
 	}
 
@@ -409,11 +409,11 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums&
 	sb << "*/";
 }
 
-void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates)
+void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool isForElement = false)
 {
 	if (makeSexyVariableType)
 	{
-		AppendNonContainerType_SXY_Private(sb, argType, enums, structs, delegates);
+		AppendNonContainerType_SXY_Private(sb, argType, enums, structs, delegates, isForElement);
 	}
 	else
 	{
@@ -427,22 +427,41 @@ void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType, I
 
 	if (arg.IsContainer())
 	{
-		sb << "R_";
-		sb << arg.ArgType();
-		sb << "<";
-		if (*arg.KeyType() != 0)
+		if (makeSexyVariableType)
 		{
-			AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType, enums, structs, delegates);
-			sb << ",";
-		}
+			sb << "UE.Handles.";
+			sb << arg.ArgType();
+			sb << "Of";
 
-		if (Eq(argType, "TDelegate"))
+			if (*arg.KeyType() != 0)
+			{
+				AppendNonContainerType_Private(sb, arg.KeyType(), true, enums, structs, delegates, true);
+			}
+
+			if (*arg.ElementType() != 0)
+			{
+				AppendNonContainerType_Private(sb, arg.ElementType(), true, enums, structs, delegates, true);
+			}
+		}
+		else
 		{
 			sb << "R_";
-		}
+			sb << arg.ArgType();
+			sb << "<";
+			if (*arg.KeyType() != 0)
+			{
+				AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType, enums, structs, delegates);
+				sb << ",";
+			}
 
-		AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType, enums, structs, delegates);
-		sb << ">";
+			if (Eq(argType, "TDelegate"))
+			{
+				sb << "R_";
+			}
+
+			AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType, enums, structs, delegates);
+			sb << ">";
+		}
 	}
 	else
 	{
@@ -873,7 +892,7 @@ void ForEachArgumentOfEachMethod(IUnrealClass& classDef, LAMBDA lambda)
 				break;
 			}
 
-			lambda(*arg);
+			lambda(method, *arg);
 		}
 	}
 }
@@ -892,7 +911,7 @@ void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealAr
 	if (*argType == 'F')
 	{
 		auto* structType = structs.FindStruct(argType + 1);
-		if (structType)
+		if (structType && structType->IsGenerated())
 		{
 			if (requiredStructs.insert(structType->TypeName(), 0).second)
 			{
@@ -989,7 +1008,7 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 	stringmap<int> requiredStructs;
 
 	ForEachArgumentOfEachMethod(classDef,
-		[&requiredStructs, &sb, &enums, &structs](IUnrealArg& arg)
+		[&requiredStructs, &sb, &enums, &structs](IUnrealFunction&, IUnrealArg& arg)
 		{
 			AppendHeaders(REF requiredStructs, sb, arg, enums, structs);
 		}
@@ -1004,7 +1023,7 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 	knownObjects.insert("UnknownType", 0);
 
 	ForEachArgumentOfEachMethod(classDef,
-		[&knownObjects,&sb](IUnrealArg& arg)
+		[&knownObjects,&sb,&enums,&structs,&delegates](IUnrealFunction& method, IUnrealArg& arg)
 		{
 			char objectPointerType[128];
 			if (arg.GetObjectPointerType(objectPointerType, sizeof objectPointerType))
@@ -1030,8 +1049,15 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 				{
 					// New object
 					knownObjects.insert(objectPointerType, 0);
+				}
 
-					sb << "class " << objectPointerType << ";\n";
+				sb << "class " << objectPointerType << ";\n";
+
+				if (Eq(arg.ArgType(), "TArray") || Eq(arg.ArgType(), "TSet"))
+				{
+					char containerType[MAX_FQ_NAME_LEN];
+					SecureFormat(containerType, "%sOf%s", arg.ArgType(), objectPointerType);
+					knownObjects.insert(containerType, 0);
 				}
 
 				return;
@@ -1052,6 +1078,19 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 
 			if (Eq(arg.ArgType(), "TArray") || Eq(arg.ArgType(), "TSet"))
 			{
+				char containerType[MAX_FQ_NAME_LEN];
+				StackStringBuilder cb(containerType, sizeof containerType);
+
+				cb << arg.ArgType();
+				cb << "Of";
+				AppendNonContainerType_SXY_Private(cb, arg.ElementType(), enums, structs, delegates, true);
+				
+				if (knownObjects.find(containerType) == knownObjects.end())
+				{
+					// New object
+					knownObjects.insert(containerType, 0);
+				}
+
 				if (TryGetInnerType(innerType, sizeof innerType, arg.ElementType(), uobjectContainerPrefices))
 				{
 					if (knownObjects.find(innerType) == knownObjects.end())
@@ -1132,7 +1171,8 @@ namespace
 	for (auto& known : knownObjects)
 	{
 		cstr type = known.first;
-		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"H");
+		cstr prefix = StartsWith(type, "TArrayOf") || StartsWith(type, "TSetOf") || StartsWith(type, "TMapOf") ? "" : "H";
+		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"%s", prefix);
 		
 		AppendContractedName(sb, type);
 
@@ -1189,10 +1229,13 @@ namespace
 			sb << "/* ";
 		}
 
+		/* E.g:
+			ScriptUFunction(ss, ns, __FILE__, __LINE__, classRef, BP_TopDownCharacter_C_GetActorScale3D, TEXT("GetActorScale3D"),
+				"GetActorScale3D (Int64 objectHandle) (out FVector value) -> "); L"ActorHasTag", "ActorHasTag (int64 objectHandle) (R_FName tag) -> (bool returnValue)");
+		*/
+
 		sb << "\t\tScriptUFunction(ss, ns, __FILE__, __LINE__, classRef, ";
 		
-		// L"ActorHasTag", "ActorHasTag (int64 objectHandle) (R_FName tag) -> (bool returnValue)");
-
 		AppendCompactName(sb, classDef.ShortName());
 		sb << "_";
 		method.AppendFunctionName(sb);
@@ -1976,6 +2019,7 @@ namespace Rococo::UE::Native::Delegate
 			char fqName[MAX_FQ_NAME_LEN];
 			StackStringBuilder fqb(fqName, sizeof fqName);
 
+			fqb << "UE.";
 			AppendPackageAsSexyNamespace(fqb, structure);
 			fqb << ".";
 			fqb << structure.SXYTypeName();

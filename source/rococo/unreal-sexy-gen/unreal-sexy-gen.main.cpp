@@ -44,7 +44,7 @@ struct UnrealStructDef;
 struct Structs : IStructs
 {
 	stringmap<UnrealStructDef*> structs;
-	stringmap<IMarshalType*> marshalArgTypes;
+	stringmap<IMarshalType*> primitiveTypes;
 	stringmap<int> mapUnknownToUsage;;
 
 	Structs();
@@ -583,23 +583,10 @@ struct MarshalType_FText : IMarshalType
 	}
 } s_mt_FText;
 
-Structs::Structs()
-{
-	marshalArgTypes.insert("uint8", &s_mt_Int32);
-	marshalArgTypes.insert("int32", &s_mt_Int32);
-	marshalArgTypes.insert("int64", &s_mt_Int32);
-	marshalArgTypes.insert("float", &s_mt_float);
-	marshalArgTypes.insert("double", &s_mt_double);
-	marshalArgTypes.insert("bool", &s_mt_bool);
-	marshalArgTypes.insert("FString", &s_mt_FString);
-	marshalArgTypes.insert("FName", &s_mt_FName);
-	marshalArgTypes.insert("FText", &s_mt_FText);
-}
-
 const IMarshalType* Structs::FindPrimitiveType(cstr argType) const
 {
-	auto i = marshalArgTypes.find(argType);
-	return i != marshalArgTypes.end() ? i->second : nullptr;
+	auto i = primitiveTypes.find(argType);
+	return i != primitiveTypes.end() ? i->second : nullptr;
 }
 
 void Structs::MarkUnknown(cstr type)
@@ -945,11 +932,28 @@ struct UnrealStructDef : IUnrealStruct
 	HString sxyTypeName;
 	int alignment = 0;
 	int sizeofStruct = 0;
+	bool isGenerated;
 
 	std::vector<UnrealStructElement*> elements;
 
-	cr_sex sDef;
-	UnrealStructDef(cr_sex _sDef) : sDef(_sDef)
+	UnrealStructDef(cstr _typeName, cstr _pathName, cstr _cppTypeName, cstr _sxyTypeName, int _alignment, int _sizeofStruct):
+		typeName(_typeName),
+		pathName(_pathName),
+		cppTypeName(_cppTypeName),
+		sxyTypeName(_sxyTypeName),
+		alignment(_alignment),
+		sizeofStruct(_sizeofStruct),
+		isGenerated(false)
+	{
+
+	}
+
+	bool IsGenerated() const override
+	{
+		return isGenerated;
+	}
+
+	UnrealStructDef(cr_sex sDef): isGenerated(true)
 	{
 		cr_sex sNameDirective = sDef[1];
 		ValidateToken(sNameDirective[0], "FullName", __FUNCTION__);
@@ -1022,7 +1026,7 @@ struct UnrealStructDef : IUnrealStruct
 			}
 		}
 
-		sxyTypeNameBuf[0] = toupper(sxyTypeNameBuf[0]);
+		sxyTypeNameBuf[0] = (char) toupper(sxyTypeNameBuf[0]);
 
 		sxyTypeName = sxyTypeNameBuf;
 	}
@@ -1103,6 +1107,20 @@ struct UnrealStructDef : IUnrealStruct
 	}
 };
 
+Structs::Structs()
+{
+	primitiveTypes.insert("uint8", &s_mt_Int32);
+	primitiveTypes.insert("int32", &s_mt_Int32);
+	primitiveTypes.insert("int64", &s_mt_Int32);
+	primitiveTypes.insert("float", &s_mt_float);
+	primitiveTypes.insert("double", &s_mt_double);
+	primitiveTypes.insert("bool", &s_mt_bool);
+
+	structs.insert("Name", new UnrealStructDef("FName", "Sys/Type", "FName", "FName", 16, 16));
+	structs.insert("String", new UnrealStructDef("FName", "Sys/Type", "FString", "FString", 16, 16));
+	structs.insert("Text", new UnrealStructDef("FName", "Sys/Type", "FText", "FText", 16, 64));
+}
+
 const IUnrealStruct* Structs::FindStruct(cstr name) const
 {
 	auto i = structs.find(name);
@@ -1128,7 +1146,7 @@ Structs::~Structs()
 		delete i.second;
 	}
 
-	for (auto& i : marshalArgTypes)
+	for (auto& i : primitiveTypes)
 	{
 		i.second->Free();
 	}
@@ -1262,6 +1280,8 @@ bool LooksLikeObjectPointer(cstr p)
 
 	return false;
 }
+
+bool TryGetInnerType(char* innerType, size_t capacity, cstr argType, fstring prefix);
 
 struct UnrealFunctionArg : IUnrealArg
 {
@@ -1446,11 +1466,11 @@ struct UnrealFunctionArg : IUnrealArg
 	{
 		if (!IsCPPOutput())
 		{
-			// All inputs C++ are inputs when martialled into sexy script
+			// All inputs in C++ are inputs when martialled into sexy script
 			return false;
 		}
 
-		// Some outputs become inputs by mutable reference to struct, which populate the struct
+		// Some outputs become inputs by mutable reference to struct, the desire is to populate the struct
 		
 		cstr p = ArgType();
 
@@ -1469,6 +1489,21 @@ struct UnrealFunctionArg : IUnrealArg
 		}
 
 		if (StartsWith(p, softObjectPtrPrefix))
+		{
+			return false;
+		}
+
+		if (Eq(p, "TArray"))
+		{
+			return false;
+		}
+
+		if (Eq(p, "TMap"))
+		{
+			return false;
+		}
+
+		if (Eq(p, "TSet"))
 		{
 			return false;
 		}

@@ -86,6 +86,9 @@ namespace Rococo::Unreal
 		// TypeName where colons are replaced with underscores
 		virtual cstr CPPTypeName() const = 0;
 
+		// Returns true if the struct was generated from the reflection system. If not it is hardcoded (such as FName)
+		virtual bool IsGenerated() const = 0;
+
 		// TypeName where only alphanumerics are allowed, and the first character is a capital A-Z
 		virtual cstr SXYTypeName() const = 0;
 		virtual cstr TypeName() const = 0;

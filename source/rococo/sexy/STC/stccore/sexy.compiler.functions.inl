@@ -454,6 +454,10 @@ namespace Anon
 				FunctionArgument* arg = *i;
 				if (!arg->TryResolveArgument())
 				{
+					char msg[1024];
+					StackStringBuilder sb(msg, sizeof msg);
+					sb << "Error resolving argument " << arg->Name() << ". Type is " << arg->TypeString() << ". Function " << Name() << " is defined in module " << module.Name() << ". " << commentary.c_str();
+					module.Object().Log().Write(msg);
 					return false;
 				}
 				else

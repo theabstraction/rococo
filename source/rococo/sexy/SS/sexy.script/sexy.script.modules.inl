@@ -2538,7 +2538,7 @@ namespace Rococo::Script
 				start.x = end.x = 0;
 				start.y = end.y = 0;
 
-				ParseException ex(start, end, "Sexy Script System", "Failed to resolve definitions", "", NULL);
+				ParseException ex(start, end, "Sexy Script System", "Failed to resolve definitions. Check logs", "", NULL);
 				OS::TripDebugger();
 				throw ex;
 			}
