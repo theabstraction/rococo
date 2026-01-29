@@ -532,57 +532,6 @@ struct MarshalType_bool : IMarshalType
 	}
 } s_mt_bool;
 
-struct MarshalType_FString : IMarshalType
-{
-	cstr CPPName() const override
-	{
-		return "R_FString";
-	}
-
-	cstr SXYName() const override
-	{
-		return "IString";
-	}
-
-	void Free() override
-	{
-	}
-} s_mt_FString;
-
-struct MarshalType_FName : IMarshalType
-{
-	cstr CPPName() const override
-	{
-		return "R_FName";
-	}
-
-	cstr SXYName() const override
-	{
-		return "FName";
-	}
-
-	void Free() override
-	{
-	}
-} s_mt_FName;
-
-struct MarshalType_FText : IMarshalType
-{
-	cstr CPPName() const override
-	{
-		return "R_FText";
-	}
-
-	cstr SXYName() const override
-	{
-		return "FText";
-	}
-
-	void Free() override
-	{
-	}
-} s_mt_FText;
-
 const IMarshalType* Structs::FindPrimitiveType(cstr argType) const
 {
 	auto i = primitiveTypes.find(argType);
@@ -1117,8 +1066,8 @@ Structs::Structs()
 	primitiveTypes.insert("bool", &s_mt_bool);
 
 	structs.insert("Name", new UnrealStructDef("FName", "Sys/Type", "FName", "FName", 16, 16));
-	structs.insert("String", new UnrealStructDef("FName", "Sys/Type", "FString", "FString", 16, 16));
-	structs.insert("Text", new UnrealStructDef("FName", "Sys/Type", "FText", "FText", 16, 64));
+	structs.insert("String", new UnrealStructDef("FString", "Sys/Type", "FString", "FString", 16, 16));
+	structs.insert("Text", new UnrealStructDef("FText", "Sys/Type", "FText", "FText", 16, 64));
 }
 
 const IUnrealStruct* Structs::FindStruct(cstr name) const

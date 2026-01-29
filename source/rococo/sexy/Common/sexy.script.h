@@ -361,6 +361,11 @@ namespace Rococo {
 			// [origin] and [lineNumber] give the source line that invoked CreateHandleType
 			virtual void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) = 0;
 
+			// Find or create a 64-bit enum type. The scripting language implements this as a strong Int64 with the given typeName.
+			// The [typeName] must be unique.
+			// [origin] and [lineNumber] give the source line that invoked CreateEnumType
+			virtual void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) = 0;
+
 			// Find or create a native opaque struct object - a rock - and aliases into the namespace.
 			// The [typeName] must be unique.
 			// [origin] and [lineNumber] give the source line that invoked CreateRockType

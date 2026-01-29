@@ -621,7 +621,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			isPersistent = false;
 		}
-
+		
 		void* operator new(size_t nBytes)
 		{
 			return Rococo::Memory::AllocateSexyMemory(nBytes);

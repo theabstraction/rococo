@@ -519,7 +519,7 @@ namespace Anon
 
 				if (currentDef->SizeOfStruct() != alignedSize)
 				{
-					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and its size %llu does not match the rock type size %llu. %s", origin, lineNumber, name,  currentSrc);
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and its size %llu does not match the rock type size %llu. %s", origin, lineNumber, name, currentDef->SizeOfStruct(), alignedSize, currentSrc);
 				}
 
 				// Rocks are defined as transients (not persistent) and have the first member _rk0

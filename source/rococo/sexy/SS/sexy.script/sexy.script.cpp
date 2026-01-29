@@ -826,6 +826,57 @@ namespace Rococo::Script
 
 		int64 scriptContext = 0;
 
+		struct EnumType
+		{
+			HString origin;
+			int lineNumber;
+		};
+
+		stringmap<EnumType> enumTypes;
+
+		void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) override
+		{
+			if (origin == nullptr)
+			{
+				origin = __FUNCTION__;
+				lineNumber = __LINE__;
+			}
+
+			if (typeName == nullptr || *typeName == 0)
+			{
+				Throw(0, __FUNCTION__ ": null [typeName]");
+			}
+
+			enum { MAX_HANDLE_NAME_LEN = 63 };
+
+			if (strlen(typeName) > MAX_HANDLE_NAME_LEN)
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length", typeName);
+			}
+
+			if (!isupper(*typeName))
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter", typeName);
+			}
+
+			for (cstr p = typeName + 1; *p != 0; p++)
+			{
+				if (!IsAlphaNumeric(*p))
+				{
+					Throw(0, __FUNCTION__ ": [typeName=%s] must consist of alphanumerics", typeName);
+				}
+			}
+
+			if (&ns == &PublicProgramObject().GetRootNamespace())
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed", typeName);
+			}
+
+			char fqName[256];
+			SafeFormat(fqName, "%s.%s", ns.FullName()->Buffer, typeName);
+			enumTypes.insert(fqName, EnumType{ origin, lineNumber });
+		}
+
 		struct HandleType
 		{
 			HString origin;
@@ -954,6 +1005,24 @@ namespace Rococo::Script
 			return alignedSize;
 		}
 
+		void RegisterEnums()
+		{
+			for (auto& e : enumTypes)
+			{
+				cstr fqNSandName = e.first;
+				NamespaceSplitter splitter(fqNSandName);
+
+				cstr ns, name;
+				if (!splitter.SplitTail(OUT ns, OUT name))
+				{
+					Throw(0, __FUNCTION__ ": expected to be able to split %s", fqNSandName);
+				}
+
+				auto& nsRef = AddNativeNamespace(ns);
+				RegisterEnumType(nsRef, name, e.second.origin, e.second.lineNumber);
+			}
+		}
+
 		void RegisterHandles()
 		{
 			for (auto& item : handleTypes)
@@ -987,6 +1056,25 @@ namespace Rococo::Script
 
 				auto& nsRef = AddNativeNamespace(ns);
 				RegisterRockType(nsRef, name, rock.second.origin, rock.second.lineNumber, rock.second.alignedSize);
+			}
+		}
+
+		void RegisterEnumType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber)
+		{
+			IStructureBuilder& sb = progObjProxy->IntrinsicModule().DeclareStrongType(typeName, SexyVarType_Int64);
+			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
+			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
+
+			auto* currentAlias = nb.FindStructure(typeName);
+			if (currentAlias == nullptr)
+			{
+				nb.Alias(typeName, sb);
+				return;
+			}
+
+			if (currentAlias != &sb)
+			{
+				Throw(0, __FUNCTION__  ": %s (line %d): current alias for [%s] in namespace does not match the enum type", origin, lineNumber, typeName);
 			}
 		}
 
@@ -2461,6 +2549,7 @@ namespace Rococo::Script
 
 			stringPool = NewStringPool();
 
+			RegisterEnums();
 			RegisterHandles();
 			RegisterRocks();
 

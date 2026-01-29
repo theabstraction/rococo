@@ -229,6 +229,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 	auto* enumType = enums.FindEnum(argType);
 	if (enumType)
 	{
+		sb << "UE.Enums.";
 		sb << enumType->Name();
 		return;
 	}
@@ -1022,10 +1023,22 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 	knownObjects.insert("UMethod", 0);
 	knownObjects.insert("UnknownType", 0);
 
+	stringmap<const IUnrealEnumDef*> knownEnums;
+
+	// Declare classes and build list of knownObjects
 	ForEachArgumentOfEachMethod(classDef,
-		[&knownObjects,&sb,&enums,&structs,&delegates](IUnrealFunction& method, IUnrealArg& arg)
+		[&knownEnums,&knownObjects,&sb,&enums,&structs,&delegates](IUnrealFunction& method, IUnrealArg& arg)
 		{
+			UNUSED(method);
 			char objectPointerType[128];
+
+			auto* e = enums.FindEnum(arg.ArgType());
+			if (e)
+			{
+				knownEnums.insert(e->Name(), e);
+				return;
+			}
+
 			if (arg.GetObjectPointerType(objectPointerType, sizeof objectPointerType))
 			{
 				// Zap the trailing *
@@ -1049,9 +1062,8 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 				{
 					// New object
 					knownObjects.insert(objectPointerType, 0);
+					sb << "class " << objectPointerType << ";\n";
 				}
-
-				sb << "class " << objectPointerType << ";\n";
 
 				if (Eq(arg.ArgType(), "TArray") || Eq(arg.ArgType(), "TSet"))
 				{
@@ -1177,6 +1189,14 @@ namespace
 		AppendContractedName(sb, type);
 
 		sb << "\");\n";
+	}
+
+	sb << "\n\t\tconst INamespace& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
+	for (auto& ePair : knownEnums)
+	{
+		auto* e = ePair.second;
+
+		sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\");\n";
 	}
 
 	sb << "\n";
@@ -2021,14 +2041,14 @@ namespace Rococo::UE::Native::Delegate
 
 			fqb << "UE.";
 			AppendPackageAsSexyNamespace(fqb, structure);
-			fqb << ".";
+			fqb << ".F";
 			fqb << structure.SXYTypeName();
 
 			sb << "\t\t{\n";
-			sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+			sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"F" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
 			sb << "\t\t\tIRockFactory& rf = factories.BindRockFactory(TEXT(\"" << structure.Package() << "/" << structure.TypeName() << "\"));\n";
-			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
-			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n\n";
+			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++F" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--F" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
 			sb << "\t\t}\n";
 		}
 
@@ -2083,6 +2103,11 @@ namespace Rococo::UE::Native::Delegate
 				[this, &sb, &setOfNativeNamespaces]
 				(IUnrealStruct& structure) 
 				{
+					if (!structure.IsGenerated())
+					{
+						return;
+					}
+
 					char compactNS[MAX_FQ_NAME_LEN] = "ns";
 					structure.CompactPackageName(compactNS + 2, sizeof compactNS - 2);
 
