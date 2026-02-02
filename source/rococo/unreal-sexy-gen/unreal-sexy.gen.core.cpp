@@ -229,7 +229,10 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 	auto* enumType = enums.FindEnum(argType);
 	if (enumType)
 	{
-		sb << "UE.Enums.";
+		if (!EndsWith(*sb, "Of"))  // Hack, ArrayOfX does not use the namespace for X
+		{
+			sb << "UE.Enums.";
+		}
 		sb << enumType->Name();
 		return;
 	}
@@ -248,6 +251,10 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		if (!enumRef)
 		{
 			Throw(0, "Could not find inner type %s", innerType);
+		}
+		if (!EndsWith(*sb, "Of")) // Hack, ArrayOfX does not use the namespace for X
+		{
+			sb << "UE.Enums.";
 		}
 		sb << enumRef->Name();
 		return;
@@ -1039,6 +1046,17 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 				return;
 			}
 
+			char innerType[256];
+			if (TryGetInnerType(innerType, sizeof innerType, arg.ArgType(), enumAsBytePrefix))
+			{
+				e = enums.FindEnum(innerType);
+				if (e)
+				{
+					knownEnums.insert(e->Name(), e);
+					return;
+				}
+			}
+
 			if (arg.GetObjectPointerType(objectPointerType, sizeof objectPointerType))
 			{
 				// Zap the trailing *
@@ -1068,7 +1086,9 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 				if (Eq(arg.ArgType(), "TArray") || Eq(arg.ArgType(), "TSet"))
 				{
 					char containerType[MAX_FQ_NAME_LEN];
-					SecureFormat(containerType, "%sOf%s", arg.ArgType(), objectPointerType);
+
+					cstr lastDot = Strings::ReverseFind('.', Substring::ToSubstring(objectPointerType));
+					SecureFormat(containerType, "%sOf%s", arg.ArgType(), lastDot ? lastDot + 1 : objectPointerType);
 					knownObjects.insert(containerType, 0);
 				}
 
@@ -1077,7 +1097,6 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 
 			fstring uobjectContainerPrefices[] = { softObjectPtrPrefix, subclassOfPrefix, scriptInterfacePrefix, objectPtrPrefix, ""_fstring };
 
-			char innerType[256];
 			if (TryGetInnerType(innerType, sizeof innerType, arg.ArgType(), uobjectContainerPrefices))
 			{
 				if (knownObjects.find(innerType) == knownObjects.end())
@@ -1191,12 +1210,15 @@ namespace
 		sb << "\");\n";
 	}
 
-	sb << "\n\t\tconst INamespace& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
-	for (auto& ePair : knownEnums)
+	if (!knownEnums.empty())
 	{
-		auto* e = ePair.second;
+		sb << "\n\t\tconst INamespace& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
+		for (auto& ePair : knownEnums)
+		{
+			auto* e = ePair.second;
 
-		sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\");\n";
+			sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\");\n";
+		}
 	}
 
 	sb << "\n";
