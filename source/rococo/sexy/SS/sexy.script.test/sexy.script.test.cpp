@@ -1993,6 +1993,32 @@ namespace
 		validate(x == 7);
 	}
 
+	void TestFunctionCallWithOutParameter(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Maths)\n"
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 exitValue):\n"
+			"    (Vec2i result)"
+			"    (GenerateResult result)"
+			"    (exitValue = result.x / result.y)"
+			")\n"
+			"(function GenerateResult (out Vec2i v)-> :\n"
+			"   (v.x = 27)\n"
+			"   (v.y = 3)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 exitValue
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 x = vm.PopInt32();
+		validate(x == 9);
+	}
+
 	void TestFunctionCall1(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -18395,6 +18421,7 @@ R"(
 		TEST(TestFunctionCall2);
 		TEST(TestFunctionCall3);
 		TEST(TestFunctionCall4);
+		TEST(TestFunctionCallWithOutParameter);
 
 		TEST(TestFunctionCallRecursion1);
 		TEST(TestFunctionCallMultiOutput1);
