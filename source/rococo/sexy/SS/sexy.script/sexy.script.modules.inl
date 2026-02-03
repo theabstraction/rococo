@@ -3695,37 +3695,48 @@ namespace Rococo::Script
 			archetypes[count] = MatchArchetype(type, module);
 			genericArg1s[count] = NULL;
 			isOut[count] = true;
-			if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
+			if (resolvedTypes[count] == NULL) Throw(typeNameExptr, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
 			count++;
 		}
 
 		for (int i = 2; i < mapIndex; ++i)
 		{
-			cr_sex typeNameExptr = methodExpr.GetElement(i);
-			AssertCompound(typeNameExptr);
-			AssertNotTooFewElements(typeNameExptr, 2);
+			cr_sex sArgDef = methodExpr.GetElement(i);
+			AssertCompound(sArgDef);
+			AssertNotTooFewElements(sArgDef, 2);
 
-			cr_sex type = GetAtomicArg(typeNameExptr, 0);
+			cr_sex sType = GetAtomicArg(sArgDef, 0);
 
-			if (AreEqual(type.String(), ("array")))
+			if (AreEqual(sType.String(), "array"))
 			{
-				AssertNotTooManyElements(typeNameExptr, 3);
-				cr_sex name = GetAtomicArg(typeNameExptr, 2);
-				cr_sex elementType = GetAtomicArg(typeNameExptr, 1);
+				AssertNotTooManyElements(sArgDef, 3);
+				cr_sex name = GetAtomicArg(sArgDef, 2);
+				cr_sex elementType = GetAtomicArg(sArgDef, 1);
 				names[count] = name.c_str();
-				resolvedTypes[count] = MatchStructure(type, module);
-				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
+				resolvedTypes[count] = MatchStructure(sType, module);
+				if (resolvedTypes[count] == NULL) Throw(sArgDef, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
 				archetypes[count] = NULL;
 				genericArg1s[count] = MatchStructure(elementType, module);
 			}
+			else if (AreEqual(sType.String(), "out") || AreEqual(sType.String(), "ref") || AreEqual(sType.String(), "const"))
+			{
+				AssertNotTooManyElements(sArgDef, 3);
+				cr_sex sName = GetAtomicArg(sArgDef, 2);
+				cr_sex sArgType = GetAtomicArg(sArgDef, 1);
+				names[count] = sName.c_str();
+				resolvedTypes[count] = MatchStructure(sArgType, module);
+				if (resolvedTypes[count] == NULL) Throw(sArgDef, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
+				archetypes[count] = MatchArchetype(sArgType, module);
+				genericArg1s[count] = NULL;
+			}
 			else
 			{
-				AssertNotTooManyElements(typeNameExptr, 2);
-				cr_sex name = GetAtomicArg(typeNameExptr, 1);
+				AssertNotTooManyElements(sArgDef, 2);
+				cr_sex name = GetAtomicArg(sArgDef, 1);
 				names[count] = name.c_str();
-				resolvedTypes[count] = MatchStructure(type, module);
-				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
-				archetypes[count] = MatchArchetype(type, module);
+				resolvedTypes[count] = MatchStructure(sType, module);
+				if (resolvedTypes[count] == NULL) Throw(sArgDef, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
+				archetypes[count] = MatchArchetype(sType, module);
 				genericArg1s[count] = NULL;
 			}
 
@@ -3733,8 +3744,8 @@ namespace Rococo::Script
 			count++;;
 		}
 
-		names[count] = ("_vTable");
-		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure(("Pointer"));
+		names[count] = "_vTable";
+		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure("Pointer");
 		archetypes[count] = NULL;
 		genericArg1s[count] = NULL;
 		isOut[count] = false;

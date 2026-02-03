@@ -495,6 +495,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	sb << "\n\t\t{\n";
 
 	size_t j = 0;
+
 	for (;;)
 	{
 		auto* arg = method.GetArg(j++);
@@ -527,13 +528,11 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	std::vector<IUnrealArg*> inputs;
 	std::vector<IUnrealArg*> outputs;
 	BuildCPPInputsAndOutputs(REF inputs, REF outputs, method);
-
-	sb << "\t\tint64 objectHandle;\n";
-	sb << "\t\toffset += sizeof(int64);\n";
-	sb << "\t\tReadInput(objectHandle, sf, -offset);\n\n";
 	
-	for (auto* input : inputs)
+	for (auto i = inputs.rbegin(); i != inputs.rend(); i++)
 	{
+		IUnrealArg* input = *i;
+
 		sb << "\t\t";
 
 		AppendType(sb, *input, false, enums, structs, delegates);
@@ -564,13 +563,18 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		sb << ";\n\n";
 	}
 
+	sb << "\t\tint64 objectHandle;\n";
+	sb << "\t\toffset += sizeof(int64);\n";
+	sb << "\t\tReadInput(objectHandle, sf, -offset);\n\n";
+
 	sb << "\t\tUObject* object = GetNCEUObject(nce, objectHandle);\n";
 	sb << "\t\tUFunction* methodRef = GetNCEUMethod(nce);\n";
 	sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
 	sb << "\t\tProcessEvent(object, methodRef, &args);\n";
 
-	for (auto* output : outputs)
+	for (auto i = outputs.rbegin(); i != outputs.rend(); i++)
 	{
+		IUnrealArg* output = *i;
 		sb << "\n\t\t";
 
 		AppendType(sb, *output, false, enums, structs, delegates);
@@ -1876,9 +1880,13 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 	sb << "\n(method ";
 	sb << sxyName;
 	sb << ".Construct :\n";
-	sb << "\t(Native." << sxyName << ".Construct";
-	sb << sxyName;
-	sb << " -> this.ObjectHandle)\n";
+
+	sb << "\t(UE.Native.";
+	AppendPackageAsSexyNamespace(sb, classRef);
+	sb << ".NS" << classRef.ClassIndex() << ".Construct";
+
+	AppendContractedName(sb, classRef.ShortName());
+	sb << " -> this.objectHandle)\n";
 	sb << ")\n";
 
 	for (size_t i = 0; i < classRef.MethodCount(); i++)
@@ -1912,7 +1920,10 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 
 		sb << ":\n";
 
-		sb << "\t(Native." << sxyName << ".";
+		// Here we invoke the native function
+		sb << "\t(UE.Native.";
+		AppendPackageAsSexyNamespace(sb, classRef);
+		sb << ".NS" << classRef.ClassIndex() << ".";
 
 		method.AppendFunctionName(sb, true);
 

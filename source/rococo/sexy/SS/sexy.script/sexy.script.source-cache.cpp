@@ -310,7 +310,11 @@ namespace Rococo
 			{
 				if (installation.DoPingsMatch(i->first, resourceName))
 				{
-					i->second.tree->Release();
+					if (i->second.tree)
+					{
+						i->second.tree->Release();
+					}
+
 					i->second.code->Release();
 					sources.erase(i);
 					break;
