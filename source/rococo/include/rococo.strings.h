@@ -128,6 +128,7 @@ namespace Rococo::Strings
 	ROCOCO_API bool EqI(crwstr a, crwstr b);
 	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix);
 	ROCOCO_API bool EndsWith(cstr bigString, cstr suffix);
+	ROCOCO_API bool EndsWith(fstring bigString, cstr suffix);
 
 	// Case insensitive check
 	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix);

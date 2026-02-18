@@ -28,9 +28,9 @@ namespace Rococo::Unreal
 	ROCOCO_INTERFACE IUnrealArg
 	{
 		virtual void AppendName(Strings::StringBuilder & sb, bool makeSexyVariableName = false) const = 0;
-		virtual cstr ArgType() const = 0;
-		virtual cstr KeyType() const = 0;
-		virtual cstr ElementType() const = 0;
+		virtual fstring ArgType() const = 0;
+		virtual fstring KeyType() const = 0;
+		virtual fstring ElementType() const = 0;
 		virtual bool GetObjectPointerType(char* buffer, size_t capacity) const = 0;
 
 		// Returns true if Sexy can marshal the argument
@@ -48,7 +48,7 @@ namespace Rococo::Unreal
 		// Returns true is Sexy can marshal the function call
 		virtual bool HasSexyCounterpart() const = 0;
 		virtual void AppendFunctionName(Strings::StringBuilder& sb, bool makeSexyVariableName = false) const = 0;
-		virtual IUnrealArg* GetArg(size_t index) = 0;
+		virtual const IUnrealArg* GetArg(size_t index) const = 0;
 		virtual cstr Name() const = 0;
 	};
 
@@ -58,6 +58,7 @@ namespace Rococo::Unreal
 		virtual cstr ShortName() const = 0;
 		virtual size_t MethodCount() const = 0;
 		virtual IUnrealFunction& GetFunction(size_t index) = 0;
+		virtual const IUnrealFunction& GetFunction(size_t index) const = 0;
 		virtual size_t ClassIndex() const = 0;
 	};
 
@@ -133,12 +134,12 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IClassSystem
 	{
-		virtual void AddClass(const IUnrealClass& classRef) = 0;
+		virtual void AddClass(const IUnrealClass* classRef) = 0;
 		virtual void Commit() = 0;
 		virtual void Free() = 0;
 	};
 
-	IClassSystem* CreateClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory);
+	IClassSystem* CreateClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates);
 
 	ROCOCO_INTERFACE IAPIGenerator
 	{

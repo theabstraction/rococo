@@ -2937,7 +2937,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 	struct Project: IFactoryConfig
 	{
 		AutoFree<ISexyDatabaseSupervisor> database;
-		std::wstring contentRoot;
+		// std::wstring contentRoot;
 		HString content;
 		HString projectPath;
 		std::wstring configPath;
@@ -3163,8 +3163,9 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 	{
 		for (int index = 0; index < projects.size(); index++)
 		{
-			crwstr contentRoot = projects[index]->contentRoot.c_str();
-			if (StartsWith(filename, contentRoot))
+			WideFilePath wContent;
+			Format(wContent, L"%hs", projects[index]->content.c_str());
+			if (StartsWith(filename, wContent))
 			{
 				return index;
 			}

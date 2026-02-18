@@ -35,7 +35,7 @@ struct UnrealEnumDef;
 
 void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot);
 void BuildCPPInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
-void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, Rococo::Unreal::IUnrealFunction& method);
+void BuildSexyInputsAndOutputs(std::vector<Rococo::Unreal::IUnrealArg*>& inputs, std::vector<Rococo::Unreal::IUnrealArg*>& outputs, const Rococo::Unreal::IUnrealFunction& method);
 crwstr GetOutputDirectory();
 crwstr GetSxyOutputDirectory();
 
@@ -405,7 +405,7 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 
 	printf("\nProcessing %d UClasses", classCount);
 
-	AutoFree<IClassSystem> classSystem = CreateClassSystem(GetOutputDirectory(), GetSxyOutputDirectory());
+	AutoFree<IClassSystem> classSystem = CreateClassSystem(GetOutputDirectory(), GetSxyOutputDirectory(), database.enums, database.structs, database.delegates);
 
 	classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
@@ -1333,19 +1333,19 @@ struct UnrealFunctionArg : IUnrealArg
 		AppendIdentifier(sb, rawName);
 	}
 
-	cstr ArgType() const override
+	fstring ArgType() const override
 	{
-		return argType.c_str();
+		return argType;
 	}
 
-	cstr ElementType() const override
+	fstring ElementType() const override
 	{
-		return elementType.c_str();
+		return elementType;
 	}
 
-	cstr KeyType() const override
+	fstring KeyType() const override
 	{
-		return keyType.c_str();
+		return keyType;
 	}
 
 	bool GetObjectPointerType(char* buffer, size_t capacity) const override
@@ -1375,7 +1375,7 @@ struct UnrealFunctionArg : IUnrealArg
 
 	bool IsRef() const override
 	{
-		return EndsWith(argType.c_str(), "^") || EndsWith(elementType, "^");
+		return EndsWith(argType.c_str(), "^") || EndsWith((fstring) elementType, "^");
 	}
 
 	bool IsConst() const override
@@ -1514,7 +1514,7 @@ struct UnrealFunctionDef : IUnrealFunction
 		return true;
 	}
 
-	IUnrealArg* GetArg(size_t index) override
+	const IUnrealArg* GetArg(size_t index) const override
 	{
 		if (index >= args.size()) return nullptr;
 		return args[index];
@@ -1680,6 +1680,11 @@ struct UnrealClassDef : IUnrealClass
 		return *functions[index];
 	}
 
+	const IUnrealFunction& GetFunction(size_t index) const override
+	{
+		return *functions[index];
+	}
+
 	cstr ShortName() const override
 	{
 		return name;
@@ -1693,8 +1698,10 @@ struct UnrealClassDef : IUnrealClass
 
 void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& database, IAPIGenerator& generator)
 {
-	UnrealClassDef def(sDef, database);
-	classSystem.AddClass(def);
+	UnrealClassDef* pDef = new UnrealClassDef(sDef, database);
+	auto& def = *pDef;
+
+	classSystem.AddClass(pDef);
 	generator.GenClassDef(def, GetOutputDirectory(), GetSxyOutputDirectory(), database.enums, database.structs, database.delegates);
 
 	g_nClassesParsed++;

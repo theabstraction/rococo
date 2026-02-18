@@ -92,7 +92,7 @@ void AppendContractedName(StringBuilder& sb, cstr p)
 	}
 }
 
-void BuildCPPInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUnrealArg*>& outputs, IUnrealFunction& method)
+void BuildCPPInputsAndOutputs(std::vector<const IUnrealArg*>& inputs, std::vector<const IUnrealArg*>& outputs, IUnrealFunction& method)
 {
 	inputs.clear();
 	outputs.clear();
@@ -117,7 +117,7 @@ void BuildCPPInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUnr
 	}
 }
 
-void BuildSexyInputsAndOutputs(std::vector<IUnrealArg*>& inputs, std::vector<IUnrealArg*>& outputs, IUnrealFunction& method)
+void BuildSexyInputsAndOutputs(std::vector<const IUnrealArg*>& inputs, std::vector<const IUnrealArg*>& outputs, const IUnrealFunction& method)
 {
 	inputs.clear();
 	outputs.clear();
@@ -309,13 +309,13 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 	sb << "*/";
 }
 
-void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums& enums, IStructs& structs, IDelegates& delegates)
+void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	if (EndsWith(argType, "^"))
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_CPP_Private(sb, valueType, enums, structs, delegates);
+		AppendNonContainerType_CPP_Private(sb, to_fstring(valueType), enums, structs, delegates);
 		return;
 	}
 
@@ -417,7 +417,7 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, cstr argType, IEnums&
 	sb << "*/";
 }
 
-void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool isForElement = false)
+void AppendNonContainerType_Private(StringBuilder& sb, fstring argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool isForElement = false)
 {
 	if (makeSexyVariableType)
 	{
@@ -429,9 +429,9 @@ void AppendNonContainerType_Private(StringBuilder& sb, cstr argType, bool makeSe
 	}
 }
 
-void AppendType(StringBuilder& sb, IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates)
+void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
-	cstr argType = arg.ArgType();
+	fstring argType = arg.ArgType();
 
 	if (arg.IsContainer())
 	{
@@ -525,13 +525,13 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 	sb << "args;\n\n";
 
-	std::vector<IUnrealArg*> inputs;
-	std::vector<IUnrealArg*> outputs;
+	std::vector<const IUnrealArg*> inputs;
+	std::vector<const IUnrealArg*> outputs;
 	BuildCPPInputsAndOutputs(REF inputs, REF outputs, method);
 	
 	for (auto i = inputs.rbegin(); i != inputs.rend(); i++)
 	{
-		IUnrealArg* input = *i;
+		const IUnrealArg* input = *i;
 
 		sb << "\t\t";
 
@@ -574,7 +574,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 	for (auto i = outputs.rbegin(); i != outputs.rend(); i++)
 	{
-		IUnrealArg* output = *i;
+		const IUnrealArg* output = *i;
 		sb << "\n\t\t";
 
 		AppendType(sb, *output, false, enums, structs, delegates);
@@ -604,10 +604,8 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 #include <ctype.h>
 
-void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
+void AppendNameAsSxyType(StringBuilder& sb, cstr className, cstr packageName)
 {
-	cstr className = classRef.ShortName();
-
 	char curtailedClassName[256];
 
 	// Often we have a class definition in which the package and name look like this: /Fruit/Apple Apple_C
@@ -618,7 +616,7 @@ void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
 		Substring viewClassName = Substring::ToSubstring(className);
 		viewClassName.finish -= 2;
 
-		Substring viewPackage = Substring::ToSubstring(classRef.PackageName());
+		Substring viewPackage = Substring::ToSubstring(packageName);
 
 		cstr finalSlash = ReverseFind('/', viewPackage);
 		if (finalSlash)
@@ -631,7 +629,7 @@ void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
 			}
 		}
 	}
-	
+
 	char firstChar = *className++;
 
 	if (IsLowerCase(firstChar))
@@ -651,7 +649,7 @@ void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
 	}
 	else
 	{
-		Throw(0, "Cannot transform class name to Sexy type name. Bad first character: %s %s", classRef.PackageName(), classRef.ShortName());
+		Throw(0, "Cannot transform class name to Sexy type name. Bad first character: %s %s", packageName, className);
 	}
 
 	bool pascalize = false;
@@ -666,7 +664,7 @@ void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
 		}
 		else if (!isalnum(c))
 		{
-			Throw(0, "Cannot transform class name to Sexy type name. None alphanumeric character in short name: %s %s", classRef.PackageName(), classRef.ShortName());
+			Throw(0, "Cannot transform class name to Sexy type name. None alphanumeric character in short name: %s %s", packageName, className);
 		}
 
 		if (pascalize)
@@ -679,11 +677,16 @@ void AppendNameAsSxyType(StringBuilder& sb, IUnrealClass& classRef)
 			}
 		}
 
-		sb.AppendChar(c);		
+		sb.AppendChar(c);
 	}
 }
 
-void GetClassNameAsSxyType(char* buffer, size_t capacity, IUnrealClass& classRef)
+void AppendNameAsSxyType(StringBuilder& sb, const IUnrealClass& classRef)
+{
+	AppendNameAsSxyType(sb, classRef.ShortName(), classRef.PackageName());
+}
+
+void GetClassNameAsSxyType(char* buffer, size_t capacity, const IUnrealClass& classRef)
 {
 	StackStringBuilder sb(buffer, capacity);
 	AppendNameAsSxyType(sb, classRef);
@@ -773,22 +776,20 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealStruct& structRef)
 	}
 }
 
-void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
+void AppendPackageAsSexyNamespace(StringBuilder& sb, cstr shortName, cstr packageName)
 {
 	// Example /Engine/AI/
-	cstr packageName = classRef.PackageName();
-	cstr className = classRef.ShortName();
 
 	char curtailedPackageName[256];
 	// Often we have a class definition in which the package and name look like this: /Fruit/Apple Apple_C
 	// We could create a namespace Fruit.Apple with class AppleC, but it looks more user-friendly to have namespace Fruit with class Apple
 	// So if the trailing subpspace of the namespace matches the class sans _C, convert to this user-friendly representation
-	if (EndsWith(className, "_C"))
+	if (EndsWith(shortName, "_C"))
 	{
-		Substring viewClassName = Substring::ToSubstring(className);
+		Substring viewClassName = Substring::ToSubstring(shortName);
 		viewClassName.finish -= 2;
 
-		Substring viewPackage = Substring::ToSubstring(classRef.PackageName());
+		Substring viewPackage = Substring::ToSubstring(packageName);
 
 		cstr finalSlash = ReverseFind('/', viewPackage);
 		if (finalSlash)
@@ -827,7 +828,7 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 	}
 	else
 	{
-		Throw(0, "Cannot transform package name to Sexy namespace. Bad first character: %s %s", classRef.PackageName(), classRef.ShortName());
+		Throw(0, "Cannot transform package name to Sexy namespace. Bad first character: %s %s", packageName, shortName);
 	}
 
 	int subspaceCharCount = 1;
@@ -882,12 +883,23 @@ void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
 	}
 }
 
+
+void AppendPackageAsSexyNamespace(StringBuilder& sb, IUnrealClass& classRef)
+{
+	AppendPackageAsSexyNamespace(sb, classRef.ShortName(), classRef.PackageName());
+}
+
+void GetPackageNameAsSxyType(char* buffer, size_t capacity, cstr shortName, cstr packageName)
+{
+	StackStringBuilder sb(buffer, capacity);
+	AppendPackageAsSexyNamespace(sb, shortName, packageName);
+}
+
 void GetPackageNameAsSxyType(char* buffer, size_t capacity, IUnrealClass& classRef)
 {
 	StackStringBuilder sb(buffer, capacity);
 	AppendPackageAsSexyNamespace(sb, classRef);
 }
-
 
 template<class LAMBDA>
 void ForEachArgumentOfEachMethod(IUnrealClass& classDef, LAMBDA lambda)
@@ -909,7 +921,7 @@ void ForEachArgumentOfEachMethod(IUnrealClass& classDef, LAMBDA lambda)
 	}
 }
 
-void GetTypeWithoutRef(char* buffer, size_t capacity, cstr type)
+void GetTypeWithoutRef(char* buffer, size_t capacity, fstring type)
 {
 	CopyString(buffer, capacity, type);
 	if (EndsWith(buffer, "^"))
@@ -918,7 +930,7 @@ void GetTypeWithoutRef(char* buffer, size_t capacity, cstr type)
 	}
 }
 
-void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg& arg, cstr argType, IEnums& enums, IStructs& structs)
+void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, const IUnrealArg& arg, cstr argType, IEnums& enums, IStructs& structs)
 {
 	if (*argType == 'F')
 	{
@@ -969,7 +981,7 @@ void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealAr
 	}
 }
 
-void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, IUnrealArg& arg, IEnums& enums, IStructs& structs)
+void AppendHeaders(stringmap<int>& requiredStructs, StringBuilder& sb, const IUnrealArg& arg, IEnums& enums, IStructs& structs)
 {
 	if (arg.IsContainer())
 	{
@@ -1020,7 +1032,7 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 	stringmap<int> requiredStructs;
 
 	ForEachArgumentOfEachMethod(classDef,
-		[&requiredStructs, &sb, &enums, &structs](IUnrealFunction&, IUnrealArg& arg)
+		[&requiredStructs, &sb, &enums, &structs](IUnrealFunction&, const IUnrealArg& arg)
 		{
 			AppendHeaders(REF requiredStructs, sb, arg, enums, structs);
 		}
@@ -1038,7 +1050,7 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 
 	// Declare classes and build list of knownObjects
 	ForEachArgumentOfEachMethod(classDef,
-		[&knownEnums,&knownObjects,&sb,&enums,&structs,&delegates](IUnrealFunction& method, IUnrealArg& arg)
+		[&knownEnums,&knownObjects,&sb,&enums,&structs,&delegates](IUnrealFunction& method, const IUnrealArg& arg)
 		{
 			UNUSED(method);
 			char objectPointerType[128];
@@ -1253,8 +1265,8 @@ namespace
 	
 	sb << classDef.ShortName() << ".sxy\");\n";
 
-	std::vector<IUnrealArg*> inputs;
-	std::vector<IUnrealArg*> outputs;
+	std::vector<const IUnrealArg*> inputs;
+	std::vector<const IUnrealArg*> outputs;
 
 	sb << "\t\tss.AddNativeCall(ns, Construct_";
 		
@@ -1804,7 +1816,7 @@ namespace Rococo::UE::Native
 	sb << "}\n";
 }
 
-void AppendUnrealArgAsSexyPair(StringBuilder& sb, IUnrealArg& arg, bool addMutability, IEnums& enums, IStructs& structs, IDelegates& delegates)
+void AppendUnrealArgAsSexyPair(StringBuilder& sb, const IUnrealArg& arg, bool addMutability, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	sb << "(";
 
@@ -1874,8 +1886,8 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 	sb << ")\n";
 	sb << ")\n";
 
-	std::vector<IUnrealArg*> inputs;
-	std::vector<IUnrealArg*> outputs;
+	std::vector<const IUnrealArg*> inputs;
+	std::vector<const IUnrealArg*> outputs;
 
 	sb << "\n(method ";
 	sb << sxyName;
@@ -2341,6 +2353,56 @@ namespace Rococo::Unreal
 		return ns;
 	}
 
+	void AppendMethodArchetype(StringBuilder& sb, const IUnrealFunction& method, IEnums& enums, IStructs& structs, IDelegates& delegates)
+	{
+		sb << "\n\t(";
+
+		method.AppendFunctionName(sb, true);
+
+		std::vector<const IUnrealArg*> inputs;
+		std::vector<const IUnrealArg*> outputs;
+
+		BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
+
+		if (!inputs.empty())
+		{
+			sb << " ";
+		}
+
+		for (auto* input : inputs)
+		{
+			sb << "(";
+
+			if (input->IsConst())
+			{
+				sb << "const ";
+			}
+			else if (input->IsCPPOutput())
+			{
+				sb << "out ";
+			}
+
+			AppendType(sb, *input, true, enums, structs, delegates);
+			sb << " ";
+			input->AppendName(sb, true);
+			sb << ")";
+		}
+
+		sb << " -> ";
+
+		for (auto* output : outputs)
+		{
+			sb << "(";
+
+			AppendType(sb, *output, true, enums, structs, delegates);
+			sb << " ";
+			output->AppendName(sb, true);
+			sb << ")";
+		}
+
+		sb << ")";
+	}
+
 	struct ClassSystem: public IClassSystem
 	{		
 		WideFilePath wNativeDirectory;
@@ -2355,7 +2417,12 @@ namespace Rococo::Unreal
 
 		std::vector<ClassRep> classes;
 
-		ClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory)
+		IEnums& enums;
+		IStructs& structs;
+		IDelegates& delegates;
+
+		ClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& _enums, IStructs& _structs, IDelegates& _delegates):
+			enums(_enums), structs(_structs), delegates(_delegates)
 		{
 			Format(wNativeDirectory, L"%snatives\\", outputDirectory);
 			Format(wSxyDirectory, L"%sclasses\\", sxyOutputDirectory);
@@ -2470,6 +2537,64 @@ namespace Rococo::Unreal
 			}
 		}
 
+		void CommitSuggestions()
+		{
+			AutoFree<IDynamicStringBuilder> dsbSuggestions = CreateDynamicStringBuilder(64_kilobytes);
+
+			// .sxy-hints builder
+			auto& sb = dsbSuggestions->Builder();
+
+			WideFilePath wTargetHintFile;
+			Format(wTargetHintFile, L"%lshints\\interfaces.sxy", wSxyDirectory.buf);
+			IO::ToSysPath(wTargetHintFile.buf);
+
+			stringmap<int> namespaceCount;
+
+			for (auto& c : classes)
+			{
+				char sexyNs[256];
+				GetPackageNameAsSxyType(sexyNs, sizeof sexyNs, c.className, c.package);
+
+				auto i = namespaceCount.insert(sexyNs, 0).first;
+				int count = ++i->second;
+
+				if (count == 1)
+				{
+					sb << "(namespace UE." << sexyNs << ")\n";
+				}
+			}
+
+			sb << "\n\n\n\n";
+
+			for (auto* fullDef : fullClassDefs)
+			{
+				char sexyNs[256];
+				GetPackageNameAsSxyType(sexyNs, sizeof sexyNs, fullDef->ShortName(), fullDef->PackageName());
+
+				sb << "(interface UE." << sexyNs << ".I";
+
+				AppendNameAsSxyType(sb, *fullDef);
+
+				for (size_t i = 0; i < fullDef->MethodCount(); i++)
+				{
+					auto& method = fullDef->GetFunction(i);
+					AppendMethodArchetype(sb, method, enums, structs, delegates);
+				}
+
+				if (fullDef->MethodCount() > 0)
+				{
+					sb << "\n";
+				}
+
+				sb << ")\n";
+			}
+
+			if (sb.Length() > 0)
+			{
+				Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHintFile, *sb);
+			}
+		}
+
 		void Commit() override
 		{
 			std::sort(classes.begin(), classes.end(),
@@ -2492,6 +2617,7 @@ namespace Rococo::Unreal
 
 			CommitHeader();
 			CommitSource();
+			CommitSuggestions();
 
 			if (g_unityBuild)
 			{
@@ -2504,9 +2630,12 @@ namespace Rococo::Unreal
 			
 		}
 
-		void AddClass(const IUnrealClass& classRef) override
+		std::vector<const IUnrealClass*> fullClassDefs;
+
+		void AddClass(const IUnrealClass* classRef) override
 		{
-			classes.push_back({ classRef.PackageName(), FormatCPPNamespaceFromPath(classRef.PackageName()), classRef.ShortName() });
+			classes.push_back({ classRef->PackageName(), FormatCPPNamespaceFromPath(classRef->PackageName()), classRef->ShortName() });
+			fullClassDefs.push_back(classRef);
 		}
 
 		void Free() override
@@ -2515,8 +2644,8 @@ namespace Rococo::Unreal
 		}
 	};
 
-	IClassSystem* CreateClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory)
+	IClassSystem* CreateClassSystem(crwstr outputDirectory, crwstr sxyOutputDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates)
 	{
-		return new ClassSystem(outputDirectory, sxyOutputDirectory);
+		return new ClassSystem(outputDirectory, sxyOutputDirectory, enums, structs, delegates);
 	}
 }

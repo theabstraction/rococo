@@ -1018,6 +1018,14 @@ namespace Rococo::Strings
 		return Eq(suffix, t);
 	}
 
+	ROCOCO_API bool EndsWith(fstring bigString, cstr suffix)
+	{
+		size_t len = strlen(suffix);
+		size_t lenBig = bigString.length;
+		const char* t = bigString + lenBig - len;
+		return Eq(suffix, t);
+	}
+
 	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix)
 	{
 		size_t len = strlen(suffix);
