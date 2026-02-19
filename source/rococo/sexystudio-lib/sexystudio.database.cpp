@@ -2021,6 +2021,66 @@ namespace ANON
 			return solutionFile;
 		}
 
+		void PopulateViaSearchPaths() override
+		{
+			struct DatabaseViewBuilder : IEventCallback<IO::FileItemData>
+			{
+				ISexyDatabase* database;
+				float totalCount = 0;
+				float count = 0;
+
+				IEventCallback<IO::FileItemData>& AppendFile()
+				{
+					return *this;
+				}
+
+				void OnEvent(IO::FileItemData& item) override
+				{
+					count += 1.0f;
+
+					if (item.isDirectory)
+					{
+					}
+					else
+					{
+						if (EndsWith(item.fullPath, L".sxy"))
+						{
+							U8FilePath u8Path;
+							Format(u8Path, "%ls", item.fullPath);
+
+							database->UpdateFile_SXY(u8Path);
+						}
+					}
+				}
+			} databaseViewBuilder;
+
+			databaseViewBuilder.database = this;
+
+			for (size_t i = 0;; i++)
+			{
+				auto atom = Config().GetSearchPath(i);
+				if (!atom.pingPath)
+				{
+					break;
+				}
+
+				if (!atom.isActive)
+				{
+					continue;
+				}
+
+				U8FilePath sysPath;
+				PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
+
+				if (Rococo::IO::IsDirectory(sysPath))
+				{
+					WideFilePath wPath;
+					Assign(wPath, sysPath);
+					Rococo::IO::ForEachFileInDirectory(wPath, databaseViewBuilder.AppendFile(), true, nullptr);
+				}
+			}
+		}
+
 		void SetContentPath(cstr contentFolder) override
 		{
 			solutionFile.SetConfigDirectory(contentFolder);

@@ -3228,7 +3228,18 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			}
 		}
 
-		currentProjectIndex = i->second;
+		int projectIndex = i->second;
+
+		if (projectIndex == -1)
+		{
+			return;
+		}
+
+		if (projectIndex != currentProjectIndex)
+		{
+			currentProjectIndex = projectIndex;
+			if (sheets) sheets->SetContent(projects[currentProjectIndex]->content.c_str());
+		}
 	}
 
 	// Returns the project index

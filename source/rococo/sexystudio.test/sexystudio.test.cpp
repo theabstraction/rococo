@@ -2399,8 +2399,13 @@ void MainProtected3(HMODULE hLib)
 
 		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
 
-		ISexyDatabase& database = instance->GetDatabase();
-		instance->SetConfigDirectory(R"(D:\work\Rococo.Reflect\RococoUE5SexportTest\Content\rococo-content\scripts)");
+		instance->SetConfigDirectory(R"(D:\work\Rococo.Reflect\RococoUE5SexportTest\Content\rococo-content\)");
+		instance->GetDatabase().PopulateViaSearchPaths();
+
+		char hint[1024];
+		instance->Gaffer().GetHintForCandidate(Substring::ToSubstring("UE"), hint);
+
+		printf("Hint: %s\n", hint);
 	}
 	else
 	{

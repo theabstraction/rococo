@@ -249,7 +249,7 @@ namespace Rococo::SexyStudio
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
-
+		virtual void PopulateViaSearchPaths() = 0;
 		virtual ISolution& Solution() = 0;
 	};
 
