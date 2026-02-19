@@ -2365,6 +2365,49 @@ void MainProtected(HMODULE hLib)
 	}
 }
 
+void MainProtected3(HMODULE hLib)
+{
+	FARPROC proc = GetProcAddress(hLib, "CreateSexyStudioFactory");
+	if (proc == nullptr)
+	{
+		Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", DLL_NAME);
+	}
+
+	auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;
+
+	cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";
+
+	AutoFree<ISexyStudioFactory1> lfactory;
+	int nErr = CreateSexyStudioFactory((void**)&lfactory, interfaceURL);
+	if (nErr == 0)
+	{
+		struct ANON : ISexyStudioEventHandler
+		{
+			bool TryOpenEditor(cstr filename, int lineNumber) override
+			{
+				UNUSED(filename);
+				UNUSED(lineNumber);
+				return false;
+			}
+
+			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+			{
+				UNUSED(topLevelParent);
+				return EIDECloseResponse::Shutdown;
+			}
+		} eventHandler;
+
+		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+
+		ISexyDatabase& database = instance->GetDatabase();
+		instance->SetConfigDirectory(R"(D:\work\Rococo.Reflect\RococoUE5SexportTest\Content\rococo-content\scripts)");
+	}
+	else
+	{
+		Throw(nErr, "CreateSexyStudioFactory did not recognize interface %s", interfaceURL);
+	}
+}
+
 #include <rococo.debugging.h>
 
 int main()
@@ -2391,7 +2434,8 @@ int main()
 	try
 	{
 	//	MainProtected(hLib);
-		MainProtected2(hLib);
+	//	MainProtected2(hLib);
+		MainProtected3(hLib);
 		Rococo::Debugging::ValidateCriticalLog();
 	}
 	catch (IException& ex)

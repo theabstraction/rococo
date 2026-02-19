@@ -3098,7 +3098,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 									break;
 								}
 
-								macroBuilder << "..//";
+								macroBuilder << "../";
 							}
 
 							sb.AddStringLiteral("content", macroedContentPath.buf);

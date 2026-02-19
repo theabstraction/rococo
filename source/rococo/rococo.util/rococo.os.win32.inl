@@ -556,6 +556,13 @@ namespace Rococo
 			}
 
 			Assign(path, out);
+
+			fstring fPath = to_fstring(path);
+
+			if (EndsWith(fPath, "\\\\"))
+			{
+				path.buf[fPath.length - 1] = 0;
+			}
 		}
 
 		ROCOCO_API void GetExeName(U8FilePath& path)
