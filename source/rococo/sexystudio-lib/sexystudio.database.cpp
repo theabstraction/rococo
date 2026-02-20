@@ -1967,6 +1967,42 @@ namespace ANON
 		}
 	};
 
+	struct DatabaseViewBuilder : IEventCallback<IO::FileItemData>
+	{
+		ISexyDatabase& database;
+		float totalCount = 0;
+		float count = 0;
+
+		DatabaseViewBuilder(ISexyDatabase& _database) : database(_database)
+		{
+
+		}
+
+		IEventCallback<IO::FileItemData>& AppendFile()
+		{
+			return *this;
+		}
+
+		void OnEvent(IO::FileItemData& item) override
+		{
+			count += 1.0f;
+
+			if (item.isDirectory)
+			{
+			}
+			else
+			{
+				if (EndsWith(item.fullPath, L".sxy"))
+				{
+					U8FilePath u8Path;
+					Format(u8Path, "%ls", item.fullPath);
+
+					database.UpdateFile_SXY(u8Path);
+				}
+			}
+		}
+	};
+
 	struct SexyDatabase : ISexyDatabaseSupervisor, IPingPathResolver
 	{
 		IFactoryConfig& config;
@@ -2023,38 +2059,7 @@ namespace ANON
 
 		void PopulateViaSearchPaths() override
 		{
-			struct DatabaseViewBuilder : IEventCallback<IO::FileItemData>
-			{
-				ISexyDatabase* database;
-				float totalCount = 0;
-				float count = 0;
-
-				IEventCallback<IO::FileItemData>& AppendFile()
-				{
-					return *this;
-				}
-
-				void OnEvent(IO::FileItemData& item) override
-				{
-					count += 1.0f;
-
-					if (item.isDirectory)
-					{
-					}
-					else
-					{
-						if (EndsWith(item.fullPath, L".sxy"))
-						{
-							U8FilePath u8Path;
-							Format(u8Path, "%ls", item.fullPath);
-
-							database->UpdateFile_SXY(u8Path);
-						}
-					}
-				}
-			} databaseViewBuilder;
-
-			databaseViewBuilder.database = this;
+			DatabaseViewBuilder databaseViewBuilder(*this);
 
 			for (size_t i = 0;; i++)
 			{
@@ -2108,6 +2113,8 @@ namespace ANON
 					Throw(ex.ErrorCode(), "%ls error %s line column %d line %d", associationPath.buf, ex.Message(), ex.Start().x, ex.Start().y);
 				}
 			}
+
+			PopulateViaSearchPaths();
 		}
 
 		void PingPathToSysPath(cstr pingPath, U8FilePath& sysPath) override
