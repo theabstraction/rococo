@@ -438,7 +438,7 @@ void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableT
 		if (makeSexyVariableType)
 		{
 			sb << "UE.Handles.";
-			sb << arg.ArgType();
+			sb << argType;
 			sb << "Of";
 
 			if (*arg.KeyType() != 0)
@@ -454,7 +454,7 @@ void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableT
 		else
 		{
 			sb << "R_";
-			sb << arg.ArgType();
+			sb << (cstr)arg.ArgType();
 			sb << "<";
 			if (*arg.KeyType() != 0)
 			{
@@ -1104,7 +1104,7 @@ void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enum
 					char containerType[MAX_FQ_NAME_LEN];
 
 					cstr lastDot = Strings::ReverseFind('.', Substring::ToSubstring(objectPointerType));
-					SecureFormat(containerType, "%sOf%s", arg.ArgType(), lastDot ? lastDot + 1 : objectPointerType);
+					SecureFormat(containerType, "%sOf%s", (cstr) arg.ArgType(), lastDot ? lastDot + 1 : objectPointerType);
 					knownObjects.insert(containerType, 0);
 				}
 
@@ -2545,7 +2545,7 @@ namespace Rococo::Unreal
 			auto& sb = dsbSuggestions->Builder();
 
 			WideFilePath wTargetHintFile;
-			Format(wTargetHintFile, L"%lshints\\interfaces.sxy", wSxyDirectory.buf);
+			Format(wTargetHintFile, L"%ls..\\hints\\interfaces.sxy", wSxyDirectory.buf);
 			IO::ToSysPath(wTargetHintFile.buf);
 
 			stringmap<int> namespaceCount;

@@ -178,6 +178,23 @@ namespace StringsAnon
 			return *this;
 		}
 
+		ROCOCO_API StringBuilder& operator << (fstring text)
+		{
+			size_t len = text.length;
+			size_t containerLen = internalBuffer.size();
+
+			internalBuffer.resize(containerLen + len);
+			memcpy(internalBuffer.data() + containerLen - 1, text, len);
+			internalBuffer[containerLen + len - 1] = 0;
+
+			return *this;
+		}
+
+		ROCOCO_API StringBuilder& operator << (const HString& text)
+		{
+			return *this << (fstring)text;
+		}
+
 		StringBuilder& AppendChar(char c) override
 		{
 			char data[2];
@@ -1100,6 +1117,16 @@ namespace Rococo::Strings
 	ROCOCO_API StringBuilder& StackStringBuilder::operator << (cstr text)
 	{
 		return AppendFormat("%s", text);
+	}
+
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (fstring text)
+	{
+		return AppendFormat("%s", text.buffer);
+	}
+
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (const HString& text)
+	{
+		return AppendFormat("%s", text.c_str());
 	}
 
 	ROCOCO_API StringBuilder& StackStringBuilder::AppendChar(char c)

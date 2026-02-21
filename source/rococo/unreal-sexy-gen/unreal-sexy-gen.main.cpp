@@ -1060,7 +1060,7 @@ Structs::Structs()
 {
 	primitiveTypes.insert("uint8", &s_mt_Int32);
 	primitiveTypes.insert("int32", &s_mt_Int32);
-	primitiveTypes.insert("int64", &s_mt_Int32);
+	primitiveTypes.insert("int64", &s_mt_Int64);
 	primitiveTypes.insert("float", &s_mt_float);
 	primitiveTypes.insert("double", &s_mt_double);
 	primitiveTypes.insert("bool", &s_mt_bool);

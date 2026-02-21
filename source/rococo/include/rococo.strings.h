@@ -214,6 +214,8 @@ namespace Rococo::Strings
 		virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
 #endif
 		virtual StringBuilder& operator << (cstr text) = 0;
+		virtual StringBuilder& operator << (fstring text) = 0;
+		virtual StringBuilder& operator << (const HString& text) = 0;
 		virtual StringBuilder& AppendChar(char c) = 0;
 		virtual StringBuilder& operator << (int32 value) = 0;
 		virtual StringBuilder& operator << (uint32 value) = 0;
@@ -276,6 +278,8 @@ namespace Rococo::Strings
 		ROCOCO_API StringBuilder& AppendFormat(const char* format, ...) override;
 #endif
 		ROCOCO_API StringBuilder& operator << (cstr text) override;
+		ROCOCO_API StringBuilder& operator << (fstring text) override;
+		ROCOCO_API StringBuilder& operator << (const HString& text) override;
 		ROCOCO_API StringBuilder& AppendChar(char c) override;
 		ROCOCO_API StringBuilder& operator << (int32 value)  override;
 		ROCOCO_API StringBuilder& operator << (uint32 value) override;
