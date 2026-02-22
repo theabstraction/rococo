@@ -104,9 +104,22 @@ struct ObjectDatabase : IObjectSearcher
 
 	mutable stringmap<int> unresolvedArgType;
 
-	ObjectDatabase()
+	cstr classFilter;
+	cstr methodFilter;
+
+	ObjectDatabase(cstr _classFilter, cstr _methodFilter): classFilter(_classFilter), methodFilter(_methodFilter)
 	{
 
+	}
+
+	cstr ClassFilter() const override
+	{
+		return classFilter;
+	}
+
+	cstr MethodFilter() const override
+	{
+		return methodFilter;
 	}
 
 	void AddEnum(cr_sex sEnumDef)
@@ -1637,6 +1650,15 @@ struct UnrealClassDef : IUnrealClass
 								}
 							}
 
+							if (database.MethodFilter())
+							{
+								cstr fnName = GetAtomicArg(sDirective, 2).c_str();
+								if (!EqI(fnName, database.MethodFilter()))
+								{
+									continue;
+								}
+							}
+
 							// Raw method definition. e.g (' Method0 AllowSelectionModifiers (const FScriptTypedElementHandle^ InElementHandle) (return bool ReturnValue))
 							functions.push_back(new UnrealFunctionDef(sDirective, database));
 						}
@@ -1698,6 +1720,27 @@ struct UnrealClassDef : IUnrealClass
 
 void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& database, IAPIGenerator& generator)
 {
+	if (database.ClassFilter())
+	{
+		if (sDef.NumberOfElements() != 3)
+		{
+			Throw(sDef, "Expecting at least 3 elements in a UClass def");
+		}
+
+		ValidateToken(sDef[0], "UClass", "ClassDef");
+
+		cr_sex sPath = sDef[1];
+		AssertCompound(sPath);
+		ValidateToken(sPath[0], "[]", "ClassDef-Path");
+
+		cstr name = GetAtomicArg(sPath, 3).c_str();
+
+		if (!EqI(name, database.ClassFilter()))
+		{
+			return;
+		}
+	}
+
 	UnrealClassDef* pDef = new UnrealClassDef(sDef, database);
 	auto& def = *pDef;
 
@@ -1752,9 +1795,16 @@ int mainProtected(int argc, char* argv[])
 	// This is where the .sxy files go
 	fstring sxyOutput = "-SXYOUTDIR:"_fstring;
 
+	fstring argClassFilter = "-CLASS:"_fstring;
+
+	fstring argMethodFilter = "-METHOD:"_fstring;
+
 	cstr sexmlFile = nullptr;
 	cstr outDir = nullptr;
 	cstr sxyOutDir = nullptr;
+
+	cstr classFilter = nullptr;
+	cstr methodFilter = nullptr;
 
 	for (int i = 0; i < argc; i++)
 	{
@@ -1777,6 +1827,16 @@ int mainProtected(int argc, char* argv[])
 		if (EqI(arg, "-UnityBuild"))
 		{
 			g_unityBuild = true;
+		}
+
+		if (StartsWith(arg, argClassFilter))
+		{
+			classFilter = arg + argClassFilter.length;
+		}
+
+		if (StartsWith(arg, argMethodFilter))
+		{
+			methodFilter = arg + argMethodFilter.length;
 		}
 	}
 
@@ -1805,7 +1865,7 @@ int mainProtected(int argc, char* argv[])
 	WideFilePath wPath;
 	Format(wPath, L"%hs", sexmlFile);
 
-	ObjectDatabase database;
+	ObjectDatabase database(classFilter, methodFilter);
 
 	ParseClassFile(database, wPath, *sParser);
 

@@ -130,6 +130,8 @@ namespace Rococo::Unreal
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
 		virtual bool HasSexyCounterpart(cstr argType, cstr elementType, cstr keyType) const = 0;
 		virtual bool IsKnownElementType(cstr argType) const = 0;
+		virtual cstr ClassFilter() const = 0;
+		virtual cstr MethodFilter() const = 0;
 	};
 
 	ROCOCO_INTERFACE IClassSystem
