@@ -1256,6 +1256,8 @@ struct UnrealFunctionArg : IUnrealArg
 	bool isConst = false;
 	bool isRef = false;
 	bool isContainer = false;
+	bool isMarshalledByRef = false;
+	bool isSexyOutput = false;
 
 	UnrealFunctionArg(cr_sex sFunctionArgDef, IObjectSearcher& _searcher, IDelegates& delegates): sFnArgDef(sFunctionArgDef), searcher(_searcher)
 	{
@@ -1265,6 +1267,12 @@ struct UnrealFunctionArg : IUnrealArg
 			if (Eq(s.c_str(), "const"))
 			{
 				isConst = true;
+				continue;
+			}
+
+			if (Eq(s.c_str(), "return"))
+			{
+				isReturnValue = true;
 				continue;
 			}
 		}
@@ -1279,13 +1287,14 @@ struct UnrealFunctionArg : IUnrealArg
 			{
 				continue;
 			}
-			
+		
 			if (Eq(p, "TArray") || Eq(p, "TSet"))
 			{
 				argType = p;
 				elementType = sFunctionArgDef[i + 1].c_str();
 				argName = sFunctionArgDef[i + 2].c_str();
 				isContainer = true;
+				isMarshalledByRef = true;
 				break;
 			}
 
@@ -1296,6 +1305,7 @@ struct UnrealFunctionArg : IUnrealArg
 				elementType = sFunctionArgDef[i + 2].c_str();
 				argName = sFunctionArgDef[i + 3].c_str();
 				isContainer = true;
+				isMarshalledByRef = true;
 				break;
 			}
 
@@ -1305,6 +1315,7 @@ struct UnrealFunctionArg : IUnrealArg
 				elementType = sFunctionArgDef[i + 1].c_str();
 				argName = sFunctionArgDef[i + 2].c_str();
 				isContainer = true;
+				isMarshalledByRef = true;
 
 				cr_sex sLastArg = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1];
 				int delegateSize = atoi(sLastArg.c_str());
@@ -1326,6 +1337,9 @@ struct UnrealFunctionArg : IUnrealArg
 		{
 			Throw(0, "Indeterminate arg type");
 		}
+
+		isSexyOutput = DetermineSexyOutput();
+		isMarshalledByRef = DetermineIsMarshalledByRef();
 	}
 
 	bool HasSexyCounterpart() const override
@@ -1381,6 +1395,11 @@ struct UnrealFunctionArg : IUnrealArg
 		return false;
 	}
 
+	bool IsMarshalledByRef() const override
+	{
+		return isMarshalledByRef;
+	}
+
 	bool IsPtr() const override
 	{
 		return EndsWith(argType.c_str(), "*");
@@ -1401,6 +1420,13 @@ struct UnrealFunctionArg : IUnrealArg
 		return isContainer;
 	}
 
+	bool isReturnValue = false;
+
+	bool IsReturnValue() const override
+	{
+		return isReturnValue;
+	}
+
 	bool IsCPPOutput() const override
 	{
 		cr_sex argDef = sFnArgDef;
@@ -1409,6 +1435,12 @@ struct UnrealFunctionArg : IUnrealArg
 			cr_sex s = argDef[i];
 			if (IsAtomic(s))
 			{
+				if (Eq(s.c_str(), "visible"))
+				{
+					// Visible items are always inputs, even if marked with out, so check here before 'out' is checked.
+					return false;
+				}
+
 				if (Eq(s.c_str(), "out"))
 				{
 					return true;
@@ -1424,7 +1456,48 @@ struct UnrealFunctionArg : IUnrealArg
 		return false;
 	}
 
-	bool IsSexyOutput() const override
+	bool DetermineIsMarshalledByRef() const
+	{
+		cstr p = ArgType();
+
+		if (EndsWith(p, "*"))
+		{
+			return true;
+		}
+		if (EndsWith(p, "*^"))
+		{
+			return true;
+		}
+		if (*p == 'F')
+		{
+			const auto* structType = searcher.FindStruct(p + 1);
+			return structType != nullptr;
+		}
+		else if (StartsWith(p, subclassOfPrefix))
+		{
+			return true;
+		}
+		else if (StartsWith(p, softObjectPtrPrefix))
+		{
+			return true;
+		}
+		else if (Eq(p, "TArray"))
+		{
+			return true;
+		}
+		else if (Eq(p, "TMap"))
+		{
+			return true;
+		}
+		else if (Eq(p, "TSet"))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	bool DetermineSexyOutput()
 	{
 		if (!IsCPPOutput())
 		{
@@ -1433,7 +1506,7 @@ struct UnrealFunctionArg : IUnrealArg
 		}
 
 		// Some outputs become inputs by mutable reference to struct, the desire is to populate the struct
-		
+
 		cstr p = ArgType();
 
 		if (*p == 'F')
@@ -1476,6 +1549,13 @@ struct UnrealFunctionArg : IUnrealArg
 			return false;
 		}
 
+		if (EndsWith(p, "*^"))
+		{
+			// We are passing a pointer by ref, to populate a pointer, which is done by populating a handle inner value
+			// Since the output pointer is supplied on input, its treated as input.
+			return false;
+		}
+
 		if (Eq(p, "FString") || Eq(p, "FString^"))
 		{
 			// FString is marshalled as FStringImage
@@ -1483,6 +1563,11 @@ struct UnrealFunctionArg : IUnrealArg
 		}
 
 		return true;
+	}
+
+	bool IsSexyOutput() const override
+	{
+		return isSexyOutput;
 	}
 };
 
@@ -1722,7 +1807,7 @@ void ParseClassDef(cr_sex sDef, IClassSystem& classSystem, ObjectDatabase& datab
 {
 	if (database.ClassFilter())
 	{
-		if (sDef.NumberOfElements() != 3)
+		if (sDef.NumberOfElements() < 3)
 		{
 			Throw(sDef, "Expecting at least 3 elements in a UClass def");
 		}

@@ -171,6 +171,11 @@ namespace Rococo::UE::Marshal
 	void ValidateArgs(UFunction* methodRef, void* args, size_t argSize);
 	void ProcessEvent(UObject* object, UFunction* methodRef, void* args);
 	void ScriptUFunction(Rococo::Script::IPublicScriptSystem& ss, const Rococo::Compiler::INamespace& ns, cstr implementationName, int lineNumber, UClass& classRef, Rococo::Script::FN_NATIVE_CALL nativeCall, crwstr methodName, cstr scriptSignature);
+
+	template<class T> inline void CloneToOutputFromArg(T& cloneTarget, const T& origin)
+	{
+		cloneTarget = cloneSource;
+	}
 }
 
 namespace Rococo::Script

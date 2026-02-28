@@ -37,10 +37,12 @@ namespace Rococo::Unreal
 		virtual bool HasSexyCounterpart() const = 0;
 		virtual bool IsConst() const = 0;
 		virtual bool IsCPPOutput() const = 0;
+		virtual bool IsReturnValue() const = 0;
 		virtual bool IsSexyOutput() const = 0;
 		virtual bool IsPtr() const = 0;
 		virtual bool IsRef() const = 0;
 		virtual bool IsContainer() const = 0;
+		virtual bool IsMarshalledByRef() const = 0;
 	};
 
 	ROCOCO_INTERFACE IUnrealFunction

@@ -506,12 +506,12 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		sb << "\t\t\t";
 
-		AppendType(sb, *arg, false, enums, structs, delegates);
-
-		if (arg->IsRef() && !arg->IsPtr())
+		if (arg->IsCPPOutput())
 		{
-			sb << "*";
+			sb << "OUT ";
 		}
+
+		AppendType(sb, *arg, false, enums, structs, delegates);
 
 		// Add a prefix to the name, in case the variable name conflicts with a C++ keyword
 		sb << " m_";
@@ -527,7 +527,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 	std::vector<const IUnrealArg*> inputs;
 	std::vector<const IUnrealArg*> outputs;
-	BuildCPPInputsAndOutputs(REF inputs, REF outputs, method);
+	BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
 	
 	for (auto i = inputs.rbegin(); i != inputs.rend(); i++)
 	{
@@ -536,6 +536,11 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		sb << "\t\t";
 
 		AppendType(sb, *input, false, enums, structs, delegates);
+
+		if (input->IsMarshalledByRef())
+		{
+			sb << "*";
+		}
 
 		sb << " in_";
 		input->AppendName(sb, true);
@@ -549,18 +554,23 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		input->AppendName(sb, true);
 		sb << ", sf, -offset);\n";
 
-		sb << "\t\targs.m_";
-		input->AppendName(sb, false);
-		sb << " = ";
-
-		if (input->IsRef())
+		if (!input->IsCPPOutput())
 		{
-			sb << "&";
-		}
+			sb << "\t\targs.m_";
+			input->AppendName(sb, false);
+			sb << " = ";
 
-		sb << "in_";
-		input->AppendName(sb, true);
-		sb << ";\n\n";
+			if (input->IsMarshalledByRef())
+			{
+				sb << "*";
+			}
+
+			sb << "in_";
+			input->AppendName(sb, true);
+			sb << ";\n";
+		}
+		
+		sb << "\n";
 	}
 
 	sb << "\t\tint64 objectHandle;\n";
@@ -572,6 +582,33 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	sb << "\t\tValidateArgs(methodRef, &args, sizeof(args));\n";
 	sb << "\t\tProcessEvent(object, methodRef, &args);\n";
 
+	for (auto i = inputs.rbegin(); i != inputs.rend(); i++)
+	{
+		const IUnrealArg* input = *i;
+
+		if (input->IsCPPOutput())
+		{
+			if (input->IsReturnValue() || EndsWith(input->ArgType(), "*"))
+			{
+				sb << "\n\t\t*in_";
+				input->AppendName(sb, true);
+				sb << " = args.m_";
+				input->AppendName(sb, false);
+				sb << ";\n";
+			}
+			else
+			{
+				sb << "\n\t\tCloneToOutputFromArg(*in_";
+				input->AppendName(sb, true);
+
+				sb << ", args.m_";
+				input->AppendName(sb, false);
+
+				sb << ");\n";
+			}
+		}
+	}
+
 	for (auto i = outputs.rbegin(); i != outputs.rend(); i++)
 	{
 		const IUnrealArg* output = *i;
@@ -579,14 +616,11 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		AppendType(sb, *output, false, enums, structs, delegates);
 
-		if (output->IsRef() && !output->IsPtr())
-		{
-			sb << "*";
-		}
-
 		sb << " out_";
 		output->AppendName(sb, true);
-		sb << " = args.m_";
+		sb << " = ";
+			
+		sb << "args.m_";
 		output->AppendName(sb, false);
 		sb << ";\n";
 
@@ -1185,6 +1219,8 @@ using namespace Rococo::UE::Native::Enum;
 using namespace Rococo::UE::Native::Struct;
 using namespace Rococo::UE::Marshal;
 
+#pragma pack(push, 1)
+
 namespace 
 {
 )";
@@ -1199,7 +1235,7 @@ namespace
 	sb << "\t\tint64 objectHandle = ConstructUObject(nce);\n";
 	sb << "\t\toffset += sizeof(objectHandle);\n";
 	sb << "\t\tWriteOutput(objectHandle, sf, -offset);\n";
-	sb << "\t};\n";
+	sb << "\t}\n";
 
 	for (size_t i = 0; i < classDef.MethodCount(); i++)
 	{
@@ -1207,7 +1243,9 @@ namespace
 		BuildMethod(classDef, method, sb, enums, structs, delegates);
 	}
 
-	sb << "}\n\n";
+	sb << "}\n\n"; // End of anonymous namespace
+
+	sb << "#pragma pack(pop)\n\n";
 
 	sb << "namespace Rococo::UE::Native\n{\n";
 	sb.AppendFormat("\tvoid AddSexyNatives_Unreal_%s(IPublicScriptSystem& ss)\n", classDef.ShortName());
