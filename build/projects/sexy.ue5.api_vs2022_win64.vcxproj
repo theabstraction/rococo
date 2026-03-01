@@ -4582,6 +4582,7 @@
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RigVMUserWorkflowOptions.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RigVMUserWorkflowRegistry.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RigVMVariableNode.hpp" />
+    <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RococoTestAPI.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RotatingMovementComponent.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTexture.hpp" />
     <ClInclude Include="..\..\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureComponent.hpp" />

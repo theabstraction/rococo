@@ -528,6 +528,29 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 	std::vector<const IUnrealArg*> inputs;
 	std::vector<const IUnrealArg*> outputs;
 	BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
+
+	for (auto i = outputs.rbegin(); i != outputs.rend(); i++)
+	{
+		const IUnrealArg* output = *i;
+		if (EndsWith(output->ArgType(), "^"))
+		{
+			if (!output->IsMarshalledByRef() && !output->IsConst())
+			{
+				// This means we have a primitive type passed by ref, e.g Int32&, which serves as both input and output
+				// Since Sexy does not marshal primitives by ref, we break the argument into two, an initial primitive value, and the final value
+
+				sb << "\t\toffset += sizeof(args.m_";
+				
+				output->AppendName(sb, false);
+
+				sb << ");\n";
+
+				sb << "\t\tReadInput(args.m_";
+				output->AppendName(sb, false);
+				sb << ", sf, -offset);\n\n";
+			}
+		}
+	}
 	
 	for (auto i = inputs.rbegin(); i != inputs.rend(); i++)
 	{
@@ -1371,6 +1394,28 @@ namespace
 			sb << " ";
 			input->AppendName(sb, true);
 			sb << ")";
+		}
+
+		for (auto* output : outputs)
+		{
+			if (!output->IsMarshalledByRef() && EndsWith(output->ArgType(), "^"))
+			{
+				// We have an argument by ref, but it is primitive, which sexy cannot marshal by ref, so instead we add an initial value and emit a finalized value
+				sb << "(";
+
+				AppendType(sb, *output, true, enums, structs, delegates);
+				sb << " initial";
+
+				char name[MAX_FQ_NAME_LEN];
+				StackStringBuilder nameBuilder(name, sizeof name);
+				output->AppendName(nameBuilder, true);
+
+				name[0] = (char) toupper(name[0]);
+
+				sb << name;
+
+				sb << ")";
+			}
 		}
 
 		sb << " -> ";
