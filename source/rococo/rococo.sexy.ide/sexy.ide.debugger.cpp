@@ -873,7 +873,7 @@ namespace
 			text[len] = L'\n';
 			text[len + 1] = 0;
 
-			logSegments.push_back({ RGB(0,0,0), text });
+			logSegments.push_back({ scheme.foreSelectColour, text });
 
 			auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
 			if (logPane)

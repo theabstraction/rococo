@@ -1996,6 +1996,18 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 
 		BuildSexyInputsAndOutputs(REF inputs, REF outputs, method);
 
+		for (auto* output : outputs)
+		{
+			if (EndsWith(output->ArgType(), "^") && !output->IsMarshalledByRef() && !output->IsConst())
+			{
+				sb << " (";
+				AppendType(sb, *output, true, enums, structs, delegates);
+				sb << " initial";
+				output->AppendName(sb, true);
+				sb << ")";
+			}			
+		}
+
 		if (!inputs.empty())
 		{
 			sb << " ";
@@ -2024,12 +2036,28 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 
 		sb << " this.objectHandle";
 
+		bool isFirst = true;
+
+		for (auto* output : outputs)
+		{
+			if (!isFirst)
+			{
+				sb << " ";
+			}
+
+			isFirst = false;
+
+			if (EndsWith(output->ArgType(), "^") && !output->IsMarshalledByRef() && !output->IsConst())
+			{
+				sb << " initial";
+				output->AppendName(sb, true);
+			}
+		}
+
 		if (!inputs.empty())
 		{
 			sb << " ";
 		}
-
-		bool isFirst = true;
 
 		for (auto* input : inputs)
 		{
