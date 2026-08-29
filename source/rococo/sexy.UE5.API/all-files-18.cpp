@@ -94,7 +94,7 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RigVMUserWorkflowOptions.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RigVMUserWorkflowRegistry.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RigVMVariableNode.cpp"
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RococoTestAPI.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RotatingMovementComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTexture.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureComponent.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureStreamingProxy.cpp"

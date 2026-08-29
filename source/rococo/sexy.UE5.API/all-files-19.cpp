@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureStreamingProxy.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureVolume.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SafeZone.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SafeZoneSlot.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SpringArmComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\StackBox.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\StackBoxSlot.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\StateTree.cpp"

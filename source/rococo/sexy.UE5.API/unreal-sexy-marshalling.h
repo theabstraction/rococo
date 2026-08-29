@@ -159,6 +159,40 @@ namespace Rococo::UE::Native
 		{
 			INNER value;
 		}; 
+
+		struct R_FVec4
+		{
+			double x;
+			double y;
+			double z;
+			double w;
+		};
+
+		struct R_FQuat
+		{
+			double Vx;
+			double Vy;
+			double Vz;
+			double Scalar;
+		};
+
+		struct R_FVector
+		{
+			double x;
+			double y;
+			double z;
+		};
+
+		struct R_FTransform
+		{
+			R_FQuat rotation;
+			R_FVector translation;
+			double padding0;
+			R_FVector scale;
+			double padding1;
+		};
+
+		static_assert(sizeof(R_FTransform) == 96);
 	}
 }
 
@@ -172,7 +206,7 @@ namespace Rococo::UE::Marshal
 	void ProcessEvent(UObject* object, UFunction* methodRef, void* args);
 	void ScriptUFunction(Rococo::Script::IPublicScriptSystem& ss, const Rococo::Compiler::INamespace& ns, cstr implementationName, int lineNumber, UClass& classRef, Rococo::Script::FN_NATIVE_CALL nativeCall, crwstr methodName, cstr scriptSignature);
 
-	template<class T> inline void CloneToOutputFromArg(T& cloneTarget, const T& origin)
+	template<class T> inline void CloneToOutputFromArg(T& cloneTarget, const T& cloneSource)
 	{
 		cloneTarget = cloneSource;
 	}

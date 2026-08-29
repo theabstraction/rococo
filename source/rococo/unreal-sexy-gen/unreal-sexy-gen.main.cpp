@@ -1078,6 +1078,9 @@ Structs::Structs()
 	primitiveTypes.insert("double", &s_mt_double);
 	primitiveTypes.insert("bool", &s_mt_bool);
 
+	structs.insert("Vector", new UnrealStructDef("FVector", "Sys/Type", "FVector", "FVector", 16, 24));
+	structs.insert("Quat", new UnrealStructDef("FVector", "Sys/Type", "FQuat", "FQuat", 16, 32));
+	structs.insert("Transform", new UnrealStructDef("FVector", "Sys/Type", "FTransform", "FTransform", 16, 96));
 	structs.insert("Name", new UnrealStructDef("FName", "Sys/Type", "FName", "FName", 16, 16));
 	structs.insert("String", new UnrealStructDef("FString", "Sys/Type", "FString", "FString", 16, 16));
 	structs.insert("Text", new UnrealStructDef("FText", "Sys/Type", "FText", "FText", 16, 64));
@@ -1119,11 +1122,29 @@ void Structs::ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates, 
 	AutoFree<UnrealStructDef> def = new UnrealStructDef(sDef);
 	try
 	{
-		generator.GenStructDef(*def, GetOutputDirectory(), enums, delegates);
-		if (structs.insert(def->TypeName(), def).second == false)
+		auto i = structs.insert(def->TypeName(), def);
+		if (i.second == false)
 		{
+			if (!i.first->second->IsGenerated())
+			{
+				// We ignore the definition, as we have a generated version
+				if (i.first->second->Alignment() != def->Alignment())
+				{
+				//	Throw(sDef, "Duplicate struct name: %s.%s. Alignment mismatch with none generated version. Check Structs::Structs in %s", def->Package(), def->TypeName(), __FILE__);
+				}
+
+				// We ignore the definition, as we have a generated version
+				if (i.first->second->SizeOf() != def->SizeOf())
+				{
+					Throw(sDef, "Duplicate struct name: %s.%s. SizeOf mismatch with none generated version. Check Structs::Structs in %s", def->Package(), def->TypeName(), __FILE__);
+				}
+
+				return; // Skips the detach, so the object is cleaned up during the stack unwinding
+			}
 			Throw(sDef, "Duplicate struct name: %s.%s", def->Package(), def->TypeName());
 		}
+
+		generator.GenStructDef(*def, GetOutputDirectory(), enums, delegates);
 
 		def.Detach();
 	}

@@ -1483,7 +1483,11 @@ void BuildHardCodedTypes()
 	hardcodedTypes.insert("FName", { "R_FName", nullptr });
 	hardcodedTypes.insert("FString", { "R_FString", nullptr });
 	hardcodedTypes.insert("FText", { "R_FText", nullptr });
+	hardcodedTypes.insert("FVector", { "R_FVector", nullptr });
+	hardcodedTypes.insert("FTransform", { "R_FTransform", nullptr });
+	hardcodedTypes.insert("FQuat", { "R_FQuat", nullptr });
 }
+
 
 void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealType, IEnums& enums)
 {
