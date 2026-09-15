@@ -1279,10 +1279,12 @@ struct UnrealFunctionArg : IUnrealArg
 	bool isContainer = false;
 	bool isMarshalledByRef = false;
 	bool isSexyOutput = false;
+	int iOffset = 0;
+	int iParamSize = 0;
 
 	UnrealFunctionArg(cr_sex sFunctionArgDef, IObjectSearcher& _searcher, IDelegates& delegates): sFnArgDef(sFunctionArgDef), searcher(_searcher)
 	{
-		for (int i = 0; i < sFunctionArgDef.NumberOfElements(); i++)
+		for (int i = 0; i < sFunctionArgDef.NumberOfElements() - 1; i++)
 		{
 			cr_sex s = sFunctionArgDef[i];
 			if (Eq(s.c_str(), "const"))
@@ -1298,7 +1300,25 @@ struct UnrealFunctionArg : IUnrealArg
 			}
 		}
 
-		for (int i = 0; i < sFunctionArgDef.NumberOfElements(); i++)
+		cr_sex sOffsetSpec = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1];
+
+		AssertNotTooFewElements(sOffsetSpec, 3);
+		AssertNotTooManyElements(sOffsetSpec, 3);
+
+		if (!Eq(GetAtomicArg(sOffsetSpec, 0).c_str(), "@"))
+		{
+			Throw(sOffsetSpec, "Expecting an offset spec (@ <offset> <size>)");
+		}
+
+		cstr offset = GetAtomicArg(sOffsetSpec, 1).c_str();
+
+		iOffset = atoi(offset);
+
+		cstr paramSize = GetAtomicArg(sOffsetSpec, 2).c_str();
+
+		iParamSize = atoi(paramSize);
+
+		for (int i = 0; i < sFunctionArgDef.NumberOfElements() -1; i++)
 		{
 			cr_sex s = sFunctionArgDef[i];
 
@@ -1338,7 +1358,7 @@ struct UnrealFunctionArg : IUnrealArg
 				isContainer = true;
 				isMarshalledByRef = true;
 
-				cr_sex sLastArg = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1];
+				cr_sex sLastArg = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 2];
 				int delegateSize = atoi(sLastArg.c_str());
 
 				delegates.AddDelegate(elementType, delegateSize);
@@ -1349,7 +1369,7 @@ struct UnrealFunctionArg : IUnrealArg
 			if (argType.length() == 0)
 			{
 				argType = p;
-				argName = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 1].c_str();
+				argName = sFunctionArgDef[sFunctionArgDef.NumberOfElements() - 2].c_str();
 				break;
 			}
 		}
@@ -1379,6 +1399,11 @@ struct UnrealFunctionArg : IUnrealArg
 		cstr rawName = argName.c_str();
 
 		AppendIdentifier(sb, rawName);
+	}
+
+	int Offset() const override
+	{
+		return iOffset;
 	}
 
 	fstring ArgType() const override
@@ -1446,6 +1471,11 @@ struct UnrealFunctionArg : IUnrealArg
 	bool IsReturnValue() const override
 	{
 		return isReturnValue;
+	}
+
+	int ParamSize() const override
+	{
+		return iParamSize;
 	}
 
 	bool IsCPPOutput() const override

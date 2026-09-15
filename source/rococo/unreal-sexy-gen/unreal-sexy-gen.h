@@ -43,6 +43,8 @@ namespace Rococo::Unreal
 		virtual bool IsRef() const = 0;
 		virtual bool IsContainer() const = 0;
 		virtual bool IsMarshalledByRef() const = 0;
+		virtual int Offset() const = 0;
+		virtual int ParamSize() const = 0;
 	};
 
 	ROCOCO_INTERFACE IUnrealFunction

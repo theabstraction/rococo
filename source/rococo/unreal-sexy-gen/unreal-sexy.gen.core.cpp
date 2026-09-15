@@ -496,12 +496,23 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 	size_t j = 0;
 
+	int nextOffset = 0;
+	int lastSize = 0;
+	int paddingIndex = 1;
+
 	for (;;)
 	{
 		auto* arg = method.GetArg(j++);
 		if (arg == nullptr)
 		{
 			break;
+		}
+
+		int offset = arg->Offset();
+		if (offset > nextOffset)
+		{
+			int delta = offset - nextOffset;
+			sb.AppendFormat("\t\t\tchar ma_padding%d[%d];\n", paddingIndex++, delta);
 		}
 
 		sb << "\t\t\t";
@@ -518,8 +529,15 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		arg->AppendName(sb);
 
+		nextOffset = offset + arg->ParamSize();
+		lastSize = arg->ParamSize();
+
 		sb << ";\n";
 	}
+
+	int nomansland = 16 - (nextOffset + lastSize) % 8;
+
+	sb.AppendFormat("\t\t\tchar ma_no_mans_land[%d];\n", nomansland);
 
 	sb << "\t\t} ";
 
