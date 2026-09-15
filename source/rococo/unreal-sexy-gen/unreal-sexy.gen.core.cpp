@@ -595,7 +595,25 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		input->AppendName(sb, true);
 		sb << ", sf, -offset);\n";
 
-		if (!input->IsCPPOutput())
+		if (input->IsCPPOutput())
+		{
+			if (!input->IsConst())
+			{
+				sb << "\t\targs.m_";
+				input->AppendName(sb, false);
+				sb << " = ";
+
+				if (input->IsMarshalledByRef())
+				{
+					sb << "*";
+				}
+
+				sb << "in_";
+				input->AppendName(sb, true);
+				sb << ";\n";
+			}
+		}
+		else
 		{
 			sb << "\t\targs.m_";
 			input->AppendName(sb, false);
