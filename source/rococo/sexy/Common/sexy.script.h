@@ -338,6 +338,8 @@ namespace Rococo {
 		ROCOCO_INTERFACE IScriptSystemHook
 		{
 			virtual void OnBeginPartialCompilePostClear(IPublicScriptSystem& ss) = 0;
+			virtual void OnBeginPartialCompilePostSysNatives(IPublicScriptSystem& ss) = 0;
+			virtual void OnCompilePostSysNativeCompilation(IPublicScriptSystem& ss) = 0;
 		};
 		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable

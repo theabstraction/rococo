@@ -1057,6 +1057,8 @@ namespace Rococo::Script
 				auto& nsRef = AddNativeNamespace(ns);
 				RegisterRockType(nsRef, name, rock.second.origin, rock.second.lineNumber, rock.second.alignedSize);
 			}
+
+			rockTypes.clear();
 		}
 
 		void RegisterEnumType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber)
@@ -2585,6 +2587,8 @@ namespace Rococo::Script
 
 		void PartialCompile(StringBuilder* declarationBuilder) override
 		{
+			RegisterRocks();
+
 			// We need namespaces first, because macros do not have be fully-qualified, this means we cannot macro namespaces or using directives, but these are rare use-cases, and the cost would be FQ each macro.
 			scripts->CompileNamespaces();
 			scripts->CompileTopLevelMacros(numberOfNativeSources);
@@ -2623,6 +2627,11 @@ namespace Rococo::Script
 			scripts->EnterCompileLimits(0, numberOfNativeSources);
 			PartialCompile(declarationBuilder);
 			scripts->ReleaseCompileLimits();
+
+			if (hook)
+			{
+				hook->OnCompilePostSysNativeCompilation(*this);
+			}
 
 			PartialCompile(declarationBuilder);
 		}
