@@ -399,7 +399,7 @@ namespace Anon
 		needInitArgs(true),
 		nextId(0)
 	{
-		byteCodeId = f.Object().ProgramMemory().AddBytecode();
+		byteCodeId = f.Object().ProgramMemory().AddBytecode(_f.Name());
 		assembler = _f.Object().VirtualMachine().Core().CreateAssembler();
 		nullCorrection.TotalDisplacement = 0;
 		nullCorrection.InstancePosCount = 0;

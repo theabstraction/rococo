@@ -1695,6 +1695,35 @@ namespace Rococo
 			return false;
 		}
 
+		bool TryCompileAsArchetypeNameReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, const IStructure& returnTypeStruct)
+		{
+			if (returnTypeStruct.IsNullType() && returnTypeStruct.InterfaceCount() > 0 && returnTypeStruct.GetInterface(0) == ce.Object.Common().SysTypeIString())
+			{
+				const ReflectionCallbacks& callbacks = GetReflectionCallbacks(ce);
+
+				if (Eq("Name"_fstring, methodName))
+				{
+					MemberDef def;
+					if (!ce.Builder.TryGetVariableByName(OUT def, instance))
+					{
+						return false;
+					}
+
+					auto* archetype = def.ResolvedType->Archetype();
+					if (!archetype)
+					{
+						return false;
+					}
+					
+					ce.Builder.AssignVariableRefToTemp(instance, 0, 0); // This shifts the archetype pointer to D4
+					AddSymbol(ce.Builder, "D7 = %s.Name", instance);
+					AppendInvoke(ce, callbacks.ArchetypeGetName, s); // the IString pointer is now in D7
+					return true;
+				}
+			}
+
+			return false;
+		}
 
 		bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
 		{
@@ -1770,6 +1799,11 @@ namespace Rococo
 			if (!IsCapital(methodName[0]))
 			{
 				return false;
+			}
+
+			if (returnTypeStruct && TryCompileAsArchetypeNameReturnValue(ce, s, instance, methodName, *returnTypeStruct))
+			{
+				return true;
 			}
 
 			if (TryCompileAsInlineArrayAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))

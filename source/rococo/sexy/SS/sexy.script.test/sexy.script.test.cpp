@@ -6511,6 +6511,36 @@ R"((namespace EntryPoint)
 		validate(x == -1);
 	}
 
+	void TestGetArchetypeName(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+(archetype Sys.VoidFunction -> )
+(function BitBang -> : )
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main -> (Int32 result):
+	(Sys.VoidFunction f = BitBang)
+	(Sys.Print f.Name)
+)
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestSysThrow2(IPublicScriptSystem& ss) // like sys.throw, but adds a stack spanner in the works
 	{
 		cstr srcCode =
@@ -18317,6 +18347,8 @@ R"(
 		TEST3(TestLoopFinally);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);
+		TEST(TestGetArchetypeName);
+
 		TEST(TestBadClosureArg7);
 		TEST(TestBadClosureArg6);
 		TEST(TestBadClosureArg5);

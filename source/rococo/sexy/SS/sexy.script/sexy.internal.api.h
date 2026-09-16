@@ -136,6 +136,7 @@ namespace Rococo::Script
 	void RegisterLists(ListCallbacks& callbacks, VM::ICore& core, IScriptSystem& ss);
 	void RegisterMaps(MapCallbacks& callbacks, VM::ICore& core, IScriptSystem& ss);
 	void RegisterMiscAPI(ScriptCallbacks& callbacks, VM::ICore& core, IScriptSystem& ss);
+	void RegisterReflectionCallbacks(ReflectionCallbacks& callbacks, VM::ICore& core, IScriptSystem& ss);
 
 	IScripts* NewCScripts(Compiler::IProgramObject& _programObject, IScriptSystem& _system);
 	void Delete(IScripts* scripts);

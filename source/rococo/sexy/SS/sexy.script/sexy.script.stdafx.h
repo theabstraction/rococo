@@ -99,7 +99,7 @@ namespace Rococo
         void AddMember(Compiler::IStructureBuilder& s, Sex::cr_sex field, IScriptSystem& ss);
         Compiler::IInterfaceBuilder* MatchInterface(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
 
-        DECLARE_ROCOCO_INTERFACE IStringPool: Rococo::Compiler::IFastStringBuilderControl
+        DECLARE_ROCOCO_INTERFACE IStringPool : Rococo::Compiler::IFastStringBuilderControl
         {
             virtual void Free() = 0;
             virtual Compiler::AllocatorBinding* GetBinding() = 0;
@@ -176,7 +176,7 @@ namespace Rococo
 
         struct CNullDef
         {
-           Compiler::IInterfaceBuilder* Interface;
+            Compiler::IInterfaceBuilder* Interface;
             const Sex::ISExpression* Source;
             Compiler::IStructureBuilder* NullObject;
             Compiler::INamespaceBuilder* NS;
@@ -459,7 +459,7 @@ namespace Rococo
         int GetCommonInterfaceIndex(const Compiler::IStructure& object, const Compiler::IStructure& argType);
 
         Compiler::IFunctionBuilder& MustMatchFunction(Compiler::IModuleBuilder& module, Sex::cr_sex s, cstr name);
-       Compiler::IInterfaceBuilder* MatchInterface(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
+        Compiler::IInterfaceBuilder* MatchInterface(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
         Compiler::IStructureBuilder* MatchStructure(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
         Compiler::IFunctionBuilder* MatchFunction(Sex::cr_sex nameExpr, Compiler::IModuleBuilder& module);
 
@@ -479,6 +479,11 @@ namespace Rococo
         Compiler::IFunctionBuilder& GetNullFunction(CScript& script, const Compiler::IArchetype& archetype);
 
         Compiler::GlobalValue* GetGlobalValue(CScript& script, cstr buffer);
+
+        struct ReflectionCallbacks
+        {
+            ID_API_CALLBACK ArchetypeGetName;
+        };
 
         struct ArrayCallbacks
         {
@@ -588,6 +593,7 @@ namespace Rococo
             ID_API_CALLBACK MapUpdateRefCounts;
         };
 
+        const ReflectionCallbacks& GetReflectionCallbacks(CCompileEnvironment& ce);
         const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce);
         const ListCallbacks& GetListCallbacks(CCompileEnvironment& ce);
         const MapCallbacks& GetMapCallbacks(CCompileEnvironment& ce);

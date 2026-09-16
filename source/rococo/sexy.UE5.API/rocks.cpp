@@ -654,6 +654,12 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::DestructUERock, &rf, "--FNNEDenoiserBaseMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserBaseMappingData item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
+			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FTargetChainSettings", 192);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/TargetChainSettings"));
+			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FTargetChainSettings(out UE.Script.IKRig.FTargetChainSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FTargetChainSettings(out UE.Script.IKRig.FTargetChainSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
 			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FPlayheadOverlayStyle", 40);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/PlayheadOverlayStyle"));
 			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FPlayheadOverlayStyle(out UE.Script.AudioWidgets.FPlayheadOverlayStyle item)->", __FILE__, __LINE__, false, 0);
@@ -664,12 +670,6 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeTransitionResult"));
 			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeTransitionResult(out UE.Script.StateTreeModule.FStateTreeTransitionResult item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeTransitionResult(out UE.Script.StateTreeModule.FStateTreeTransitionResult item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FTargetChainSettings", 192);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/TargetChainSettings"));
-			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FTargetChainSettings(out UE.Script.IKRig.FTargetChainSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FTargetChainSettings(out UE.Script.IKRig.FTargetChainSettings item)->", __FILE__, __LINE__, false, 0);
 		}
 		auto& nsScriptAssetDefinition = ss.AddNativeNamespace("UE.Script.AssetDefinition");
 		{
@@ -1094,16 +1094,16 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptCoreUObject, ANON::DestructUERock, &rf, "--FInterpCurveVector(out UE.Script.CoreUObject.FInterpCurveVector item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FTapDelayInfo", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/TapDelayInfo"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FTapDelayInfo(out UE.Script.Synthesis.FTapDelayInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FTapDelayInfo(out UE.Script.Synthesis.FTapDelayInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FRetargetGlobalSettings", 60);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/RetargetGlobalSettings"));
 			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FRetargetGlobalSettings(out UE.Script.IKRig.FRetargetGlobalSettings item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FRetargetGlobalSettings(out UE.Script.IKRig.FRetargetGlobalSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FTapDelayInfo", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/TapDelayInfo"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FTapDelayInfo(out UE.Script.Synthesis.FTapDelayInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FTapDelayInfo(out UE.Script.Synthesis.FTapDelayInfo item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptAnimGraphRuntime, __FILE__, __LINE__, "FAnimNodeCurveSource", 192);
@@ -1472,18 +1472,18 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptRigVMDeveloper, ANON::ConstructUERock, &rf, "++FRigVMParserASTSettings(out UE.Script.RigVMDeveloper.FRigVMParserASTSettings item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptRigVMDeveloper, ANON::DestructUERock, &rf, "--FRigVMParserASTSettings(out UE.Script.RigVMDeveloper.FRigVMParserASTSettings item)->", __FILE__, __LINE__, false, 0);
 		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleNotEquals", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleNotEquals"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleNotEquals(out UE.Script.RigVM.FRigVMFunctionMathDoubleNotEquals item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleNotEquals(out UE.Script.RigVM.FRigVMFunctionMathDoubleNotEquals item)->", __FILE__, __LINE__, false, 0);
-		}
 		auto& nsScriptCameraCalibrationCore = ss.AddNativeNamespace("UE.Script.CameraCalibrationCore");
 		{
 			ss.CreateRockType(nsScriptCameraCalibrationCore, __FILE__, __LINE__, "FDistortionHandlerPicker", 40);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/CameraCalibrationCore/DistortionHandlerPicker"));
 			ss.AddNativeCall(nsScriptCameraCalibrationCore, ANON::ConstructUERock, &rf, "++FDistortionHandlerPicker(out UE.Script.CameraCalibrationCore.FDistortionHandlerPicker item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptCameraCalibrationCore, ANON::DestructUERock, &rf, "--FDistortionHandlerPicker(out UE.Script.CameraCalibrationCore.FDistortionHandlerPicker item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleNotEquals", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleNotEquals"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleNotEquals(out UE.Script.RigVM.FRigVMFunctionMathDoubleNotEquals item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleNotEquals(out UE.Script.RigVM.FRigVMFunctionMathDoubleNotEquals item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathQuaternionFromEuler", 80);
@@ -1835,24 +1835,6 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FSubtitleCue(out UE.Script.Engine.FSubtitleCue item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathQuaternionFromAxisAndAngle", 80);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathQuaternionFromAxisAndAngle"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathQuaternionFromAxisAndAngle(out UE.Script.RigVM.FRigVMFunctionMathQuaternionFromAxisAndAngle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathQuaternionFromAxisAndAngle(out UE.Script.RigVM.FRigVMFunctionMathQuaternionFromAxisAndAngle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FInterpControlPoint", 40);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/InterpControlPoint"));
-			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FInterpControlPoint(out UE.Script.Engine.FInterpControlPoint item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FInterpControlPoint(out UE.Script.Engine.FInterpControlPoint item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleToInt", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleToInt"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleToInt(out UE.Script.RigVM.FRigVMFunctionMathDoubleToInt item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleToInt(out UE.Script.RigVM.FRigVMFunctionMathDoubleToInt item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptAnimGraphRuntime, __FILE__, __LINE__, "FLinkedAnimGraphReference", 16);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AnimGraphRuntime/LinkedAnimGraphReference"));
 			ss.AddNativeCall(nsScriptAnimGraphRuntime, ANON::ConstructUERock, &rf, "++FLinkedAnimGraphReference(out UE.Script.AnimGraphRuntime.FLinkedAnimGraphReference item)->", __FILE__, __LINE__, false, 0);
@@ -1863,6 +1845,24 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioMixer/SwapAudioOutputResult"));
 			ss.AddNativeCall(nsScriptAudioMixer, ANON::ConstructUERock, &rf, "++FSwapAudioOutputResult(out UE.Script.AudioMixer.FSwapAudioOutputResult item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptAudioMixer, ANON::DestructUERock, &rf, "--FSwapAudioOutputResult(out UE.Script.AudioMixer.FSwapAudioOutputResult item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleToInt", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleToInt"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleToInt(out UE.Script.RigVM.FRigVMFunctionMathDoubleToInt item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleToInt(out UE.Script.RigVM.FRigVMFunctionMathDoubleToInt item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathQuaternionFromAxisAndAngle", 80);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathQuaternionFromAxisAndAngle"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathQuaternionFromAxisAndAngle(out UE.Script.RigVM.FRigVMFunctionMathQuaternionFromAxisAndAngle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathQuaternionFromAxisAndAngle(out UE.Script.RigVM.FRigVMFunctionMathQuaternionFromAxisAndAngle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FInterpControlPoint", 40);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/InterpControlPoint"));
+			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FInterpControlPoint(out UE.Script.Engine.FInterpControlPoint item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FInterpControlPoint(out UE.Script.Engine.FInterpControlPoint item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptSlateCore, __FILE__, __LINE__, "FSlateBrush", 208);
@@ -2852,25 +2852,6 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptAssetTools, ANON::DestructUERock, &rf, "--FAssetRenameData(out UE.Script.AssetTools.FAssetRenameData item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FPerBoneBlendWeight", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/PerBoneBlendWeight"));
-			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FPerBoneBlendWeight(out UE.Script.Engine.FPerBoneBlendWeight item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FPerBoneBlendWeight(out UE.Script.Engine.FPerBoneBlendWeight item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptPaper2D = ss.AddNativeNamespace("UE.Script.Paper2D");
-		{
-			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperSpriteSocket", 112);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperSpriteSocket"));
-			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperSpriteSocket(out UE.Script.Paper2D.FPaperSpriteSocket item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperSpriteSocket(out UE.Script.Paper2D.FPaperSpriteSocket item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptNiagara, __FILE__, __LINE__, "FNiagaraSimCacheCreateParameters", 88);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Niagara/NiagaraSimCacheCreateParameters"));
-			ss.AddNativeCall(nsScriptNiagara, ANON::ConstructUERock, &rf, "++FNiagaraSimCacheCreateParameters(out UE.Script.Niagara.FNiagaraSimCacheCreateParameters item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptNiagara, ANON::DestructUERock, &rf, "--FNiagaraSimCacheCreateParameters(out UE.Script.Niagara.FNiagaraSimCacheCreateParameters item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptHeadMountedDisplay, __FILE__, __LINE__, "FXRHMDData", 96);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/HeadMountedDisplay/XRHMDData"));
 			ss.AddNativeCall(nsScriptHeadMountedDisplay, ANON::ConstructUERock, &rf, "++FXRHMDData(out UE.Script.HeadMountedDisplay.FXRHMDData item)->", __FILE__, __LINE__, false, 0);
@@ -2899,6 +2880,25 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/OnlineSubsystemUtils/InAppPurchaseReceiptInfo2"));
 			ss.AddNativeCall(nsScriptOnlineSubsystemUtils, ANON::ConstructUERock, &rf, "++FInAppPurchaseReceiptInfo2(out UE.Script.OnlineSubsystemUtils.FInAppPurchaseReceiptInfo2 item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptOnlineSubsystemUtils, ANON::DestructUERock, &rf, "--FInAppPurchaseReceiptInfo2(out UE.Script.OnlineSubsystemUtils.FInAppPurchaseReceiptInfo2 item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptPaper2D = ss.AddNativeNamespace("UE.Script.Paper2D");
+		{
+			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperSpriteSocket", 112);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperSpriteSocket"));
+			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperSpriteSocket(out UE.Script.Paper2D.FPaperSpriteSocket item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperSpriteSocket(out UE.Script.Paper2D.FPaperSpriteSocket item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FPerBoneBlendWeight", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/PerBoneBlendWeight"));
+			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FPerBoneBlendWeight(out UE.Script.Engine.FPerBoneBlendWeight item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FPerBoneBlendWeight(out UE.Script.Engine.FPerBoneBlendWeight item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptNiagara, __FILE__, __LINE__, "FNiagaraSimCacheCreateParameters", 88);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Niagara/NiagaraSimCacheCreateParameters"));
+			ss.AddNativeCall(nsScriptNiagara, ANON::ConstructUERock, &rf, "++FNiagaraSimCacheCreateParameters(out UE.Script.Niagara.FNiagaraSimCacheCreateParameters item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptNiagara, ANON::DestructUERock, &rf, "--FNiagaraSimCacheCreateParameters(out UE.Script.Niagara.FNiagaraSimCacheCreateParameters item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptCoreUObject, __FILE__, __LINE__, "FPerPlatformInt", 88);
@@ -3192,10 +3192,10 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptOnlineSubsystemUtils, ANON::DestructUERock, &rf, "--FInAppPurchaseProductInfo2(out UE.Script.OnlineSubsystemUtils.FInAppPurchaseProductInfo2 item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptAnimGraphRuntime, __FILE__, __LINE__, "FAnimNodeRotationOffsetBlendSpaceGraph", 440);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AnimGraphRuntime/AnimNode_RotationOffsetBlendSpaceGraph"));
-			ss.AddNativeCall(nsScriptAnimGraphRuntime, ANON::ConstructUERock, &rf, "++FAnimNodeRotationOffsetBlendSpaceGraph(out UE.Script.AnimGraphRuntime.FAnimNodeRotationOffsetBlendSpaceGraph item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAnimGraphRuntime, ANON::DestructUERock, &rf, "--FAnimNodeRotationOffsetBlendSpaceGraph(out UE.Script.AnimGraphRuntime.FAnimNodeRotationOffsetBlendSpaceGraph item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptAssetRegistry, __FILE__, __LINE__, "FAssetRegistryDependencyOptions", 5);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AssetRegistry/AssetRegistryDependencyOptions"));
+			ss.AddNativeCall(nsScriptAssetRegistry, ANON::ConstructUERock, &rf, "++FAssetRegistryDependencyOptions(out UE.Script.AssetRegistry.FAssetRegistryDependencyOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAssetRegistry, ANON::DestructUERock, &rf, "--FAssetRegistryDependencyOptions(out UE.Script.AssetRegistry.FAssetRegistryDependencyOptions item)->", __FILE__, __LINE__, false, 0);
 		}
 		auto& nsScriptInterchangePipelines = ss.AddNativeNamespace("UE.Script.InterchangePipelines");
 		{
@@ -3205,10 +3205,10 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::DestructUERock, &rf, "--FInterchangePipelineMeshesUtilitiesContext(out UE.Script.InterchangePipelines.FInterchangePipelineMeshesUtilitiesContext item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptAssetRegistry, __FILE__, __LINE__, "FAssetRegistryDependencyOptions", 5);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AssetRegistry/AssetRegistryDependencyOptions"));
-			ss.AddNativeCall(nsScriptAssetRegistry, ANON::ConstructUERock, &rf, "++FAssetRegistryDependencyOptions(out UE.Script.AssetRegistry.FAssetRegistryDependencyOptions item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAssetRegistry, ANON::DestructUERock, &rf, "--FAssetRegistryDependencyOptions(out UE.Script.AssetRegistry.FAssetRegistryDependencyOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptAnimGraphRuntime, __FILE__, __LINE__, "FAnimNodeRotationOffsetBlendSpaceGraph", 440);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AnimGraphRuntime/AnimNode_RotationOffsetBlendSpaceGraph"));
+			ss.AddNativeCall(nsScriptAnimGraphRuntime, ANON::ConstructUERock, &rf, "++FAnimNodeRotationOffsetBlendSpaceGraph(out UE.Script.AnimGraphRuntime.FAnimNodeRotationOffsetBlendSpaceGraph item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAnimGraphRuntime, ANON::DestructUERock, &rf, "--FAnimNodeRotationOffsetBlendSpaceGraph(out UE.Script.AnimGraphRuntime.FAnimNodeRotationOffsetBlendSpaceGraph item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptAudioMixer, __FILE__, __LINE__, "FSubmixEffectSubmixEQSettings", 16);
@@ -4058,12 +4058,6 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptHairStrandsCore, ANON::DestructUERock, &rf, "--FHairGroupsPhysics(out UE.Script.HairStrandsCore.FHairGroupsPhysics item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperTileMetadata", 72);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperTileMetadata"));
-			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperTileMetadata(out UE.Script.Paper2D.FPaperTileMetadata item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperTileMetadata(out UE.Script.Paper2D.FPaperTileMetadata item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptControlRig, __FILE__, __LINE__, "FRigNullElement", 560);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ControlRig/RigNullElement"));
 			ss.AddNativeCall(nsScriptControlRig, ANON::ConstructUERock, &rf, "++FRigNullElement(out UE.Script.ControlRig.FRigNullElement item)->", __FILE__, __LINE__, false, 0);
@@ -4099,18 +4093,18 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FWeightedBlendable(out UE.Script.Engine.FWeightedBlendable item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FWeightedBlendable(out UE.Script.Engine.FWeightedBlendable item)->", __FILE__, __LINE__, false, 0);
 		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleCeil", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleCeil"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleCeil(out UE.Script.RigVM.FRigVMFunctionMathDoubleCeil item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleCeil(out UE.Script.RigVM.FRigVMFunctionMathDoubleCeil item)->", __FILE__, __LINE__, false, 0);
-		}
 		auto& nsScriptGameplayTags = ss.AddNativeNamespace("UE.Script.GameplayTags");
 		{
 			ss.CreateRockType(nsScriptGameplayTags, __FILE__, __LINE__, "FGameplayTag", 12);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GameplayTags/GameplayTag"));
 			ss.AddNativeCall(nsScriptGameplayTags, ANON::ConstructUERock, &rf, "++FGameplayTag(out UE.Script.GameplayTags.FGameplayTag item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptGameplayTags, ANON::DestructUERock, &rf, "--FGameplayTag(out UE.Script.GameplayTags.FGameplayTag item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleCeil", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleCeil"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleCeil(out UE.Script.RigVM.FRigVMFunctionMathDoubleCeil item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleCeil(out UE.Script.RigVM.FRigVMFunctionMathDoubleCeil item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptAnimGraphRuntime, __FILE__, __LINE__, "FBlendBoneByChannelEntry", 44);
@@ -4135,6 +4129,19 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/CurvePayload"));
 			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FCurvePayload(out UE.Script.Engine.FCurvePayload item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FCurvePayload(out UE.Script.Engine.FCurvePayload item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptAudioCapture = ss.AddNativeNamespace("UE.Script.AudioCapture");
+		{
+			ss.CreateRockType(nsScriptAudioCapture, __FILE__, __LINE__, "FAudioCaptureDeviceInfo", 20);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioCapture/AudioCaptureDeviceInfo"));
+			ss.AddNativeCall(nsScriptAudioCapture, ANON::ConstructUERock, &rf, "++FAudioCaptureDeviceInfo(out UE.Script.AudioCapture.FAudioCaptureDeviceInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioCapture, ANON::DestructUERock, &rf, "--FAudioCaptureDeviceInfo(out UE.Script.AudioCapture.FAudioCaptureDeviceInfo item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleLerp", 40);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleLerp"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleLerp(out UE.Script.RigVM.FRigVMFunctionMathDoubleLerp item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleLerp(out UE.Script.RigVM.FRigVMFunctionMathDoubleLerp item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptGameplayTags, __FILE__, __LINE__, "FGameplayTagQuery", 72);
@@ -5966,16 +5973,16 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptControlRig, ANON::DestructUERock, &rf, "--FRigConnectionRuleStash(out UE.Script.ControlRig.FRigConnectionRuleStash item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeBlueprintPropertyRef", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeBlueprintPropertyRef"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeBlueprintPropertyRef(out UE.Script.StateTreeModule.FStateTreeBlueprintPropertyRef item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeBlueprintPropertyRef(out UE.Script.StateTreeModule.FStateTreeBlueprintPropertyRef item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptOptimusCore, __FILE__, __LINE__, "FRigVMTraitSetDeformerLinearColorVariable", 40);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/OptimusCore/RigVMTrait_SetDeformerLinearColorVariable"));
 			ss.AddNativeCall(nsScriptOptimusCore, ANON::ConstructUERock, &rf, "++FRigVMTraitSetDeformerLinearColorVariable(out UE.Script.OptimusCore.FRigVMTraitSetDeformerLinearColorVariable item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptOptimusCore, ANON::DestructUERock, &rf, "--FRigVMTraitSetDeformerLinearColorVariable(out UE.Script.OptimusCore.FRigVMTraitSetDeformerLinearColorVariable item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeBlueprintPropertyRef", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeBlueprintPropertyRef"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeBlueprintPropertyRef(out UE.Script.StateTreeModule.FStateTreeBlueprintPropertyRef item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeBlueprintPropertyRef(out UE.Script.StateTreeModule.FStateTreeBlueprintPropertyRef item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FPredictProjectilePathResult", 336);
@@ -6002,16 +6009,16 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FAnimBankItem(out UE.Script.Engine.FAnimBankItem item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleRemap", 64);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleRemap"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleRemap(out UE.Script.RigVM.FRigVMFunctionMathDoubleRemap item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleRemap(out UE.Script.RigVM.FRigVMFunctionMathDoubleRemap item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FSkeletalMaterial", 64);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/SkeletalMaterial"));
 			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FSkeletalMaterial(out UE.Script.Engine.FSkeletalMaterial item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FSkeletalMaterial(out UE.Script.Engine.FSkeletalMaterial item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleRemap", 64);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleRemap"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleRemap(out UE.Script.RigVM.FRigVMFunctionMathDoubleRemap item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleRemap(out UE.Script.RigVM.FRigVMFunctionMathDoubleRemap item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptControlRigEditor, __FILE__, __LINE__, "FControlRigRigHierarchyToGraphDragAndDropContext", 40);
@@ -6267,16 +6274,16 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEnhancedInput, ANON::DestructUERock, &rf, "--FInputActionInstance(out UE.Script.EnhancedInput.FInputActionInstance item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FInputClampState", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/InputClampState"));
-			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FInputClampState(out UE.Script.Engine.FInputClampState item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FInputClampState(out UE.Script.Engine.FInputClampState item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptInterchangePipelines, __FILE__, __LINE__, "FInterchangeLodSceneNodeContainer", 16);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangePipelines/InterchangeLodSceneNodeContainer"));
 			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::ConstructUERock, &rf, "++FInterchangeLodSceneNodeContainer(out UE.Script.InterchangePipelines.FInterchangeLodSceneNodeContainer item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::DestructUERock, &rf, "--FInterchangeLodSceneNodeContainer(out UE.Script.InterchangePipelines.FInterchangeLodSceneNodeContainer item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FInputClampState", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/InputClampState"));
+			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FInputClampState(out UE.Script.Engine.FInputClampState item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FInputClampState(out UE.Script.Engine.FInputClampState item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FDepthFieldGlowInfo", 56);
@@ -6429,16 +6436,16 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FBlendSampleData(out UE.Script.Engine.FBlendSampleData item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleGreater", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleGreater"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleGreater(out UE.Script.RigVM.FRigVMFunctionMathDoubleGreater item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleGreater(out UE.Script.RigVM.FRigVMFunctionMathDoubleGreater item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FMarkerSyncAnimPosition", 28);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/MarkerSyncAnimPosition"));
 			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FMarkerSyncAnimPosition(out UE.Script.Engine.FMarkerSyncAnimPosition item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FMarkerSyncAnimPosition(out UE.Script.Engine.FMarkerSyncAnimPosition item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleGreater", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleGreater"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleGreater(out UE.Script.RigVM.FRigVMFunctionMathDoubleGreater item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleGreater(out UE.Script.RigVM.FRigVMFunctionMathDoubleGreater item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FMontageBlendSettings", 32);
@@ -6862,16 +6869,16 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FSparseVolumeTextureParameterValue(out UE.Script.Engine.FSparseVolumeTextureParameterValue item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectFilterSettings", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectFilterSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectFilterSettings(out UE.Script.Synthesis.FSourceEffectFilterSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectFilterSettings(out UE.Script.Synthesis.FSourceEffectFilterSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptGameplayCameras, __FILE__, __LINE__, "FVector2fCameraParameter", 24);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GameplayCameras/Vector2fCameraParameter"));
 			ss.AddNativeCall(nsScriptGameplayCameras, ANON::ConstructUERock, &rf, "++FVector2fCameraParameter(out UE.Script.GameplayCameras.FVector2fCameraParameter item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptGameplayCameras, ANON::DestructUERock, &rf, "--FVector2fCameraParameter(out UE.Script.GameplayCameras.FVector2fCameraParameter item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectFilterSettings", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectFilterSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectFilterSettings(out UE.Script.Synthesis.FSourceEffectFilterSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectFilterSettings(out UE.Script.Synthesis.FSourceEffectFilterSettings item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FFontParameterValue", 64);
@@ -6952,16 +6959,16 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FSkelMeshMergeUVTransformMapping(out UE.Script.Engine.FSkelMeshMergeUVTransformMapping item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FPassiveSoundMixModifier", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/PassiveSoundMixModifier"));
-			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FPassiveSoundMixModifier(out UE.Script.Engine.FPassiveSoundMixModifier item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FPassiveSoundMixModifier(out UE.Script.Engine.FPassiveSoundMixModifier item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptInterchangePipelines, __FILE__, __LINE__, "FInterchangeMeshGeometry", 56);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangePipelines/InterchangeMeshGeometry"));
 			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::ConstructUERock, &rf, "++FInterchangeMeshGeometry(out UE.Script.InterchangePipelines.FInterchangeMeshGeometry item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::DestructUERock, &rf, "--FInterchangeMeshGeometry(out UE.Script.InterchangePipelines.FInterchangeMeshGeometry item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FPassiveSoundMixModifier", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Engine/PassiveSoundMixModifier"));
+			ss.AddNativeCall(nsScriptEngine, ANON::ConstructUERock, &rf, "++FPassiveSoundMixModifier(out UE.Script.Engine.FPassiveSoundMixModifier item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptEngine, ANON::DestructUERock, &rf, "--FPassiveSoundMixModifier(out UE.Script.Engine.FPassiveSoundMixModifier item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptEngine, __FILE__, __LINE__, "FSoundConcurrencySettings", 32);
@@ -7109,66 +7116,11 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathBoolMake(out UE.Script.RigVM.FRigVMFunctionMathBoolMake item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathBoolMake(out UE.Script.RigVM.FRigVMFunctionMathBoolMake item)->", __FILE__, __LINE__, false, 0);
 		}
-		auto& nsScriptVariantManagerContent = ss.AddNativeNamespace("UE.Script.VariantManagerContent");
 		{
-			ss.CreateRockType(nsScriptVariantManagerContent, __FILE__, __LINE__, "FVariantDependency", 104);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/VariantManagerContent/VariantDependency"));
-			ss.AddNativeCall(nsScriptVariantManagerContent, ANON::ConstructUERock, &rf, "++FVariantDependency(out UE.Script.VariantManagerContent.FVariantDependency item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptVariantManagerContent, ANON::DestructUERock, &rf, "--FVariantDependency(out UE.Script.VariantManagerContent.FVariantDependency item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FIKRigBoneSettingsBase", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/IKRigBoneSettingsBase"));
-			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FIKRigBoneSettingsBase(out UE.Script.IKRig.FIKRigBoneSettingsBase item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FIKRigBoneSettingsBase(out UE.Script.IKRig.FIKRigBoneSettingsBase item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithAssetImportOptions", 12);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithAssetImportOptions"));
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithAssetImportOptions(out UE.Script.DatasmithContent.FDatasmithAssetImportOptions item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithAssetImportOptions(out UE.Script.DatasmithContent.FDatasmithAssetImportOptions item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithReimportOptions", 2);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithReimportOptions"));
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithReimportOptions(out UE.Script.DatasmithContent.FDatasmithReimportOptions item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithReimportOptions(out UE.Script.DatasmithContent.FDatasmithReimportOptions item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMExecuteContext", 288);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMExecuteContext"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMExecuteContext(out UE.Script.RigVM.FRigVMExecuteContext item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMExecuteContext(out UE.Script.RigVM.FRigVMExecuteContext item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleUnaryOp", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleUnaryOp"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleUnaryOp(out UE.Script.RigVM.FRigVMFunctionMathDoubleUnaryOp item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleUnaryOp(out UE.Script.RigVM.FRigVMFunctionMathDoubleUnaryOp item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptEnhancedInput, __FILE__, __LINE__, "FMapPlayerKeyArgs", 96);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/EnhancedInput/MapPlayerKeyArgs"));
-			ss.AddNativeCall(nsScriptEnhancedInput, ANON::ConstructUERock, &rf, "++FMapPlayerKeyArgs(out UE.Script.EnhancedInput.FMapPlayerKeyArgs item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptEnhancedInput, ANON::DestructUERock, &rf, "--FMapPlayerKeyArgs(out UE.Script.EnhancedInput.FMapPlayerKeyArgs item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundEngine, __FILE__, __LINE__, "FMetaSoundOutput", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundEngine/MetaSoundOutput"));
-			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::ConstructUERock, &rf, "++FMetaSoundOutput(out UE.Script.MetasoundEngine.FMetaSoundOutput item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::DestructUERock, &rf, "--FMetaSoundOutput(out UE.Script.MetasoundEngine.FMetaSoundOutput item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithImportBaseOptions", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithImportBaseOptions"));
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithImportBaseOptions(out UE.Script.DatasmithContent.FDatasmithImportBaseOptions item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithImportBaseOptions(out UE.Script.DatasmithContent.FDatasmithImportBaseOptions item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithTessellationOptions", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithTessellationOptions"));
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithTessellationOptions(out UE.Script.DatasmithContent.FDatasmithTessellationOptions item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithTessellationOptions(out UE.Script.DatasmithContent.FDatasmithTessellationOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptOnlineSubsystemUtils, __FILE__, __LINE__, "FInAppPurchaseProductRequest2", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/OnlineSubsystemUtils/InAppPurchaseProductRequest2"));
+			ss.AddNativeCall(nsScriptOnlineSubsystemUtils, ANON::ConstructUERock, &rf, "++FInAppPurchaseProductRequest2(out UE.Script.OnlineSubsystemUtils.FInAppPurchaseProductRequest2 item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptOnlineSubsystemUtils, ANON::DestructUERock, &rf, "--FInAppPurchaseProductRequest2(out UE.Script.OnlineSubsystemUtils.FInAppPurchaseProductRequest2 item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathMatrixFromTransform", 240);
@@ -7223,37 +7175,6 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Niagara/NiagaraID"));
 			ss.AddNativeCall(nsScriptNiagara, ANON::ConstructUERock, &rf, "++FNiagaraID(out UE.Script.Niagara.FNiagaraID item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptNiagara, ANON::DestructUERock, &rf, "--FNiagaraID(out UE.Script.Niagara.FNiagaraID item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptInterchangeNodes = ss.AddNativeNamespace("UE.Script.InterchangeNodes");
-		{
-			ss.CreateRockType(nsScriptInterchangeNodes, __FILE__, __LINE__, "FInterchangeAnimationPayLoadKey", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangeNodes/InterchangeAnimationPayLoadKey"));
-			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::ConstructUERock, &rf, "++FInterchangeAnimationPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeAnimationPayLoadKey item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::DestructUERock, &rf, "--FInterchangeAnimationPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeAnimationPayLoadKey item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptInterchangeNodes, __FILE__, __LINE__, "FInterchangeMeshPayLoadKey", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangeNodes/InterchangeMeshPayLoadKey"));
-			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::ConstructUERock, &rf, "++FInterchangeMeshPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeMeshPayLoadKey item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::DestructUERock, &rf, "--FInterchangeMeshPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeMeshPayLoadKey item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptGLTFExporter, __FILE__, __LINE__, "FGLTFExportMessages", 48);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GLTFExporter/GLTFExportMessages"));
-			ss.AddNativeCall(nsScriptGLTFExporter, ANON::ConstructUERock, &rf, "++FGLTFExportMessages(out UE.Script.GLTFExporter.FGLTFExportMessages item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptGLTFExporter, ANON::DestructUERock, &rf, "--FGLTFExportMessages(out UE.Script.GLTFExporter.FGLTFExportMessages item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptGLTFExporter, __FILE__, __LINE__, "FGLTFMaterialBakeSize", 12);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GLTFExporter/GLTFMaterialBakeSize"));
-			ss.AddNativeCall(nsScriptGLTFExporter, ANON::ConstructUERock, &rf, "++FGLTFMaterialBakeSize(out UE.Script.GLTFExporter.FGLTFMaterialBakeSize item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptGLTFExporter, ANON::DestructUERock, &rf, "--FGLTFMaterialBakeSize(out UE.Script.GLTFExporter.FGLTFMaterialBakeSize item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptOnlineSubsystemUtils, __FILE__, __LINE__, "FInAppPurchaseProductRequest2", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/OnlineSubsystemUtils/InAppPurchaseProductRequest2"));
-			ss.AddNativeCall(nsScriptOnlineSubsystemUtils, ANON::ConstructUERock, &rf, "++FInAppPurchaseProductRequest2(out UE.Script.OnlineSubsystemUtils.FInAppPurchaseProductRequest2 item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptOnlineSubsystemUtils, ANON::DestructUERock, &rf, "--FInAppPurchaseProductRequest2(out UE.Script.OnlineSubsystemUtils.FInAppPurchaseProductRequest2 item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptGeometryCollectionEngine, __FILE__, __LINE__, "FGeometryCollectionComponentSetGravityGroupIndex", 4);
@@ -7442,6 +7363,92 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptHairStrandsCore, ANON::ConstructUERock, &rf, "++FGroomHairGroupPreview(out UE.Script.HairStrandsCore.FGroomHairGroupPreview item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptHairStrandsCore, ANON::DestructUERock, &rf, "--FGroomHairGroupPreview(out UE.Script.HairStrandsCore.FGroomHairGroupPreview item)->", __FILE__, __LINE__, false, 0);
 		}
+		auto& nsScriptVariantManagerContent = ss.AddNativeNamespace("UE.Script.VariantManagerContent");
+		{
+			ss.CreateRockType(nsScriptVariantManagerContent, __FILE__, __LINE__, "FVariantDependency", 104);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/VariantManagerContent/VariantDependency"));
+			ss.AddNativeCall(nsScriptVariantManagerContent, ANON::ConstructUERock, &rf, "++FVariantDependency(out UE.Script.VariantManagerContent.FVariantDependency item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptVariantManagerContent, ANON::DestructUERock, &rf, "--FVariantDependency(out UE.Script.VariantManagerContent.FVariantDependency item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FIKRigBoneSettingsBase", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/IKRigBoneSettingsBase"));
+			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FIKRigBoneSettingsBase(out UE.Script.IKRig.FIKRigBoneSettingsBase item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FIKRigBoneSettingsBase(out UE.Script.IKRig.FIKRigBoneSettingsBase item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithAssetImportOptions", 12);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithAssetImportOptions"));
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithAssetImportOptions(out UE.Script.DatasmithContent.FDatasmithAssetImportOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithAssetImportOptions(out UE.Script.DatasmithContent.FDatasmithAssetImportOptions item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithReimportOptions", 2);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithReimportOptions"));
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithReimportOptions(out UE.Script.DatasmithContent.FDatasmithReimportOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithReimportOptions(out UE.Script.DatasmithContent.FDatasmithReimportOptions item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMExecuteContext", 288);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMExecuteContext"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMExecuteContext(out UE.Script.RigVM.FRigVMExecuteContext item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMExecuteContext(out UE.Script.RigVM.FRigVMExecuteContext item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleUnaryOp", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleUnaryOp"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleUnaryOp(out UE.Script.RigVM.FRigVMFunctionMathDoubleUnaryOp item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleUnaryOp(out UE.Script.RigVM.FRigVMFunctionMathDoubleUnaryOp item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptEnhancedInput, __FILE__, __LINE__, "FMapPlayerKeyArgs", 96);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/EnhancedInput/MapPlayerKeyArgs"));
+			ss.AddNativeCall(nsScriptEnhancedInput, ANON::ConstructUERock, &rf, "++FMapPlayerKeyArgs(out UE.Script.EnhancedInput.FMapPlayerKeyArgs item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptEnhancedInput, ANON::DestructUERock, &rf, "--FMapPlayerKeyArgs(out UE.Script.EnhancedInput.FMapPlayerKeyArgs item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundEngine, __FILE__, __LINE__, "FMetaSoundOutput", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundEngine/MetaSoundOutput"));
+			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::ConstructUERock, &rf, "++FMetaSoundOutput(out UE.Script.MetasoundEngine.FMetaSoundOutput item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::DestructUERock, &rf, "--FMetaSoundOutput(out UE.Script.MetasoundEngine.FMetaSoundOutput item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithImportBaseOptions", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithImportBaseOptions"));
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithImportBaseOptions(out UE.Script.DatasmithContent.FDatasmithImportBaseOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithImportBaseOptions(out UE.Script.DatasmithContent.FDatasmithImportBaseOptions item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptDatasmithContent, __FILE__, __LINE__, "FDatasmithTessellationOptions", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/DatasmithContent/DatasmithTessellationOptions"));
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::ConstructUERock, &rf, "++FDatasmithTessellationOptions(out UE.Script.DatasmithContent.FDatasmithTessellationOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptDatasmithContent, ANON::DestructUERock, &rf, "--FDatasmithTessellationOptions(out UE.Script.DatasmithContent.FDatasmithTessellationOptions item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptInterchangeNodes = ss.AddNativeNamespace("UE.Script.InterchangeNodes");
+		{
+			ss.CreateRockType(nsScriptInterchangeNodes, __FILE__, __LINE__, "FInterchangeAnimationPayLoadKey", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangeNodes/InterchangeAnimationPayLoadKey"));
+			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::ConstructUERock, &rf, "++FInterchangeAnimationPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeAnimationPayLoadKey item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::DestructUERock, &rf, "--FInterchangeAnimationPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeAnimationPayLoadKey item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptInterchangeNodes, __FILE__, __LINE__, "FInterchangeMeshPayLoadKey", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangeNodes/InterchangeMeshPayLoadKey"));
+			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::ConstructUERock, &rf, "++FInterchangeMeshPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeMeshPayLoadKey item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptInterchangeNodes, ANON::DestructUERock, &rf, "--FInterchangeMeshPayLoadKey(out UE.Script.InterchangeNodes.FInterchangeMeshPayLoadKey item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptGLTFExporter, __FILE__, __LINE__, "FGLTFExportMessages", 48);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GLTFExporter/GLTFExportMessages"));
+			ss.AddNativeCall(nsScriptGLTFExporter, ANON::ConstructUERock, &rf, "++FGLTFExportMessages(out UE.Script.GLTFExporter.FGLTFExportMessages item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptGLTFExporter, ANON::DestructUERock, &rf, "--FGLTFExportMessages(out UE.Script.GLTFExporter.FGLTFExportMessages item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptGLTFExporter, __FILE__, __LINE__, "FGLTFMaterialBakeSize", 12);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GLTFExporter/GLTFMaterialBakeSize"));
+			ss.AddNativeCall(nsScriptGLTFExporter, ANON::ConstructUERock, &rf, "++FGLTFMaterialBakeSize(out UE.Script.GLTFExporter.FGLTFMaterialBakeSize item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptGLTFExporter, ANON::DestructUERock, &rf, "--FGLTFMaterialBakeSize(out UE.Script.GLTFExporter.FGLTFMaterialBakeSize item)->", __FILE__, __LINE__, false, 0);
+		}
 		{
 			ss.CreateRockType(nsScriptFunctionalTesting, __FILE__, __LINE__, "FAutomationScreenshotOptions", 88);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/FunctionalTesting/AutomationScreenshotOptions"));
@@ -7535,19 +7542,6 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptDataValidation, ANON::DestructUERock, &rf, "--FValidateAssetsDetails(out UE.Script.DataValidation.FValidateAssetsDetails item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperTileInfo", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperTileInfo"));
-			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperTileInfo(out UE.Script.Paper2D.FPaperTileInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperTileInfo(out UE.Script.Paper2D.FPaperTileInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptNiagaraAnimNotifies = ss.AddNativeNamespace("UE.Script.NiagaraAnimNotifies");
-		{
-			ss.CreateRockType(nsScriptNiagaraAnimNotifies, __FILE__, __LINE__, "FCurveParameterPair", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/NiagaraAnimNotifies/CurveParameterPair"));
-			ss.AddNativeCall(nsScriptNiagaraAnimNotifies, ANON::ConstructUERock, &rf, "++FCurveParameterPair(out UE.Script.NiagaraAnimNotifies.FCurveParameterPair item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptNiagaraAnimNotifies, ANON::DestructUERock, &rf, "--FCurveParameterPair(out UE.Script.NiagaraAnimNotifies.FCurveParameterPair item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptNamingTokens, __FILE__, __LINE__, "FNamingTokenValueData", 56);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/NamingTokens/NamingTokenValueData"));
 			ss.AddNativeCall(nsScriptNamingTokens, ANON::ConstructUERock, &rf, "++FNamingTokenValueData(out UE.Script.NamingTokens.FNamingTokenValueData item)->", __FILE__, __LINE__, false, 0);
@@ -7588,43 +7582,6 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/TakesCore/AudioInputDeviceChannelProperty"));
 			ss.AddNativeCall(nsScriptTakesCore, ANON::ConstructUERock, &rf, "++FAudioInputDeviceChannelProperty(out UE.Script.TakesCore.FAudioInputDeviceChannelProperty item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptTakesCore, ANON::DestructUERock, &rf, "--FAudioInputDeviceChannelProperty(out UE.Script.TakesCore.FAudioInputDeviceChannelProperty item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionAnimEasingType", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_AnimEasingType"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionAnimEasingType(out UE.Script.RigVM.FRigVMFunctionAnimEasingType item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionAnimEasingType(out UE.Script.RigVM.FRigVMFunctionAnimEasingType item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptVariantManager = ss.AddNativeNamespace("UE.Script.VariantManager");
-		{
-			ss.CreateRockType(nsScriptVariantManager, __FILE__, __LINE__, "FCapturableProperty", 72);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/VariantManager/CapturableProperty"));
-			ss.AddNativeCall(nsScriptVariantManager, ANON::ConstructUERock, &rf, "++FCapturableProperty(out UE.Script.VariantManager.FCapturableProperty item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptVariantManager, ANON::DestructUERock, &rf, "--FCapturableProperty(out UE.Script.VariantManager.FCapturableProperty item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptInterchangePipelines, __FILE__, __LINE__, "FInterchangeMeshInstance", 128);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangePipelines/InterchangeMeshInstance"));
-			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::ConstructUERock, &rf, "++FInterchangeMeshInstance(out UE.Script.InterchangePipelines.FInterchangeMeshInstance item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::DestructUERock, &rf, "--FInterchangeMeshInstance(out UE.Script.InterchangePipelines.FInterchangeMeshInstance item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FIntMargin", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/IntMargin"));
-			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FIntMargin(out UE.Script.Paper2D.FIntMargin item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FIntMargin(out UE.Script.Paper2D.FIntMargin item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMMemoryStatistics", 12);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMMemoryStatistics"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMMemoryStatistics(out UE.Script.RigVM.FRigVMMemoryStatistics item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMMemoryStatistics(out UE.Script.RigVM.FRigVMMemoryStatistics item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperTerrainMaterialRule", 72);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperTerrainMaterialRule"));
-			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperTerrainMaterialRule(out UE.Script.Paper2D.FPaperTerrainMaterialRule item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperTerrainMaterialRule(out UE.Script.Paper2D.FPaperTerrainMaterialRule item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptControlRig, __FILE__, __LINE__, "FRigElementKey", 16);
@@ -7760,6 +7717,18 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMPinCategory(out UE.Script.RigVM.FRigVMPinCategory item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
+			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FIntMargin", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/IntMargin"));
+			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FIntMargin(out UE.Script.Paper2D.FIntMargin item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FIntMargin(out UE.Script.Paper2D.FIntMargin item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMMemoryStatistics", 12);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMMemoryStatistics"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMMemoryStatistics(out UE.Script.RigVM.FRigVMMemoryStatistics item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMMemoryStatistics(out UE.Script.RigVM.FRigVMMemoryStatistics item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
 			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionAccumulateFloatLerp", 40);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_AccumulateFloatLerp"));
 			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionAccumulateFloatLerp(out UE.Script.RigVM.FRigVMFunctionAccumulateFloatLerp item)->", __FILE__, __LINE__, false, 0);
@@ -7788,6 +7757,12 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMInstructionSetExecuteState"));
 			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMInstructionSetExecuteState(out UE.Script.RigVM.FRigVMInstructionSetExecuteState item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMInstructionSetExecuteState(out UE.Script.RigVM.FRigVMInstructionSetExecuteState item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionAnimEasingType", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_AnimEasingType"));
+			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionAnimEasingType(out UE.Script.RigVM.FRigVMFunctionAnimEasingType item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionAnimEasingType(out UE.Script.RigVM.FRigVMFunctionAnimEasingType item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionAnimEasing", 40);
@@ -8017,19 +7992,6 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleClamp"));
 			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleClamp(out UE.Script.RigVM.FRigVMFunctionMathDoubleClamp item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleClamp(out UE.Script.RigVM.FRigVMFunctionMathDoubleClamp item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptAudioCapture = ss.AddNativeNamespace("UE.Script.AudioCapture");
-		{
-			ss.CreateRockType(nsScriptAudioCapture, __FILE__, __LINE__, "FAudioCaptureDeviceInfo", 20);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioCapture/AudioCaptureDeviceInfo"));
-			ss.AddNativeCall(nsScriptAudioCapture, ANON::ConstructUERock, &rf, "++FAudioCaptureDeviceInfo(out UE.Script.AudioCapture.FAudioCaptureDeviceInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioCapture, ANON::DestructUERock, &rf, "--FAudioCaptureDeviceInfo(out UE.Script.AudioCapture.FAudioCaptureDeviceInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleLerp", 40);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/RigVM/RigVMFunction_MathDoubleLerp"));
-			ss.AddNativeCall(nsScriptRigVM, ANON::ConstructUERock, &rf, "++FRigVMFunctionMathDoubleLerp(out UE.Script.RigVM.FRigVMFunctionMathDoubleLerp item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptRigVM, ANON::DestructUERock, &rf, "--FRigVMFunctionMathDoubleLerp(out UE.Script.RigVM.FRigVMFunctionMathDoubleLerp item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptRigVM, __FILE__, __LINE__, "FRigVMFunctionMathDoubleEquals", 32);
@@ -9590,6 +9552,411 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptControlRig, ANON::DestructUERock, &rf, "--FRigUnitSpringInterpV2(out UE.Script.ControlRig.FRigUnitSpringInterpV2 item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
+			ss.CreateRockType(nsScriptFullBodyIK, __FILE__, __LINE__, "FMotionProcessInput", 2);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/FullBodyIK/MotionProcessInput"));
+			ss.AddNativeCall(nsScriptFullBodyIK, ANON::ConstructUERock, &rf, "++FMotionProcessInput(out UE.Script.FullBodyIK.FMotionProcessInput item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptFullBodyIK, ANON::DestructUERock, &rf, "--FMotionProcessInput(out UE.Script.FullBodyIK.FMotionProcessInput item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptFullBodyIK, __FILE__, __LINE__, "FFBIKDebugOption", 128);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/FullBodyIK/FBIKDebugOption"));
+			ss.AddNativeCall(nsScriptFullBodyIK, ANON::ConstructUERock, &rf, "++FFBIKDebugOption(out UE.Script.FullBodyIK.FFBIKDebugOption item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptFullBodyIK, ANON::DestructUERock, &rf, "--FFBIKDebugOption(out UE.Script.FullBodyIK.FFBIKDebugOption item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FIKRigGoal", 192);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/IKRigGoal"));
+			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FIKRigGoal(out UE.Script.IKRig.FIKRigGoal item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FIKRigGoal(out UE.Script.IKRig.FIKRigGoal item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptPBIK, __FILE__, __LINE__, "FRootPrePullSettings", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/PBIK/RootPrePullSettings"));
+			ss.AddNativeCall(nsScriptPBIK, ANON::ConstructUERock, &rf, "++FRootPrePullSettings(out UE.Script.PBIK.FRootPrePullSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptPBIK, ANON::DestructUERock, &rf, "--FRootPrePullSettings(out UE.Script.PBIK.FRootPrePullSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptPBIK, __FILE__, __LINE__, "FPBIKSolverSettings", 64);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/PBIK/PBIKSolverSettings"));
+			ss.AddNativeCall(nsScriptPBIK, ANON::ConstructUERock, &rf, "++FPBIKSolverSettings(out UE.Script.PBIK.FPBIKSolverSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptPBIK, ANON::DestructUERock, &rf, "--FPBIKSolverSettings(out UE.Script.PBIK.FPBIKSolverSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioSynesthesia, __FILE__, __LINE__, "FLoudnessResults", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioSynesthesia/LoudnessResults"));
+			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::ConstructUERock, &rf, "++FLoudnessResults(out UE.Script.AudioSynesthesia.FLoudnessResults item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::DestructUERock, &rf, "--FLoudnessResults(out UE.Script.AudioSynesthesia.FLoudnessResults item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioSynesthesia, __FILE__, __LINE__, "FSynesthesiaSpectrumResults", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioSynesthesia/SynesthesiaSpectrumResults"));
+			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::ConstructUERock, &rf, "++FSynesthesiaSpectrumResults(out UE.Script.AudioSynesthesia.FSynesthesiaSpectrumResults item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::DestructUERock, &rf, "--FSynesthesiaSpectrumResults(out UE.Script.AudioSynesthesia.FSynesthesiaSpectrumResults item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeDataHandle", 6);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeDataHandle"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeDataHandle(out UE.Script.StateTreeModule.FStateTreeDataHandle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeDataHandle(out UE.Script.StateTreeModule.FStateTreeDataHandle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeIndex16", 2);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeIndex16"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeIndex16(out UE.Script.StateTreeModule.FStateTreeIndex16 item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeIndex16(out UE.Script.StateTreeModule.FStateTreeIndex16 item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptGeometryFramework, __FILE__, __LINE__, "FDynamicMeshComponentGetTangentsTypePure", 1);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GeometryFramework/DynamicMeshComponent:GetTangentsTypePure"));
+			ss.AddNativeCall(nsScriptGeometryFramework, ANON::ConstructUERock, &rf, "++FDynamicMeshComponentGetTangentsTypePure(out UE.Script.GeometryFramework.FDynamicMeshComponentGetTangentsTypePure item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptGeometryFramework, ANON::DestructUERock, &rf, "--FDynamicMeshComponentGetTangentsTypePure(out UE.Script.GeometryFramework.FDynamicMeshComponentGetTangentsTypePure item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptIKRigEditor = ss.AddNativeNamespace("UE.Script.IKRigEditor");
+		{
+			ss.CreateRockType(nsScriptIKRigEditor, __FILE__, __LINE__, "FAnimNodePreviewRetargetPose", 224);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRigEditor/AnimNode_PreviewRetargetPose"));
+			ss.AddNativeCall(nsScriptIKRigEditor, ANON::ConstructUERock, &rf, "++FAnimNodePreviewRetargetPose(out UE.Script.IKRigEditor.FAnimNodePreviewRetargetPose item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptIKRigEditor, ANON::DestructUERock, &rf, "--FAnimNodePreviewRetargetPose(out UE.Script.IKRigEditor.FAnimNodePreviewRetargetPose item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeActiveStates", 52);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeActiveStates"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeActiveStates(out UE.Script.StateTreeModule.FStateTreeActiveStates item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeActiveStates(out UE.Script.StateTreeModule.FStateTreeActiveStates item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeExecutionFrame", 104);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeExecutionFrame"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeExecutionFrame(out UE.Script.StateTreeModule.FStateTreeExecutionFrame item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeExecutionFrame(out UE.Script.StateTreeModule.FStateTreeExecutionFrame item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeEvent", 48);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeEvent"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeEvent(out UE.Script.StateTreeModule.FStateTreeEvent item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeEvent(out UE.Script.StateTreeModule.FStateTreeEvent item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeStructRef", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeStructRef"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeStructRef(out UE.Script.StateTreeModule.FStateTreeStructRef item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeStructRef(out UE.Script.StateTreeModule.FStateTreeStructRef item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeStateLink", 36);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeStateLink"));
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeStateLink(out UE.Script.StateTreeModule.FStateTreeStateLink item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeStateLink(out UE.Script.StateTreeModule.FStateTreeStateLink item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptLocationServicesBPLibrary = ss.AddNativeNamespace("UE.Script.LocationServicesBPLibrary");
+		{
+			ss.CreateRockType(nsScriptLocationServicesBPLibrary, __FILE__, __LINE__, "FLocationServicesData", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/LocationServicesBPLibrary/LocationServicesData"));
+			ss.AddNativeCall(nsScriptLocationServicesBPLibrary, ANON::ConstructUERock, &rf, "++FLocationServicesData(out UE.Script.LocationServicesBPLibrary.FLocationServicesData item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptLocationServicesBPLibrary, ANON::DestructUERock, &rf, "--FLocationServicesData(out UE.Script.LocationServicesBPLibrary.FLocationServicesData item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendVersionNumber", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendVersionNumber"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendVersionNumber(out UE.Script.MetasoundFrontend.FMetasoundFrontendVersionNumber item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendVersionNumber(out UE.Script.MetasoundFrontend.FMetasoundFrontendVersionNumber item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendClassName", 36);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendClassName"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendClassName(out UE.Script.MetasoundFrontend.FMetasoundFrontendClassName item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendClassName(out UE.Script.MetasoundFrontend.FMetasoundFrontendClassName item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendInterfaceMetadata", 40);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendInterfaceMetadata"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendInterfaceMetadata(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceMetadata item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendInterfaceMetadata(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceMetadata item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendInterfaceUClassOptions", 28);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendInterfaceUClassOptions"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendInterfaceUClassOptions(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceUClassOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendInterfaceUClassOptions(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceUClassOptions item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FIKRetargetAlignPoleVectorOpSettings", 80);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/IKRetargetAlignPoleVectorOpSettings"));
+			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FIKRetargetAlignPoleVectorOpSettings(out UE.Script.IKRig.FIKRetargetAlignPoleVectorOpSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FIKRetargetAlignPoleVectorOpSettings(out UE.Script.IKRig.FIKRetargetAlignPoleVectorOpSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassVertexInfo", 28);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassVertexInfo"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassVertexInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassVertexInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexInfo item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassSearchInfo", 64);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassSearchInfo"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassSearchInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassSearchInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassSearchInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassSearchInfo item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassVertexCollectionInfo", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassVertexCollectionInfo"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassVertexCollectionInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexCollectionInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassVertexCollectionInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexCollectionInfo item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassInterfaceInfo", 128);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassInterfaceInfo"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassInterfaceInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassInterfaceInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassInterfaceInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassInterfaceInfo item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendLiteral", 88);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendLiteral"));
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendLiteral(out UE.Script.MetasoundFrontend.FMetasoundFrontendLiteral item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendLiteral(out UE.Script.MetasoundFrontend.FMetasoundFrontendLiteral item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptWaveTable, __FILE__, __LINE__, "FWaveTableData", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/WaveTable/WaveTableData"));
+			ss.AddNativeCall(nsScriptWaveTable, ANON::ConstructUERock, &rf, "++FWaveTableData(out UE.Script.WaveTable.FWaveTableData item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptWaveTable, ANON::DestructUERock, &rf, "--FWaveTableData(out UE.Script.WaveTable.FWaveTableData item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundEngine, __FILE__, __LINE__, "FMetaSoundAssetDirectory", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundEngine/MetaSoundAssetDirectory"));
+			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::ConstructUERock, &rf, "++FMetaSoundAssetDirectory(out UE.Script.MetasoundEngine.FMetaSoundAssetDirectory item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::DestructUERock, &rf, "--FMetaSoundAssetDirectory(out UE.Script.MetasoundEngine.FMetaSoundAssetDirectory item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetasoundEngine, __FILE__, __LINE__, "FMetaSoundNodeHandle", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundEngine/MetaSoundNodeHandle"));
+			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::ConstructUERock, &rf, "++FMetaSoundNodeHandle(out UE.Script.MetasoundEngine.FMetaSoundNodeHandle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::DestructUERock, &rf, "--FMetaSoundNodeHandle(out UE.Script.MetasoundEngine.FMetaSoundNodeHandle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FMeterChannelInfo", 12);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/MeterChannelInfo"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FMeterChannelInfo(out UE.Script.AudioWidgets.FMeterChannelInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FMeterChannelInfo(out UE.Script.AudioWidgets.FMeterChannelInfo item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialWidgetStyle", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialWidgetStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialWidgetStyle(out UE.Script.AudioWidgets.FAudioMaterialWidgetStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialWidgetStyle(out UE.Script.AudioWidgets.FAudioMaterialWidgetStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptUMGWidgetPreview = ss.AddNativeNamespace("UE.Script.UMGWidgetPreview");
+		{
+			ss.CreateRockType(nsScriptUMGWidgetPreview, __FILE__, __LINE__, "FPreviewableWidgetVariant", 56);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/UMGWidgetPreview/PreviewableWidgetVariant"));
+			ss.AddNativeCall(nsScriptUMGWidgetPreview, ANON::ConstructUERock, &rf, "++FPreviewableWidgetVariant(out UE.Script.UMGWidgetPreview.FPreviewableWidgetVariant item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptUMGWidgetPreview, ANON::DestructUERock, &rf, "--FPreviewableWidgetVariant(out UE.Script.UMGWidgetPreview.FPreviewableWidgetVariant item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialMeterStyle", 256);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialMeterStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialMeterStyle(out UE.Script.AudioWidgets.FAudioMaterialMeterStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialMeterStyle(out UE.Script.AudioWidgets.FAudioMaterialMeterStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FSampledSequenceValueGridOverlayStyle", 176);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/SampledSequenceValueGridOverlayStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FSampledSequenceValueGridOverlayStyle(out UE.Script.AudioWidgets.FSampledSequenceValueGridOverlayStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FSampledSequenceValueGridOverlayStyle(out UE.Script.AudioWidgets.FSampledSequenceValueGridOverlayStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FFixedSampleSequenceRulerStyle", 640);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/FixedSampleSequenceRulerStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FFixedSampleSequenceRulerStyle(out UE.Script.AudioWidgets.FFixedSampleSequenceRulerStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FFixedSampleSequenceRulerStyle(out UE.Script.AudioWidgets.FFixedSampleSequenceRulerStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialButtonStyle", 136);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialButtonStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialButtonStyle(out UE.Script.AudioWidgets.FAudioMaterialButtonStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialButtonStyle(out UE.Script.AudioWidgets.FAudioMaterialButtonStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioTextBoxStyle", 256);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioTextBoxStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioTextBoxStyle(out UE.Script.AudioWidgets.FAudioTextBoxStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioTextBoxStyle(out UE.Script.AudioWidgets.FAudioTextBoxStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialKnobStyle", 480);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialKnobStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialKnobStyle(out UE.Script.AudioWidgets.FAudioMaterialKnobStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialKnobStyle(out UE.Script.AudioWidgets.FAudioMaterialKnobStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptMetaHumanSDKEditor, __FILE__, __LINE__, "FMetaHumanAssetDescription", 328);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetaHumanSDKEditor/MetaHumanAssetDescription"));
+			ss.AddNativeCall(nsScriptMetaHumanSDKEditor, ANON::ConstructUERock, &rf, "++FMetaHumanAssetDescription(out UE.Script.MetaHumanSDKEditor.FMetaHumanAssetDescription item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptMetaHumanSDKEditor, ANON::DestructUERock, &rf, "--FMetaHumanAssetDescription(out UE.Script.MetaHumanSDKEditor.FMetaHumanAssetDescription item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMeterDefaultColorStyle", 104);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMeterDefaultColorStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMeterDefaultColorStyle(out UE.Script.AudioWidgets.FAudioMeterDefaultColorStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMeterDefaultColorStyle(out UE.Script.AudioWidgets.FAudioMeterDefaultColorStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioSpectrumPlotStyle", 336);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioSpectrumPlotStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioSpectrumPlotStyle(out UE.Script.AudioWidgets.FAudioSpectrumPlotStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioSpectrumPlotStyle(out UE.Script.AudioWidgets.FAudioSpectrumPlotStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioSliderStyle", 1872);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioSliderStyle"));
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioSliderStyle(out UE.Script.AudioWidgets.FAudioSliderStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioSliderStyle(out UE.Script.AudioWidgets.FAudioSliderStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSynth1PatchCable", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/Synth1PatchCable"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSynth1PatchCable(out UE.Script.Synthesis.FSynth1PatchCable item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSynth1PatchCable(out UE.Script.Synthesis.FSynth1PatchCable item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FModularSynthPreset", 224);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/ModularSynthPreset"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FModularSynthPreset(out UE.Script.Synthesis.FModularSynthPreset item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FModularSynthPreset(out UE.Script.Synthesis.FModularSynthPreset item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FPatchId", 4);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/PatchId"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FPatchId(out UE.Script.Synthesis.FPatchId item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FPatchId(out UE.Script.Synthesis.FPatchId item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FEpicSynth1Patch", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/EpicSynth1Patch"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FEpicSynth1Patch(out UE.Script.Synthesis.FEpicSynth1Patch item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FEpicSynth1Patch(out UE.Script.Synthesis.FEpicSynth1Patch item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectBitCrusherSettings", 192);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectBitCrusherSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectBitCrusherSettings(out UE.Script.Synthesis.FSourceEffectBitCrusherSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectBitCrusherSettings(out UE.Script.Synthesis.FSourceEffectBitCrusherSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptModelingComponents, __FILE__, __LINE__, "FModelingToolsColorChannelFilter", 4);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ModelingComponents/ModelingToolsColorChannelFilter"));
+			ss.AddNativeCall(nsScriptModelingComponents, ANON::ConstructUERock, &rf, "++FModelingToolsColorChannelFilter(out UE.Script.ModelingComponents.FModelingToolsColorChannelFilter item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptModelingComponents, ANON::DestructUERock, &rf, "--FModelingToolsColorChannelFilter(out UE.Script.ModelingComponents.FModelingToolsColorChannelFilter item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectChorusBaseSettings", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectChorusBaseSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectChorusBaseSettings(out UE.Script.Synthesis.FSourceEffectChorusBaseSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectChorusBaseSettings(out UE.Script.Synthesis.FSourceEffectChorusBaseSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectFoldbackDistortionSettings", 12);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectFoldbackDistortionSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectFoldbackDistortionSettings(out UE.Script.Synthesis.FSourceEffectFoldbackDistortionSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectFoldbackDistortionSettings(out UE.Script.Synthesis.FSourceEffectFoldbackDistortionSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectMidSideSpreaderSettings", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectMidSideSpreaderSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectMidSideSpreaderSettings(out UE.Script.Synthesis.FSourceEffectMidSideSpreaderSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectMidSideSpreaderSettings(out UE.Script.Synthesis.FSourceEffectMidSideSpreaderSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptStaticMeshEditor, __FILE__, __LINE__, "FStaticMeshReductionSettings", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StaticMeshEditor/StaticMeshReductionSettings"));
+			ss.AddNativeCall(nsScriptStaticMeshEditor, ANON::ConstructUERock, &rf, "++FStaticMeshReductionSettings(out UE.Script.StaticMeshEditor.FStaticMeshReductionSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptStaticMeshEditor, ANON::DestructUERock, &rf, "--FStaticMeshReductionSettings(out UE.Script.StaticMeshEditor.FStaticMeshReductionSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectPannerSettings", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectPannerSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectPannerSettings(out UE.Script.Synthesis.FSourceEffectPannerSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectPannerSettings(out UE.Script.Synthesis.FSourceEffectPannerSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectPhaserSettings", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectPhaserSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectPhaserSettings(out UE.Script.Synthesis.FSourceEffectPhaserSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectPhaserSettings(out UE.Script.Synthesis.FSourceEffectPhaserSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectWaveShaperSettings", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectWaveShaperSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectWaveShaperSettings(out UE.Script.Synthesis.FSourceEffectWaveShaperSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectWaveShaperSettings(out UE.Script.Synthesis.FSourceEffectWaveShaperSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectConvolutionReverbSettings", 48);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectConvolutionReverbSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectConvolutionReverbSettings(out UE.Script.Synthesis.FSubmixEffectConvolutionReverbSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectConvolutionReverbSettings(out UE.Script.Synthesis.FSubmixEffectConvolutionReverbSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectFlexiverbSettings", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectFlexiverbSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectFlexiverbSettings(out UE.Script.Synthesis.FSubmixEffectFlexiverbSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectFlexiverbSettings(out UE.Script.Synthesis.FSubmixEffectFlexiverbSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectMultibandCompressorSettings", 56);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectMultibandCompressorSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectMultibandCompressorSettings(out UE.Script.Synthesis.FSubmixEffectMultibandCompressorSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectMultibandCompressorSettings(out UE.Script.Synthesis.FSubmixEffectMultibandCompressorSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectStereoDelaySettings", 36);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectStereoDelaySettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectStereoDelaySettings(out UE.Script.Synthesis.FSubmixEffectStereoDelaySettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectStereoDelaySettings(out UE.Script.Synthesis.FSubmixEffectStereoDelaySettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectStereoToQuadSettings", 8);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectStereoToQuadSettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectStereoToQuadSettings(out UE.Script.Synthesis.FSubmixEffectStereoToQuadSettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectStereoToQuadSettings(out UE.Script.Synthesis.FSubmixEffectStereoToQuadSettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectTapDelaySettings", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectTapDelaySettings"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectTapDelaySettings(out UE.Script.Synthesis.FSubmixEffectTapDelaySettings item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectTapDelaySettings(out UE.Script.Synthesis.FSubmixEffectTapDelaySettings item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSynthKnobStyle", 864);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SynthKnobStyle"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSynthKnobStyle(out UE.Script.Synthesis.FSynthKnobStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSynthKnobStyle(out UE.Script.Synthesis.FSynthKnobStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSynthSlateStyle", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SynthSlateStyle"));
+			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSynthSlateStyle(out UE.Script.Synthesis.FSynthSlateStyle item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSynthSlateStyle(out UE.Script.Synthesis.FSynthSlateStyle item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperTileInfo", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperTileInfo"));
+			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperTileInfo(out UE.Script.Paper2D.FPaperTileInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperTileInfo(out UE.Script.Paper2D.FPaperTileInfo item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperTileMetadata", 72);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperTileMetadata"));
+			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperTileMetadata(out UE.Script.Paper2D.FPaperTileMetadata item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperTileMetadata(out UE.Script.Paper2D.FPaperTileMetadata item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptPaper2D, __FILE__, __LINE__, "FPaperTerrainMaterialRule", 72);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Paper2D/PaperTerrainMaterialRule"));
+			ss.AddNativeCall(nsScriptPaper2D, ANON::ConstructUERock, &rf, "++FPaperTerrainMaterialRule(out UE.Script.Paper2D.FPaperTerrainMaterialRule item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptPaper2D, ANON::DestructUERock, &rf, "--FPaperTerrainMaterialRule(out UE.Script.Paper2D.FPaperTerrainMaterialRule item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
 			ss.CreateRockType(nsScriptAnimationModifierLibrary, __FILE__, __LINE__, "FBoneReferencePair", 40);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AnimationModifierLibrary/BoneReferencePair"));
 			ss.AddNativeCall(nsScriptAnimationModifierLibrary, ANON::ConstructUERock, &rf, "++FBoneReferencePair(out UE.Script.AnimationModifierLibrary.FBoneReferencePair item)->", __FILE__, __LINE__, false, 0);
@@ -9728,36 +10095,6 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/OptimusCore/RigVMTrait_SetDeformerBoolVariable"));
 			ss.AddNativeCall(nsScriptOptimusCore, ANON::ConstructUERock, &rf, "++FRigVMTraitSetDeformerBoolVariable(out UE.Script.OptimusCore.FRigVMTraitSetDeformerBoolVariable item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptOptimusCore, ANON::DestructUERock, &rf, "--FRigVMTraitSetDeformerBoolVariable(out UE.Script.OptimusCore.FRigVMTraitSetDeformerBoolVariable item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FIKRigGoal", 192);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/IKRigGoal"));
-			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FIKRigGoal(out UE.Script.IKRig.FIKRigGoal item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FIKRigGoal(out UE.Script.IKRig.FIKRigGoal item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptPBIK, __FILE__, __LINE__, "FRootPrePullSettings", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/PBIK/RootPrePullSettings"));
-			ss.AddNativeCall(nsScriptPBIK, ANON::ConstructUERock, &rf, "++FRootPrePullSettings(out UE.Script.PBIK.FRootPrePullSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptPBIK, ANON::DestructUERock, &rf, "--FRootPrePullSettings(out UE.Script.PBIK.FRootPrePullSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptPBIK, __FILE__, __LINE__, "FPBIKSolverSettings", 64);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/PBIK/PBIKSolverSettings"));
-			ss.AddNativeCall(nsScriptPBIK, ANON::ConstructUERock, &rf, "++FPBIKSolverSettings(out UE.Script.PBIK.FPBIKSolverSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptPBIK, ANON::DestructUERock, &rf, "--FPBIKSolverSettings(out UE.Script.PBIK.FPBIKSolverSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassVertexInfo", 28);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassVertexInfo"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassVertexInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassVertexInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FIKRetargetAlignPoleVectorOpSettings", 80);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRig/IKRetargetAlignPoleVectorOpSettings"));
-			ss.AddNativeCall(nsScriptIKRig, ANON::ConstructUERock, &rf, "++FIKRetargetAlignPoleVectorOpSettings(out UE.Script.IKRig.FIKRetargetAlignPoleVectorOpSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptIKRig, ANON::DestructUERock, &rf, "--FIKRetargetAlignPoleVectorOpSettings(out UE.Script.IKRig.FIKRetargetAlignPoleVectorOpSettings item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptIKRig, __FILE__, __LINE__, "FIKRetargetOpBase", 40);
@@ -10013,61 +10350,6 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEngineCameras, ANON::DestructUERock, &rf, "--FWaveOscillator(out UE.Script.EngineCameras.FWaveOscillator item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeDataHandle", 6);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeDataHandle"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeDataHandle(out UE.Script.StateTreeModule.FStateTreeDataHandle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeDataHandle(out UE.Script.StateTreeModule.FStateTreeDataHandle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeIndex16", 2);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeIndex16"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeIndex16(out UE.Script.StateTreeModule.FStateTreeIndex16 item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeIndex16(out UE.Script.StateTreeModule.FStateTreeIndex16 item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptGeometryFramework, __FILE__, __LINE__, "FDynamicMeshComponentGetTangentsTypePure", 1);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GeometryFramework/DynamicMeshComponent:GetTangentsTypePure"));
-			ss.AddNativeCall(nsScriptGeometryFramework, ANON::ConstructUERock, &rf, "++FDynamicMeshComponentGetTangentsTypePure(out UE.Script.GeometryFramework.FDynamicMeshComponentGetTangentsTypePure item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptGeometryFramework, ANON::DestructUERock, &rf, "--FDynamicMeshComponentGetTangentsTypePure(out UE.Script.GeometryFramework.FDynamicMeshComponentGetTangentsTypePure item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptIKRigEditor = ss.AddNativeNamespace("UE.Script.IKRigEditor");
-		{
-			ss.CreateRockType(nsScriptIKRigEditor, __FILE__, __LINE__, "FAnimNodePreviewRetargetPose", 224);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/IKRigEditor/AnimNode_PreviewRetargetPose"));
-			ss.AddNativeCall(nsScriptIKRigEditor, ANON::ConstructUERock, &rf, "++FAnimNodePreviewRetargetPose(out UE.Script.IKRigEditor.FAnimNodePreviewRetargetPose item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptIKRigEditor, ANON::DestructUERock, &rf, "--FAnimNodePreviewRetargetPose(out UE.Script.IKRigEditor.FAnimNodePreviewRetargetPose item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeActiveStates", 52);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeActiveStates"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeActiveStates(out UE.Script.StateTreeModule.FStateTreeActiveStates item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeActiveStates(out UE.Script.StateTreeModule.FStateTreeActiveStates item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeExecutionFrame", 104);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeExecutionFrame"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeExecutionFrame(out UE.Script.StateTreeModule.FStateTreeExecutionFrame item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeExecutionFrame(out UE.Script.StateTreeModule.FStateTreeExecutionFrame item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeEvent", 48);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeEvent"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeEvent(out UE.Script.StateTreeModule.FStateTreeEvent item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeEvent(out UE.Script.StateTreeModule.FStateTreeEvent item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeStructRef", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeStructRef"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeStructRef(out UE.Script.StateTreeModule.FStateTreeStructRef item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeStructRef(out UE.Script.StateTreeModule.FStateTreeStructRef item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptStateTreeModule, __FILE__, __LINE__, "FStateTreeStateLink", 36);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StateTreeModule/StateTreeStateLink"));
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::ConstructUERock, &rf, "++FStateTreeStateLink(out UE.Script.StateTreeModule.FStateTreeStateLink item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStateTreeModule, ANON::DestructUERock, &rf, "--FStateTreeStateLink(out UE.Script.StateTreeModule.FStateTreeStateLink item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
 			ss.CreateRockType(nsScriptGameplayCameras, __FILE__, __LINE__, "FCameraActorTargetInfo", 48);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/GameplayCameras/CameraActorTargetInfo"));
 			ss.AddNativeCall(nsScriptGameplayCameras, ANON::ConstructUERock, &rf, "++FCameraActorTargetInfo(out UE.Script.GameplayCameras.FCameraActorTargetInfo item)->", __FILE__, __LINE__, false, 0);
@@ -10152,319 +10434,25 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptGameplayCameras, ANON::ConstructUERock, &rf, "++FBlueprintCameraPose(out UE.Script.GameplayCameras.FBlueprintCameraPose item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptGameplayCameras, ANON::DestructUERock, &rf, "--FBlueprintCameraPose(out UE.Script.GameplayCameras.FBlueprintCameraPose item)->", __FILE__, __LINE__, false, 0);
 		}
+		auto& nsScriptNiagaraAnimNotifies = ss.AddNativeNamespace("UE.Script.NiagaraAnimNotifies");
 		{
-			ss.CreateRockType(nsScriptFullBodyIK, __FILE__, __LINE__, "FMotionProcessInput", 2);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/FullBodyIK/MotionProcessInput"));
-			ss.AddNativeCall(nsScriptFullBodyIK, ANON::ConstructUERock, &rf, "++FMotionProcessInput(out UE.Script.FullBodyIK.FMotionProcessInput item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptFullBodyIK, ANON::DestructUERock, &rf, "--FMotionProcessInput(out UE.Script.FullBodyIK.FMotionProcessInput item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptNiagaraAnimNotifies, __FILE__, __LINE__, "FCurveParameterPair", 24);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/NiagaraAnimNotifies/CurveParameterPair"));
+			ss.AddNativeCall(nsScriptNiagaraAnimNotifies, ANON::ConstructUERock, &rf, "++FCurveParameterPair(out UE.Script.NiagaraAnimNotifies.FCurveParameterPair item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptNiagaraAnimNotifies, ANON::DestructUERock, &rf, "--FCurveParameterPair(out UE.Script.NiagaraAnimNotifies.FCurveParameterPair item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptVariantManager = ss.AddNativeNamespace("UE.Script.VariantManager");
+		{
+			ss.CreateRockType(nsScriptVariantManager, __FILE__, __LINE__, "FCapturableProperty", 72);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/VariantManager/CapturableProperty"));
+			ss.AddNativeCall(nsScriptVariantManager, ANON::ConstructUERock, &rf, "++FCapturableProperty(out UE.Script.VariantManager.FCapturableProperty item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptVariantManager, ANON::DestructUERock, &rf, "--FCapturableProperty(out UE.Script.VariantManager.FCapturableProperty item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptFullBodyIK, __FILE__, __LINE__, "FFBIKDebugOption", 128);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/FullBodyIK/FBIKDebugOption"));
-			ss.AddNativeCall(nsScriptFullBodyIK, ANON::ConstructUERock, &rf, "++FFBIKDebugOption(out UE.Script.FullBodyIK.FFBIKDebugOption item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptFullBodyIK, ANON::DestructUERock, &rf, "--FFBIKDebugOption(out UE.Script.FullBodyIK.FFBIKDebugOption item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioSynesthesia, __FILE__, __LINE__, "FLoudnessResults", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioSynesthesia/LoudnessResults"));
-			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::ConstructUERock, &rf, "++FLoudnessResults(out UE.Script.AudioSynesthesia.FLoudnessResults item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::DestructUERock, &rf, "--FLoudnessResults(out UE.Script.AudioSynesthesia.FLoudnessResults item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioSynesthesia, __FILE__, __LINE__, "FSynesthesiaSpectrumResults", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioSynesthesia/SynesthesiaSpectrumResults"));
-			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::ConstructUERock, &rf, "++FSynesthesiaSpectrumResults(out UE.Script.AudioSynesthesia.FSynesthesiaSpectrumResults item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioSynesthesia, ANON::DestructUERock, &rf, "--FSynesthesiaSpectrumResults(out UE.Script.AudioSynesthesia.FSynesthesiaSpectrumResults item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptLocationServicesBPLibrary = ss.AddNativeNamespace("UE.Script.LocationServicesBPLibrary");
-		{
-			ss.CreateRockType(nsScriptLocationServicesBPLibrary, __FILE__, __LINE__, "FLocationServicesData", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/LocationServicesBPLibrary/LocationServicesData"));
-			ss.AddNativeCall(nsScriptLocationServicesBPLibrary, ANON::ConstructUERock, &rf, "++FLocationServicesData(out UE.Script.LocationServicesBPLibrary.FLocationServicesData item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptLocationServicesBPLibrary, ANON::DestructUERock, &rf, "--FLocationServicesData(out UE.Script.LocationServicesBPLibrary.FLocationServicesData item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendVersionNumber", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendVersionNumber"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendVersionNumber(out UE.Script.MetasoundFrontend.FMetasoundFrontendVersionNumber item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendVersionNumber(out UE.Script.MetasoundFrontend.FMetasoundFrontendVersionNumber item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendClassName", 36);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendClassName"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendClassName(out UE.Script.MetasoundFrontend.FMetasoundFrontendClassName item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendClassName(out UE.Script.MetasoundFrontend.FMetasoundFrontendClassName item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendInterfaceMetadata", 40);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendInterfaceMetadata"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendInterfaceMetadata(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceMetadata item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendInterfaceMetadata(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceMetadata item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendInterfaceUClassOptions", 28);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendInterfaceUClassOptions"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendInterfaceUClassOptions(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceUClassOptions item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendInterfaceUClassOptions(out UE.Script.MetasoundFrontend.FMetasoundFrontendInterfaceUClassOptions item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassSearchInfo", 64);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassSearchInfo"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassSearchInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassSearchInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassSearchInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassSearchInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassVertexCollectionInfo", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassVertexCollectionInfo"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassVertexCollectionInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexCollectionInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassVertexCollectionInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassVertexCollectionInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetaSoundClassInterfaceInfo", 128);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetaSoundClassInterfaceInfo"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetaSoundClassInterfaceInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassInterfaceInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetaSoundClassInterfaceInfo(out UE.Script.MetasoundFrontend.FMetaSoundClassInterfaceInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundFrontend, __FILE__, __LINE__, "FMetasoundFrontendLiteral", 88);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundFrontend/MetasoundFrontendLiteral"));
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::ConstructUERock, &rf, "++FMetasoundFrontendLiteral(out UE.Script.MetasoundFrontend.FMetasoundFrontendLiteral item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundFrontend, ANON::DestructUERock, &rf, "--FMetasoundFrontendLiteral(out UE.Script.MetasoundFrontend.FMetasoundFrontendLiteral item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptWaveTable, __FILE__, __LINE__, "FWaveTableData", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/WaveTable/WaveTableData"));
-			ss.AddNativeCall(nsScriptWaveTable, ANON::ConstructUERock, &rf, "++FWaveTableData(out UE.Script.WaveTable.FWaveTableData item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptWaveTable, ANON::DestructUERock, &rf, "--FWaveTableData(out UE.Script.WaveTable.FWaveTableData item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundEngine, __FILE__, __LINE__, "FMetaSoundAssetDirectory", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundEngine/MetaSoundAssetDirectory"));
-			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::ConstructUERock, &rf, "++FMetaSoundAssetDirectory(out UE.Script.MetasoundEngine.FMetaSoundAssetDirectory item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::DestructUERock, &rf, "--FMetaSoundAssetDirectory(out UE.Script.MetasoundEngine.FMetaSoundAssetDirectory item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetasoundEngine, __FILE__, __LINE__, "FMetaSoundNodeHandle", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetasoundEngine/MetaSoundNodeHandle"));
-			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::ConstructUERock, &rf, "++FMetaSoundNodeHandle(out UE.Script.MetasoundEngine.FMetaSoundNodeHandle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetasoundEngine, ANON::DestructUERock, &rf, "--FMetaSoundNodeHandle(out UE.Script.MetasoundEngine.FMetaSoundNodeHandle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FMeterChannelInfo", 12);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/MeterChannelInfo"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FMeterChannelInfo(out UE.Script.AudioWidgets.FMeterChannelInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FMeterChannelInfo(out UE.Script.AudioWidgets.FMeterChannelInfo item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialWidgetStyle", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialWidgetStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialWidgetStyle(out UE.Script.AudioWidgets.FAudioMaterialWidgetStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialWidgetStyle(out UE.Script.AudioWidgets.FAudioMaterialWidgetStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptUMGWidgetPreview = ss.AddNativeNamespace("UE.Script.UMGWidgetPreview");
-		{
-			ss.CreateRockType(nsScriptUMGWidgetPreview, __FILE__, __LINE__, "FPreviewableWidgetVariant", 56);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/UMGWidgetPreview/PreviewableWidgetVariant"));
-			ss.AddNativeCall(nsScriptUMGWidgetPreview, ANON::ConstructUERock, &rf, "++FPreviewableWidgetVariant(out UE.Script.UMGWidgetPreview.FPreviewableWidgetVariant item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptUMGWidgetPreview, ANON::DestructUERock, &rf, "--FPreviewableWidgetVariant(out UE.Script.UMGWidgetPreview.FPreviewableWidgetVariant item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialMeterStyle", 256);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialMeterStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialMeterStyle(out UE.Script.AudioWidgets.FAudioMaterialMeterStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialMeterStyle(out UE.Script.AudioWidgets.FAudioMaterialMeterStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FSampledSequenceValueGridOverlayStyle", 176);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/SampledSequenceValueGridOverlayStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FSampledSequenceValueGridOverlayStyle(out UE.Script.AudioWidgets.FSampledSequenceValueGridOverlayStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FSampledSequenceValueGridOverlayStyle(out UE.Script.AudioWidgets.FSampledSequenceValueGridOverlayStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FFixedSampleSequenceRulerStyle", 640);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/FixedSampleSequenceRulerStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FFixedSampleSequenceRulerStyle(out UE.Script.AudioWidgets.FFixedSampleSequenceRulerStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FFixedSampleSequenceRulerStyle(out UE.Script.AudioWidgets.FFixedSampleSequenceRulerStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialButtonStyle", 136);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialButtonStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialButtonStyle(out UE.Script.AudioWidgets.FAudioMaterialButtonStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialButtonStyle(out UE.Script.AudioWidgets.FAudioMaterialButtonStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioTextBoxStyle", 256);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioTextBoxStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioTextBoxStyle(out UE.Script.AudioWidgets.FAudioTextBoxStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioTextBoxStyle(out UE.Script.AudioWidgets.FAudioTextBoxStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMaterialKnobStyle", 480);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMaterialKnobStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMaterialKnobStyle(out UE.Script.AudioWidgets.FAudioMaterialKnobStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMaterialKnobStyle(out UE.Script.AudioWidgets.FAudioMaterialKnobStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptMetaHumanSDKEditor, __FILE__, __LINE__, "FMetaHumanAssetDescription", 328);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetaHumanSDKEditor/MetaHumanAssetDescription"));
-			ss.AddNativeCall(nsScriptMetaHumanSDKEditor, ANON::ConstructUERock, &rf, "++FMetaHumanAssetDescription(out UE.Script.MetaHumanSDKEditor.FMetaHumanAssetDescription item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptMetaHumanSDKEditor, ANON::DestructUERock, &rf, "--FMetaHumanAssetDescription(out UE.Script.MetaHumanSDKEditor.FMetaHumanAssetDescription item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioMeterDefaultColorStyle", 104);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioMeterDefaultColorStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioMeterDefaultColorStyle(out UE.Script.AudioWidgets.FAudioMeterDefaultColorStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioMeterDefaultColorStyle(out UE.Script.AudioWidgets.FAudioMeterDefaultColorStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioSpectrumPlotStyle", 336);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioSpectrumPlotStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioSpectrumPlotStyle(out UE.Script.AudioWidgets.FAudioSpectrumPlotStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioSpectrumPlotStyle(out UE.Script.AudioWidgets.FAudioSpectrumPlotStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptAudioWidgets, __FILE__, __LINE__, "FAudioSliderStyle", 1872);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioWidgets/AudioSliderStyle"));
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::ConstructUERock, &rf, "++FAudioSliderStyle(out UE.Script.AudioWidgets.FAudioSliderStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioWidgets, ANON::DestructUERock, &rf, "--FAudioSliderStyle(out UE.Script.AudioWidgets.FAudioSliderStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSynth1PatchCable", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/Synth1PatchCable"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSynth1PatchCable(out UE.Script.Synthesis.FSynth1PatchCable item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSynth1PatchCable(out UE.Script.Synthesis.FSynth1PatchCable item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FModularSynthPreset", 224);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/ModularSynthPreset"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FModularSynthPreset(out UE.Script.Synthesis.FModularSynthPreset item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FModularSynthPreset(out UE.Script.Synthesis.FModularSynthPreset item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FPatchId", 4);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/PatchId"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FPatchId(out UE.Script.Synthesis.FPatchId item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FPatchId(out UE.Script.Synthesis.FPatchId item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FEpicSynth1Patch", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/EpicSynth1Patch"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FEpicSynth1Patch(out UE.Script.Synthesis.FEpicSynth1Patch item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FEpicSynth1Patch(out UE.Script.Synthesis.FEpicSynth1Patch item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectBitCrusherSettings", 192);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectBitCrusherSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectBitCrusherSettings(out UE.Script.Synthesis.FSourceEffectBitCrusherSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectBitCrusherSettings(out UE.Script.Synthesis.FSourceEffectBitCrusherSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptModelingComponents, __FILE__, __LINE__, "FModelingToolsColorChannelFilter", 4);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ModelingComponents/ModelingToolsColorChannelFilter"));
-			ss.AddNativeCall(nsScriptModelingComponents, ANON::ConstructUERock, &rf, "++FModelingToolsColorChannelFilter(out UE.Script.ModelingComponents.FModelingToolsColorChannelFilter item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptModelingComponents, ANON::DestructUERock, &rf, "--FModelingToolsColorChannelFilter(out UE.Script.ModelingComponents.FModelingToolsColorChannelFilter item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectChorusBaseSettings", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectChorusBaseSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectChorusBaseSettings(out UE.Script.Synthesis.FSourceEffectChorusBaseSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectChorusBaseSettings(out UE.Script.Synthesis.FSourceEffectChorusBaseSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectFoldbackDistortionSettings", 12);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectFoldbackDistortionSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectFoldbackDistortionSettings(out UE.Script.Synthesis.FSourceEffectFoldbackDistortionSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectFoldbackDistortionSettings(out UE.Script.Synthesis.FSourceEffectFoldbackDistortionSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectMidSideSpreaderSettings", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectMidSideSpreaderSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectMidSideSpreaderSettings(out UE.Script.Synthesis.FSourceEffectMidSideSpreaderSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectMidSideSpreaderSettings(out UE.Script.Synthesis.FSourceEffectMidSideSpreaderSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptStaticMeshEditor, __FILE__, __LINE__, "FStaticMeshReductionSettings", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/StaticMeshEditor/StaticMeshReductionSettings"));
-			ss.AddNativeCall(nsScriptStaticMeshEditor, ANON::ConstructUERock, &rf, "++FStaticMeshReductionSettings(out UE.Script.StaticMeshEditor.FStaticMeshReductionSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptStaticMeshEditor, ANON::DestructUERock, &rf, "--FStaticMeshReductionSettings(out UE.Script.StaticMeshEditor.FStaticMeshReductionSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectPannerSettings", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectPannerSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectPannerSettings(out UE.Script.Synthesis.FSourceEffectPannerSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectPannerSettings(out UE.Script.Synthesis.FSourceEffectPannerSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectPhaserSettings", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectPhaserSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectPhaserSettings(out UE.Script.Synthesis.FSourceEffectPhaserSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectPhaserSettings(out UE.Script.Synthesis.FSourceEffectPhaserSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSourceEffectWaveShaperSettings", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SourceEffectWaveShaperSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSourceEffectWaveShaperSettings(out UE.Script.Synthesis.FSourceEffectWaveShaperSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSourceEffectWaveShaperSettings(out UE.Script.Synthesis.FSourceEffectWaveShaperSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectConvolutionReverbSettings", 48);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectConvolutionReverbSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectConvolutionReverbSettings(out UE.Script.Synthesis.FSubmixEffectConvolutionReverbSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectConvolutionReverbSettings(out UE.Script.Synthesis.FSubmixEffectConvolutionReverbSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectFlexiverbSettings", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectFlexiverbSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectFlexiverbSettings(out UE.Script.Synthesis.FSubmixEffectFlexiverbSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectFlexiverbSettings(out UE.Script.Synthesis.FSubmixEffectFlexiverbSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectMultibandCompressorSettings", 56);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectMultibandCompressorSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectMultibandCompressorSettings(out UE.Script.Synthesis.FSubmixEffectMultibandCompressorSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectMultibandCompressorSettings(out UE.Script.Synthesis.FSubmixEffectMultibandCompressorSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectStereoDelaySettings", 36);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectStereoDelaySettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectStereoDelaySettings(out UE.Script.Synthesis.FSubmixEffectStereoDelaySettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectStereoDelaySettings(out UE.Script.Synthesis.FSubmixEffectStereoDelaySettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectStereoToQuadSettings", 8);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectStereoToQuadSettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectStereoToQuadSettings(out UE.Script.Synthesis.FSubmixEffectStereoToQuadSettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectStereoToQuadSettings(out UE.Script.Synthesis.FSubmixEffectStereoToQuadSettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSubmixEffectTapDelaySettings", 24);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SubmixEffectTapDelaySettings"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSubmixEffectTapDelaySettings(out UE.Script.Synthesis.FSubmixEffectTapDelaySettings item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSubmixEffectTapDelaySettings(out UE.Script.Synthesis.FSubmixEffectTapDelaySettings item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSynthKnobStyle", 864);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SynthKnobStyle"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSynthKnobStyle(out UE.Script.Synthesis.FSynthKnobStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSynthKnobStyle(out UE.Script.Synthesis.FSynthKnobStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSynthesis, __FILE__, __LINE__, "FSynthSlateStyle", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/Synthesis/SynthSlateStyle"));
-			ss.AddNativeCall(nsScriptSynthesis, ANON::ConstructUERock, &rf, "++FSynthSlateStyle(out UE.Script.Synthesis.FSynthSlateStyle item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSynthesis, ANON::DestructUERock, &rf, "--FSynthSlateStyle(out UE.Script.Synthesis.FSynthSlateStyle item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptNNEDenoiser, __FILE__, __LINE__, "FNNEDenoiserInputMappingData", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/NNEDenoiser/NNEDenoiserInputMappingData"));
-			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::ConstructUERock, &rf, "++FNNEDenoiserInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserInputMappingData item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::DestructUERock, &rf, "--FNNEDenoiserInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserInputMappingData item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptNNEDenoiser, __FILE__, __LINE__, "FNNEDenoiserTemporalInputMappingData", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/NNEDenoiser/NNEDenoiserTemporalInputMappingData"));
-			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::ConstructUERock, &rf, "++FNNEDenoiserTemporalInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserTemporalInputMappingData item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::DestructUERock, &rf, "--FNNEDenoiserTemporalInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserTemporalInputMappingData item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptInterchangePipelines, __FILE__, __LINE__, "FInterchangeMeshInstance", 128);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangePipelines/InterchangeMeshInstance"));
+			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::ConstructUERock, &rf, "++FInterchangeMeshInstance(out UE.Script.InterchangePipelines.FInterchangeMeshInstance item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptInterchangePipelines, ANON::DestructUERock, &rf, "--FInterchangeMeshInstance(out UE.Script.InterchangePipelines.FInterchangeMeshInstance item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptStaticMeshEditor, __FILE__, __LINE__, "FStaticMeshReductionOptions", 24);
@@ -10509,6 +10497,24 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptEditorScriptingUtilities, ANON::DestructUERock, &rf, "--FEditorScriptingCreateProxyMeshActorOptionsDeprecated(out UE.Script.EditorScriptingUtilities.FEditorScriptingCreateProxyMeshActorOptionsDeprecated item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
+			ss.CreateRockType(nsScriptModelingComponents, __FILE__, __LINE__, "FCreateMaterialObjectParams", 40);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ModelingComponents/CreateMaterialObjectParams"));
+			ss.AddNativeCall(nsScriptModelingComponents, ANON::ConstructUERock, &rf, "++FCreateMaterialObjectParams(out UE.Script.ModelingComponents.FCreateMaterialObjectParams item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptModelingComponents, ANON::DestructUERock, &rf, "--FCreateMaterialObjectParams(out UE.Script.ModelingComponents.FCreateMaterialObjectParams item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptModelingComponents, __FILE__, __LINE__, "FCreateMaterialObjectResult", 16);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ModelingComponents/CreateMaterialObjectResult"));
+			ss.AddNativeCall(nsScriptModelingComponents, ANON::ConstructUERock, &rf, "++FCreateMaterialObjectResult(out UE.Script.ModelingComponents.FCreateMaterialObjectResult item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptModelingComponents, ANON::DestructUERock, &rf, "--FCreateMaterialObjectResult(out UE.Script.ModelingComponents.FCreateMaterialObjectResult item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptSkeletalMeshModifiers, __FILE__, __LINE__, "FOrientOptions", 40);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/SkeletalMeshModifiers/OrientOptions"));
+			ss.AddNativeCall(nsScriptSkeletalMeshModifiers, ANON::ConstructUERock, &rf, "++FOrientOptions(out UE.Script.SkeletalMeshModifiers.FOrientOptions item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptSkeletalMeshModifiers, ANON::DestructUERock, &rf, "--FOrientOptions(out UE.Script.SkeletalMeshModifiers.FOrientOptions item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
 			ss.CreateRockType(nsScriptMetaHumanSDKEditor, __FILE__, __LINE__, "FMetaHumanAggregateDetails", 120);
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/MetaHumanSDKEditor/MetaHumanAggregateDetails"));
 			ss.AddNativeCall(nsScriptMetaHumanSDKEditor, ANON::ConstructUERock, &rf, "++FMetaHumanAggregateDetails(out UE.Script.MetaHumanSDKEditor.FMetaHumanAggregateDetails item)->", __FILE__, __LINE__, false, 0);
@@ -10526,11 +10532,25 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptMetaHumanSDKEditor, ANON::ConstructUERock, &rf, "++FMetaHumanArchiveEntry(out UE.Script.MetaHumanSDKEditor.FMetaHumanArchiveEntry item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptMetaHumanSDKEditor, ANON::DestructUERock, &rf, "--FMetaHumanArchiveEntry(out UE.Script.MetaHumanSDKEditor.FMetaHumanArchiveEntry item)->", __FILE__, __LINE__, false, 0);
 		}
+		auto& nsScriptActorLayerUtilities = ss.AddNativeNamespace("UE.Script.ActorLayerUtilities");
 		{
-			ss.CreateRockType(nsScriptInterchangeTests, __FILE__, __LINE__, "FInterchangeTestScreenshotParameters", 88);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangeTests/InterchangeTestScreenshotParameters"));
-			ss.AddNativeCall(nsScriptInterchangeTests, ANON::ConstructUERock, &rf, "++FInterchangeTestScreenshotParameters(out UE.Script.InterchangeTests.FInterchangeTestScreenshotParameters item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptInterchangeTests, ANON::DestructUERock, &rf, "--FInterchangeTestScreenshotParameters(out UE.Script.InterchangeTests.FInterchangeTestScreenshotParameters item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptActorLayerUtilities, __FILE__, __LINE__, "FActorLayer", 12);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ActorLayerUtilities/ActorLayer"));
+			ss.AddNativeCall(nsScriptActorLayerUtilities, ANON::ConstructUERock, &rf, "++FActorLayer(out UE.Script.ActorLayerUtilities.FActorLayer item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptActorLayerUtilities, ANON::DestructUERock, &rf, "--FActorLayer(out UE.Script.ActorLayerUtilities.FActorLayer item)->", __FILE__, __LINE__, false, 0);
+		}
+		auto& nsScriptAppleImageUtils = ss.AddNativeNamespace("UE.Script.AppleImageUtils");
+		{
+			ss.CreateRockType(nsScriptAppleImageUtils, __FILE__, __LINE__, "FAppleImageUtilsImageConversionResult", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AppleImageUtils/AppleImageUtilsImageConversionResult"));
+			ss.AddNativeCall(nsScriptAppleImageUtils, ANON::ConstructUERock, &rf, "++FAppleImageUtilsImageConversionResult(out UE.Script.AppleImageUtils.FAppleImageUtilsImageConversionResult item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAppleImageUtils, ANON::DestructUERock, &rf, "--FAppleImageUtilsImageConversionResult(out UE.Script.AppleImageUtils.FAppleImageUtilsImageConversionResult item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptAudioCapture, __FILE__, __LINE__, "FAudioInputDeviceInfo", 48);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioCapture/AudioInputDeviceInfo"));
+			ss.AddNativeCall(nsScriptAudioCapture, ANON::ConstructUERock, &rf, "++FAudioInputDeviceInfo(out UE.Script.AudioCapture.FAudioInputDeviceInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptAudioCapture, ANON::DestructUERock, &rf, "--FAudioInputDeviceInfo(out UE.Script.AudioCapture.FAudioInputDeviceInfo item)->", __FILE__, __LINE__, false, 0);
 		}
 		auto& nsScriptControlRigSpline = ss.AddNativeNamespace("UE.Script.ControlRigSpline");
 		{
@@ -10538,24 +10558,6 @@ namespace Rococo::UE::Rocks
 			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ControlRigSpline/ControlRigSpline"));
 			ss.AddNativeCall(nsScriptControlRigSpline, ANON::ConstructUERock, &rf, "++FControlRigSpline(out UE.Script.ControlRigSpline.FControlRigSpline item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptControlRigSpline, ANON::DestructUERock, &rf, "--FControlRigSpline(out UE.Script.ControlRigSpline.FControlRigSpline item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptModelingComponents, __FILE__, __LINE__, "FCreateMaterialObjectParams", 40);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ModelingComponents/CreateMaterialObjectParams"));
-			ss.AddNativeCall(nsScriptModelingComponents, ANON::ConstructUERock, &rf, "++FCreateMaterialObjectParams(out UE.Script.ModelingComponents.FCreateMaterialObjectParams item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptModelingComponents, ANON::DestructUERock, &rf, "--FCreateMaterialObjectParams(out UE.Script.ModelingComponents.FCreateMaterialObjectParams item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptModelingComponents, __FILE__, __LINE__, "FCreateMaterialObjectResult", 16);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ModelingComponents/CreateMaterialObjectResult"));
-			ss.AddNativeCall(nsScriptModelingComponents, ANON::ConstructUERock, &rf, "++FCreateMaterialObjectResult(out UE.Script.ModelingComponents.FCreateMaterialObjectResult item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptModelingComponents, ANON::DestructUERock, &rf, "--FCreateMaterialObjectResult(out UE.Script.ModelingComponents.FCreateMaterialObjectResult item)->", __FILE__, __LINE__, false, 0);
-		}
-		{
-			ss.CreateRockType(nsScriptSkeletalMeshModifiers, __FILE__, __LINE__, "FOrientOptions", 40);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/SkeletalMeshModifiers/OrientOptions"));
-			ss.AddNativeCall(nsScriptSkeletalMeshModifiers, ANON::ConstructUERock, &rf, "++FOrientOptions(out UE.Script.SkeletalMeshModifiers.FOrientOptions item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptSkeletalMeshModifiers, ANON::DestructUERock, &rf, "--FOrientOptions(out UE.Script.SkeletalMeshModifiers.FOrientOptions item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
 			ss.CreateRockType(nsScriptControlRigEditor, __FILE__, __LINE__, "FMultiControlRigElementSelection", 32);
@@ -10678,25 +10680,23 @@ namespace Rococo::UE::Rocks
 			ss.AddNativeCall(nsScriptMediaPlate, ANON::ConstructUERock, &rf, "++FMediaPlateResource(out UE.Script.MediaPlate.FMediaPlateResource item)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(nsScriptMediaPlate, ANON::DestructUERock, &rf, "--FMediaPlateResource(out UE.Script.MediaPlate.FMediaPlateResource item)->", __FILE__, __LINE__, false, 0);
 		}
-		auto& nsScriptActorLayerUtilities = ss.AddNativeNamespace("UE.Script.ActorLayerUtilities");
 		{
-			ss.CreateRockType(nsScriptActorLayerUtilities, __FILE__, __LINE__, "FActorLayer", 12);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/ActorLayerUtilities/ActorLayer"));
-			ss.AddNativeCall(nsScriptActorLayerUtilities, ANON::ConstructUERock, &rf, "++FActorLayer(out UE.Script.ActorLayerUtilities.FActorLayer item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptActorLayerUtilities, ANON::DestructUERock, &rf, "--FActorLayer(out UE.Script.ActorLayerUtilities.FActorLayer item)->", __FILE__, __LINE__, false, 0);
-		}
-		auto& nsScriptAppleImageUtils = ss.AddNativeNamespace("UE.Script.AppleImageUtils");
-		{
-			ss.CreateRockType(nsScriptAppleImageUtils, __FILE__, __LINE__, "FAppleImageUtilsImageConversionResult", 32);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AppleImageUtils/AppleImageUtilsImageConversionResult"));
-			ss.AddNativeCall(nsScriptAppleImageUtils, ANON::ConstructUERock, &rf, "++FAppleImageUtilsImageConversionResult(out UE.Script.AppleImageUtils.FAppleImageUtilsImageConversionResult item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAppleImageUtils, ANON::DestructUERock, &rf, "--FAppleImageUtilsImageConversionResult(out UE.Script.AppleImageUtils.FAppleImageUtilsImageConversionResult item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptNNEDenoiser, __FILE__, __LINE__, "FNNEDenoiserInputMappingData", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/NNEDenoiser/NNEDenoiserInputMappingData"));
+			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::ConstructUERock, &rf, "++FNNEDenoiserInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserInputMappingData item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::DestructUERock, &rf, "--FNNEDenoiserInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserInputMappingData item)->", __FILE__, __LINE__, false, 0);
 		}
 		{
-			ss.CreateRockType(nsScriptAudioCapture, __FILE__, __LINE__, "FAudioInputDeviceInfo", 48);
-			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/AudioCapture/AudioInputDeviceInfo"));
-			ss.AddNativeCall(nsScriptAudioCapture, ANON::ConstructUERock, &rf, "++FAudioInputDeviceInfo(out UE.Script.AudioCapture.FAudioInputDeviceInfo item)->", __FILE__, __LINE__, false, 0);
-			ss.AddNativeCall(nsScriptAudioCapture, ANON::DestructUERock, &rf, "--FAudioInputDeviceInfo(out UE.Script.AudioCapture.FAudioInputDeviceInfo item)->", __FILE__, __LINE__, false, 0);
+			ss.CreateRockType(nsScriptNNEDenoiser, __FILE__, __LINE__, "FNNEDenoiserTemporalInputMappingData", 32);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/NNEDenoiser/NNEDenoiserTemporalInputMappingData"));
+			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::ConstructUERock, &rf, "++FNNEDenoiserTemporalInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserTemporalInputMappingData item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptNNEDenoiser, ANON::DestructUERock, &rf, "--FNNEDenoiserTemporalInputMappingData(out UE.Script.NNEDenoiser.FNNEDenoiserTemporalInputMappingData item)->", __FILE__, __LINE__, false, 0);
+		}
+		{
+			ss.CreateRockType(nsScriptInterchangeTests, __FILE__, __LINE__, "FInterchangeTestScreenshotParameters", 88);
+			IRockFactory& rf = factories.BindRockFactory(TEXT("/Script/InterchangeTests/InterchangeTestScreenshotParameters"));
+			ss.AddNativeCall(nsScriptInterchangeTests, ANON::ConstructUERock, &rf, "++FInterchangeTestScreenshotParameters(out UE.Script.InterchangeTests.FInterchangeTestScreenshotParameters item)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsScriptInterchangeTests, ANON::DestructUERock, &rf, "--FInterchangeTestScreenshotParameters(out UE.Script.InterchangeTests.FInterchangeTestScreenshotParameters item)->", __FILE__, __LINE__, false, 0);
 		}
 		auto& nsScriptSVGDistanceField = ss.AddNativeNamespace("UE.Script.SVGDistanceField");
 		{

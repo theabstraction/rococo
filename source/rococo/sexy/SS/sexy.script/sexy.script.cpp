@@ -1255,6 +1255,7 @@ namespace Rococo::Script
 
 		CScriptSystemClass* reflectionRoot;
 
+		ReflectionCallbacks reflectionCallbacks;
 		ArrayCallbacks arrayCallbacks;
 		ListCallbacks listCallbacks;
 		MapCallbacks mapCallbacks;
@@ -1416,6 +1417,7 @@ namespace Rococo::Script
 
 			jitId = core.RegisterCallback(Compile_JIT, this, "Compile_JIT");
 
+			RegisterReflectionCallbacks(reflectionCallbacks, core, *this);
 			RegisterArrays(arrayCallbacks, core, *this);
 			RegisterLists(listCallbacks, core, *this);
 			RegisterMaps(mapCallbacks, core, *this);
@@ -1850,6 +1852,11 @@ namespace Rococo::Script
 		ID_API_CALLBACK JITCallbackId() const
 		{
 			return jitId;
+		}
+
+		const ReflectionCallbacks& GetReflectionCallbacks() const
+		{
+			return reflectionCallbacks;
 		}
 
 		const ArrayCallbacks& GetArrayCallbacks() const
@@ -3115,6 +3122,12 @@ namespace Rococo::Script
 	IProgramObject& GetProgramObject(CScript& script)
 	{
 		return script.Object();
+	}
+
+	const ReflectionCallbacks& GetReflectionCallbacks(CCompileEnvironment& ce)
+	{
+		CScriptSystem& css = (CScriptSystem&)GetSystem(ce.Script);
+		return css.GetReflectionCallbacks();
 	}
 
 	const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce)

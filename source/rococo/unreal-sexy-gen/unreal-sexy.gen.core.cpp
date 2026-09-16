@@ -535,7 +535,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		sb << ";\n";
 	}
 
-	int nomansland = 16 - (nextOffset + lastSize) % 8;
+	int nomansland = 8 - (nextOffset + lastSize) % 8;
 
 	sb.AppendFormat("\t\t\tchar ma_no_mans_land[%d];\n", nomansland);
 

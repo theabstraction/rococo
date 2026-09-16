@@ -91,6 +91,11 @@ namespace Rococo::Script
 		callbacks.idJumpFromProxyToMethod = core.RegisterCallback(OnInvokeJumpFromProxyToMethod, &ss, "JumpFromProxyToMethod");
 	}
 
+	void RegisterReflectionCallbacks(ReflectionCallbacks& callbacks, VM::ICore& core, IScriptSystem& ss)
+	{
+		callbacks.ArchetypeGetName = core.RegisterCallback(OnInvokeArchetypeGetName, &ss, "ArchetypeGetName");
+	}
+
 	void DefineSysNative(const INamespace& sysNative, IScriptSystem& ss, IStringPool* stringPool, TMemoAllocator& memoAllocator)
 	{
 		ss.AddNativeCall(sysNative, ::AlignedMalloc, &ss, "AlignedMalloc (Int32 capacity) (Int32 alignment)-> (Pointer data)", __FILE__, __LINE__, false, 0);

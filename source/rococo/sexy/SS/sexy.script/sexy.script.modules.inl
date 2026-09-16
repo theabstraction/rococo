@@ -1497,7 +1497,7 @@ namespace Rococo::Script
 		CodeSection section;
 		f.Builder().GetCodeSection(OUT section);
 
-		auto proxyId = f.Object().ProgramMemory().AddBytecode();
+		auto proxyId = f.Object().ProgramMemory().AddBytecode(f.Name());
 		f.SetProxy(proxyId);
 
 		auto& a = f.Builder().Assembler();
@@ -1671,6 +1671,27 @@ namespace Rococo::Script
 
 #define VALIDATE_ARG
 #define ALLOW_REWRITE_VTABLES // This should increase vcall speed by about 2.5x, or from 40M to 100M virtual calls per second on an i7-11700 @ 2.50GHz
+
+	VM_CALLBACK(ArchetypeGetName)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+
+		struct Archetype
+		{
+			ID_BYTECODE byteCodeId;
+			void* sf;
+		};
+
+		Archetype* archetype = reinterpret_cast<Archetype*>(registers[REGISTER_D4].vPtrValue);
+
+		fstring fName = ss.ProgramObject().ProgramMemory().GetFunctionNameById(archetype->byteCodeId);
+
+		CStringConstant* sc = ss.ReflectImmutableStringPointer(fName.buffer, fName.length);
+
+		VariantValue v;
+		v.sizetValue = (size_t)sc->header.AddressOfVTable0();
+		registers[REGISTER_D7] = v;
+	}
 
 	VM_CALLBACK(JumpFromProxyToMethod)
 	{

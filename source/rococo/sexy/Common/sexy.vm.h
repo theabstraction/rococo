@@ -272,9 +272,11 @@ namespace Rococo { namespace VM
 		virtual const uint8* StartOfMemory() const = 0;
 		virtual const uint8* EndOfMemory() const = 0;
 
-		virtual ID_BYTECODE AddBytecode() = 0;
+		// AddBytecode requires and assumes that [name] is valid for the lifetime of the script execution
+		virtual ID_BYTECODE AddBytecode(cstr name) = 0;
 		virtual void UnloadBytecode(ID_BYTECODE id) = 0;
 		virtual bool UpdateBytecode(ID_BYTECODE id, const IAssembler& assember) = 0;
+		virtual fstring GetFunctionNameById(ID_BYTECODE functionId) const = 0;
 		virtual size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const = 0;
 
 		inline size_t GetFunctionAddress(ID_BYTECODE id) const

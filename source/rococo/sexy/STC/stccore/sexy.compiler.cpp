@@ -78,7 +78,7 @@ namespace Anon
 		a.Append_CallByRegister(VM::REGISTER_D5);
 		a.Append_Exit(VM::REGISTER_D4);
 
-		ID_BYTECODE stubId = program.AddBytecode();
+		ID_BYTECODE stubId = program.AddBytecode("_EntryPointStub");
 		program.UpdateBytecode(stubId, a);
 		a.Clear();
 		return stubId;
