@@ -741,9 +741,15 @@ namespace Anon
 		CodeOffsets offsets;
 		sexstring_header header;
 
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
+
 		AtomicExpression(ptrdiff_t startOffset, ptrdiff_t endOffset) :
 			offsets{ (int32)startOffset, (int32)endOffset }
 		{
+
 		}
 
 		void Free() override
@@ -868,6 +874,11 @@ namespace Anon
 		CodeOffsets offsets;
 		sexstring_header header;
 
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
+
 		LiteralExpression(ptrdiff_t startOffset, ptrdiff_t endOffset) : offsets { (int32)startOffset, (int32)endOffset }
 		{
 		}
@@ -984,6 +995,11 @@ namespace Anon
 		LinkOrArray children;
 		int32 numberOfChildren = 0;
 		ISExpressionLinkBuilder* lastChild = nullptr;
+
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
 
 		void Free() override
 		{
@@ -1153,6 +1169,11 @@ namespace Anon
 		CodeOffsets offsets;
 		LinkOrArray children;
 		int32 numberOfChildren;
+
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
 
 		void Free() override
 		{

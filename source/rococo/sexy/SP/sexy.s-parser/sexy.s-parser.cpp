@@ -264,8 +264,10 @@ namespace Rococo
 
 			std::vector<const ISExpression*> children;
 
+			int transformationDepth;
+
 			ExpressionProxy(cr_sex _inner, IAllocator& _allocator, int _numberOfElements) :
-				allocator(_allocator), inner(_inner), numberOfElements(_numberOfElements)
+				allocator(_allocator), inner(_inner), numberOfElements(_numberOfElements), transformationDepth(_inner.TransformationDepth() + 1)
 			{
 				children.resize(numberOfElements);
 			}
@@ -274,6 +276,11 @@ namespace Rococo
 			{
 				this->~ExpressionProxy();
 				allocator.FreeData(this);
+			}
+
+			int TransformationDepth() const override
+			{
+				return transformationDepth;
 			}
 
 			cr_sex Outer() override

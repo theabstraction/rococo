@@ -1066,7 +1066,10 @@ namespace Rococo::Script
 		for(int i = start; i <= end; i++)
 		{
 			cr_sex s = sequence.GetElement(i);
-			CompileExpression(ce, s); 
+
+			auto* sTransform = ce.SS.GetTransform(s);
+			sTransform = sTransform ? sTransform : &s;
+			CompileExpression(ce, *sTransform);
 		}
 
 		AppendDeconstruct(ce, sequence, true);
@@ -3142,18 +3145,56 @@ namespace Rococo::Script
 	   return false;
    }
 
-   void CompileMacrosRecursive(CScript& script, cr_sex sParent)
+   const ISExpression& GetCurrentTransform(IScriptSystem& ss, cr_sex src)
    {
-	   for (int i = 0; i < sParent.NumberOfElements(); i++)
+	   const ISExpression* result = &src;
+
+	   for (;;)
 	   {
-		   auto& s = sParent[i];
-		   if (IsMacroInvocation(s))
+		   const ISExpression* transform = ss.GetTransform(*result);
+		   if (transform)
 		   {
-			   script.Invoke_S_Macro(s);
+			   result = transform;
 		   }
 		   else
 		   {
-			   CompileMacrosRecursive(script, s);
+			   return *result;
+		   }
+	   }
+   }
+
+   void CompileMacrosRecursive(CScript& script, cr_sex sAnyParent, int depth)
+   {
+	   enum { MAX_DEPTH = 255 };
+
+	   if (depth >= MAX_DEPTH)
+	   {
+		   Throw(sAnyParent, "CompileMacrosRecursive failed, maximum expansion depth reached: %d", depth);
+	   }
+
+	   auto& ss = script.System();
+
+	   cr_sex sParent = GetCurrentTransform(ss, sAnyParent);
+
+	   for (int i = 0; i < sParent.NumberOfElements(); i++)
+	   {
+		   auto& sChild = GetCurrentTransform(ss, sParent[i]);
+
+		   if (IsMacroInvocation(sChild))
+		   {
+			   script.Invoke_S_Macro(sChild);
+
+			   // The macro created a new parent to replace the old, so we need to recurse through that to expand other macros
+			   auto* sTransformedParent = ss.GetTransform(sParent);
+			   if (sTransformedParent)
+			   {
+				   CompileMacrosRecursive(script, *sTransformedParent, depth + 1);
+				   return;
+			   }
+		   }
+		   else
+		   {
+			   CompileMacrosRecursive(script, sChild, depth + 1);
 		   }
 	   }
    }
@@ -3161,7 +3202,8 @@ namespace Rococo::Script
    void CScript::CompileTopLevelMacrosForModule()
    {
 	   cr_sex root = tree.Root();
-	   CompileMacrosRecursive(*this, root);
+	   int depth = 0;
+	   CompileMacrosRecursive(*this, root, depth);
    }
 
    void  CScript::CompileNextClosures()
@@ -4589,12 +4631,7 @@ namespace Rococo::Script
 		return tree.Root();
 	}
 
-	cr_sex CScript::GetActiveExpression(cr_sex s)
-	{
-		return s;
-	}
-
-		void CScript::ComputeStructureNames()
+	void CScript::ComputeStructureNames()
 	{
 		localStructures.clear();
 
@@ -4602,7 +4639,7 @@ namespace Rococo::Script
 
 		for(int i = 0; i < root.NumberOfElements(); i++)
 		{
-			cr_sex topLevelItem = GetActiveExpression(root[i]);
+			cr_sex topLevelItem = root[i];
 			AssertNotTooFewElements(topLevelItem, 1);
 			cr_sex elementNameExpr = GetAtomicArg(topLevelItem, 0);
 			sexstring elementName = elementNameExpr.String();

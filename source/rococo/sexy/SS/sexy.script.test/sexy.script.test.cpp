@@ -233,19 +233,30 @@ namespace
 
 	void PrintParseException(const ParseException& e)
 	{
-		WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: line %d pos %d to line %d pos %d\r\nReason: %s\r\n", e.Name(), e.Start().y, e.Start().x, e.End().y, e.End().x, e.Message());
+		WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: line %d pos %d to line %d pos %d", e.Name(), e.Start().y, e.Start().x, e.End().y, e.End().x);
 
-		int depth = 0;
-		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
+		if (e.Source())
 		{
-			if (depth++ > 0)  WriteToStandardOutput("Macro expansion %d:\r\n", depth);
+			WriteToStandardOutput(" depth %d\r\n", e.Source()->TransformationDepth());
+		}
 
-			int totalOutput = 0;
-			PrintExpression(*s, totalOutput, 1024);
+		WriteToStandardOutput("\r\nReason: % s\r\n", e.Message());
+		
+		if (e.Source())
+		{
+			WriteToStandardOutput("\n\nTransformationDepth: %d\r\n", e.Source()->TransformationDepth());
+			int depth = 0;
+			for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
+			{
+				if (depth++ > 0)  WriteToStandardOutput("Macro expansion %d:\r\n", depth);
 
-			if (totalOutput > 1024) WriteToStandardOutput("...");
+				int totalOutput = 0;
+				PrintExpression(*s, totalOutput, 1024);
 
-			WriteToStandardOutput("\r\n");
+				if (totalOutput > 1024) WriteToStandardOutput("...");
+
+				WriteToStandardOutput("\r\n");
+			}
 		}
 	}
 
@@ -4465,6 +4476,100 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 27);
+	}
+
+	void TestStringAndBuild(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+		(namespace TestApp)
+
+		(using Sys.Type)
+
+		(namespace EntryPoint)
+		(function Main -> (Int32 result):
+			(#string sb 256 "Hello ")
+			(#build sb "World") 
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
+	void TestThrowInCatch(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+R"(
+		(namespace TestApp)
+
+		(using Sys.Type)
+
+		(archetype TestApp.VoidFunction -> )
+
+		(function RunTest(TestApp.VoidFunction f) -> :
+			(IString functionName = f.Name)
+
+			(
+				try
+				(
+					(f)
+				)
+				catch e
+				(
+					(#string msg 256 functionName " threw an exception:" e.Message)
+					(Sys.Throw e.ErrorCode msg)
+				)
+			)
+
+			(#string msg 256 functionName " succeeded&n")
+			(Sys.Print msg)
+		)
+
+		(function AssertMatchInt32(IString msg)(Int32 a)(Int32 b)-> :
+			(if (a == b) (return))
+			//(IStringBuilder errMsg = (Sys.Type.NewParagraphBuilder))
+			//(#build errMsg a b) 
+			(#string errMsg 256 msg)
+			(errMsg.SetFormat 4 4 false false)
+			(#build errMsg a b) // ": (" a " != " b ") ")
+		//	(Sys.Throw 0 errMsg)
+		)
+
+		(function Test -> :
+			(AssertMatchInt32 "Return result" 1 2)
+		)
+
+		(namespace EntryPoint)
+		(function Main -> (Int32 result):
+			(RunTest Test)
+			(IStringBuilder sb = (Sys.Type.NewParagraphBuilder))
+			(#build sb "World") 
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
 	}
 
 	void TestDeepCatch(IPublicScriptSystem& ss)
@@ -18505,6 +18610,8 @@ R"(
 
 		TEST(TestClassExtendsInterface);
 
+		TEST(TestStringAndBuild);
+
 		TEST(TestMultipleDerivation2);
 		TEST(TestMultipleDerivation);
 
@@ -18696,7 +18803,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-
+		
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
@@ -18704,7 +18811,7 @@ R"(
 		TestLists();
 		TestLists();
 		TestMaps();
-	
+
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

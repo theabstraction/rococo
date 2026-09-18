@@ -322,7 +322,6 @@ namespace Rococo
             void AddNodeDef(Compiler::ICodeBuilder& builder, cstr nodeName, const Compiler::IStructure& elementType, Sex::cr_sex s);
             void AddRockToLocalStructures(Sex::cr_sex sRockDirective);
             Sex::cr_sex GetActiveRoot();
-            Sex::cr_sex GetActiveExpression(Sex::cr_sex s);
             void Invoke_S_Macro(Sex::cr_sex sDirective);
             void CompileTopLevelMacrosForModule();
 
@@ -467,7 +466,6 @@ namespace Rococo
         bool TryCompileArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool expected, SexyVarType type);
 
         void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, Compiler::IFunction& callee, SexyVarType returnType, const Compiler::IArchetype* returnArchetype, const Compiler::IStructure* returnTypeStruct);
-        bool TryCompileMacroInvocation(CCompileEnvironment& ce, Sex::cr_sex s, sexstring token);
         Compiler::IProgramObject& GetProgramObject(CScript& script);
         void CompileJITStub(Compiler::IFunctionBuilder& f, Sex::cr_sex fdef, CScript& script, IScriptSystem& ss);
         void CompileJITStub(Compiler::IFactoryBuilder* f, Sex::cr_sex fdef, CScript& script, IScriptSystem& ss);

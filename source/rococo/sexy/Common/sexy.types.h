@@ -274,6 +274,8 @@ namespace Rococo
 			virtual bool operator == (const char* token) const = 0;
 			virtual void Free() = 0;
 
+			virtual int TransformationDepth() const = 0;
+
 			// Tell's the child to notify the parent that it has been transformed, and returns the transform expression. This is used by S-macros.
 			virtual IExpressionTransform& TransformThis() const = 0;
 

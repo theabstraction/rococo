@@ -3634,65 +3634,6 @@ namespace Rococo
 			return false;
 		}
 
-		bool TryCompileMacroInvocation(CCompileEnvironment& ce, cr_sex s, sexstring token)
-		{
-			if (token->Buffer[0] != '#')
-			{
-				return false;
-			}
-
-			cstr macroName = token->Buffer+1;
-
-			NamespaceSplitter splitter(macroName);	
-
-			const IFunction *f;
-
-			cstr nsBody, fname;
-			if (splitter.SplitTail(OUT nsBody, OUT fname))
-			{
-				INamespace& ns = AssertGetNamespace(ce.Builder.Module().Object(), s, nsBody);
-
-				const IMacro* macro = ns.FindMacro(fname);
-				if (macro == NULL) Throw(s, "Could not find macro %s in namespace %s. The macro was used in function %s defined in %s. Try using a fully qualified name.", macroName, nsBody, ce.Builder.Owner().Name(), ce.Builder.Module().Name());
-				f = &macro->Implementation();
-			}
-			else
-			{
-				f = ce.Builder.Module().FindFunction(macroName);
-				if (f == NULL)
-				{
-					INamespace* firstPrefix = NULL;
-
-					for(int i = 0; i < ce.Builder.Module().PrefixCount(); ++i)
-					{
-						INamespace& prefix = ce.Builder.Module().GetPrefix(i);
-						const IMacro* macro = prefix.FindMacro(macroName);
-						if (macro != NULL)
-						{
-							if (f == NULL)
-							{
-								f = &macro->Implementation();
-								firstPrefix = &prefix;
-							}
-							else
-							{
-								ThrowNamespaceConflict(s, *firstPrefix, prefix, ("macro"), macroName);
-							}
-						}
-					}
-				}
-
-				if (f == NULL)
-				{
-					Throw(s, "Could not find macro %s used in function %s defined in %s. Try using a fully qualified name.", macroName, ce.Builder.Owner().Name(), ce.Builder.Module().Name());
-				}
-			}
-
-			CallMacro(ce.SS, *f, s);
-
-			return true;
-		}
-
 		void CompileCommand(CCompileEnvironment& ce, cr_sex s, sexstring token)
 		{
 			if (token->Buffer[0] == ('\''))

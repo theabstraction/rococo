@@ -54,6 +54,13 @@ namespace ANON
 		ExpressionBuilder* parent;
 		mutable sexstring_header text;
 
+		int transformationDepth;
+
+		int TransformationDepth() const override
+		{
+			return transformationDepth;
+		}
+
 		void Free() override
 		{
 			Throw(0, "LeafExpressions should be deleted by their parent.");
@@ -141,9 +148,11 @@ namespace ANON
 		TSexyVector<ChildElement> children;
 		ExpressionBuilder* parent;
 
-		ExpressionBuilder(ExpressionBuilder* _parent): parent(_parent)
-		{
+		int transformationDepth;
 
+		ExpressionBuilder(ExpressionBuilder* _parent, int transformationDepth): parent(_parent)
+		{
+			this->transformationDepth = transformationDepth;
 		}
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
@@ -171,6 +180,11 @@ namespace ANON
 					}
 				}
 			}
+		}
+
+		int TransformationDepth() const override
+		{
+			return transformationDepth;
 		}
 
 		const Vec2i Start() const override
@@ -244,7 +258,7 @@ namespace ANON
 
 		ISExpressionBuilder* AddChild() override
 		{
-			auto* eb = new ExpressionBuilder(this);
+			auto* eb = new ExpressionBuilder(this, transformationDepth);
 			eb->parent = this;
 			children.push_back({ eb, false });
 			return eb;
@@ -274,7 +288,7 @@ namespace ANON
 				std::advance(i, index + 1);
 			}
 
-			auto* eb = new ExpressionBuilder(this);
+			auto* eb = new ExpressionBuilder(this, transformationDepth);
 			eb->parent = this;
 
 			children.insert(i, { eb, false });
@@ -287,6 +301,7 @@ namespace ANON
 			size_t len = strlen(text);
 			char* buffer = (char*) Rococo::Memory::AllocateSexyMemory(sizeof(Leaf) + strlen(text) + ((8 - (len % 0x7LL)) % 0x7LL));
 			auto* leaf = new (buffer) Leaf();
+			leaf->transformationDepth = transformationDepth;
 			leaf->parent = this;
 			leaf->text.Length = (int32)len;
 			memcpy(leaf->text.Buffer, text, len);
@@ -332,7 +347,7 @@ namespace ANON
 		char name[64];
 		cr_sex original;
 
-		RootExpression(cr_sex _original): ExpressionBuilder(nullptr), original(_original)
+		RootExpression(cr_sex _original): ExpressionBuilder(nullptr, _original.TransformationDepth() + 1), original(_original)
 		{
 			SafeFormat(name, sizeof(name), "['] %s", _original.Tree().Source().Name());
 		}
