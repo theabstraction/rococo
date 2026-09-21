@@ -945,3 +945,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return (const ID_BYTECODE*)virtualTables[interfaceIndex];
 	}
 }}} //Rococo::Compiler::Impl
+
+namespace Rococo::Compiler
+{
+	bool TryResolveStruct(ILog& log, IStructureBuilder& s, bool reportErrors, const void** pErrSrc)
+	{
+		return Impl::TryResolve(log, static_cast<Impl::Structure&>(s), reportErrors, pErrSrc);
+	}
+}

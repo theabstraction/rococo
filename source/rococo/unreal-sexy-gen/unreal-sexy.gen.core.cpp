@@ -2251,6 +2251,7 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t\tIRockFactory& rf = factories.BindRockFactory(TEXT(\"" << structure.Package() << "/" << structure.TypeName() << "\"));\n";
 			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++F" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
 			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--F" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DuplicateUERock, &rf, \"->F" << structure.SXYTypeName() << "(const " << fqName << " src" << ") (out " << fqName << " dest)->\", __FILE__, __LINE__, false, 0);\n";
 			sb << "\t\t}\n";
 		}
 
@@ -2291,11 +2292,21 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t\tReadInput(0, OUT rock, e);\n";
 			sb << "\t\t\tauto* rf = reinterpret_cast<IRockFactory*>(e.context);\n";
 			sb << "\t\t\trf->Destruct(rock);\n";
-			sb << "\t\t}\n";
-		
+			sb << "\t\t}\n\n";
+
+			sb << "\t\tvoid DuplicateUERock(NativeCallEnvironment &e)\n";
+			sb << "\t\t{\n";
+			sb << "\t\t\tconst void* rockSrc;\n";
+			sb << "\t\t\tReadInput(0, OUT rockSrc, e);\n";
+
+			sb << "\t\t\tvoid* rockDest;\n";
+			sb << "\t\t\tReadInput(0, OUT rockDest, e);\n";
+
+			sb << "\t\t\tauto* rf = reinterpret_cast<IRockFactory*>(e.context);\n";
+			sb << "\t\t\trf->Copy(rockSrc, rockDest);\n";
+			sb << "\t\t}\n";		
 			sb << "\t}\n";
 			sb << "\n";
-
 			sb << "\tSEXY_MARSHALLING_API void RegisterRocks(Rococo::Script::IPublicScriptSystem& ss, IRockFactories& factories)\n";
 			sb << "\t{\n";
 

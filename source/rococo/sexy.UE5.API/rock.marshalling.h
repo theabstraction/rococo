@@ -16,6 +16,7 @@ namespace Rococo::UE::Rocks
 		virtual void Prep() = 0;
 		virtual void Construct(void* pInstance) = 0;
 		virtual void Destruct(void* pInstance) = 0;
+		virtual void Copy(const void* src, void* dest) = 0;
 	};
 
 	ROCOCO_INTERFACE IRockFactories

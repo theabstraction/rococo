@@ -1105,6 +1105,12 @@ namespace Rococo::Script
 			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
 			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
 
+			const void* errSrc;
+			if (!Rococo::Compiler::TryResolveStruct(progObjProxy->Log(), s, true, &errSrc))
+			{
+				Throw(*reinterpret_cast<const ISExpression*>(errSrc), "Error resolving rock %s. Check logs", typeName);
+			}
+
 			auto* currentAlias = nb.FindStructure(typeName);
 			if (currentAlias == nullptr)
 			{

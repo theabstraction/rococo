@@ -6,7 +6,7 @@ set studio_bin=%~dp0..\..\SexyStudioBin\sexystudio.dll
 set content=%~dp0..\..\content
 set sexy_studio_textures=%content%\textures\sexy-studio
 for %%i in ("%studio_bin%") do SET "studio_bin_short=%%~fi"
-
+@echo on
 if exist "%notepad_dir%" (
 	if exist "%notepad_dir%\sexystudio.4.npp.dll" del "%notepad_dir%\sexystudio.4.npp.dll"
 ) else (
