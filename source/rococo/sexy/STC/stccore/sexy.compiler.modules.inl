@@ -168,12 +168,18 @@ namespace Rococo { namespace Compiler { namespace Impl
 			Anon::Function* f = (Anon::Function*) functions.Get(prototype.Name);
 			if (f != NULL)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Function %s already defined in %s"), prototype.Name, name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Function %s already defined in %s", prototype.Name, name.c_str());
 			}
 
 			f = new Anon::Function(prototype, *this, NULL, false, definition, popBytes);
 
 			functions.Register(f->Name(), *f);
+
+			if (strstr(prototype.Name, "_->"))
+			{
+				// We are proxying some kind of native assignment, this needs a unique registration
+				object.RegisterNativeStructFunction(f);
+			}
 
 			return *f;
 		}

@@ -425,6 +425,7 @@ namespace Rococo {
 
 			virtual [[nodiscard]] const ID_BYTECODE* GetVirtualTable(int interfaceIndex) const = 0;
 			virtual [[nodiscard]] ID_BYTECODE GetDestructorId() const = 0;
+			virtual [[nodiscard]] ID_BYTECODE AssignmentFunction() const = 0;
 			virtual [[nodiscard]] const Sex::ISExpression* Definition() const = 0;
 			virtual [[nodiscard]] const IFunction* Constructor() const = 0;
 

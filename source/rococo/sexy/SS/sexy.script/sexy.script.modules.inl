@@ -1594,7 +1594,7 @@ namespace Rococo::Script
 		builder.Assembler().Clear();
 	}
 
-	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype);
+	IFunctionBuilder& DeclareFunctionForScript(CScript& script, cr_sex source, FunctionPrototype& prototype);
 
 	void CompileNullMethod_Throws(IScriptSystem& ss, const IObjectInterface& interface, IFunctionBuilder& f)
 	{
@@ -2031,7 +2031,7 @@ namespace Rococo::Script
 		StringPrint(qualifiedMethodName, ("%s.%s"), nullObject.Name(), nullMethod.Name());
 
 		FunctionPrototype fp(qualifiedMethodName, true);
-		IFunctionBuilder& f = Rococo::Script::DeclareFunction(nullObject.Module(), source, fp);
+		IFunctionBuilder& f = Rococo::Script::DeclareFunctionForModule(nullObject.Module(), source, fp);
 
 		for (int i = 0; i < nullMethod.NumberOfOutputs(); ++i)
 		{
@@ -2791,7 +2791,7 @@ namespace Rococo::Script
 		cr_sex source = *(const Sex::ISExpression*) archetype.Definition();
 
       FunctionPrototype fp(nullFunctionName, true);
-      IFunctionBuilder& f = Rococo::Script::DeclareFunction(module, source, fp);
+      IFunctionBuilder& f = Rococo::Script::DeclareFunctionForModule(module, source, fp);
 
 		scripts.nullArchetypeFunctions.insert(std::make_pair(&archetype, &f));
 
@@ -4770,7 +4770,7 @@ namespace Rococo::Script
 
 				FunctionPrototype prototype(functionName.c_str(), isMethod);
 				
-				IFunctionBuilder& f = DeclareFunction(*this, topLevelItem, prototype);			
+				IFunctionBuilder& f = DeclareFunctionForScript(*this, topLevelItem, prototype);
 
 				CBindFnDefToExpression binding;
 				binding.Fn = &f;
@@ -4819,7 +4819,7 @@ namespace Rococo::Script
 		}
 	}
 
-	IFunctionBuilder& DeclareFunction(IModuleBuilder& module, cr_sex source, FunctionPrototype& prototype)
+	IFunctionBuilder& DeclareFunctionForModule(IModuleBuilder& module, cr_sex source, FunctionPrototype& prototype)
 	{
 		try
 		{
@@ -4832,9 +4832,9 @@ namespace Rococo::Script
 		}		
 	}
 
-	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype)
+	IFunctionBuilder& DeclareFunctionForScript(CScript& script, cr_sex source, FunctionPrototype& prototype)
 	{
-		return DeclareFunction(script.ProgramModule(), source, prototype);
+		return DeclareFunctionForModule(script.ProgramModule(), source, prototype);
 	}
 
 	IScriptSystem& GetSystem(CScripts& scripts)

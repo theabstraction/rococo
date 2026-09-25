@@ -328,6 +328,7 @@ namespace Anon
 
 		DefaultScriptObjectAllocator defaultAllocator;
 		TSexyHashMap<const IStructure*, AllocatorBinding*> allocators;
+		TSexyStringMap<IFunction*> globalNativeMap; // Used where native functions need some global registration, such as native struct assignments
 
 		CallbackIds callbackIds;
 	public:
@@ -381,6 +382,9 @@ namespace Anon
 			ObjectStub* object = (ObjectStub*)pData;
 			DecObjRefCount(object, *this);
 		}
+
+		void ProgramObject::RegisterNativeStructFunction(IFunction* f) override;
+		const IFunction* ProgramObject::FindNative(cstr functionName) const override;
 
 		EWarningLevel warningLevel = EWarningLevel::Always;
 
@@ -666,6 +670,35 @@ namespace Anon
 		svmCore->Free();
 
 		if (common) delete common;
+	}
+
+	void ProgramObject::RegisterNativeStructFunction(IFunction* f)
+	{
+		cstr shortName = strstr(f->Name(), "_->");
+		if (shortName == nullptr)
+		{
+			Throw(0, "Compiler error: Do not know how to handle %s", f->Name());
+		}
+
+		auto i = globalNativeMap.insert(shortName + 1, f);
+		if (!i.second)
+		{
+			if (f != i.first->second)
+			{
+				Throw(0, "Error, duplicate native registration of %s in %s and %s", shortName + 1, f->Module().Name(), i.first->second->Module().Name());
+			}
+		}
+	}
+
+	const IFunction* ProgramObject::FindNative(cstr functionName) const
+	{
+		auto i = globalNativeMap.find(functionName);
+		if (i == globalNativeMap.end())
+		{
+			return nullptr;
+		}
+
+		return i->second;
 	}
 
 	void ProgramObject::Free()

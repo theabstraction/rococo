@@ -432,7 +432,7 @@ namespace Rococo
         SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, int tempdepth);
         void AssignVariableToVariable(CCompileEnvironment& ce, Sex::cr_sex exceptionSource, cstr lhs, cstr rhs);
         CStringConstant* CreateStringConstant(CScript& script, int length, cstr s, const Sex::ISExpression* srcExpression);
-        Compiler::IFunctionBuilder& DeclareFunction(Compiler::IModuleBuilder& module, Sex::cr_sex source, Compiler::FunctionPrototype& prototype);
+        Compiler::IFunctionBuilder& DeclareFunctionForModule(Compiler::IModuleBuilder& module, Sex::cr_sex source, Compiler::FunctionPrototype& prototype);
         cstr GetContext(const CScript& script);
         const Sex::ISExpression* GetTryCatchExpression(CScript& script);
         bool TryCompileBooleanExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool isExpected, bool& negate);

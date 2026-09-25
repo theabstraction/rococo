@@ -560,8 +560,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		TSexyVector<StructureAttribute> attributes;
 		TInterfaceNames interfaceNames;
 		TInterfaces interfaces;
-		mutable ID_BYTECODE destructorId;
+		mutable ID_BYTECODE destructorId = 0;
 		mutable ID_BYTECODE** virtualTables;
+		mutable ID_BYTECODE assignmentId = 0;
 		const Sex::ISExpression* definition;
 		const IFunction* constructor;
 		mutable int hasInterfaceMembers; // -1, untested, 0 = no, 1 = yes
@@ -606,6 +607,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 			return true;
 		}
+
+		ID_BYTECODE AssignmentFunction() const override;
 
 		bool IsStrongType() const override
 		{

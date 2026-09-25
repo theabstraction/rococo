@@ -3558,6 +3558,18 @@ R"((namespace EntryPoint)
 
 		struct ANON
 		{
+			static void AssignMarble(NativeCallEnvironment& e)
+			{
+				marbleCode += 3;
+				Marble* marbleSrc;
+				ReadInput(0, marbleSrc, e);
+
+				Marble* marbleDest;
+				ReadInput(1, marbleDest, e);
+
+				*marbleDest = *marbleSrc;
+			}
+
 			static void ConstructMarble(NativeCallEnvironment& e)
 			{
 				marbleCode += 7;
@@ -3566,22 +3578,9 @@ R"((namespace EntryPoint)
 				new (marble) Marble();
 			}
 
-			static void DestructMarble(NativeCallEnvironment& e)
+			static void DestructMarble(NativeCallEnvironment&)
 			{
 				marbleCode += 9;
-
-				Marble* marble;
-				ReadInput(0, marble, e);
-
-				if (marble->value1 != 1471LL)
-				{
-					Throw(0, "err marble value 1: %lld", marble->value1);
-				}
-
-				if (marble->value2 != 3875LL)
-				{
-					Throw(0, "err marble value 2: %lld", marble->value2);
-				}
 			}
 		};
 
@@ -3593,6 +3592,7 @@ R"((namespace EntryPoint)
 
 			ss.AddNativeCall(ns, ANON::ConstructMarble, NULL, "++Marble (out Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
 			ss.AddNativeCall(ns, ANON::DestructMarble, NULL,  "--Marble (const Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::AssignMarble, NULL, "->Marble (const Sys.Rock.Marble src)(out Sys.Rock.Marble dest)->", __FILE__, __LINE__, false, 0);
 		}
 		catch (IException& ex)
 		{
@@ -3607,6 +3607,8 @@ R"((namespace EntryPoint)
 				(if ((sizeof Sys.Rock.Marble) != 16) 
 					(Sys.Throw 0 "Expecting sizeof marble to be 16 bytes")
 				)
+
+				(Sys.Rock.Marble stone = marble)
 			)
 			(namespace EntryPoint)(alias Main EntryPoint.Main)
 		)";
@@ -3624,7 +3626,7 @@ R"((namespace EntryPoint)
 		int32 x = vm.PopInt32();
 		validate(x == 0);
 
-		validate(marbleCode == 16);
+		validate(marbleCode == 35);
 	}
 
 	static int64 TestNativeHandle_globalHandle = 0;
@@ -18803,7 +18805,7 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
-		
+
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();

@@ -279,6 +279,8 @@ namespace Rococo::Compiler
 		virtual IScriptObjectAllocator& GetDefaultObjectAllocator() = 0;
 		virtual EWarningLevel GetWarningLevel() const = 0;
 		virtual void SetWarningLevel(EWarningLevel level) = 0;
+		virtual void RegisterNativeStructFunction(IFunction* f) = 0;
+		virtual const IFunction* FindNative(cstr functionName) const = 0;
 	};
 
 	IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);
