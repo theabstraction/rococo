@@ -2219,15 +2219,15 @@ namespace Anon
 	
 					if (id == 0)
 					{
-						// These require an assignment than a memcpy, as none persistent structs will, by definition, have some side effect with being duplicated or persisted
+						// These require an assignment then a memcpy, as none persistent structs will, by definition, have some side effect when duplicated or persisted
 						Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Could not copy '%s' to '%s'. An assignment operator needs to be defined for type '%s'", source, target, GetFriendlyName(*srcType));
 					}
 
-					AddSymbol(source);
-					PushVariableRef(source, 0);
+					AddSymbol(target);
+					PushVariableRef(source, -1); // input 0
 
 					AddSymbol(target);
-					PushVariableRef(target, 0);
+					PushVariableRef(target, -1); // input 1
 
 					TokenBuffer symbol;
 					StringPrint(symbol, "operator = (const %s src) (out %s dest)) ", GetFriendlyName(*srcType), GetFriendlyName(*srcType));

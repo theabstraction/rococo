@@ -3550,9 +3550,9 @@ R"((namespace EntryPoint)
 			int64 value1;
 			int64 value2;
 
-			Marble(): value1(1471LL), value2(3875LL)
+			Marble(): value1(marbleCode + 8), value2(marbleCode + 16)
 			{
-
+				printf("ConstructMarble: %p %llu %llu\n", this, value1, value2);
 			}
 		};
 
@@ -3561,13 +3561,21 @@ R"((namespace EntryPoint)
 			static void AssignMarble(NativeCallEnvironment& e)
 			{
 				marbleCode += 3;
-				Marble* marbleSrc;
-				ReadInput(0, marbleSrc, e);
 
 				Marble* marbleDest;
 				ReadInput(1, marbleDest, e);
 
-				*marbleDest = *marbleSrc;
+				Marble* marbleSrc;
+				ReadInput(0, marbleSrc, e);
+
+				printf("AssignMarble: dest  %p %llu %llu\n", marbleDest, marbleDest->value1, marbleDest->value2);
+				printf("AssignMarble: src  %p %llu %llu\n", marbleSrc, marbleSrc->value1, marbleSrc->value2);
+
+				marbleDest->value1 = marbleSrc->value1 + 1;
+				marbleDest->value2 = marbleSrc->value2 + 2;
+
+				printf("AssignMarble: dest  %p %llu %llu\n", marbleDest, marbleDest->value1, marbleDest->value2);
+				printf("AssignMarble: src  %p %llu %llu\n", marbleSrc, marbleSrc->value1, marbleSrc->value2);
 			}
 
 			static void ConstructMarble(NativeCallEnvironment& e)
@@ -3578,9 +3586,13 @@ R"((namespace EntryPoint)
 				new (marble) Marble();
 			}
 
-			static void DestructMarble(NativeCallEnvironment&)
+			static void DestructMarble(NativeCallEnvironment& e)
 			{
 				marbleCode += 9;
+				Marble* m;
+				ReadInput(0, m, e);
+
+				printf("Destruct: %p %llu %llu\n", m, m->value1, m->value2);
 			}
 		};
 
