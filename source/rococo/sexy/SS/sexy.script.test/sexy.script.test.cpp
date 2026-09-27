@@ -1329,6 +1329,29 @@ namespace
 		validate(z == 1);
 	}
 
+	void TestBooleanVarCompare(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 x):\n"
+			"   (Bool a = true)\n"
+			"   (Bool b = true)\n"
+			"   (if (a == b) (x = 6))\n"
+			"   (if (a == true) (x += 6))\n"
+			"   (if (false != b) (x += 6))\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(100); // Allocate stack space for the int32 x
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 x = vm.PopInt32();
+		validate(x == 18);
+	}
+
 	void TestBooleanCompareVarToCompound(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -18502,6 +18525,7 @@ R"(
 		TEST(TestBitwiseOr);
 		TEST(TestOperatorOverload2);
 		TEST(TestStructWithVec4f);
+		TEST(TestBooleanVarCompare);
 		TEST(TestBooleanCompareVarToCompound);
 		TEST(TestAssignDerivativeFromRef);
 		TEST(TestMemberwise2);

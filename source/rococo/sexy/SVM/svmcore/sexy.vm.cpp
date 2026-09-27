@@ -181,6 +181,7 @@ namespace Anon
 
 			ActivateInstruction(Swap);
 
+			ActivateInstruction(BooleanCompare);
 			ActivateInstruction(BooleanNot);
 			ActivateInstruction(SetSFValueFromSFValue32);
 			ActivateInstruction(Test32);
@@ -1298,6 +1299,16 @@ namespace Anon
 			target.uint8PtrValue = pMember;
 			
 			cpu.AdvancePC(10);
+		}
+
+		OPCODE_CALLBACK(BooleanCompare)
+		{
+			const Ins* I = NextInstruction();
+			int32 a = cpu.D[I->Opmod1].int32Value;
+			int32 b = cpu.D[I->Opmod2].int32Value;
+			VariantValue& C = cpu.D[I->Opmod1 - 1];
+			C.int32Value = a ^ b ? 1 : 0;
+			cpu.AdvancePC(3);
 		}
 
 		OPCODE_CALLBACK(BooleanNot)

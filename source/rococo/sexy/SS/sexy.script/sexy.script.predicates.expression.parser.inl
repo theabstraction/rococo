@@ -348,8 +348,11 @@ namespace Rococo
          case SexyVarType_Int64:
             assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_64, VM::REGISTER_D4 + sourceB);
             break;
+         case SexyVarType_Bool:
+            assembler.Append_BooleanCompare(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB);
+            break;
          default:
-            Throw(src, ("Cannot find subtraction rule for the given type"));
+            Throw(src, "Cannot find subtraction rule for the given type");
          }
 
          assembler.Append_SetIf(op, VM::REGISTER_D4 + booleanTargetId, GetBitCount(type));

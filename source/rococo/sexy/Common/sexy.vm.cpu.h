@@ -187,6 +187,7 @@ namespace Rococo { namespace VM
 			PushStackVariable64,
 			PushStackFrameMemberPtr,
 			PushStackAddress,
+			BooleanCompare,
 			BooleanNot,
 			Call,
 			CallBy,

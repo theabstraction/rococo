@@ -298,7 +298,8 @@ namespace Rococo { namespace VM
 	ROCOCO_INTERFACE IAssemblerBuilder
 	{
 		virtual void Append_AddImmediate(DINDEX source,  BITCOUNT bits, DINDEX target, const VariantValue& v) = 0;
-		virtual void Append_BooleanNot(DINDEX target) = 0;
+		virtual void Append_BooleanCompare(DINDEX Da, DINDEX Db) = 0;
+		virtual void Append_BooleanNot(DINDEX Da) = 0;
 		virtual void Append_CallById(ID_BYTECODE id) = 0;
 		virtual void Append_CallByIdIndirect(DINDEX Di) = 0;
 		virtual void Append_CallByRegister(DINDEX offsetRegister) = 0;
