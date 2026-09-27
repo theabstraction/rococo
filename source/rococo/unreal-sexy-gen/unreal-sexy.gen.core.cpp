@@ -2300,7 +2300,7 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t\tReadInput(0, OUT rockSrc, e);\n";
 
 			sb << "\t\t\tvoid* rockDest;\n";
-			sb << "\t\t\tReadInput(0, OUT rockDest, e);\n";
+			sb << "\t\t\tReadInput(1, OUT rockDest, e);\n";
 
 			sb << "\t\t\tauto* rf = reinterpret_cast<IRockFactory*>(e.context);\n";
 			sb << "\t\t\trf->Copy(rockSrc, rockDest);\n";
