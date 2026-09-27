@@ -673,7 +673,15 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		const IUnrealArg* output = *i;
 		sb << "\n\t\t";
 
-		AppendType(sb, *output, false, enums, structs, delegates);
+		if (Eq("bool", output->ArgType()))
+		{
+			sb << "boolean32";
+		}
+		else
+		{
+			AppendType(sb, *output, false, enums, structs, delegates);
+		}
+
 
 		sb << " out_";
 		output->AppendName(sb, true);
