@@ -25,4 +25,5 @@ namespace Rococo::UE::Rocks
 	};
 
 	SEXY_MARSHALLING_API void RegisterRocks(Rococo::Script::IPublicScriptSystem& ss, IRockFactories& factories);
+	SEXY_MARSHALLING_API void RegisterRocksHandcoded(Rococo::Script::IPublicScriptSystem& ss, IRockFactories& factories);
 }

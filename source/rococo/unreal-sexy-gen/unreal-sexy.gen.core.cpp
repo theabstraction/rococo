@@ -576,7 +576,14 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 
 		sb << "\t\t";
 
-		AppendType(sb, *input, false, enums, structs, delegates);
+		if (Eq("bool", input->ArgType()))
+		{
+			sb << "boolean32";
+		}
+		else
+		{
+			AppendType(sb, *input, false, enums, structs, delegates);
+		}
 
 		if (input->IsMarshalledByRef())
 		{
@@ -2346,6 +2353,8 @@ namespace Rococo::UE::Native::Delegate
 			);
 			sb << "\t}\n";
 			sb << "}\n";
+
+			sb << "#include \"rocks.handcoded.inl\"";
 
 			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);
 		}
