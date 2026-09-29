@@ -18842,8 +18842,6 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestBooleanVarCompare);
-
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();

@@ -375,9 +375,9 @@ namespace Rococo
 				return token == c_str(); // throws
 			}
 
-			IExpressionTransform& TransformThis() const override
+			IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 			{
-				Throw(inner, "not supported");
+				Throw(inner, "ExpressionProxy.TransformThis not supported");
 			}
 		};
 

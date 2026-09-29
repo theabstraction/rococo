@@ -1286,6 +1286,8 @@ namespace Rococo::Script
 		IScriptSystemFactory& ssFactory;
 
 		IScriptSystemHook* hook = nullptr;
+
+		AutoFree<ISExpressionTransformationsSupervisor> transforms = CreateSTransformationsContainer();
 	public:
 		CScriptSystem(IScriptSystemFactory& _ssFactory, TMapNameToSTree& _nativeSources, const ProgramInitParameters& pip, ILog& _logger) :
 
@@ -1458,8 +1460,7 @@ namespace Rococo::Script
 			else
 			{
 				TransformData td;
-				IExpressionTransform& transform = src.TransformThis();
-				//td.transform = Rococo::Sex::CreateExpressionTransform(src);
+				IExpressionTransform& transform =  src.TransformThis(*transforms);
 				td.transform = &transform;
 				mapExpressionToTransform[&src] = td;
 				return &td.transform->Root();
@@ -2486,13 +2487,8 @@ namespace Rococo::Script
 
 			symbols.clear();
 
-			for (auto& t : mapExpressionToTransform)
-			{
-				t.second.transform->Free();
-			}
-
 			mapExpressionToTransform.clear();
-
+			
 			scripts->ExceptionLogic().Clear();
 			progObjProxy->GetRootNamespace().Clear();
 			progObjProxy->ClearCustomAllocators();

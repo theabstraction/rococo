@@ -250,6 +250,7 @@ namespace Rococo
 		struct ISExpressionBuilder;
 
 		DECLARE_ROCOCO_INTERFACE IExpressionTransform;
+		DECLARE_ROCOCO_INTERFACE ISExpressionTransformations;
 
 		ROCOCO_INTERFACE ISExpression
 		{
@@ -277,7 +278,7 @@ namespace Rococo
 			virtual int TransformationDepth() const = 0;
 
 			// Tell's the child to notify the parent that it has been transformed, and returns the transform expression. This is used by S-macros.
-			virtual IExpressionTransform& TransformThis() const = 0;
+			virtual IExpressionTransform& TransformThis(ISExpressionTransformations& transformations) const = 0;
 
 			virtual ~ISExpression() {};
 		};
@@ -339,6 +340,20 @@ namespace Rococo
 			// Invoke the callback for every comment in the comment block for the associated expression. The return value is the  number of elements in the comment block
 			virtual size_t EnumerateComments(cr_sex s, Rococo::Function<void (cstr item)> onBlockItem) const = 0;
 		};
+
+		ROCOCO_INTERFACE ISExpressionTransformations
+		{
+			virtual void ClearTransforms() = 0;
+			virtual void ReleaseTransform(cr_sex s) = 0;
+			virtual IExpressionTransform& Transform(cr_sex s) = 0;
+		};
+
+		ROCOCO_INTERFACE ISExpressionTransformationsSupervisor: ISExpressionTransformations
+		{
+			virtual void Free() = 0;
+		};
+
+		SEXY_SPARSER_API ISExpressionTransformationsSupervisor* CreateSTransformationsContainer();
 
 		ROCOCO_INTERFACE ISParser : public IRefCounted
 		{

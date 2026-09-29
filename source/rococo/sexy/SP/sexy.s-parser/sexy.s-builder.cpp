@@ -129,9 +129,9 @@ namespace ANON
 			Throw(*this, "operation not supported on this class");
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 		{
-			Throw(0, "not supported");
+			Throw(0, __FUNCTION__ ".TransformThis:  not supported");
 		}
 	};
 	
@@ -319,9 +319,9 @@ namespace ANON
 			AddLeaf<LeafExpression<EXPRESSION_TYPE_STRING_LITERAL>>(text);
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 		{
-			Throw(0, "not supported");
+			Throw(0, "ExpressionBuilder.TransformThis not supported");
 		}
 	};
 
@@ -467,9 +467,9 @@ namespace ANON
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 		{
-			Throw(0, "not supported");
+			Throw(0, "RootExpression.TransformThis not supported");
 		}
 	};
 
