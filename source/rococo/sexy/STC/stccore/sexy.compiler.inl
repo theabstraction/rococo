@@ -571,9 +571,40 @@ namespace Rococo { namespace Compiler { namespace Impl
 		bool isNullType = false;
 		bool isStrongType = false;
 		mutable bool isPersistent = true;
+
+		stringmap<int64> enums;
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, SexyVarType type, const Sex::ISExpression* _definition);
 		virtual ~Structure();
+
+		void AddEnum(cstr name, int64 value) override
+		{
+			auto i = enums.find(name);
+			if (i != enums.end())
+			{
+				if (i->second != value)
+				{
+					Rococo::Throw(0, "Cannot add an enum '%s' to '%s'. Conflict of values %lld vs %lld", name, this->name.c_str(), i->second, value);
+				}
+
+				return;
+			}
+
+			enums.insert(name, value);
+		}
+
+		bool TryGetEnumValue(cstr name, OUT int64& value) const override
+		{
+			auto i = enums.find(name);
+			if (i == enums.end())
+			{
+				value = 0;
+				return false;
+			}
+
+			value = i->second;
+			return true;
+		}
 
 		bool IsNullType() const override
 		{

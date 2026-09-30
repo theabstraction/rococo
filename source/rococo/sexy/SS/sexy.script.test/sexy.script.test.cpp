@@ -3664,6 +3664,41 @@ R"((namespace EntryPoint)
 		validate(marbleCode == 35);
 	}
 
+	void TestConstants(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(enum Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(alias Day Sys.Type.Day)
+
+			(function Main -> (Int32 result):
+				(Sys.Type.Day day = .Wednesday)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 3);
+	}
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -18844,7 +18879,7 @@ R"(
 
 	goto finish;
 finish:
-		TEST3(TestTopLevelMacro2);
+		TEST(TestConstants);
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();

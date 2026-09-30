@@ -94,6 +94,7 @@ namespace Rococo::Script
 		virtual void CompileBytecode() = 0;
 		virtual void CompileDeclarations() = 0;
 		virtual void CompileTopLevelMacros(size_t numberOfSysModules) = 0;
+		virtual void CompileEnumsAndConstants() = 0;
 
 		virtual void EnterCompileLimits(size_t startingIndex, size_t maxModuleCount) = 0;
 		virtual void ReleaseCompileLimits() = 0;

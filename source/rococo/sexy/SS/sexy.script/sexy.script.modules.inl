@@ -2619,6 +2619,19 @@ namespace Rococo::Script
 			globalBaseIndex = fnctorComputeGlobals.globalBaseIndex;
 		}
 
+		void CompileEnumsAndConstants()
+		{
+			struct FnctorComputeEnumsAndConstants
+			{
+				void Process(CScript& script, cstr name)
+				{
+					UNUSED(name);
+					script.ComputeEnumsAndConstants();
+				}
+			} fnctorComputeEnumsAndConstants;
+			ForEachUncompiledScript(fnctorComputeEnumsAndConstants);
+		}
+
 		bool TryInlineIString()
 		{		
 			const IObjectInterface& istring = programObject.Common().SysTypeIString();
@@ -4244,6 +4257,7 @@ namespace Rococo::Script
 		"global",
 		"$",
 		"strong",
+		"enum",
 		NULL
 	};
 
@@ -4633,6 +4647,8 @@ namespace Rococo::Script
 		return tree.Root();
 	}
 
+	void ValidateConstantName(cr_sex src, cstr type, sexstring name);
+
 	void CScript::ComputeStructureNames()
 	{
 		localStructures.clear();
@@ -4719,6 +4735,8 @@ namespace Rococo::Script
 				cr_sex strongNameExpr = GetAtomicArg(topLevelItem, 1);
 				cstr strongName = strongNameExpr.c_str();
 
+				ValidateConstantName(strongNameExpr, "strong", strongNameExpr.String());
+
 				cr_sex wrapper = topLevelItem[2];
 				if (wrapper.NumberOfElements() != 1)
 				{
@@ -4737,6 +4755,134 @@ namespace Rococo::Script
 				structDef.StructDef = &topLevelItem;
 
 				localStructures.push_back(structDef);
+			}
+		}
+	}
+
+	void ValidateConstantName(cr_sex src, cstr type, sexstring name)
+	{
+		if (name->Length == 0 || name->Length >= 64)
+		{
+			Throw(src, "Expecting %s with length 1 <= length < 64", type);
+		}
+
+		cstr b = name->Buffer;
+		if (!IsCapital(b[0]))
+		{
+			Throw(src, "Expecting %s to begin with a capital letter", type);
+		}
+
+		for (cstr p = b + 1; *p != 0; p++)
+		{
+			if (!IsAlphaNumeric(*p))
+			{
+				Throw(src, "Expecting %s to be an alpha numeric sequence", type);
+			}
+		}
+	}
+
+	void CScript::ComputeEnum(cr_sex sEnum)
+	{
+		// (enum <associated-type> <...items...>), e.g (enum Sys.Type.Days (Mon 1) Tue Wed Thu Fri Sat Sun)
+
+		if (sEnum.NumberOfElements() < 3)
+		{
+			Throw(sEnum, "Expecting at least three elements in an enum expression (enum <type> <...items...>)");
+		}
+
+		cr_sex sEnumType = sEnum[1];
+
+		fstring fqTypeName = GetAtomicArg(sEnumType);
+
+		if (!IsCapital(fqTypeName.buffer[0]))
+		{
+			Throw(sEnum, "Expecting a fully qualified enum type name at least three elements in an enum expression (enum <type> <...items...>)");
+		}
+
+		IStructureBuilder* type = module.FindStructure(fqTypeName);
+		if (!type)
+		{
+			type = const_cast<IStructureBuilder*>(static_cast<const IStructureBuilder*>(FindStructure(System(), fqTypeName)));
+		}
+
+		if (type == nullptr)
+		{
+			Throw(sEnumType, "Could not identify underlying enumeration type. Ensure the type is defined and compiled before the (enum %s ...) statement.", fqTypeName.buffer);
+		}
+
+		int64 counter = 0;
+
+		for (int32 i = 2; i < sEnum.NumberOfElements(); i++)
+		{
+			cr_sex sArg = sEnum[i];
+			if (IsAtomic(sArg))
+			{
+				sexstring sArgStr = sArg.String();
+				ValidateConstantName(sArg, "enum", sArgStr);
+
+				type->AddEnum(sArgStr->Buffer, counter++);
+			}
+			else if (IsCompound(sArg))
+			{
+				if (sArg.NumberOfElements() != 2)
+				{
+					Throw(sArg, "Expecting (<enum-name> <start-value>)");
+				}
+
+				cr_sex sArgName = sArg[0];
+
+				if (!IsAtomic(sArgName))
+				{
+					Throw(sArgName, "Expecting an enum name");
+				}
+
+				ValidateConstantName(sArg, "enum", sArgName.String());
+
+				cr_sex sArgValue = sArg[1];
+
+				if (!IsAtomic(sArgValue))
+				{
+					Throw(sArgValue, "Expecting an enum value (64-bit signed int)");
+				}
+
+				VariantValue v;
+				Parse::PARSERESULT result = Parse::TryParse(OUT v, Rococo::SexyVarType_Int64, sArgValue.c_str());
+				if (result != Parse::PARSERESULT_GOOD)
+				{
+					Throw(sArgValue, "Expecting an enum value (64-bit signed int)");
+				}
+
+				counter = v.int64Value;
+
+				try
+				{
+					type->AddEnum(sArgName.String()->Buffer, counter++);
+				}
+				catch(IException& ex)
+				{
+					Throw(sArgName, "%s", ex.Message());
+				}
+			}
+			else
+			{
+				Throw(sArg, "Expecting either an enum name atomic, or a compound expression (atomic-enum-name <int64-value>), E.g (Dimensions 4)");
+			}
+		}
+	}
+
+	void CScript::ComputeEnumsAndConstants()
+	{
+		cr_sex root = tree.Root();
+		for (int i = 0; i < root.NumberOfElements(); i++)
+		{
+			cr_sex topLevelItem = root.GetElement(i);
+			AssertNotTooFewElements(topLevelItem, 1);
+
+			cr_sex elementName = GetAtomicArg(topLevelItem, 0);
+
+			if (AreEqual(elementName.String(), "enum"))
+			{
+				ComputeEnum(topLevelItem);
 			}
 		}
 	}

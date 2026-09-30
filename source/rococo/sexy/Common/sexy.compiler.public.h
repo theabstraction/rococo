@@ -443,6 +443,9 @@ namespace Rococo {
 			// Retrieve the ith attribute. isCustom is an out parameter, and is set to true if element 1 of the returned attributeDef was a system attribute
 			// System attributes are specified by using atomic tokens rather than string literals and are validated against the known list of system attributes.
 			virtual [[nodiscard]] Rococo::Sex::cr_sex GetAttributeDef(int32 index, bool& isCustom) const = 0;
+
+			// Retrieve the enum value, and return true, any problems and it returns false
+			virtual [[nodiscard]] bool TryGetEnumValue(cstr name, OUT int64& value) const = 0;
 		};
 
 		inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; }

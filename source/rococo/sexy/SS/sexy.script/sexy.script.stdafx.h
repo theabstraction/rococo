@@ -374,6 +374,8 @@ namespace Rococo
             void CompileNullObjects();
             void CompileNextClosures();
             void CompileLocalFunctions();
+            void ComputeEnum(Sex::cr_sex sEnum);
+            void ComputeEnumsAndConstants();
             void CompileJITStubs();
             void CompileVTables();
             void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs);

@@ -168,6 +168,7 @@ namespace Rococo::Compiler
 		virtual void PreventPersistence() = 0;
 		virtual void Update() = 0;
 		virtual void SetConstructor(const IFunction* cons) = 0;
+		virtual void AddEnum(cstr name, int64 value) = 0;
 
 		virtual IProgramObject& Object() = 0;
 	};

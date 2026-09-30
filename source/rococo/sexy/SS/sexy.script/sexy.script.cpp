@@ -2618,6 +2618,7 @@ namespace Rococo::Script
 			scripts->CompileNamespaces();
 			scripts->CompileTopLevelMacros(numberOfNativeSources);
 			scripts->CompileDeclarations();
+			scripts->CompileEnumsAndConstants();
 
 			InstallNullFunction();
 
