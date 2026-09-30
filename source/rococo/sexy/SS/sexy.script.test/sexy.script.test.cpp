@@ -18842,6 +18842,9 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+	goto finish;
+finish:
+		TEST3(TestTopLevelMacro2);
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
@@ -18849,7 +18852,6 @@ R"(
 		TestLists();
 		TestLists();
 		TestMaps();
-
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

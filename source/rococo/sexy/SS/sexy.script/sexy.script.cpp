@@ -776,7 +776,7 @@ namespace Rococo::Script
 		IO::NormalizePath(hashDir);
 	}
 
-	class CScriptSystem : public IScriptSystem, private INativeSecurity, public IPutString
+	class CScriptSystem : public IScriptSystem, private INativeSecurity, public IPutString, public ISTransformResolver
 	{
 	private:
 		TMemoAllocator memoAllocator;
@@ -833,6 +833,11 @@ namespace Rococo::Script
 		};
 
 		stringmap<EnumType> enumTypes;
+
+		Sex::ISTransformResolver& Resolver()
+		{
+			return *this;
+		}
 
 		void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) override
 		{
@@ -1507,6 +1512,17 @@ namespace Rococo::Script
 		{
 			auto i = mapExpressionToTransform.find(&src);
 			return i == mapExpressionToTransform.end() ? nullptr : &i->second.transform->Root();
+		}
+
+		cr_sex Resolve(cr_sex src) const override
+		{
+			auto i = mapExpressionToTransform.find(&src);
+			return i == mapExpressionToTransform.end() ? src : i->second.transform->Root();
+		}
+
+		bool IsALockedResolver() const override
+		{
+			return true;
 		}
 
 		const ScriptCallbacks& GetScriptCallbacks() override

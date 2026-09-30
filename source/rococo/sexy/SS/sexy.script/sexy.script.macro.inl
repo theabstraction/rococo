@@ -99,6 +99,8 @@ namespace Rococo
 
          ce.Builder.Begin();
 
+         ResolverContext rc(macroDef.Tree(), script.System().Resolver());
+
          CompileExpressionSequence(ce, 4, macroDef.NumberOfElements() - 1, macroDef);
 
          ce.Builder.End();
@@ -115,41 +117,41 @@ namespace Rococo
 
       void CallMacro(IScriptSystem& ss, const IFunction& f, cr_sex s)
       {
-         VM::IVirtualMachine& vm = ss.ProgramObject().VirtualMachine();
-         const CClassExpression* input = ss.GetExpressionReflection(s);
+          VM::IVirtualMachine& vm = ss.ProgramObject().VirtualMachine();
+          const CClassExpression* input = ss.GetExpressionReflection(s);
 
-		 ISExpressionBuilder* outputRoot = ss.CreateMacroTransform(s);
+          ISExpressionBuilder* outputRoot = ss.CreateMacroTransform(s);
 
-         CClassExpressionBuilder output;
-         if (!ss.ConstructExpressionBuilder(output, outputRoot))
-         {
-            Throw(s, "%s: ConstructExpressionBuilder error", __ROCOCO_FUNCTION__);
-         }
+          CClassExpressionBuilder output;
+          if (!ss.ConstructExpressionBuilder(output, outputRoot))
+          {
+              Throw(s, "%s: ConstructExpressionBuilder error", __ROCOCO_FUNCTION__);
+          }
 
-         VM::CPU& cpu = vm.Cpu();
-         if (cpu.SF() == nullptr)
-         {
-             // In the event that our macro is a top level macro, created before the program is initialized we need a functional virtual CPU to get the job done
-             ss.ProgramObject().SetProgramAndEntryPoint(0);
-             vm.InitCpu();
-         }
+          VM::CPU& cpu = vm.Cpu();
+          if (cpu.SF() == nullptr)
+          {
+              // In the event that our macro is a top level macro, created before the program is initialized we need a functional virtual CPU to get the job done
+              ss.ProgramObject().SetProgramAndEntryPoint(0);
+              vm.InitCpu();
+          }
 
-         vm.Push(GetInterface(input->Header));
-         vm.Push(GetInterface(output.Header));
+          vm.Push(GetInterface(input->Header));
+          vm.Push(GetInterface(output.Header));
 
-         CodeSection macroSection;
-         f.Code().GetCodeSection(OUT macroSection);
+          CodeSection macroSection;
+          f.Code().GetCodeSection(OUT macroSection);
 
-         EXECUTERESULT result = vm.ExecuteFunctionProtected(macroSection.Id);
-         if (result != EXECUTERESULT_RETURNED)
-         {
-            Throw(s, "Error executing macro expansion");
-         }
+          EXECUTERESULT result = vm.ExecuteFunctionProtected(macroSection.Id);
+          if (result != EXECUTERESULT_RETURNED)
+          {
+              Throw(s, "Error executing macro expansion");
+          }
 
-         vm.SetStatus(EXECUTERESULT_RUNNING);
+          vm.SetStatus(EXECUTERESULT_RUNNING);
 
-         vm.PopPointer();
-         vm.PopPointer();
+          vm.PopPointer();
+          vm.PopPointer();
       }
    }//Script
 }//Sexy

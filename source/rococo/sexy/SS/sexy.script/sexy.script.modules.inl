@@ -2324,6 +2324,8 @@ namespace Rococo::Script
 				CScript* script = scriptBinding.second;
 				cstr name = script->ProgramModule().Name();	
 
+				ResolverContext rc(script->Tree(), System().Resolver());
+
 				cr_sex root = script->Tree().Root();
 				
 				try

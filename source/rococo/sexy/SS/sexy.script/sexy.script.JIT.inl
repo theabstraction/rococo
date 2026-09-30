@@ -61,7 +61,10 @@ namespace Rococo
          cstr name = f.Name();
          UNUSED(name);
          f.Builder().DeleteSymbols();
-         CompileFunctionFromExpression(f, IN s, script);
+
+         ResolverContext rc(s.Tree(), ss.Resolver());
+
+         CompileFunctionFromExpression(f, IN ss.Resolver().Resolve(s), script);
          SetPCToFunctionStart(ss, f);
 
          CodeSection section;
@@ -77,6 +80,8 @@ namespace Rococo
          int bodyIndex = GetIndexOf(1, s, (":"));
          if (bodyIndex < 0) Throw(s, ("Could not find body indicator ':' in factory definition"));
          if (bodyIndex >= s.NumberOfElements()) Throw(s, ("Body indicator ':' was at the end of the expression. Expecting body to follow it"));
+
+         ResolverContext rc(s.Tree(), ss.Resolver());
 
          factory.Constructor().Builder().DeleteSymbols();
          CompileFactoryBody(factory, s, bodyIndex + 1, script);

@@ -323,6 +323,12 @@ namespace Rococo
 			virtual refcount_t Release() = 0; // Decrements the reference count and returns the new value. If it decrements to zero the instance is released
 		};
 
+		ROCOCO_INTERFACE ISTransformResolver
+		{
+			virtual cr_sex Resolve(cr_sex s) const = 0;
+			virtual bool IsALockedResolver() const = 0;
+		};
+
 		ROCOCO_INTERFACE ISParserTree : public IRefCounted
 		{
 			// Refers to the root expression in the tree
@@ -339,6 +345,32 @@ namespace Rococo
 
 			// Invoke the callback for every comment in the comment block for the associated expression. The return value is the  number of elements in the comment block
 			virtual size_t EnumerateComments(cr_sex s, Rococo::Function<void (cstr item)> onBlockItem) const = 0;
+
+			// Use a temporary resolver, must be followed by Unlock. Locking the parser tree while locked throws an exception
+			virtual void Lock(ISTransformResolver& resolver) = 0;
+
+			// Restore the default pass-through resolver
+			virtual void Unlock();
+		};
+
+		class ResolverContext
+		{
+			const ISParserTree& tree;
+
+			inline ISParserTree& Tree()
+			{
+				return const_cast<ISParserTree&>(tree);
+			}
+		public:
+			ResolverContext(const ISParserTree& _tree, ISTransformResolver& resolver) : tree(_tree)
+			{
+				Tree().Lock(resolver);
+			}
+
+			~ResolverContext()
+			{
+				Tree().Unlock();
+			}
 		};
 
 		ROCOCO_INTERFACE ISExpressionTransformations
@@ -415,6 +447,7 @@ namespace Rococo
 		SEXY_SPARSER_API void AssertNotTooManyElements(cr_sex e, int32 maxElements);
 		SEXY_SPARSER_API void AssertNotTooFewElements(cr_sex e, int32 minElements);
 		SEXY_SPARSER_API cr_sex GetAtomicArg(cr_sex e, int argIndex);
+		SEXY_SPARSER_API ISTransformResolver& GetPassthroughResolver();
 	}
 }// Rococo
 

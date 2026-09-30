@@ -563,6 +563,8 @@ namespace Rococo {
 			virtual Compiler::IMemberLife* GetListLifetimeManager() = 0;
 			virtual Compiler::IMemberLife* GetArrayLifetimeManager() = 0;
 			virtual Compiler::IMemberLife* GetMapLifetimeManager() = 0;
+
+			virtual Sex::ISTransformResolver& Resolver() = 0;
 		};
 
 		ROCOCO_INTERFACE INativeLib

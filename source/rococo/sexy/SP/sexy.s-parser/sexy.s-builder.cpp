@@ -347,7 +347,9 @@ namespace ANON
 		char name[64];
 		cr_sex original;
 
-		RootExpression(cr_sex _original): ExpressionBuilder(nullptr, _original.TransformationDepth() + 1), original(_original)
+		ISTransformResolver* resolver;
+
+		RootExpression(cr_sex _original): ExpressionBuilder(nullptr, _original.TransformationDepth() + 1), original(_original), resolver(&Rococo::Sex::GetPassthroughResolver())
 		{
 			SafeFormat(name, sizeof(name), "['] %s", _original.Tree().Source().Name());
 		}
@@ -355,6 +357,21 @@ namespace ANON
 		~RootExpression()
 		{
 
+		}
+
+		void Lock(ISTransformResolver& resolver) override
+		{
+			if (this->resolver->IsALockedResolver())
+			{
+				Throw(*this, "ExpressionTree::Lock failed. A resolver is already in place");
+			}
+
+			this->resolver = &resolver;
+		}
+
+		void Unlock()
+		{
+			this->resolver = &GetPassthroughResolver();
 		}
 
 		void MapComments() override
@@ -403,8 +420,15 @@ namespace ANON
 			}
 		}
 
-		ISExpression& Root() override { return *this; }
-		cr_sex Root() const override { return *this; }
+		ISExpression& Root() override
+		{
+			return *this;		
+		}
+
+		cr_sex Root() const override
+		{
+			return resolver->Resolve(*this);
+		}
 
 		const Vec2i& Origin() const override
 		{
