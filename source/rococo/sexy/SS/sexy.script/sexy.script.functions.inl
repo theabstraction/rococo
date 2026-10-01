@@ -625,6 +625,113 @@ namespace Rococo
 			}
 		}
 
+		int64 AssignEnumToD4(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive)
+		{
+			int64 enumValue;
+			if (!enumStruct.TryGetEnumValue(enumKey, OUT enumValue))
+			{
+				Throw(directive, "Cannot identify '%s' as an enum", enumKey);
+			}
+
+			VariantValue v;
+
+			if (enumStruct.IsStrongType())
+			{
+				switch (enumStruct.VarType())
+				{
+				case SexyVarType_Int32:
+					if (enumValue >= INT32_MIN && enumValue <= INT32_MAX)
+					{
+						v.int32Value = (int32)enumValue;
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+						break;
+					}
+					else
+					{
+						Throw(directive, "The value %lld / 0x%llX cannot represent an int32 (the underlying type of %s)", enumValue, enumValue, GetFriendlyName(enumStruct));
+					}
+					break;
+				case SexyVarType_Int64:
+					v.int64Value = (int32)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				case SexyVarType_Float32:
+					v.floatValue = (float)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+					break;
+				case SexyVarType_Float64:
+					v.doubleValue = (double)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				default:
+					Throw(directive, "The underlying type of %s is incompatble with enumeration assignment", GetFriendlyName(enumStruct));
+				}
+
+				return enumValue;
+			}
+			else
+			{
+				switch (enumStruct.VarType())
+				{
+				case SexyVarType_Int32:
+					if (enumValue >= INT32_MIN && enumValue <= INT32_MAX)
+					{
+						v.int32Value = (int32)enumValue;
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+					}
+					else
+					{
+						Throw(directive, "The value %lld / 0x%llX cannot represent an int32", enumValue, enumValue);
+					}
+					break;
+				case SexyVarType_Int64:
+					v.int64Value = (int32)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				case SexyVarType_Float32:
+					v.floatValue = (float)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+					break;
+				case SexyVarType_Float64:
+					v.doubleValue = (double)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				default:
+					Throw(directive, "Type %s is incompatble with enumeration assignment", GetFriendlyName(enumStruct));
+				}
+
+				return enumValue;
+			}
+		}
+		
+		void AssignEnumToVariable(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive, cstr targetVariable)
+		{
+			int64 enumValue = AssignEnumToD4(ce, enumKey, enumStruct, directive);
+			AddSymbol(ce.Builder, "%s = %s (%lld/0x%llX)", targetVariable, enumKey, enumValue, enumValue);
+			ce.Builder.AssignTempToVariable(0, targetVariable);
+		}
+
+		bool TryCompilePushEnumLiteral(CCompileEnvironment& ce, cr_sex sInputExpression, const IStructure& inputStruct)
+		{
+			if (!IsAtomic(sInputExpression))
+			{
+				return false;
+			}
+
+			cstr inputExpr = sInputExpression.c_str();
+
+			if (*inputExpr != '.')
+			{
+				return false;
+			}
+
+			int64 enumValue = AssignEnumToD4(ce, inputExpr + 1, inputStruct, sInputExpression);
+			AddSymbol(ce.Builder, "D4 = %s (%lld / 0x%llX)", inputExpr + 1, enumValue, enumValue);
+			AddArgVariable("inputExpr", ce, inputStruct);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, GetBitCount(inputStruct.VarType()));
+			return true;
+		}
+
 		bool TryCompilePushStructRef(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType, cstr name, const IStructure* genericArg1)
 		{
 			// TODO refactor all of this, its old and ugly
@@ -829,6 +936,10 @@ namespace Rococo
 			}
 			else if (IsPrimitiveType(inputType))
 			{
+				if (TryCompilePushEnumLiteral(ce, inputExpression, inputStruct))
+				{
+					return inputStruct.SizeOfStruct();
+				}
 				if (!TryCompileArithmeticExpression(ce, inputExpression, true, inputType))
 				{
 					Throw(inputExpression, "Expected %s valued expression", GetTypeName(inputType));

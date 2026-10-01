@@ -510,6 +510,40 @@ namespace Rococo
 		  }
 	  }
 
+      bool TryCompileAsCompareToEnum(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex sRightExpr)
+      {
+          if (!IsAtomic(sRightExpr))
+          {
+              return false;
+          }
+
+          cstr rightExpr = sRightExpr.c_str();
+          if (*rightExpr != '.')
+          {
+              return false;
+          }
+
+          MemberDef leftDef;
+          if (!ce.Builder.TryGetVariableByName(leftDef, leftVarName))
+          {
+              return false;
+          }
+
+          auto& type = *leftDef.ResolvedType;
+
+          int64 value = AssignEnumToD4(ce, rightExpr + 1, type, sRightExpr);
+          // Now we have (leftVarName op D4)
+
+          ce.Builder.AssignVariableToTemp(leftVarName, 1);
+          // Now we have (D5 op D4)
+
+          ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D5, GetBitCount(type.VarType()), VM::REGISTER_D4);
+          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D4, VM::REGISTER_D7, GetBitCount(type.VarType()));
+          ce.Builder.Assembler().Append_SetIf(op, VM::REGISTER_D7, GetBitCount(type.VarType()));
+
+          return true;
+      }
+
 	  bool TryCompileAsCompareStruct(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
 	  {
 		  MemberDef leftDef;
@@ -634,6 +668,7 @@ namespace Rococo
          ICodeBuilder& builder = ce.Builder;
 
 		 if (TryCompileAsCompareStruct(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
+         if (TryCompileAsCompareToEnum(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
 
          SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
          SexyVarType varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
@@ -984,14 +1019,14 @@ namespace Rococo
          SexyVarType lType = ce.Builder.GetVarType(leftString);
          if (lType == SexyVarType_Derivative)
          {
-            Throw(parent, ("LHS was of a derived type, and cannot be directly used in boolean expressions"));
+            Throw(parent, "LHS was of a derived type, and cannot be directly used in boolean expressions");
          }
          else if (lType == SexyVarType_Bad)
          {
             int32 value;
             if (Parse::TryParseBoolean(OUT value, leftString) != Parse::PARSERESULT_GOOD)
             {
-               Throw(parent, ("In the boolean expression the LHS was neither an identifier nor a known boolean value"));
+               Throw(parent, "In the boolean expression the LHS was neither an identifier nor a known boolean value");
             }
 
             CompileBinaryBooleanLiteralVsCompoundExpression(ce, parent, value, op, right);
@@ -999,7 +1034,7 @@ namespace Rococo
          }
          else if (lType != SexyVarType_Bool)
          {
-            Throw(parent, ("Identifier in the LHS of the boolean expression was not of underlying type Int32"));
+            Throw(parent, "Identifier in the LHS of the boolean expression was not of underlying type Int32");
          }
 
          CompileBinaryBooleanVariableVsCompoundExpression(ce, parent, leftString, op, right);
@@ -1020,7 +1055,7 @@ namespace Rococo
             }
             if (!IsAtomic(right))
             {
-               Throw(parent, ("The RHS in the boolean expression is neither an atomic nor compound expression"));
+               Throw(parent, "The RHS in the boolean expression is neither an atomic nor compound expression");
             }
 
             cstr rightString = right.c_str();

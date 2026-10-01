@@ -3699,6 +3699,92 @@ R"((namespace EntryPoint)
 		validate(x == 3);
 	}
 
+	void TestConstants2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(enum Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(alias Day Sys.Type.Day)
+
+			(function ToInt (Day day) -> (Int32 value):
+				(value = day.Value)
+			)
+
+			(function Main -> (Int32 result):
+				(result = ToInt .Wednesday)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 3);
+	}
+
+	void TestConstants3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(enum Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(alias Day Sys.Type.Day)
+
+			(function Main -> (Int32 result):
+				(Day today = .Wednesday)
+				(Day tomorrow = .Thursday)
+				(if (today == .Friday)
+					 (result = 4)
+					 (return)
+				)
+				
+				(if (today != .Friday)
+					 (result += 3)
+				)
+
+				(if (today == .Wednesday)
+					 (result += 5)
+				)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 8);
+	}
+
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -18835,6 +18921,10 @@ R"(
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
 		TEST(TestRock);
+
+		TEST(TestConstants);
+		TEST(TestConstants2);
+		TEST(TestConstants3);
 	}
 
 	void RunPositiveFailures()
@@ -18877,16 +18967,14 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-	goto finish;
-finish:
-		TEST(TestConstants);
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
 		TestLists();
-		TestMaps();
+		TestMaps();goto finish;
+	finish:
 		end = Time::TickCount();
 		hz = Time::TickHz();
 

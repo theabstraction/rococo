@@ -360,6 +360,8 @@ namespace Rococo
 			}
 		}
 
+		void AssignEnumToVariable(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive, cstr targetVariable);
+
 		void CompileAssignmentDirectiveFromAtomic(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
 		{
 			int offset = explicitKeyword ? 0 : -1; // explicit means the directive begins with the assignment keyword, else it begins with the target variable
@@ -579,84 +581,7 @@ namespace Rococo
 							Throw(directive, "Cannot identify target definition");
 						}
 
-						auto* type = targetDef.ResolvedType;
-
-						int64 enumValue;
-						if (!type->TryGetEnumValue(enumKey, OUT enumValue))
-						{
-							Throw(directive, "Cannot identify '%s' as an enum", sourceText);
-						}
-
-						VariantValue v;
-
-						if (type->IsStrongType())
-						{
-							switch (type->VarType())
-							{
-							case SexyVarType_Int32:
-								if (enumValue >= INT32_MIN && enumValue <= INT32_MAX)
-								{
-									v.int32Value = (int32)enumValue;
-									ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
-								}
-								else
-								{
-									Throw(directive, "The value %lld / 0x%llX cannot represent an int32 (the underlying type of %s)", enumValue, enumValue, GetFriendlyName(*type));
-								}
-								break;
-							case SexyVarType_Int64:
-								v.int64Value = (int32)enumValue;
-								ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
-								break;
-							case SexyVarType_Float32:
-								v.floatValue = (float) enumValue;
-								ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
-								break;
-							case SexyVarType_Float64:
-								v.doubleValue = (double)enumValue;
-								ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
-								break;
-							default:
-								Throw(directive, "The underlying type of %s is incompatble with enumeration assignment", GetFriendlyName(*type));
-							}
-
-							AddSymbol(ce.Builder, "%s = %s (%lld/0x%llX)", targetVariable, enumKey, enumValue, enumValue);
-							ce.Builder.AssignTempToVariable(0, targetVariable);
-						}
-						else
-						{
-							switch (type->VarType())
-							{
-							case SexyVarType_Int32:
-								if (enumValue >= INT32_MIN && enumValue <= INT32_MAX)
-								{
-									v.int32Value = (int32)enumValue;
-									ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
-								}
-								else
-								{
-									Throw(directive, "The value %lld / 0x%llX cannot represent an int32", enumValue, enumValue);
-								}
-								break;
-							case SexyVarType_Int64:
-								v.int64Value = (int32)enumValue;
-								ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
-								break;
-							case SexyVarType_Float32:
-								v.floatValue = (float)enumValue;
-								ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
-								break;
-							case SexyVarType_Float64:
-								v.doubleValue = (double)enumValue;
-								ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
-								break;
-							default:
-								Throw(directive, "Type %s is incompatble with enumeration assignment", GetFriendlyName(*type));
-							}
-
-							AddSymbol(ce.Builder, "%s = %s (%lld/0x%llX)", targetVariable, enumKey, enumValue, enumValue);
-							ce.Builder.AssignTempToVariable(0, targetVariable);
-						}
+						AssignEnumToVariable(ce, enumKey, *targetDef.ResolvedType, directive, targetVariable);
 					}
 					else
 					{
