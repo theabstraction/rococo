@@ -6690,4 +6690,7 @@
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\sexy.UE5.API\rocks.handcoded.inl" />
+  </ItemGroup>
 </Project>

@@ -830,6 +830,7 @@ namespace Rococo::Script
 		{
 			HString origin;
 			int lineNumber;
+			SexyVarType underlyingType;
 		};
 
 		stringmap<EnumType> enumTypes;
@@ -839,7 +840,7 @@ namespace Rococo::Script
 			return *this;
 		}
 
-		void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) override
+		void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, SexyVarType underlyingType) override
 		{
 			if (origin == nullptr)
 			{
@@ -877,9 +878,18 @@ namespace Rococo::Script
 				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed", typeName);
 			}
 
+			switch (underlyingType)
+			{
+			case SexyVarType_Int32:
+			case SexyVarType_Int64:
+				break;
+			default:
+				Throw(0, __FUNCTION__, ":[typeName: %s] only int32 and int64 supported for enum types", typeName);
+			}
+
 			char fqName[256];
 			SafeFormat(fqName, "%s.%s", ns.FullName()->Buffer, typeName);
-			enumTypes.insert(fqName, EnumType{ origin, lineNumber });
+			enumTypes.insert(fqName, EnumType{ origin, lineNumber, underlyingType });
 		}
 
 		struct HandleType
@@ -1024,7 +1034,7 @@ namespace Rococo::Script
 				}
 
 				auto& nsRef = AddNativeNamespace(ns);
-				RegisterEnumType(nsRef, name, e.second.origin, e.second.lineNumber);
+				RegisterEnumType(nsRef, name, e.second.origin, e.second.lineNumber, e.second.underlyingType);
 			}
 		}
 
@@ -1066,9 +1076,9 @@ namespace Rococo::Script
 			rockTypes.clear();
 		}
 
-		void RegisterEnumType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber)
+		void RegisterEnumType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber, SexyVarType underlyingType)
 		{
-			IStructureBuilder& sb = progObjProxy->IntrinsicModule().DeclareStrongType(typeName, SexyVarType_Int64);
+			IStructureBuilder& sb = progObjProxy->IntrinsicModule().DeclareStrongType(typeName, underlyingType);
 			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
 			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
 

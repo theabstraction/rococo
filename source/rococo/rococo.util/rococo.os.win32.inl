@@ -2355,7 +2355,7 @@ namespace Rococo::OS
 
 	ROCOCO_API void PrintDebug(const char* format, ...)
 	{
-#if _DEBUG
+#ifdef _DEBUG
 		va_list arglist;
 		va_start(arglist, format);
 		char line[4096];

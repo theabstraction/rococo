@@ -3566,6 +3566,42 @@ R"((namespace EntryPoint)
 
 	static int marbleCode = 0;
 
+	void TestEnumByCPP(IPublicScriptSystem& ss)
+	{
+		const INamespace& ns = ss.AddNativeNamespace("Sys.Time");
+
+		try
+		{
+			ss.CreateEnumType(ns, __FILE__, __LINE__, "Day", Rococo::SexyVarType_Int32);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		cstr srcCode =
+			R"(
+			(function Main -> (Int32 result):
+				(Sys.Time.Day day = 6)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)
+				(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 6);
+	}
+
 	void TestRock(IPublicScriptSystem& ss)
 	{
 		struct Marble
@@ -18510,6 +18546,8 @@ R"(
 	void RunPositiveSuccesses()
 	{
 		validate(true);
+
+		TEST(TestEnumByCPP);
 
 		TEST(TestNativeHandle);
 

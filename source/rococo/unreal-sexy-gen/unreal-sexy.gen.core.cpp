@@ -14,6 +14,9 @@ extern fstring softObjectPtrPrefix;
 extern fstring subclassOfPrefix;
 extern fstring scriptInterfacePrefix;
 extern fstring objectPtrPrefix;
+extern fstring optionalTypePrefix;
+extern fstring weakObjectPtrPrefix;
+extern fstring softClassPtrPrefix;
 
 extern bool g_unityBuild;
 
@@ -306,7 +309,6 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 
 	sb << "UnknownType /*";
 	AppendTypeSansRef(sb, argType);
-	sb << "*/";
 }
 
 void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnums& enums, IStructs& structs, IDelegates& delegates)
@@ -410,6 +412,21 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnu
 		return;
 	}
 
+	if (StartsWith(argType, softClassPtrPrefix))
+	{
+		cstr endToken = FindChar(argType, '>');
+		cstr startToken = argType + softClassPtrPrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		sb.AppendFormat("R_TSoftClassPtr<%s>", innerType);
+		return;
+	}
+
+	if (Eq(argType, "TOptional"))
+	{
+		sb.AppendFormat("TOptional");
+		return;
+	}
+
 	structs.MarkUnknown(argType);
 
 	sb << "UnknownType /*";
@@ -477,9 +494,13 @@ void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableT
 	}
 }
 
-
 void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
+	if (!method.IsMarshallable())
+	{
+		return;
+	}
+
 	sb << "\n\tvoid ";
 	AppendCompactName(sb, classDef.ShortName());
 	sb << "_";
@@ -520,6 +541,13 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		if (arg->IsCPPOutput())
 		{
 			sb << "OUT ";
+		}
+
+
+		// TODO - delete this
+		if (Eq(method.Name(), "GetSupportedClasses"))
+		{
+			printf("");
 		}
 
 		AppendType(sb, *arg, false, enums, structs, delegates);
@@ -1345,7 +1373,22 @@ namespace
 		{
 			auto* e = ePair.second;
 
-			sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\");\n";
+			cstr type;
+			switch (e->UnderlyingType())
+			{
+				case Rococo::Unreal::EEnumType::int16:
+				case Rococo::Unreal::EEnumType::int32:
+				case Rococo::Unreal::EEnumType::uint16:
+				case Rococo::Unreal::EEnumType::uint32:
+					type = "SexyVarType_Int32";
+					break;
+				default:
+					type = "SexyVarType_Int64";
+					break;
+			}
+
+
+			sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\", " << type << "); \n";
 		}
 	}
 
@@ -1578,6 +1621,16 @@ void InnerUnrealTypeToMarshalledType(char* buffer, size_t capacity, cstr unrealT
 		return;
 	}
 
+	if (StartsWith(unrealType, softObjectPtrPrefix))
+	{
+		char innerType[256];
+		cstr endToken = FindChar(unrealType, '>');
+		cstr startToken = unrealType + softObjectPtrPrefix.length;
+		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
+		SafeFormat(buffer, capacity, "R_TSoftObjectPtr<%s>", innerType);
+		return;
+	}
+
 	auto* enumDef = enums.FindEnum(unrealType);
 	if (enumDef)
 	{
@@ -1710,7 +1763,7 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnu
 	{
 		auto& e = structDef[i];
 
-		if (Eq(e.TypeName(), "TArray") || Eq(e.TypeName(), "TSet"))
+		if (Eq(e.TypeName(), "TArray") || Eq(e.TypeName(), "TSet") || Eq(e.TypeName(), "TOptional"))
 		{
 			AppendHeaderForType(sb, e.InnerValueType(), enums);
 			continue;
@@ -1728,6 +1781,15 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnu
 			{
 				sb.AppendFormat("#include \"Delegate/%s.hpp\"\n", delegateType);
 				delegates.AddDelegate(delegateType, e.SizeOf());
+			}
+			continue;
+		}
+		else if (StartsWith(e.TypeName(), weakObjectPtrPrefix))
+		{
+			char innerType[256];
+			if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), weakObjectPtrPrefix))
+			{
+				AppendHeaderForType(sb, innerType, enums);
 			}
 			continue;
 		}
@@ -1780,6 +1842,10 @@ void BuildSexyNativeStructsHPP(IUnrealStruct& structDef, StringBuilder& sb, IEnu
 		{
 			sb << "class " << innerType << ";\n";
 		}
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), weakObjectPtrPrefix))
+		{
+			sb << "class " << innerType << ";\n";
+		}
 	}
 
 	sb << R"(
@@ -1822,11 +1888,15 @@ namespace Rococo::UE::Native::Struct
 		}
 		else if (Eq(e.TypeName(), "TMap"))
 		{
-			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType(), enums);
-
 			char keyType[256];
 			InnerUnrealTypeToMarshalledType(keyType, sizeof keyType, e.InnerKeyType(), enums);
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType(), enums);
 			sb.AppendFormat("\t\tR_TMap<%s,%s> ", keyType, innerType);
+		}
+		else if (Eq(e.TypeName(), "TOptional"))
+		{
+			InnerUnrealTypeToMarshalledType(innerType, sizeof innerType, e.InnerValueType(), enums);
+			sb.AppendFormat("\t\tR_TOptional<%s,%d> ", innerType, e.SizeOf());
 		}
 		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), enumAsBytePrefix))
 		{
@@ -1848,6 +1918,10 @@ namespace Rococo::UE::Native::Struct
 		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), delegatePrefix))
 		{
 			sb.AppendFormat("\t\tR_TDelegate<Delegate::R_%s> ", innerType);
+		}
+		else if (TryGetInnerType(innerType, sizeof innerType, e.TypeName(), weakObjectPtrPrefix))
+		{
+			sb.AppendFormat("\t\tR_TWeakObjectPtr<%s> ", innerType);
 		}
 		else
 		{
@@ -2461,6 +2535,31 @@ void GenEnumDef(IUnrealEnumDef& enumDef, crwstr outputDirectory)
 	IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHPPFile, *sbHPP);
 }
 
+cstr GetEnumType(const IUnrealEnumDef& def)
+{
+	switch (def.UnderlyingType())
+	{
+	case EEnumType::int8:
+		return "int8";
+	case EEnumType::int16:
+		return "int16";
+	case EEnumType::int32:
+		return "int32";
+	case EEnumType::int64:
+		return "int64";
+	case EEnumType::uint8:
+		return "uint8";
+	case EEnumType::uint16:
+		return "uint16";
+	case EEnumType::uint32:
+		return "uint32";
+	case EEnumType::uint64:
+		return "uint64";
+	default:
+		Throw(0, "Unexpected enum type: %d", def.UnderlyingType());
+	}
+}
+
 void BuildSexyNativeEnumHPP(IUnrealEnumDef& enumDef, StringBuilder& sb)
 {
 	sb <<
@@ -2475,13 +2574,18 @@ namespace Rococo::UE::Native::Enum
 
 	sb << "\tenum class R_";
 	sb << enumDef.Name();
-	sb << " : int32";	
-	sb << "\n";
+	sb << " : " << GetEnumType(enumDef) << "\n";
 	sb << "\t{\n";
 
 	for (int32 i = 0; i < enumDef.NumberOfKeys(); i++)
 	{
 		cstr key = enumDef.GetKey(i);
+
+		if (EndsWith(key, "_MAX") && StartsWith(key, enumDef.Name()))
+		{
+			continue;
+		}
+
 		int64 value = enumDef.GetValue(i);
 
 		sb.AppendFormat("\t\t%s = %lld", key, value);

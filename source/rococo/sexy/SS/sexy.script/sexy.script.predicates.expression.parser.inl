@@ -532,6 +532,7 @@ namespace Rococo
           auto& type = *leftDef.ResolvedType;
 
           int64 value = AssignEnumToD4(ce, rightExpr + 1, type, sRightExpr);
+          UNUSED(value);
           // Now we have (leftVarName op D4)
 
           ce.Builder.AssignVariableToTemp(leftVarName, 1);

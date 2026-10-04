@@ -196,7 +196,7 @@ namespace Rococo::Script
 
 			if (freeItems.empty())
 			{
-				item = (T*)Rococo::Memory::AllocateSexyMemory(sizeof T);
+				item = (T*)Rococo::Memory::AllocateSexyMemory(sizeof(T));
 			}
 			else
 			{

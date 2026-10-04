@@ -85,6 +85,12 @@ namespace Rococo::UE::Native
 			R_TSet<KEY> _opaqueSet;
 		};
 
+		template<class VALUE, size_t SIZE_IN_BYTES>
+		struct R_TOptional
+		{
+			char opaqueData[SIZE_IN_BYTES];
+		};
+
 		struct R_FString
 		{
 			crwstr buffer;
@@ -140,6 +146,18 @@ namespace Rococo::UE::Native
 			R_FName assetName;
 			R_FUtf8String subPathString;
 			uint32 padding;
+		};
+
+		template<class T>
+		struct R_TWeakObjectPtr
+		{
+			T* t;
+		};
+
+		template<class T>
+		struct R_TSoftClassPtr
+		{
+			T* t;
 		};
 
 		template<class T>

@@ -19249,4 +19249,7 @@
       <UniqueIdentifier>{70951ba0-0896-2c72-0a53-00eca0e57807}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\rococo\sexy.UE5.API\rocks.handcoded.inl" />
+  </ItemGroup>
 </Project>

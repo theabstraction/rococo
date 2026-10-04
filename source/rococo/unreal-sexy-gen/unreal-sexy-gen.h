@@ -9,6 +9,18 @@ namespace Rococo::Strings
 
 namespace Rococo::Unreal
 {
+	enum class EEnumType
+	{
+		int8,
+		int16,
+		int32,
+		int64,
+		uint8,
+		uint16,
+		uint32,
+		uint64
+	};
+
 	ROCOCO_INTERFACE IUnrealEnumDef
 	{
 		virtual cstr Name() const = 0;
@@ -18,11 +30,14 @@ namespace Rococo::Unreal
 		virtual cstr GetKey(int32 index) const = 0;
 		virtual int64 GetValue(int32 index) const = 0;
 		virtual size_t GetUnderlyingSize() const = 0;
+		virtual EEnumType UnderlyingType() const = 0;
+		virtual bool IsBlueprintType() const = 0;
 	};
 
 	ROCOCO_INTERFACE IEnums
 	{
 		virtual const IUnrealEnumDef* FindEnum(cstr name) const = 0;
+		virtual const IUnrealEnumDef* GetEnumByIndex(size_t index) const = 0;
 	};
 
 	ROCOCO_INTERFACE IUnrealArg
@@ -42,6 +57,7 @@ namespace Rococo::Unreal
 		virtual bool IsPtr() const = 0;
 		virtual bool IsRef() const = 0;
 		virtual bool IsContainer() const = 0;
+		virtual bool IsMarshallable() const = 0;
 		virtual bool IsMarshalledByRef() const = 0;
 		virtual int Offset() const = 0;
 		virtual int ParamSize() const = 0;
@@ -51,6 +67,7 @@ namespace Rococo::Unreal
 	{
 		// Returns true is Sexy can marshal the function call
 		virtual bool HasSexyCounterpart() const = 0;
+		virtual bool IsMarshallable() const = 0;
 		virtual void AppendFunctionName(Strings::StringBuilder& sb, bool makeSexyVariableName = false) const = 0;
 		virtual const IUnrealArg* GetArg(size_t index) const = 0;
 		virtual cstr Name() const = 0;

@@ -20,6 +20,9 @@ fstring scriptInterfacePrefix = "TScriptInterface<"_fstring;
 fstring objectPtrPrefix = "TObjectPtr<"_fstring;
 fstring enumAsBytePrefix = "TEnumAsByte<"_fstring;
 fstring softObjectPtrPrefix = "TSoftObjectPtr<"_fstring;
+fstring optionalTypePrefix = "TOptional<"_fstring;
+fstring weakObjectPtrPrefix = "TWeakObjectPtr<"_fstring;
+fstring softClassPtrPrefix = "TSoftClassPtr<"_fstring;
 
 int g_nClassesParsed = 0;
 int g_nMethodsParsed = 0;
@@ -63,9 +66,11 @@ struct Structs : IStructs
 struct Enums : IEnums
 {
 	stringmap<UnrealEnumDef*> unrealEnums;
+	std::vector<UnrealEnumDef*> enumByIndex;
 
 	void Add(cr_sex sEnumDef);
 	const IUnrealEnumDef* FindEnum(cstr name) const override;
+	const IUnrealEnumDef* GetEnumByIndex(size_t index) const override;
 
 	~Enums();
 };
@@ -624,6 +629,18 @@ struct UnrealEnumDef: IUnrealEnumDef
 	HString name;
 	HString package;
 	int64 maxValue = 0;
+	bool isBlueprintType = false;
+	EEnumType type = EEnumType::uint8;
+
+	EEnumType UnderlyingType() const override
+	{
+		return type;
+	}
+
+	bool IsBlueprintType() const override
+	{
+		return isBlueprintType;
+	}
 	
 	struct Entry
 	{
@@ -654,7 +671,57 @@ struct UnrealEnumDef: IUnrealEnumDef
 
 		maxValue = _atoi64(GetAtomicArg(sMaxDef, 1).c_str());
 
-		cr_sex sValuesDef = sDef[4];
+		// 3 is (BlueprintType <bool>)
+		// 4 is (Base <underlying-type>)
+
+		cr_sex sBlueprintType = sDef[3];
+		ValidateToken(sBlueprintType[0], "BlueprintType", __FUNCTION__);
+
+		if (Eq(sBlueprintType[1].c_str(), "true"))
+		{
+			isBlueprintType = true;
+		}
+
+		cr_sex sBase = sDef[4];
+		ValidateToken(sBase[0], "Base", __FUNCTION__);
+
+		cstr baseType = sBase[1].c_str();
+
+		if (Eq(baseType, "int8"))
+		{
+			type = EEnumType::int8;
+		}
+		else if (Eq(baseType, "int16"))
+		{
+			type = EEnumType::int16;
+		}
+		else if (Eq(baseType, "int32"))
+		{
+			type = EEnumType::int32;
+		}
+		else if (Eq(baseType, "int64"))
+		{
+			type = EEnumType::int64;
+		}
+		else if (Eq(baseType, "uint8"))
+		{
+			type = EEnumType::uint8;
+		}
+		else if (Eq(baseType, "uint32"))
+		{
+			type = EEnumType::uint32;
+		}
+		else if (Eq(baseType, "uint64"))
+		{
+			type = EEnumType::uint64;
+		}
+		else if (Eq(baseType, "uint8"))
+		{
+			type = EEnumType::uint8;
+		}
+
+		ValidateToken(sDef[5], ":", __FUNCTION__);
+		cr_sex sValuesDef = sDef[6];
 		ValidateToken(sValuesDef[0], "Values", __FUNCTION__);
 
 		entries.reserve(sValuesDef.NumberOfElements() - 1);
@@ -771,6 +838,16 @@ const IUnrealEnumDef* Enums::FindEnum(cstr name) const
 	return nullptr;
 }
 
+const IUnrealEnumDef* Enums::GetEnumByIndex(size_t index) const
+{
+	if (index >= enumByIndex.size())
+	{
+		return nullptr;
+	}
+
+	return enumByIndex[index];
+}
+
 Enums::~Enums()
 {
 	for (auto& i : unrealEnums)
@@ -798,17 +875,16 @@ struct UnrealStructElement : IUnrealStructElement
 		ValidateToken(sNameSpec[1], "Def", __FUNCTION__);
 		typeName = GetAtomicArg(sNameSpec, 2).c_str();
 		fieldName = GetAtomicArg(sNameSpec, sNameSpec.NumberOfElements() - 1).c_str();
-		if (Eq(typeName, "TArray") || Eq(typeName, "TSet"))
+		if (Eq(typeName, "TArray") || Eq(typeName, "TSet") || Eq(typeName, "TOptional"))
 		{
 			innerValueType = GetAtomicArg(sNameSpec, 3).c_str();
 		}
-
-		if (Eq(typeName, "TMap"))
+		else if (Eq(typeName, "TMap"))
 		{
 			innerKeyType = GetAtomicArg(sNameSpec, 3).c_str();
 			innerValueType = GetAtomicArg(sNameSpec, 4).c_str();
 		}
-
+		
 		if (eDef.NumberOfElements() > 2)
 		{
 			int i = 2;
@@ -1333,9 +1409,19 @@ struct UnrealFunctionArg : IUnrealArg
 			{
 				argType = p;
 				elementType = sFunctionArgDef[i + 1].c_str();
-				argName = sFunctionArgDef[i + 2].c_str();
+				cstr ref = sFunctionArgDef[i + 2].c_str();
+				if (!Eq(ref, "^"))
+				{
+					argName = ref;
+					isMarshalledByRef = false;
+				}
+				else
+				{
+					argName = sFunctionArgDef[i + 3].c_str();
+					isMarshalledByRef = true;
+				}
+				
 				isContainer = true;
-				isMarshalledByRef = true;
 				break;
 			}
 
@@ -1386,6 +1472,16 @@ struct UnrealFunctionArg : IUnrealArg
 	bool HasSexyCounterpart() const override
 	{
 		return searcher.HasSexyCounterpart(argType, elementType, keyType);
+	}
+
+	bool IsMarshallable() const override
+	{
+		if (strstr(argType, "TOptional"))
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	void AppendName(StringBuilder& sb, bool makeSexyVariableName = false) const override
@@ -1655,6 +1751,19 @@ struct UnrealFunctionDef : IUnrealFunction
 		for (auto* a : args)
 		{
 			if (!a->HasSexyCounterpart())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool IsMarshallable() const override
+	{
+		for (auto* a : args)
+		{
+			if (!a->IsMarshallable())
 			{
 				return false;
 			}
