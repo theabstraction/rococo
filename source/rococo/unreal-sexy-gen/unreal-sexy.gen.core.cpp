@@ -2463,12 +2463,43 @@ namespace Rococo::UE::Native::Delegate
 			);
 			sb << "\t}\n";
 
-			sb << "\tSEXY_MARSHALLING_API void RegisterEnums(Rococo::Script::IPublicScriptSystem& ss)\n";
+			sb << "\tSEXY_MARSHALLING_API void RegisterEnumTypes(Rococo::Script::IPublicScriptSystem& ss)\n";
 			sb << "\t{\n";
 
 			sb << "\t\tauto& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
 
 			size_t i = 0;
+			for (;;)
+			{
+				auto* e = enums.GetEnumByIndex(i++);
+				if (e == nullptr) break;
+
+				cstr type;
+				switch (e->UnderlyingType())
+				{
+				case Rococo::Unreal::EEnumType::int16:
+				case Rococo::Unreal::EEnumType::int32:
+				case Rococo::Unreal::EEnumType::uint16:
+				case Rococo::Unreal::EEnumType::uint32:
+					type = "SexyVarType_Int32";
+					break;
+				default:
+					type = "SexyVarType_Int64";
+					break;
+				}
+
+
+				sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\", " << type << ");\n";
+			}
+
+			sb << "\t}\n;";
+
+			sb << "\tSEXY_MARSHALLING_API void RegisterEnumMaps(Rococo::Script::IPublicScriptSystem& ss)\n";
+			sb << "\t{\n";
+
+			sb << "\t\tauto& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
+
+			i = 0;
 			for (;;)
 			{
 				auto* e = enums.GetEnumByIndex(i++);
