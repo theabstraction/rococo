@@ -32,6 +32,7 @@ namespace Rococo::Unreal
 		virtual size_t GetUnderlyingSize() const = 0;
 		virtual EEnumType UnderlyingType() const = 0;
 		virtual bool IsBlueprintType() const = 0;
+		virtual void GetCommonPrefix(char commonPrefix[256]) const = 0;
 	};
 
 	ROCOCO_INTERFACE IEnums

@@ -741,6 +741,37 @@ struct UnrealEnumDef: IUnrealEnumDef
 		delete this;
 	}
 
+	void GetCommonPrefix(char commonPrefix[256]) const override
+	{
+		size_t index = 0;
+		
+		while (index < 250)
+		{
+			char nextChar = entries.begin()->key.c_str()[index];
+			if (!nextChar)
+			{
+				return;
+			}
+
+			commonPrefix[index] = nextChar;
+			commonPrefix[index + 1] = 0;
+
+			for (auto& e : entries)
+			{
+				cstr name = e.key.c_str();
+				if (!StartsWith(name, commonPrefix))
+				{
+					commonPrefix[index] = 0;
+					return;
+				}
+			}
+
+			index++;
+		}
+
+		commonPrefix[index] = 0;
+	}
+
 	cstr Name() const override
 	{
 		return name;

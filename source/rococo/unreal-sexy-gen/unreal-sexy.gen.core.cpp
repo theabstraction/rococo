@@ -2356,6 +2356,30 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t}\n";
 		}
 
+		char compressedKey[256];
+
+		void CompressKey(char compressedKey[256], cstr key)
+		{
+			char* d = compressedKey;
+
+			if (strlen(key) >= 255)
+			{
+				Throw(0, "Key too long");
+			}
+
+			for (const char* s = key; *s != 0; s++)
+			{
+				if (*s == '_')
+				{
+					continue;
+				}
+
+				*d++ = *s;
+			}
+
+			*d = 0;
+		}
+
 		void GenRocks(IStructs& structs, IEnums& enums, crwstr outputDirectory) override
 		{
 			int fnLineNumber = __LINE__ - 2;
@@ -2450,14 +2474,33 @@ namespace Rococo::UE::Native::Delegate
 				auto* e = enums.GetEnumByIndex(i++);
 				if (e == nullptr) break;
 
-				sb << "\t\t{\n";
+				if (e->NumberOfKeys() == 1)
+				{
+					// Just the max value, so skip
+					continue;
+				}
 
+				sb << "\t\t{\n";
 				sb << "\t\t\tRococo::Script::EnumBinding bindings[] = {";
+
+				char sprefix[256];
+				e->GetCommonPrefix(sprefix);
+
+				fstring prefix = to_fstring(sprefix);
 
 				for (int32 j = 0; j < e->NumberOfKeys(); ++j)
 				{
+					if (j == e->NumberOfKeys() - 1 && EndsWith(e->GetKey(e->NumberOfKeys() - 1), "_MAX"))
+					{
+						break;
+					}
+
 					if (j > 0) sb << ", ";
-					sb.AppendFormat("{\"%s\", 0x%llXLL }", e->GetKey(j), e->GetValue(j));
+
+					char compressedKey[256];
+					CompressKey(compressedKey, e->GetKey(j) + prefix.length);
+
+					sb.AppendFormat("{\"%s\", 0x%llXLL }", compressedKey, e->GetValue(j));
 				}
 
 				sb << ", { nullptr, 0 }};\n";
