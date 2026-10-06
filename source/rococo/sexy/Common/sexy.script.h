@@ -341,6 +341,12 @@ namespace Rococo {
 			virtual void OnBeginPartialCompilePostSysNatives(IPublicScriptSystem& ss) = 0;
 			virtual void OnCompilePostSysNativeCompilation(IPublicScriptSystem& ss) = 0;
 		};
+
+		struct EnumBinding
+		{
+			cstr name;
+			int64 value;
+		};
 		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
@@ -367,6 +373,8 @@ namespace Rococo {
 			// The [typeName] must be unique.
 			// [origin] and [lineNumber] give the source line that invoked CreateEnumType
 			virtual void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, SexyVarType underlyingType) = 0;
+
+			virtual void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, EnumBinding bindings[]) = 0;
 
 			// Find or create a native opaque struct object - a rock - and aliases into the namespace.
 			// The [typeName] must be unique.

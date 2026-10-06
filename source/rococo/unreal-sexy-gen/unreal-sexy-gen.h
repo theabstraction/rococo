@@ -171,7 +171,7 @@ namespace Rococo::Unreal
 		virtual void GenClassDef(IUnrealClass& classDef, crwstr nativeDirectory, crwstr sxyDirectory, IEnums& enums, IStructs& structs, IDelegates& delegates) = 0;
 		virtual	void GenDelegateDef(cstr rawTypeName, int sizeInBytes, crwstr path) = 0;
 		virtual void GenStructDef(IUnrealStruct& structDef, crwstr outputDirectory, IEnums& enums, IDelegates& delegates) = 0;
-		virtual void GenRocks(IStructs& structs, crwstr outputDirectory) = 0;
+		virtual void GenRocks(IStructs& structs, IEnums& enums, crwstr outputDirectory) = 0;
 	};
 
 	IAPIGenerator* CreateAPIGenerator();

@@ -6666,6 +6666,14 @@
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-20.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-21.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-22.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-23.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-24.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-25.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-26.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-27.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-28.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-29.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexy.UE5.API\all-files-30.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\rocks.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-register.cpp" />
     <ClCompile Include="..\..\source\rococo\sexy.UE5.API\unreal-sexy.marshalling.cpp" />

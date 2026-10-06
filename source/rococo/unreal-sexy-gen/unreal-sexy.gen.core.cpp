@@ -1397,7 +1397,7 @@ namespace
 			}
 
 
-			sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\", " << type << "); \n";
+			sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\", " << type << ");\n";
 		}
 	}
 
@@ -2356,7 +2356,7 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t}\n";
 		}
 
-		void GenRocks(IStructs& structs, crwstr outputDirectory) override
+		void GenRocks(IStructs& structs, IEnums& enums, crwstr outputDirectory) override
 		{
 			int fnLineNumber = __LINE__ - 2;
 			AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64_kilobytes);
@@ -2438,8 +2438,35 @@ namespace Rococo::UE::Native::Delegate
 				}
 			);
 			sb << "\t}\n";
-			sb << "}\n";
 
+			sb << "\tSEXY_MARSHALLING_API void RegisterEnums(Rococo::Script::IPublicScriptSystem& ss)\n";
+			sb << "\t{\n";
+
+			sb << "\t\tauto& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
+
+			size_t i = 0;
+			for (;;)
+			{
+				auto* e = enums.GetEnumByIndex(i++);
+				if (e == nullptr) break;
+
+				sb << "\t\t{\n";
+
+				sb << "\t\t\tRococo::Script::EnumBinding bindings[] = {";
+
+				for (int32 j = 0; j < e->NumberOfKeys(); ++j)
+				{
+					if (j > 0) sb << ", ";
+					sb.AppendFormat("{\"%s\", 0x%llXLL }", e->GetKey(j), e->GetValue(j));
+				}
+
+				sb << ", { nullptr, 0 }};\n";
+
+				sb.AppendFormat("\t\t\tss.AddEnumValues(nsEnums, \"%s\", bindings);\n", e->Name());
+				sb << "\t\t}\n";
+			}
+			sb << "\t}\n";
+			sb << "}\n\n";
 			sb << "#include \"rocks.handcoded.inl\"";
 
 			IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetCPPFile, *sb);

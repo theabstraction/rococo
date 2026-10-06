@@ -57,7 +57,7 @@ struct Structs : IStructs
 	void MarkUnknown(cstr type) override;
 	void ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates, IAPIGenerator& generator);
 	void PrintUnknownsAscending(FILE* fp);
-	void GenerateRocks(IAPIGenerator& generator);
+	void GenerateRocks(IEnums& enums, IAPIGenerator& generator);
 	void EnumerateAll(Rococo::Function<void(Rococo::Unreal::IUnrealStruct& structure)> lambda) override;
 
 	~Structs();
@@ -408,8 +408,6 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 		}
 	}
 
-	database.structs.GenerateRocks(*generator);
-
 	int classCount = 0;
 	for (int i = 0; i < sRoot.NumberOfElements(); i++)
 	{
@@ -442,6 +440,8 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 	}
 
 	classSystem->Commit();
+
+	database.structs.GenerateRocks(database.enums, *generator);
 
 	generator->Commit(GetSxyOutputDirectory());
 
@@ -804,7 +804,12 @@ void Enums::Add(cr_sex sEnumDef)
 		Throw(sEnumDef, "Duplicate enum name: %s", def->Name());
 	}
 
-	def.Detach();
+	enumByIndex.push_back(def.Detach());
+
+	std::sort(enumByIndex.begin(), enumByIndex.end(), [](const UnrealEnumDef* a, const UnrealEnumDef* b) {
+		return strcmp(a->Name(), b->Name()) < 0;
+		}
+	);
 }
 
 const IUnrealEnumDef* Enums::FindEnum(cstr name) const
@@ -1231,9 +1236,9 @@ void Structs::ParseStructDef(cr_sex sDef, IEnums& enums, IDelegates& delegates, 
 	}
 }
 
-void Structs::GenerateRocks(IAPIGenerator& generator)
+void Structs::GenerateRocks(IEnums& enums, IAPIGenerator& generator)
 {
-	generator.GenRocks(*this, GetOutputDirectory());
+	generator.GenRocks(*this, enums, GetOutputDirectory());
 }
 
 bool IsCPPKeyword(cstr token)

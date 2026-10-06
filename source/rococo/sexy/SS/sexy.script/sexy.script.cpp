@@ -892,6 +892,22 @@ namespace Rococo::Script
 			enumTypes.insert(fqName, EnumType{ origin, lineNumber, underlyingType });
 		}
 
+		void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, EnumBinding bindings[]) override
+		{
+			auto* e = ns.FindStructure(enumType);
+			if (e == nullptr)
+			{
+				Throw(0, "Could not find %s in %s", enumType, ns.FullName()->Buffer);
+			}
+
+			auto& type = *static_cast<IStructureBuilder*>(const_cast<IStructure*>(e));
+
+			for (auto* b = bindings; b->name != nullptr; b++)
+			{
+				type.AddEnum(b->name, b->value);
+			}
+		}
+
 		struct HandleType
 		{
 			HString origin;
@@ -1036,6 +1052,8 @@ namespace Rococo::Script
 				auto& nsRef = AddNativeNamespace(ns);
 				RegisterEnumType(nsRef, name, e.second.origin, e.second.lineNumber, e.second.underlyingType);
 			}
+
+			enumTypes.clear();
 		}
 
 		void RegisterHandles()
@@ -2622,14 +2640,15 @@ namespace Rococo::Script
 
 		void PartialCompile(StringBuilder* declarationBuilder) override
 		{
+			RegisterEnums();
 			RegisterRocks();
 
 			// We need namespaces first, because macros do not have be fully-qualified, this means we cannot macro namespaces or using directives, but these are rare use-cases, and the cost would be FQ each macro.
 			scripts->CompileNamespaces();
 			scripts->CompileTopLevelMacros(numberOfNativeSources);
-			scripts->CompileDeclarations();
 			scripts->CompileEnumsAndConstants();
-
+			scripts->CompileDeclarations();
+			
 			InstallNullFunction();
 
 			if (usesSysIO && !ioSystem) ioSystem = CreateIOSystem(*this);
