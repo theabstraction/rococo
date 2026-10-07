@@ -707,6 +707,10 @@ struct UnrealEnumDef: IUnrealEnumDef
 		{
 			type = EEnumType::uint8;
 		}
+		else if (Eq(baseType, "uint16"))
+		{
+			type = EEnumType::uint16;
+		}
 		else if (Eq(baseType, "uint32"))
 		{
 			type = EEnumType::uint32;
@@ -715,9 +719,9 @@ struct UnrealEnumDef: IUnrealEnumDef
 		{
 			type = EEnumType::uint64;
 		}
-		else if (Eq(baseType, "uint8"))
+		else
 		{
-			type = EEnumType::uint8;
+			Throw(0, "Bad enum type: %s of %s", baseType, nameAndPackage);
 		}
 
 		ValidateToken(sDef[5], ":", __FUNCTION__);

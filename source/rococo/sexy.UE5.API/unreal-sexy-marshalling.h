@@ -54,6 +54,12 @@ namespace Rococo::UE::Native
 			{
 			}
 
+			R_TEnumAsByte operator = (int32 i)
+			{
+				value = i;
+				return *this;
+			}
+
 			T operator()() const
 			{
 				return static_cast<T>((value));

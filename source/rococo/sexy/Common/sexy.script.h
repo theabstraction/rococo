@@ -374,7 +374,7 @@ namespace Rococo {
 			// [origin] and [lineNumber] give the source line that invoked CreateEnumType
 			virtual void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, SexyVarType underlyingType) = 0;
 
-			virtual void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, EnumBinding bindings[]) = 0;
+			virtual void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, const EnumBinding* bindings, size_t numberOfBindings) = 0;
 
 			// Find or create a native opaque struct object - a rock - and aliases into the namespace.
 			// The [typeName] must be unique.
@@ -572,6 +572,7 @@ namespace Rococo {
 			virtual Compiler::IMemberLife* GetArrayLifetimeManager() = 0;
 			virtual Compiler::IMemberLife* GetMapLifetimeManager() = 0;
 
+			virtual void RegisterEnums() = 0;
 			virtual Sex::ISTransformResolver& Resolver() = 0;
 		};
 

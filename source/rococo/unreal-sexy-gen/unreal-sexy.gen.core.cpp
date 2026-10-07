@@ -320,13 +320,32 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 	AppendTypeSansRef(sb, argType);
 }
 
-void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnums& enums, IStructs& structs, IDelegates& delegates)
+cstr TypeToString(const IUnrealEnumDef& def)
+{
+	switch (def.UnderlyingType())
+	{
+	case EEnumType::int8:
+	case EEnumType::int16:
+	case EEnumType::int32:
+		return "int32";
+	case EEnumType::int64:
+		return "int64";
+	case EEnumType::uint8:
+	case EEnumType::uint16:
+	case EEnumType::uint32:
+		return "uint32";
+	default:
+		return "uint64";
+	}
+}
+
+void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool targetsReadAndWriteInput)
 {
 	if (EndsWith(argType, "^"))
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_CPP_Private(sb, to_fstring(valueType), enums, structs, delegates);
+		AppendNonContainerType_CPP_Private(sb, to_fstring(valueType), enums, structs, delegates, targetsReadAndWriteInput);
 		return;
 	}
 
@@ -352,7 +371,14 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnu
 	auto* enumType = enums.FindEnum(argType);
 	if (enumType)
 	{
-		sb << "R_" << enumType->Name();
+		if (targetsReadAndWriteInput)
+		{
+			sb << TypeToString(*enumType);
+		}
+		else
+		{
+			sb << "R_" << enumType->Name();
+		}
 		return;
 	}
 
@@ -371,7 +397,15 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnu
 		{
 			Throw(0, "Could not find inner type %s", innerType);
 		}
-		sb.AppendFormat("R_TEnumAsByte<R_%s>", enumRef->Name());
+
+		if (targetsReadAndWriteInput)
+		{
+			sb << TypeToString(*enumRef);
+		}
+		else
+		{
+			sb.AppendFormat("R_TEnumAsByte<R_%s>", enumRef->Name());
+		}
 		return;
 	}
 
@@ -443,7 +477,7 @@ void AppendNonContainerType_CPP_Private(StringBuilder& sb, fstring argType, IEnu
 	sb << "*/";
 }
 
-void AppendNonContainerType_Private(StringBuilder& sb, fstring argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool isForElement = false)
+void AppendNonContainerType_Private(StringBuilder& sb, fstring argType, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool targetsReadAndWriteInput, bool isForElement)
 {
 	if (makeSexyVariableType)
 	{
@@ -451,11 +485,11 @@ void AppendNonContainerType_Private(StringBuilder& sb, fstring argType, bool mak
 	}
 	else
 	{
-		AppendNonContainerType_CPP_Private(sb, argType, enums, structs, delegates);
+		AppendNonContainerType_CPP_Private(sb, argType, enums, structs, delegates, targetsReadAndWriteInput);
 	}
 }
 
-void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates)
+void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool targetsReadAndWriteInput)
 {
 	fstring argType = arg.ArgType();
 
@@ -469,12 +503,12 @@ void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableT
 
 			if (*arg.KeyType() != 0)
 			{
-				AppendNonContainerType_Private(sb, arg.KeyType(), true, enums, structs, delegates, true);
+				AppendNonContainerType_Private(sb, arg.KeyType(), true, enums, structs, delegates, false, false);
 			}
 
 			if (*arg.ElementType() != 0)
 			{
-				AppendNonContainerType_Private(sb, arg.ElementType(), true, enums, structs, delegates, true);
+				AppendNonContainerType_Private(sb, arg.ElementType(), true, enums, structs, delegates, false, false);
 			}
 		}
 		else
@@ -484,7 +518,7 @@ void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableT
 			sb << "<";
 			if (*arg.KeyType() != 0)
 			{
-				AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType, enums, structs, delegates);
+				AppendNonContainerType_Private(sb, arg.KeyType(), makeSexyVariableType, enums, structs, delegates, false, false);
 				sb << ",";
 			}
 
@@ -493,14 +527,49 @@ void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableT
 				sb << "R_";
 			}
 
-			AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType, enums, structs, delegates);
+			AppendNonContainerType_Private(sb, arg.ElementType(), makeSexyVariableType, enums, structs, delegates, false, false);
 			sb << ">";
 		}
 	}
 	else
 	{
-		AppendNonContainerType_Private(sb, argType, makeSexyVariableType, enums, structs, delegates);
+		AppendNonContainerType_Private(sb, argType, makeSexyVariableType, enums, structs, delegates, targetsReadAndWriteInput, false);
 	}
+}
+
+void AppendInputCastToStructCast(StringBuilder& sb, const IUnrealArg& input, IEnums& enums)
+{
+	auto* e = enums.FindEnum(input.ArgType());
+	if (!e)
+	{
+		return;
+	}
+
+	sb.AppendFormat("(R_%s)", e->Name());
+}
+
+void AppendStructCastToOutputCast(StringBuilder& sb, const IUnrealArg& input, IEnums& enums)
+{
+	char innerType[256];
+	if (TryGetEnumAsByte(innerType, sizeof innerType, input.ArgType(), enums))
+	{
+		auto* enumRef = enums.FindEnum(innerType);
+		if (!enumRef)
+		{
+			Throw(0, "Could not find inner type %s", innerType);
+		}
+
+		sb.AppendFormat("(%s) ", TypeToString(*enumRef));
+		return;
+	}
+
+	auto* e = enums.FindEnum(input.ArgType());
+	if (!e)
+	{
+		return;
+	}
+
+	sb.AppendFormat("(%s) ", TypeToString(*e));
 }
 
 void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates)
@@ -552,14 +621,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 			sb << "OUT ";
 		}
 
-
-		// TODO - delete this
-		if (Eq(method.Name(), "GetSupportedClasses"))
-		{
-			printf("");
-		}
-
-		AppendType(sb, *arg, false, enums, structs, delegates);
+		AppendType(sb, *arg, false, enums, structs, delegates, false);
 
 		// Add a prefix to the name, in case the variable name conflicts with a C++ keyword
 		sb << " m_";
@@ -619,7 +681,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		}
 		else
 		{
-			AppendType(sb, *input, false, enums, structs, delegates);
+			AppendType(sb, *input, false, enums, structs, delegates, true);
 		}
 
 		if (input->IsMarshalledByRef())
@@ -646,7 +708,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 				sb << "\t\targs.m_";
 				input->AppendName(sb, false);
 				sb << " = ";
-
+				AppendInputCastToStructCast(sb, *input, enums);
 				if (input->IsMarshalledByRef())
 				{
 					sb << "*";
@@ -662,6 +724,8 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 			sb << "\t\targs.m_";
 			input->AppendName(sb, false);
 			sb << " = ";
+
+			AppendInputCastToStructCast(sb, *input, enums);
 
 			if (input->IsMarshalledByRef())
 			{
@@ -695,7 +759,11 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 			{
 				sb << "\n\t\t*in_";
 				input->AppendName(sb, true);
-				sb << " = args.m_";
+				sb << " = ";
+
+				AppendStructCastToOutputCast(sb, *input, enums);
+
+				sb << "args.m_";
 				input->AppendName(sb, false);
 				sb << ";\n";
 			}
@@ -723,7 +791,7 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		}
 		else
 		{
-			AppendType(sb, *output, false, enums, structs, delegates);
+			AppendType(sb, *output, false, enums, structs, delegates, true);
 		}
 
 
@@ -731,6 +799,8 @@ void BuildMethod(IUnrealClass& classDef, IUnrealFunction& method, StringBuilder&
 		output->AppendName(sb, true);
 		sb << " = ";
 			
+		AppendStructCastToOutputCast(sb, *output, enums);
+
 		sb << "args.m_";
 		output->AppendName(sb, false);
 		sb << ";\n";
@@ -1375,6 +1445,7 @@ namespace
 		sb << "\");\n";
 	}
 
+	/*
 	if (!knownEnums.empty())
 	{
 		sb << "\n\t\tconst INamespace& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
@@ -1400,6 +1471,7 @@ namespace
 			sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\", " << type << ");\n";
 		}
 	}
+	*/
 
 	sb << "\n";
 
@@ -1493,7 +1565,7 @@ namespace
 				sb << "out ";
 			}
 
-			AppendType(sb, *input, true, enums, structs, delegates);
+			AppendType(sb, *input, true, enums, structs, delegates, false);
 			sb << " ";
 			input->AppendName(sb, true);
 			sb << ")";
@@ -1506,7 +1578,7 @@ namespace
 				// We have an argument by ref, but it is primitive, which sexy cannot marshal by ref, so instead we add an initial value and emit a finalized value
 				sb << "(";
 
-				AppendType(sb, *output, true, enums, structs, delegates);
+				AppendType(sb, *output, true, enums, structs, delegates, false);
 				sb << " initial";
 
 				char name[MAX_FQ_NAME_LEN];
@@ -1527,7 +1599,7 @@ namespace
 		{
 			sb << "(";
 
-			AppendType(sb, *output, true, enums, structs, delegates);
+			AppendType(sb, *output, true, enums, structs, delegates, false);
 			sb << " ";
 			output->AppendName(sb, true);
 			sb << ")";
@@ -2067,7 +2139,7 @@ void AppendUnrealArgAsSexyPair(StringBuilder& sb, const IUnrealArg& arg, bool ad
 		}
 	}
 
-	AppendType(sb, arg, true, enums, structs, delegates);
+	AppendType(sb, arg, true, enums, structs, delegates, false);
 	sb << " ";
 	arg.AppendName(sb, true);
 	sb << ")";
@@ -2148,7 +2220,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 			if (EndsWith(output->ArgType(), "^") && !output->IsMarshalledByRef() && !output->IsConst())
 			{
 				sb << " (";
-				AppendType(sb, *output, true, enums, structs, delegates);
+				AppendType(sb, *output, true, enums, structs, delegates, false);
 				sb << " initial";
 				output->AppendName(sb, true);
 				sb << ")";
@@ -2432,6 +2504,13 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t}\n";		
 			sb << "\t}\n";
 			sb << "\n";
+
+			sb << "\ttemplate<unsigned N>\n";
+			sb << "\tvoid AddEnumValues(Rococo::Script::IPublicScriptSystem & ss, const Rococo::Compiler::INamespace & ns, cstr enumName, const Rococo::Script::EnumBinding(&bindings)[N])\n";
+			sb << "\t{\n";
+			sb << "\t\tss.AddEnumValues(ns, enumName, bindings, N);\n";
+			sb << "\t}\n\n";
+
 			sb << "\tSEXY_MARSHALLING_API void RegisterRocks(Rococo::Script::IPublicScriptSystem& ss, IRockFactories& factories)\n";
 			sb << "\t{\n";
 
@@ -2473,12 +2552,18 @@ namespace Rococo::UE::Native::Delegate
 			{
 				auto* e = enums.GetEnumByIndex(i++);
 				if (e == nullptr) break;
+				if (!e->IsBlueprintType())
+				{
+					continue;
+				}
 
 				cstr type;
 				switch (e->UnderlyingType())
 				{
+				case Rococo::Unreal::EEnumType::int8:
 				case Rococo::Unreal::EEnumType::int16:
 				case Rococo::Unreal::EEnumType::int32:
+				case Rococo::Unreal::EEnumType::uint8:
 				case Rococo::Unreal::EEnumType::uint16:
 				case Rococo::Unreal::EEnumType::uint32:
 					type = "SexyVarType_Int32";
@@ -2488,8 +2573,9 @@ namespace Rococo::UE::Native::Delegate
 					break;
 				}
 
-
-				sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\", " << type << ");\n";
+				char compressedName[256];
+				CompressKey(compressedName, e->Name());
+				sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << compressedName << "\", " << type << ");\n";
 			}
 
 			sb << "\t}\n;";
@@ -2511,13 +2597,19 @@ namespace Rococo::UE::Native::Delegate
 					continue;
 				}
 
-				sb << "\t\t{\n";
-				sb << "\t\t\tRococo::Script::EnumBinding bindings[] = {";
+				if (!e->IsBlueprintType())
+				{
+					continue;
+				}
 
 				char sprefix[256];
 				e->GetCommonPrefix(sprefix);
 
 				fstring prefix = to_fstring(sprefix);
+
+				char compressedName[256];
+				CompressKey(compressedName, e->Name());
+				sb.AppendFormat("\t\tAddEnumValues(ss, nsEnums, \"%s\", {", compressedName);
 
 				for (int32 j = 0; j < e->NumberOfKeys(); ++j)
 				{
@@ -2534,10 +2626,7 @@ namespace Rococo::UE::Native::Delegate
 					sb.AppendFormat("{\"%s\", 0x%llXLL }", compressedKey, e->GetValue(j));
 				}
 
-				sb << ", { nullptr, 0 }};\n";
-
-				sb.AppendFormat("\t\t\tss.AddEnumValues(nsEnums, \"%s\", bindings);\n", e->Name());
-				sb << "\t\t}\n";
+				sb << "});\n";
 			}
 			sb << "\t}\n";
 			sb << "}\n\n";
@@ -2784,7 +2873,7 @@ namespace Rococo::Unreal
 				sb << "out ";
 			}
 
-			AppendType(sb, *input, true, enums, structs, delegates);
+			AppendType(sb, *input, true, enums, structs, delegates, false);
 			sb << " ";
 			input->AppendName(sb, true);
 			sb << ")";
@@ -2796,7 +2885,7 @@ namespace Rococo::Unreal
 		{
 			sb << "(";
 
-			AppendType(sb, *output, true, enums, structs, delegates);
+			AppendType(sb, *output, true, enums, structs, delegates, false);
 			sb << " ";
 			output->AppendName(sb, true);
 			sb << ")";

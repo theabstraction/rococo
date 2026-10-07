@@ -892,7 +892,7 @@ namespace Rococo::Script
 			enumTypes.insert(fqName, EnumType{ origin, lineNumber, underlyingType });
 		}
 
-		void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, EnumBinding bindings[]) override
+		void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, const EnumBinding* bindings, size_t numberOfBindings) override
 		{
 			auto* e = ns.FindStructure(enumType);
 			if (e == nullptr)
@@ -902,7 +902,8 @@ namespace Rococo::Script
 
 			auto& type = *static_cast<IStructureBuilder*>(const_cast<IStructure*>(e));
 
-			for (auto* b = bindings; b->name != nullptr; b++)
+			auto* end = bindings + numberOfBindings;
+			for (auto* b = bindings; b != end; b++)
 			{
 				type.AddEnum(b->name, b->value);
 			}
