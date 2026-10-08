@@ -72,7 +72,6 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DataflowDebugDrawComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DataflowDebugMeshComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DataflowEditorCollectionComponent.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DataLayer.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DataLayerAsset.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DataLayerEditorSubsystem.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DataLayerInstance.cpp"
@@ -98,3 +97,4 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DeprecatedDataLayerInstance.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DetailsView.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DetourCrowdAIController.cpp"
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DGGUI.cpp"

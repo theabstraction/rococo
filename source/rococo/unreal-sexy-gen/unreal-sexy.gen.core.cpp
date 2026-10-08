@@ -206,7 +206,16 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 	{
 		char valueType[256];
 		CopyString(valueType, sizeof valueType, argType, strlen(argType) - 1);
-		AppendNonContainerType_SXY_Private(sb, valueType, enums, structs, delegates);
+		if (isForElement && !strstr(valueType, "<"))
+		{
+			sb << valueType;
+			if (EndsWith(valueType, "*"))
+			{
+				sb.Undo(-1);
+			}
+			return;
+		}
+		AppendNonContainerType_SXY_Private(sb, valueType, enums, structs, delegates, isForElement);
 		return;
 	}
 
@@ -278,7 +287,15 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		cstr endToken = FindChar(argType, '>');
 		cstr startToken = argType + softObjectPtrPrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		sb.AppendFormat("R_TSoftObjectPtr<%s>", innerType);
+
+		if (isForElement)
+		{
+			sb.AppendFormat("TSOFT%s", innerType);
+		}
+		else
+		{
+			sb.AppendFormat("R_TSoftObjectPtr<%s>", innerType);
+		}
 		return;
 	}
 
@@ -295,7 +312,15 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		cstr endToken = FindChar(argType, '>');
 		cstr startToken = argType + scriptInterfacePrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		sb.AppendFormat("R_TScriptInterface%s", innerType);
+
+		if (isForElement)
+		{
+			sb.AppendFormat("TSCRIPT%s", innerType);
+		}
+		else
+		{
+			sb.AppendFormat("R_TScriptInterface%s", innerType);
+		}
 		return;
 	}
 
@@ -310,7 +335,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		cstr endToken = FindChar(argType, '>');
 		cstr startToken = argType + softClassPtrPrefix.length;
 		CopyString(innerType, sizeof innerType, startToken, endToken - startToken);
-		sb.AppendFormat("TSoftClassPtr%s", innerType);
+		sb.AppendFormat("TSOFTCLASS%s", innerType);
 		return;
 	}
 
@@ -497,18 +522,18 @@ void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableT
 	{
 		if (makeSexyVariableType)
 		{
-			sb << "UE.Handles.";
+			sb << "UE.Container.";
 			sb << argType;
 			sb << "Of";
 
 			if (*arg.KeyType() != 0)
 			{
-				AppendNonContainerType_Private(sb, arg.KeyType(), true, enums, structs, delegates, false, false);
+				AppendNonContainerType_Private(sb, arg.KeyType(), true, enums, structs, delegates, false, true);
 			}
 
 			if (*arg.ElementType() != 0)
 			{
-				AppendNonContainerType_Private(sb, arg.ElementType(), true, enums, structs, delegates, false, false);
+				AppendNonContainerType_Private(sb, arg.ElementType(), true, enums, structs, delegates, false, true);
 			}
 		}
 		else
@@ -1236,6 +1261,26 @@ bool TryGetInnerType(char* innerType, size_t capacity, cstr argType, fstring pre
 	return false;
 }
 
+int32 GetSizeOf(cstr type)
+{
+	if (StartsWith(type, "TArray"))
+	{
+		return (int32) 16_bytes;
+	}
+
+	if (StartsWith(type, "TMap"))
+	{
+		return (int32) 80_bytes;
+	}
+
+	if (StartsWith(type, "TSet"))
+	{
+		return (int32) 80_bytes;
+	}
+
+	Throw(0, "Unknown container type: %s", type);
+}
+
 void BuildSexyNativesCPP(IUnrealClass& classDef, StringBuilder& sb, IEnums& enums, IStructs& structs, IDelegates& delegates)
 {
 	sb <<
@@ -1434,44 +1479,19 @@ namespace
 	sb.AppendFormat("\t\tUClass& classRef = GetStaticClassRef(TEXT(\"%s.%s\"));\n\n", classDef.PackageName(), classDef.ShortName());
 
 	sb << "\t\tconst INamespace& nsHandles = ss.AddNativeNamespace(\"UE.Handles\");\n";
+
 	for (auto& known : knownObjects)
 	{
 		cstr type = known.first;
 		cstr prefix = StartsWith(type, "TArrayOf") || StartsWith(type, "TSetOf") || StartsWith(type, "TMapOf") ? "" : "H";
-		sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"%s", prefix);
-		
-		AppendContractedName(sb, type);
 
-		sb << "\");\n";
-	}
-
-	/*
-	if (!knownEnums.empty())
-	{
-		sb << "\n\t\tconst INamespace& nsEnums = ss.AddNativeNamespace(\"UE.Enums\");\n";
-		for (auto& ePair : knownEnums)
+		if (*prefix != 0)
 		{
-			auto* e = ePair.second;
-
-			cstr type;
-			switch (e->UnderlyingType())
-			{
-				case Rococo::Unreal::EEnumType::int16:
-				case Rococo::Unreal::EEnumType::int32:
-				case Rococo::Unreal::EEnumType::uint16:
-				case Rococo::Unreal::EEnumType::uint32:
-					type = "SexyVarType_Int32";
-					break;
-				default:
-					type = "SexyVarType_Int64";
-					break;
-			}
-
-
-			sb << "\t\tss.CreateEnumType(nsEnums, __FILE__, __LINE__, \"" << e->Name() << "\", " << type << ");\n";
+			sb.AppendFormat("\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"%s", prefix);
+			AppendContractedName(sb, type);
+			sb << "\");\n";
 		}
 	}
-	*/
 
 	sb << "\n";
 
@@ -2420,7 +2440,15 @@ namespace Rococo::UE::Native::Delegate
 			fqb << structure.SXYTypeName();
 
 			sb << "\t\t{\n";
-			sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"F" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+
+			if (StartsWith(structure.SXYTypeName(), "TArray") || StartsWith(structure.SXYTypeName(), "TSet") || StartsWith(structure.SXYTypeName(), "TMap") || StartsWith(structure.SXYTypeName(), "TDelegate"))
+			{
+				sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+			}
+			else
+			{
+				sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"F" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+			}
 			sb << "\t\t\tIRockFactory& rf = factories.BindRockFactory(TEXT(\"" << structure.Package() << "/" << structure.TypeName() << "\"));\n";
 			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++F" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
 			sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--F" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
@@ -3083,6 +3111,31 @@ namespace Rococo::Unreal
 			if (sb.Length() > 0)
 			{
 				Rococo::IO::SaveAsciiTextFileIfDifferentAndLog(IO::TargetDirectory_Root, wTargetHintFile, *sb);
+			}
+		}
+
+		void AddContainersToStructs(IEnums& enums, IDelegates& delegates) override
+		{
+			for (auto* c : fullClassDefs)
+			{
+				for (size_t i = 0; i < c->MethodCount(); i++)
+				{
+					auto& f = c->GetFunction(i);
+
+					if (strstr(f.Name(), "SetGeneratedComponentsFromBP")) //TODO - remove this
+					{
+						printf("");
+					}
+
+					const IUnrealArg* arg;
+					for (size_t j = 0; (arg = f.GetArg(j)) != nullptr; j++)
+					{
+						if (arg->IsContainer())
+						{
+							structs.AddContainerFromArg(*arg, enums, delegates);
+						}
+					}
+				}
 			}
 		}
 

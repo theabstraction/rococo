@@ -133,8 +133,11 @@ namespace Rococo::Unreal
 		virtual void Free() = 0;
 	};
 
+	DECLARE_ROCOCO_INTERFACE IDelegates;
+
 	ROCOCO_INTERFACE IStructs
 	{
+		virtual void AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegates& delegates) = 0;
 		virtual const IMarshalType* FindPrimitiveType(cstr argType) const = 0;
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
 		virtual void MarkUnknown(cstr type) = 0;
@@ -158,6 +161,7 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IClassSystem
 	{
+		virtual void AddContainersToStructs(IEnums& enums, IDelegates& delegates) = 0;
 		virtual void AddClass(const IUnrealClass* classRef) = 0;
 		virtual void Commit() = 0;
 		virtual void Free() = 0;

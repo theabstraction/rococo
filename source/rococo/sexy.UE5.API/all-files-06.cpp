@@ -1,4 +1,3 @@
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DGGUI.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DialogueSoundWaveProxy.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DialogueVoice.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DialogueWave.cpp"
@@ -98,3 +97,4 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ExternalDataLayerInstance.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\FBIKBoneSettingsWrapper.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\FBIKGoalSettingsWrapper.cpp"
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\FBIKSettingsWrapper.cpp"

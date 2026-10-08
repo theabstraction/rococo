@@ -52,6 +52,7 @@ struct Structs : IStructs
 
 	Structs();
 
+	void AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegates& delegates) override;
 	const IMarshalType* FindPrimitiveType(cstr argType) const override;
 	const IUnrealStruct* FindStruct(cstr name) const override;
 	void MarkUnknown(cstr type) override;
@@ -318,7 +319,7 @@ bool DoExpressionsMatchRecursive(cr_sex a, cr_sex b, int startingIndex)
 	return true;
 }
 
-void ParseClassFile(ObjectDatabase& database, crwstr filename, ISParser& parser)
+void ParseClassFileAndGenerateCode(ObjectDatabase& database, crwstr filename, ISParser& parser)
 {
 	Auto<ISourceCode> src = parser.LoadSource(filename, { 1,1 });
 
@@ -440,6 +441,8 @@ void GenerateCodeFromClassTree(ObjectDatabase& database, cr_sex sRoot)
 	}
 
 	classSystem->Commit();
+
+	classSystem->AddContainersToStructs(database.enums, database.delegates);
 
 	database.structs.GenerateRocks(database.enums, *generator);
 
@@ -1230,6 +1233,80 @@ Structs::~Structs()
 	for (auto& i : primitiveTypes)
 	{
 		i.second->Free();
+	}
+}
+
+void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool targetsReadAndWriteInput);
+
+void Structs::AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegates& delegates)
+{
+	if (!arg.IsContainer())
+	{
+		Throw(0, "Unexpected argument that was not a container");
+	}
+
+	AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(64);
+	auto& sb = dsb->Builder();
+	AppendType(sb, arg, true, enums, *this, delegates, true);
+	cstr typeName = *sb;
+
+	if (strstr(typeName, "TArrayOfUDEPRECATED_DataLayer"))
+	{
+		printf(""); //TODO
+	}
+
+	size_t nBytes = 0;
+	if (StartsWith(typeName, "UE.Container.TMap") || StartsWith(typeName, "UE.Container.TSet"))
+	{
+		nBytes = 80;
+	}
+	else if (StartsWith(typeName, "UE.Container.TArray"))
+	{
+		nBytes = 16;
+	}
+	else if (StartsWith(typeName, "UE.Container.TDelegate"))
+	{
+		nBytes = 32;
+	}
+	else
+	{
+		Throw(0, "Unexpected type: ", typeName);
+	}
+
+	typeName += "UE.Container."_fstring.length;
+
+	AutoFree<UnrealStructDef> def = new UnrealStructDef(typeName, "Container", typeName, typeName, 0, (int)nBytes);
+	def->isGenerated = true;
+
+	try
+	{
+		auto i = structs.insert(def->TypeName(), def);
+		if (i.second == false)
+		{
+			if (!i.first->second->IsGenerated())
+			{
+				// We ignore the definition, as we have a generated version
+				if (i.first->second->Alignment() != def->Alignment())
+				{
+					//	Throw(sDef, "Duplicate struct name: %s.%s. Alignment mismatch with none generated version. Check Structs::Structs in %s", def->Package(), def->TypeName(), __FILE__);
+				}
+
+				// We ignore the definition, as we have a generated version
+				if (i.first->second->SizeOf() != def->SizeOf())
+				{
+					Throw(0, "Duplicate struct name: %s.%s. SizeOf mismatch with none generated version. Check Structs::Structs in %s", def->Package(), def->TypeName(), __FILE__);
+				}
+				
+				return; // Skips the detach, so the object is cleaned up during the stack unwinding
+			}
+		}
+
+		def.Detach();
+	}
+	catch (...)
+	{
+		printf("Error generating struct definition for %s\n", def->TypeName());
+		throw;
 	}
 }
 
@@ -2152,7 +2229,7 @@ int mainProtected(int argc, char* argv[])
 
 	ObjectDatabase database(classFilter, methodFilter);
 
-	ParseClassFile(database, wPath, *sParser);
+	ParseClassFileAndGenerateCode(database, wPath, *sParser);
 
 	database.structs.PrintUnknownsAscending(stderr);
 

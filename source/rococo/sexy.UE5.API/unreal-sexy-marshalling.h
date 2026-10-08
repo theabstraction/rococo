@@ -56,8 +56,13 @@ namespace Rococo::UE::Native
 
 			R_TEnumAsByte operator = (int32 i)
 			{
-				value = i;
+				value = (uint8) i;
 				return *this;
+			}
+
+			operator int32() const
+			{
+				return value;
 			}
 
 			T operator()() const
