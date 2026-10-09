@@ -1250,11 +1250,6 @@ void Structs::AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegat
 	AppendType(sb, arg, true, enums, *this, delegates, true);
 	cstr typeName = *sb;
 
-	if (strstr(typeName, "TArrayOfUDEPRECATED_DataLayer"))
-	{
-		printf(""); //TODO
-	}
-
 	size_t nBytes = 0;
 	if (StartsWith(typeName, "UE.Container.TMap") || StartsWith(typeName, "UE.Container.TSet"))
 	{
@@ -1266,7 +1261,7 @@ void Structs::AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegat
 	}
 	else if (StartsWith(typeName, "UE.Container.TDelegate"))
 	{
-		nBytes = 32;
+		nBytes = 16;
 	}
 	else
 	{
