@@ -124,6 +124,10 @@ namespace Rococo::Unreal
 
 		// Returns the element at the given index
 		virtual IUnrealStructElement& operator[](size_t index) = 0;
+
+		virtual fstring OriginClass() const = 0;
+		virtual fstring OriginFunction() const = 0;
+		virtual fstring OriginArg() const = 0;
 	};
 
 	ROCOCO_INTERFACE IMarshalType
@@ -137,7 +141,7 @@ namespace Rococo::Unreal
 
 	ROCOCO_INTERFACE IStructs
 	{
-		virtual void AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegates& delegates) = 0;
+		virtual void AddContainerFromArg(const IUnrealClass& theClass, const IUnrealFunction& f, const IUnrealArg& arg, IEnums& enums, IDelegates& delegates) = 0;
 		virtual const IMarshalType* FindPrimitiveType(cstr argType) const = 0;
 		virtual const IUnrealStruct* FindStruct(cstr name) const = 0;
 		virtual void MarkUnknown(cstr type) = 0;

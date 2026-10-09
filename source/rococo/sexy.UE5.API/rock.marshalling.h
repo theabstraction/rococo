@@ -21,6 +21,10 @@ namespace Rococo::UE::Rocks
 
 	ROCOCO_INTERFACE IRockFactories
 	{
+		virtual IRockFactory& BindArrayRockFactory(crwstr classPath, crwstr functionName, crwstr argName) = 0;
+		virtual IRockFactory& BindDelegateRockFactory(crwstr classPath, crwstr functionName, crwstr argName) = 0;
+		virtual IRockFactory& BindSetRockFactory(crwstr classPath, crwstr functionName, crwstr argName) = 0;
+		virtual IRockFactory& BindMapRockFactory(crwstr classPath, crwstr functionName, crwstr argName) = 0;
 		virtual IRockFactory& BindRockFactory(crwstr classPath) = 0;
 	};
 

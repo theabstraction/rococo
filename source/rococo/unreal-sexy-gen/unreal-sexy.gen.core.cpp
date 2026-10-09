@@ -211,7 +211,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 		{
 			if (IsLowerCase(*valueType))
 			{
-				sb.AppendChar(toupper(*valueType));
+				sb.AppendChar((char) toupper(*valueType));
 				sb << valueType + 1;
 			}
 			else
@@ -2453,10 +2453,34 @@ namespace Rococo::UE::Native::Delegate
 
 			sb << "\t\t{\n";
 
-			if (isContainer)
+			if (StartsWith(structure.SXYTypeName(), "TArray"))
 			{
 				sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
-				sb << "\t\t\tIRockFactory& rf = factories.BindRockFactory(TEXT(\"" << structure.Package() << "/" << structure.TypeName() << "\"));\n";
+				sb << "\t\t\tIRockFactory& rf = factories.BindArrayRockFactory(TEXT(\"" << structure.OriginClass() << "\"), TEXT(\"" << structure.OriginFunction() << "\"), TEXT(\"" << structure.OriginArg() << "\"));\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DuplicateUERock, &rf, \"->" << structure.SXYTypeName() << "(const " << fqName << " src" << ") (out " << fqName << " dest)->\", __FILE__, __LINE__, false, 0);\n";
+			}
+			else if (StartsWith(structure.SXYTypeName(), "TDelegate"))
+			{
+				sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+				sb << "\t\t\tIRockFactory& rf = factories.BindDelegateRockFactory(TEXT(\"" << structure.OriginClass() << "\"), TEXT(\"" << structure.OriginFunction() << "\"), TEXT(\"" << structure.OriginArg() << "\"));\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DuplicateUERock, &rf, \"->" << structure.SXYTypeName() << "(const " << fqName << " src" << ") (out " << fqName << " dest)->\", __FILE__, __LINE__, false, 0);\n";
+			}
+			else if (StartsWith(structure.SXYTypeName(), "TSet"))
+			{
+				sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+				sb << "\t\t\tIRockFactory& rf = factories.BindSetRockFactory(TEXT(\"" << structure.OriginClass() << "\"), TEXT(\"" << structure.OriginFunction() << "\"), TEXT(\"" << structure.OriginArg() << "\"));\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
+				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DuplicateUERock, &rf, \"->" << structure.SXYTypeName() << "(const " << fqName << " src" << ") (out " << fqName << " dest)->\", __FILE__, __LINE__, false, 0);\n";
+			}
+			else if (StartsWith(structure.SXYTypeName(), "TMap"))
+			{
+				sb << "\t\t\tss.CreateRockType(" << compactNS << ", __FILE__, __LINE__, \"" << structure.SXYTypeName() << "\", " << sizeofStruct << ");\n";
+				sb << "\t\t\tIRockFactory& rf = factories.BindMapRockFactory(TEXT(\"" << structure.OriginClass() << "\"), TEXT(\"" << structure.OriginFunction() << "\"), TEXT(\"" << structure.OriginArg() << "\"));\n";
 				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::ConstructUERock, &rf, \"++" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
 				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DestructUERock, &rf, \"--" << structure.SXYTypeName() << "(out " << fqName << " item)->\", __FILE__, __LINE__, false, 0);\n";
 				sb << "\t\t\tss.AddNativeCall(" << compactNS << ", ANON::DuplicateUERock, &rf, \"->" << structure.SXYTypeName() << "(const " << fqName << " src" << ") (out " << fqName << " dest)->\", __FILE__, __LINE__, false, 0);\n";
@@ -3149,8 +3173,8 @@ namespace Rococo::Unreal
 					{
 						if (arg->IsContainer())
 						{
-							structs.AddContainerFromArg(*arg, enums, delegates);
-						}
+							structs.AddContainerFromArg(*c, f, *arg, enums, delegates);
+						} 
 					}
 				}
 			}

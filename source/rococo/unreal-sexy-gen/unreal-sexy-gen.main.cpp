@@ -52,7 +52,7 @@ struct Structs : IStructs
 
 	Structs();
 
-	void AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegates& delegates) override;
+	void AddContainerFromArg(const IUnrealClass& theClass, const IUnrealFunction& f, const IUnrealArg& arg, IEnums& enums, IDelegates& delegates) override;
 	const IMarshalType* FindPrimitiveType(cstr argType) const override;
 	const IUnrealStruct* FindStruct(cstr name) const override;
 	void MarkUnknown(cstr type) override;
@@ -1017,6 +1017,10 @@ struct UnrealStructDef : IUnrealStruct
 
 	std::vector<UnrealStructElement*> elements;
 
+	HString originClass;
+	HString originFunction;
+	HString originArg;
+
 	UnrealStructDef(cstr _typeName, cstr _pathName, cstr _cppTypeName, cstr _sxyTypeName, int _alignment, int _sizeofStruct):
 		typeName(_typeName),
 		pathName(_pathName),
@@ -1027,6 +1031,33 @@ struct UnrealStructDef : IUnrealStruct
 		isGenerated(false)
 	{
 
+	}
+
+	fstring OriginClass() const override
+	{
+		return originClass;
+	}
+
+	fstring OriginFunction() const override
+	{
+		return originFunction;
+	}
+
+	fstring OriginArg() const override
+	{
+		return originArg;
+	}
+
+	void AddOrigin(const IUnrealClass& theClass, const IUnrealFunction& f, const IUnrealArg& arg)
+	{
+		AutoFree<IDynamicStringBuilder> dsb = CreateDynamicStringBuilder(256);
+		auto& sb = dsb->Builder();
+		arg.AppendName(sb);
+
+		originArg = *sb;
+		originFunction = f.Name();
+
+		Format(originClass, "%s.%s", theClass.PackageName(), theClass.ShortName());
 	}
 
 	bool IsGenerated() const override
@@ -1238,7 +1269,7 @@ Structs::~Structs()
 
 void AppendType(StringBuilder& sb, const IUnrealArg& arg, bool makeSexyVariableType, IEnums& enums, IStructs& structs, IDelegates& delegates, bool targetsReadAndWriteInput);
 
-void Structs::AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegates& delegates)
+void Structs::AddContainerFromArg(const IUnrealClass& theClass, const IUnrealFunction& f, const IUnrealArg& arg, IEnums& enums, IDelegates& delegates)
 {
 	if (!arg.IsContainer())
 	{
@@ -1271,6 +1302,7 @@ void Structs::AddContainerFromArg(const IUnrealArg& arg, IEnums& enums, IDelegat
 	typeName += "UE.Container."_fstring.length;
 
 	AutoFree<UnrealStructDef> def = new UnrealStructDef(typeName, "Container", typeName, typeName, 0, (int)nBytes);
+	def->AddOrigin(theClass, f, arg);
 	def->isGenerated = true;
 
 	try
