@@ -1073,6 +1073,8 @@ namespace Rococo::Script
 				auto& ns = AddNativeNamespace(body);
 				RegisterHandleType(ns, tail, item.second.origin, item.second.lineNumber);
 			}
+
+			handleTypes.clear();
 		}
 
 		void RegisterRocks()
@@ -1101,6 +1103,12 @@ namespace Rococo::Script
 			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
 			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
 
+			const void* errSrc;
+			if (!Rococo::Compiler::TryResolveStruct(progObjProxy->Log(), sb, true, &errSrc))
+			{
+				Throw(*reinterpret_cast<const ISExpression*>(errSrc), "Error resolving handle %s. Check logs", typeName);
+			}
+
 			auto* currentAlias = nb.FindStructure(typeName);
 			if (currentAlias == nullptr)
 			{
@@ -1119,6 +1127,12 @@ namespace Rococo::Script
 			IStructureBuilder& s = progObjProxy->AddHandleStruct(typeName, origin, lineNumber);
 			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
 			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
+
+			const void* errSrc;
+			if (!Rococo::Compiler::TryResolveStruct(progObjProxy->Log(), s, true, &errSrc))
+			{
+				Throw(*reinterpret_cast<const ISExpression*>(errSrc), "Error resolving handle %s. Check logs", typeName);
+			}
 
 			auto* currentAlias = nb.FindStructure(typeName);
 			if (currentAlias == nullptr)
@@ -2642,13 +2656,14 @@ namespace Rococo::Script
 		void PartialCompile(StringBuilder* declarationBuilder) override
 		{
 			RegisterEnums();
+			RegisterHandles();
 			RegisterRocks();
 
 			// We need namespaces first, because macros do not have be fully-qualified, this means we cannot macro namespaces or using directives, but these are rare use-cases, and the cost would be FQ each macro.
 			scripts->CompileNamespaces();
 			scripts->CompileTopLevelMacros(numberOfNativeSources);
-			scripts->CompileEnumsAndConstants();
 			scripts->CompileDeclarations();
+			scripts->CompileEnumsAndConstants();
 			
 			InstallNullFunction();
 

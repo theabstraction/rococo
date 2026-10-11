@@ -111,13 +111,13 @@ namespace Rococo
              Throw(s[2], "Expecting 'catch' keyword as s[2]");
          }
 
-         cr_sex body = s.GetElement(1);
+         cr_sex body = GetCurrentTransform(ce.SS, s.GetElement(1));
          AssertCompoundOrNull(body);
 
          cr_sex exNameExpr = GetAtomicArg(s, 3);
          AssertLocalIdentifier(exNameExpr);
 
-         cr_sex handler = s.GetElement(4);
+         cr_sex handler = GetCurrentTransform(ce.SS, s.GetElement(4));
          AssertCompoundOrNull(handler);
 
          if (s.NumberOfElements() == 7)

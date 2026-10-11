@@ -722,6 +722,48 @@ namespace
       ValidateExecution(result);
    }
 
+   void TestMacroExpandCatch(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   R"sexy(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(function Main -> (Int32 exitCode):
+	(
+		try
+		(
+			(#string msg2 256 "Bonjour!")
+			(Int32 len = msg2.Length)
+			(if (len > 0)
+				(exitCode = 1)
+			)
+		)
+		catch e
+		(
+		)
+	)
+
+	(#string msg 256 "Hello World")
+	(Sys.Print msg)
+)
+)sexy";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   vm.Push(0); // Allocate stack space for the int32 exitcode
+
+	   auto result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int32 exitCode = vm.PopInt32();
+	   validate(exitCode == 1);
+   }
+
    void TestPackage(IPublicScriptSystem& ss)
    {
 	   cstr srcCode = 
@@ -3568,18 +3610,6 @@ R"((namespace EntryPoint)
 
 	void TestEnumByCPP(IPublicScriptSystem& ss)
 	{
-		const INamespace& ns = ss.AddNativeNamespace("Sys.Time");
-
-		try
-		{
-			ss.CreateEnumType(ns, __FILE__, __LINE__, "Day", Rococo::SexyVarType_Int32);
-		}
-		catch (IException& ex)
-		{
-			s_logger.Write(ex.Message());
-			validate(false);
-		}
-
 		cstr srcCode =
 			R"(
 			(function Main -> (Int32 result):
@@ -3595,8 +3625,23 @@ R"((namespace EntryPoint)
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
 
+		const INamespace& nsTime = ss.AddNativeNamespace("Sys.Time");
+
+		try
+		{
+			ss.CreateEnumType(nsTime, __FILE__, __LINE__, "Day", Rococo::SexyVarType_Int32);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		ss.PartialCompile(nullptr);
+
 		vm.Push(0); // Allocate stack space for the int32 result
 		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 6);
@@ -3706,15 +3751,15 @@ R"((namespace EntryPoint)
 			R"(
 			(strong Day (Int32))
 
-			(enum Day
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
 				(Monday 1)
 				Tuesday
 				Wednesday
 				Thursday
 				Friday
 			)
-
-			(alias Day Sys.Type.Day)
 
 			(function Main -> (Int32 result):
 				(Sys.Type.Day day = .Wednesday)
@@ -3741,15 +3786,15 @@ R"((namespace EntryPoint)
 			R"(
 			(strong Day (Int32))
 
-			(enum Day
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
 				(Monday 1)
 				Tuesday
 				Wednesday
 				Thursday
 				Friday
 			)
-
-			(alias Day Sys.Type.Day)
 
 			(function ToInt (Day day) -> (Int32 value):
 				(value = day.Value)
@@ -3779,15 +3824,15 @@ R"((namespace EntryPoint)
 			R"(
 			(strong Day (Int32))
 
-			(enum Day
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
 				(Monday 1)
 				Tuesday
 				Wednesday
 				Thursday
 				Friday
 			)
-
-			(alias Day Sys.Type.Day)
 
 			(function Main -> (Int32 result):
 				(Day today = .Wednesday)
@@ -18547,8 +18592,6 @@ R"(
 	{
 		validate(true);
 
-		TEST(TestEnumByCPP);
-
 		TEST(TestNativeHandle);
 
 		TEST(TestTypenames);
@@ -18614,6 +18657,8 @@ R"(
 		TEST(TestNullIString);
 
 	//	TEST(TestPackage);
+
+		TEST(TestMacroExpandCatch);
 
 		TEST(TestUseDefaultNamespace);
 		TEST(TestUseDefaultNamespace2);
@@ -18963,6 +19008,8 @@ R"(
 		TEST(TestConstants);
 		TEST(TestConstants2);
 		TEST(TestConstants3);
+
+		TEST(TestEnumByCPP);
 	}
 
 	void RunPositiveFailures()
