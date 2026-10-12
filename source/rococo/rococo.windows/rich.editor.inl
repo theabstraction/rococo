@@ -117,6 +117,8 @@ namespace Rococo::Windows
 
 				// Then assign the colours
 				SendMessageA(hWndEditor, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&c);
+
+				SendMessageA(hWndEditor, EM_SETCHARFORMAT, SCF_DEFAULT, (LPARAM)&c);
 			}
 		}
 

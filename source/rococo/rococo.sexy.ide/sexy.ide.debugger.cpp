@@ -394,7 +394,7 @@ namespace
 			logFont = LOGFONTW{ 0 };
 			SecureFormat(logFont.lfFaceName, (size_t) LF_FACESIZE, L"Consolas");
 
-			logFont.lfHeight = 11;
+			logFont.lfHeight = -18;
 			logFont.lfWeight = FW_NORMAL;
 			logFont.lfCharSet = ANSI_CHARSET;
 			logFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
@@ -879,7 +879,6 @@ namespace
 			if (logPane)
 			{
 				static_cast<IIDETextWindow*>(logPane)->AddSegment(true, RGB(0, 0, 0), text, rlen(text) + 1, RGBAb(255, 255, 255));
-				logPane->SetFont(schemeFont());
 			}
 			else
 			{
