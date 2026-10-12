@@ -1109,7 +1109,7 @@ namespace
 			IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_MEMBERS));
 			if (report)
 			{
-				report->GetTreeSupervisor().Tree().ResetContent();
+			//	report->GetTreeSupervisor().Tree().ResetContent();
 				populator.Populate(report->GetTreeSupervisor().Tree());
 			}
 		}

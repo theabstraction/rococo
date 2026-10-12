@@ -352,7 +352,7 @@ namespace Rococo
 					auto* s = (CStringConstant*)(sfItem + (*p)->OffsetToInstance);
 					SafeFormat(value, "%s", s->pointer);
 				}
-					CATCH_PROTECTED
+				CATCH_PROTECTED
 				{
 					SafeFormat(value, "IString: <Bad pointer>");
 				}
@@ -405,7 +405,7 @@ namespace Rococo
 						}
 					}
 				}
-					CATCH_PROTECTED
+				CATCH_PROTECTED
 				{
 					SafeFormat(value, "Expression: <Bad pointer>");
 				}
@@ -716,8 +716,18 @@ namespace Rococo
 		}
 	};
 
+	struct HashTreeNodeId
+	{
+		size_t operator()(TREE_NODE_ID id) const
+		{
+			return id.value;
+		}
+	};
+
 	struct VariableEnumeratorPopulator : public IVariableEnumeratorCallback
 	{
+		std::unordered_map<TREE_NODE_ID, int, HashTreeNodeId> staleList;
+
 		void OnVariable(size_t index, const VariableDesc& v, const MemberDef& def) override
 		{
 			UNUSED(index);
@@ -740,14 +750,32 @@ namespace Rococo
 			{
 				SafeFormat(desc, sizeof(desc), "[%d] %p: %s %s", v.Address, v.Address + SF, v.Type, v.Name);
 			}
-			auto node = tree->AddRootItem(desc, CheckState_NoCheckBox);
-			tree->SetId(node, int64(depth + 1));
+
+			TREE_NODE_ID idExistantNode = tree->FindFirstChild(TREE_NODE_ID::Root(), desc);
+			if (idExistantNode)
+			{
+				staleList.erase(idExistantNode);
+
+				TREE_NODE_ID idChild = tree->FindFirstChild(idExistantNode, nullptr);
+				while (idChild)
+				{
+					auto idNextChild = tree->FindNextChild(idChild, nullptr);
+					tree->Delete(idChild);
+					idChild = idNextChild;
+				}
+			}
+			else
+			{
+				auto node = tree->AddRootItem(desc, CheckState_NoCheckBox);
+				tree->SetId(node, int64(depth + 1));
+				idExistantNode = node;
+			}
 
 			// At this level of enumeration v.instance refers to a stack address
 			TRY_PROTECTED
 			{
 				MemberEnumeratorPopulator addMember;
-				addMember.parentId = node;
+				addMember.parentId = idExistantNode;
 				addMember.tree = tree;
 				addMember.depth = depth + 1;
 				addMember.instance = v.instance;
@@ -769,6 +797,18 @@ namespace Rococo
 		Script::IPublicScriptSystem* ss;
 	};
 
+	void AddToTree(IPublicScriptSystem& ss, VariableEnumeratorPopulator& addToTree, int depth)
+	{
+		TRY_PROTECTED
+		{
+			Script::ForeachVariable(ss, addToTree, depth);
+		}
+		CATCH_PROTECTED
+		{
+
+		}
+	}
+
 
 	void PopulateMemberTree(Visitors::IUITree& tree, IPublicScriptSystem& ss, int depth)
 	{
@@ -788,18 +828,23 @@ namespace Rococo
 
 		VariableEnumeratorPopulator addToTree;
 
+		auto id = tree.FindFirstChild(TREE_NODE_ID::Root(), nullptr);
+		while (id)
+		{
+			addToTree.staleList.insert(std::make_pair(id, 0));
+			id = tree.FindNextChild(id, nullptr);
+		}
+
 		addToTree.tree = &tree;
 		addToTree.SF = sf;
 		addToTree.depth = depth;
 		addToTree.ss = &ss;
 
-		TRY_PROTECTED
-		{
-			Script::ForeachVariable(ss, addToTree, depth);
-		}
-			CATCH_PROTECTED
-		{
+		AddToTree(ss, addToTree, depth);
 
+		for (auto& i : addToTree.staleList)
+		{
+			tree.Delete(i.first);
 		}
 	}
 
