@@ -746,6 +746,9 @@ namespace
 			case EPaneId_ID_STACK:
 			{
 				auto report = CreateReportView(parent, variableEventHandler, true);
+				cstr columns[] = { "DSF", "Address", "Loc", "Type", "Name", "Value", nullptr };
+				int widths[] = { 60, 160, 90, 120, 160, 340, -1 };
+				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 				report->SetFont(schemeFont());
 				return report;
 			}
@@ -765,6 +768,9 @@ namespace
 			{
 				auto report = CreateReportView(parent, registerEventHandler, true);
 				report->SetFont(schemeFont());
+				cstr columns[] = { "VM", "Values", "VM", "Values", "VM", "Values", "VM", "Values", nullptr };
+				int widths[] = { 40, 360, 40, 360, 40, 360, 40, 360, -1 };
+				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 				return report;
 			}
 			case EPaneId_ID_API:
@@ -1089,9 +1095,6 @@ namespace
 				RECT rect;
 				GetClientRect(report->GetListViewSupervisor(), &rect);
 
-				cstr columns[] = { "DSF", "Address", "Loc", "Type", "Name", "Value", nullptr };
-				int widths[] = { 40, 120, 60, 120, 120, 340, -1 };
-				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 				report->GetListViewSupervisor().UIList().ClearRows();
 
 				ListView_SetExtendedListViewStyle(report->GetListViewSupervisor().ListViewHandle(), LVS_EX_FULLROWSELECT);
@@ -1142,10 +1145,11 @@ namespace
 				RECT rect;
 				GetClientRect(report->GetListViewSupervisor(), &rect);
 
+				/* TODO delete this
 				cstr columns[] = { "VM", "Values", "VM", "Values", "VM", "Values", "VM", "Values", nullptr};
 				int widths[] = { 40, 240, 40, 240, 40, 240, 40, 240, -1 };
 				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
-
+				*/
 				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_HIDE);
 				populator.Populate(report->GetListViewSupervisor().UIList());
 				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_SHOW);
