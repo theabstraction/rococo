@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovementComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieScene2DTransformSection.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieScene2DTransformTrack.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieScene3DAttachSection.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneMediaPlayerPropertyTrack.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneMediaSection.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneMediaTrack.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneMetaData.cpp"

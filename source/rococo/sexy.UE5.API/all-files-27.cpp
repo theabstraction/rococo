@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SparseVolumeTextureViewerComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SpatialHashRuntimeGridInfo.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SpatializationPluginSourceSettingsBase.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SpectatorBeaconClient.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderNearbySpawnedActorSource.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderOverlayWidget.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderPlayerSource.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderSource.cpp"

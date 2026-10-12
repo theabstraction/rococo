@@ -1546,6 +1546,11 @@ namespace Rococo
 						VariantValue nullRef;
 						nullRef.vPtrValue = nullptr;
 
+						if (!s.IsPersistent() && Eq(member.Name(), "_NativeValue"))
+						{
+							// Handle type
+							ce.Builder.Assembler().Append_SetStackFrameImmediate(sfMemberOffset, nullRef, BITCOUNT_POINTER);
+						}
 						if (member.Name()[0] != '_')
 						{
 							// Skip C++ defined variables

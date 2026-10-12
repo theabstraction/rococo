@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ConcertClientPresenceActor.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ConcertClientVRPresenceActor.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ConsoleVariablesAsset.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ConsoleVariablesEditorFunctionLibrary.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DeprecatedDataLayerInstance.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DetailsView.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DetourCrowdAIController.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\DGGUI.cpp"

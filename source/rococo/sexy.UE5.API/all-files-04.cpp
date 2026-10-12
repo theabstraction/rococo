@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BrushComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BrushShape.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BTDecorator_BlueprintBase.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BTService_BlueprintBase.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\CompositeDataTable.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ComputeGraphComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ConcertClientDesktopPresenceActor.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ConcertClientPresenceActor.cpp"

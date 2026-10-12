@@ -150,7 +150,7 @@ void MarshalNameTypeAsHandle(StringBuilder& sb, cstr nameType, bool makeSexyVari
 {
 	if (makeSexyVariableType && !isForElement)
 	{
-		sb << "UE.Handles.H";
+		sb << "UE.Handle.H";
 	}
 	
 	if (makeSexyVariableType)
@@ -1467,7 +1467,12 @@ namespace
 
 	sb << "\t\tuint8* sf = nce.cpu.SF();\n";
 	sb << "\t\tptrdiff_t offset = 2 * sizeof(size_t);\n\n";
-	sb << "\t\tint64 objectHandle = ConstructUObject(nce);\n";
+
+	sb << "\t\tint64* pHandle;\n";
+	sb << "\t\toffset += sizeof(size_t);\n";
+	sb << "\t\tReadInput(pHandle, sf, -offset);\n\n";
+
+	sb << "\t\tint64 objectHandle = *pHandle ? *pHandle : ConstructUObject(nce);\n";
 	sb << "\t\toffset += sizeof(objectHandle);\n";
 	sb << "\t\tWriteOutput(objectHandle, sf, -offset);\n";
 	sb << "\t}\n";
@@ -1487,7 +1492,7 @@ namespace
 	sb << "\t{\n";
 	sb.AppendFormat("\t\tUClass& classRef = GetStaticClassRef(TEXT(\"%s.%s\"));\n\n", classDef.PackageName(), classDef.ShortName());
 
-	sb << "\t\tconst INamespace& nsHandles = ss.AddNativeNamespace(\"UE.Handles\");\n";
+	sb << "\t\tconst INamespace& nsHandles = ss.AddNativeNamespace(\"UE.Handle\");\n";
 
 	for (auto& known : knownObjects)
 	{
@@ -1502,33 +1507,19 @@ namespace
 		}
 	}
 
+	sb << "\t\tss.CreateHandleType(nsHandles, __FILE__, __LINE__, \"HU";
+	AppendContractedName(sb, classDef.ShortName());
+	sb << "\");\n";
+
 	sb << "\n";
 
 	sb << "\t\tconst INamespace& ns = ss.AddNativeNamespace(\"";
 	
-	sb << "UE.Native.";
-
-	AppendPackageAsSexyNamespace(sb, classDef);
-
-	sb << ".NS";
-	sb << classDef.ClassIndex();
-			
-	sb << "\");\n";
+	sb << "UE.Native.NS" << classDef.ClassIndex() << "\");\n";
 
 	sb << "\t\tRococo::Script::AddNativeCallSecurity(ss, \"";
 	
-	sb << "UE.Native.";
-
-	AppendPackageAsSexyNamespace(sb, classDef);
-
-	sb << ".NS";
-	sb << classDef.ClassIndex();
-
-	sb << "\"";
-
-	sb << ", \"!scripts/native/classes/";
-	
-	sb << classDef.ShortName() << ".sxy\");\n";
+	sb << "UE.Native.NS" << classDef.ClassIndex() << "\", \"!scripts/native/classes/" << classDef.ShortName() << ".sxy\");\n";
 
 	std::vector<const IUnrealArg*> inputs;
 	std::vector<const IUnrealArg*> outputs;
@@ -1539,7 +1530,9 @@ namespace
 		
 	sb <<", &classRef, \"Construct";
 	AppendContractedName(sb, classDef.ShortName());
-	sb << " -> (Int64 objectHandle)\", __FILE__, __LINE__);\n";
+	sb << " (UE.Handle.HU";
+	AppendContractedName(sb, classDef.ShortName());
+	sb << " hInstance) -> (Int64 objectHandle)\", __FILE__, __LINE__);\n";
 
 	sb << "\n";
 
@@ -2199,32 +2192,45 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 	sb << "\t(Int64 objectHandle)\n";
 	sb << ")\n\n";
 
-	sb << "(factory UE." << sexyNs;
+	sb << "(factory UE.Native.NS" << classRef.ClassIndex();
 
-	sb << ".New" << sxyName;
+	sb << "." << sxyName << "FromHandle";
 
 	sb << " UE." << sexyNs;
 
 	sb << ".I" << sxyName;
 
-	sb << " :\n";
-	sb << "\t(construct " << sxyName;
+	sb << " (UE.Handle.HU" << sxyName << " handle) :\n";
+	sb << "\t(construct " << sxyName << " handle";
 	sb << ")\n";
-	sb << ")\n";
+	sb << ")\n\n";
+
+	sb << "(function Get" << sxyName << "(UE.Handle.HU" << sxyName << " handle) -> (UE." << sexyNs << ".I" << sxyName << " instance) : \n";
+	sb << "\t(if (not handle) (return))\n";
+	sb << "\t(UE." << sexyNs << ".I" << sxyName << " proxyInstance (UE.Native.NS" << classRef.ClassIndex() << "." << sxyName << "FromHandle handle))\n";
+	sb << "\t(instance = proxyInstance)\n";
+	sb << ")\n\n";
+
+	sb << "(alias Get" << sxyName << " UE." << sexyNs << ".Get" << sxyName << ")\n\n";
+
+	sb << "(function New" << sxyName << " -> (UE." << sexyNs << ".I" << sxyName << " newInstance) :\n";
+	sb << "\t(UE.Handle.HU" << sxyName << " hNull)\n";
+	sb << "\t(UE." << sexyNs << ".I" << sxyName << " instance(UE.Native.NS" << classRef.ClassIndex() << "." << sxyName << "FromHandle hNull))\n";
+	sb << "\t(newInstance = instance)\n";
+	sb << ")\n\n";
+
+	sb << "(alias New" << sxyName << " UE." << sexyNs << ".New" << sxyName << ")\n";
 
 	std::vector<const IUnrealArg*> inputs;
 	std::vector<const IUnrealArg*> outputs;
 
 	sb << "\n(method ";
 	sb << sxyName;
-	sb << ".Construct :\n";
-
-	sb << "\t(UE.Native.";
-	AppendPackageAsSexyNamespace(sb, classRef);
-	sb << ".NS" << classRef.ClassIndex() << ".Construct";
+	sb << ".Construct (UE.Handle.HU" << sxyName << " hInstance) :\n";
+	sb << "\t(UE.Native.NS" << classRef.ClassIndex() << ".Construct";
 
 	AppendContractedName(sb, classRef.ShortName());
-	sb << " -> this.objectHandle)\n";
+	sb << " hInstance -> this.objectHandle)\n";
 	sb << ")\n";
 
 	for (size_t i = 0; i < classRef.MethodCount(); i++)
@@ -2276,9 +2282,7 @@ void BuildSexyFiles(IUnrealClass& classRef, StringBuilder& sb, IEnums& enums, IS
 		sb << ":\n";
 
 		// Here we invoke the native function
-		sb << "\t(UE.Native.";
-		AppendPackageAsSexyNamespace(sb, classRef);
-		sb << ".NS" << classRef.ClassIndex() << ".";
+		sb << "\t(UE.Native.NS" << classRef.ClassIndex() << ".";
 
 		method.AppendFunctionName(sb, true);
 

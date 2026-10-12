@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDownsampleTextureSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDuplicateCrossSectionsSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDuplicatePointSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDynamicMeshData.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataArrayOperationSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataBitwiseSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataBooleanSettings.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataBreakTransformSettings.cpp"

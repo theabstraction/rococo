@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionMaterialXDodge.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionMaterialXFractal.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionMaterialXIn.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionMaterialXLuminance.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionRuntimeVirtualTextureSampleParameter.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionSamplePhysicsIntegerField.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionSamplePhysicsScalarField.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MaterialExpressionSamplePhysicsVectorField.cpp"

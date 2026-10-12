@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderSource.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderSources.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderWorldSource.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\TakeRecorderWorldSourceSettings.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UniformScaleGizmoHandleGroup.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UniformVector.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UpdateTrackerCameraAction.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UpgradeNiagaraEmitterContext.cpp"

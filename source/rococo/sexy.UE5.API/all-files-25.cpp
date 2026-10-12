@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ProceduralFoliageBlockingVolume.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ProceduralFoliageComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ProceduralFoliageSpawner.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ProceduralFoliageVolume.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RunIKRigSettingsWrapper.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeOptionsBase.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTexture.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureComponent.cpp"

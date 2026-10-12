@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UpgradeNiagaraEmitterContext.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UpgradeNiagaraScriptResults.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UserDefinedCaptureProtocol.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\UserDefinedImageCaptureProtocol.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionHLOD.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionHLODOnlyLevelInstance.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionHLODSourceCellPlaceholder.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionLevelStreamingDynamic.cpp"

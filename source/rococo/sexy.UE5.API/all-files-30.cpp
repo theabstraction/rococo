@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionLevelStreamingDynamic.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionMiniMap.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionMiniMapVolume.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\WorldPartitionReplay.cpp"

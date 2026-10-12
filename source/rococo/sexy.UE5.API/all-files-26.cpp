@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureStreamingProxy.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\RuntimeVirtualTextureVolume.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SafeZone.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SparseVolumeTexture.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SparseVolumeTextureFrame.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SparseVolumeTextureViewer.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\SparseVolumeTextureViewerComponent.cpp"

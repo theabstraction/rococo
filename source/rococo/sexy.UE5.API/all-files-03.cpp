@@ -96,5 +96,5 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BP_TopDownController_C.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BP_TopDownGameMode_C.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BrainComponent.cpp"
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\Brian.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\Brush.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\BrushComponent.cpp"

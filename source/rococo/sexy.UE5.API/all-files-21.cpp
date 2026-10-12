@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PartyBeaconClient.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PartyBeaconHost.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PathFollowingComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\Pawn.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDifferenceSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDistanceSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDownloadFromGPUSettings.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGDownsampleTextureSettings.cpp"

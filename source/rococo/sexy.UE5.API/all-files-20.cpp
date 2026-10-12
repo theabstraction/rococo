@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\NiagaraSequence.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\NiagaraSimCache.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\NiagaraSystem.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\NiagaraSystemCollection.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ParticleSystem.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\ParticleSystemComponent.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PartitionActor.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PartyBeaconClient.cpp"

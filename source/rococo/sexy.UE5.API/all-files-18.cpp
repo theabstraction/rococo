@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneMetaData.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneNameableTrack.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneNiagaraBoolParameterTrack.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneNiagaraCacheSection.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneVisibilityTrack.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneVisibilityTrackRecorder.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MovieSceneWidgetMaterialTrack.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\MRMeshComponent.cpp"

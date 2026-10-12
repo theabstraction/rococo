@@ -1,3 +1,4 @@
+#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataBreakTransformSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataBreakVectorSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataCompareSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGMetadataMakeRotatorSettings.cpp"
@@ -97,4 +98,3 @@
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGSplineProjectionData.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGSplineSamplerSettings.cpp"
 #include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGSplineToSegmentSettings.cpp"
-#include "D:\work\rococo\source\rococo\sexy.UE5.API\natives\PCGSplitPointsSettings.cpp"
