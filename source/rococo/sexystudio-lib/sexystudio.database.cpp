@@ -973,7 +973,7 @@ namespace ANON
 		std::vector<SxyFactory> factories;
 		std::vector<SxyInterface> interfaces;
 		std::vector<SXYMacro> macros;
-		std::vector<SXYMacro> enums;
+		std::vector<SXYMacro> enumMacros;
 		std::vector<SXYPublicFunction> functions;
 		std::vector<SXYPublicStruct> structures;
 		std::vector<SXYNSAlias> nsAlias;
@@ -1108,24 +1108,24 @@ namespace ANON
 			return (int) factories.size();
 		}
 
-		int EnumCount() const override
+		int NumberOfMacroEnums() const override
 		{
-			return (int)enums.size();
+			return (int)enumMacros.size();
 		}
 
-		cstr GetEnumName(int index) const override
+		cstr GetEnumMacroName(int index) const override
 		{
-			return enums[index].shortName.c_str();
+			return enumMacros[index].shortName.c_str();
 		}
 
-		cstr GetEnumValue(int index) const override
+		cstr GetEnumMacroValue(int index) const override
 		{
-			return enums[index].GetMacroValue();
+			return enumMacros[index].GetMacroValue();
 		}
 
-		cstr GetEnumSourcePath(int index) const override
+		cstr GetEnumMacroSourcePath(int index) const override
 		{
-			return enums[index].sMacroDef.Tree().Source().Name();
+			return enumMacros[index].sMacroDef.Tree().Source().Name();
 		}
 
 		IImplicitNamespaces* ImplicitNamespaces() override
@@ -1464,7 +1464,7 @@ namespace ANON
 			}
 			else
 			{
-				enums.push_back(macro);
+				enumMacros.push_back(macro);
 			}
 		}
 
@@ -2349,7 +2349,7 @@ namespace ANON
 			resourceCount.clear();
 			filenameToFile.clear();
 			rootNS.subspaces.clear();
-			rootNS.enums.clear();
+			rootNS.enumMacros.clear();
 			rootNS.functions.clear();
 			rootNS.structures.clear();
 			rootNS.interfaces.clear();
@@ -2527,10 +2527,10 @@ namespace ANON
 				trailer.start++;
 			}
 
-			for (int i = 0; i < ns.EnumCount(); ++i)
+			for (int i = 0; i < ns.NumberOfMacroEnums(); ++i)
 			{
 				// Let us suppose postHashPrefix is Sys.Graphics.H, then this is a match for #Sys.Graphics.HighRez, so if HighRez in an enum in Sys.Graphics, we should append it. We match H to HighRez
-				cstr enumName = ns.GetEnumName(i);
+				cstr enumName = ns.GetEnumMacroName(i);
 				if (StartsWith(enumName, trailer))
 				{
 					if (*nsFullname != 0)

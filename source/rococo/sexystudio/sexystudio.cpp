@@ -1279,16 +1279,16 @@ private:
 	void AppendEnumerations(ISxyNamespace& ns, ID_TREE_ITEM idNSNode, ISexyDatabase& database)
 	{
 		UNUSED(database);
-		if (ns.EnumCount() > 0)
+		if (ns.NumberOfMacroEnums() > 0)
 		{
 			auto idEnums = classTree->AppendItem(idNSNode);
 			classTree->SetItemText(idEnums, "Enumerations");
 			classTree->SetItemImage(idEnums, (int)ClassImageIndex::ENUM);
 
-			for (int i = 0; i < ns.EnumCount(); ++i)
+			for (int i = 0; i < ns.NumberOfMacroEnums(); ++i)
 			{
-				cstr enumName = ns.GetEnumName(i);
-				cstr enumText = ns.GetEnumValue(i);
+				cstr enumName = ns.GetEnumMacroName(i);
+				cstr enumText = ns.GetEnumMacroValue(i);
 
 				auto idEnum = classTree->AppendItem(idEnums);
 
@@ -1296,7 +1296,7 @@ private:
 				SafeFormat(desc, "%s = %s", enumName, enumText);
 
 				char fulldesc[256];
-				SafeFormat(fulldesc, "%-64.64s %s", desc, ns.GetEnumSourcePath(i));
+				SafeFormat(fulldesc, "%-64.64s %s", desc, ns.GetEnumMacroSourcePath(i));
 				classTree->SetItemText(idEnum, fulldesc);
 				classTree->SetItemImage(idEnum, (int)ClassImageIndex::ENUM);
 			}

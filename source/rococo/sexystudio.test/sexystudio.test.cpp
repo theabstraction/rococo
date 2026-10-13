@@ -2224,6 +2224,24 @@ R"<CODE>(
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
+void TestShowCompletionsForEnum()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Sys.Time.Day day)
+	(day = ."
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+
 void TestShowCompletionsForeachReferenceVariable()
 {
 	cstr file =
@@ -2316,9 +2334,10 @@ void MainProtected2(HMODULE /* hLib */)
 	TestLocalMapInference2();
 
 	TestShowCompletionsForStruct();
+	TestShowCompletionsForeachReferenceVariable();
 
 skip:
-	TestShowCompletionsForeachReferenceVariable();
+	TestShowCompletionsForEnum();
 }
 
 void MainProtected(HMODULE hLib)
@@ -2399,7 +2418,7 @@ void MainProtected3(HMODULE hLib)
 
 		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
 
-		instance->SetConfigDirectory(R"(D:\work\Rococo.Reflect\RococoUE5SexportTest\Content\rococo-content\)");
+		instance->SetConfigDirectory(R"(D:\work\rococo\content\)");
 		instance->GetDatabase().PopulateViaSearchPaths();
 
 		char hint[1024];
@@ -2439,8 +2458,8 @@ int main()
 	try
 	{
 	//	MainProtected(hLib);
-	//	MainProtected2(hLib);
-		MainProtected3(hLib);
+		MainProtected2(hLib);
+	//	MainProtected3(hLib);
 		Rococo::Debugging::ValidateCriticalLog();
 	}
 	catch (IException& ex)

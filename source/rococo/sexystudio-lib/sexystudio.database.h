@@ -180,10 +180,10 @@ namespace Rococo::SexyStudio
 		virtual void AliasFunction(cstr localName, ISXYFile& file, cstr publicName) = 0;
 		virtual void AliasStruct(cstr localName, ISXYFile& file, cstr publicName) = 0;
 		virtual void AliasNSREf(cstr publicName, Sex::cr_sex sAliasDef, ISXYFile& file) = 0;
-		virtual int EnumCount() const = 0;
-		virtual cstr GetEnumName(int index) const = 0;
-		virtual cstr GetEnumValue(int index) const = 0;
-		virtual cstr GetEnumSourcePath(int index) const = 0;
+		virtual int NumberOfMacroEnums() const = 0;
+		virtual cstr GetEnumMacroName(int index) const = 0;
+		virtual cstr GetEnumMacroValue(int index) const = 0;
+		virtual cstr GetEnumMacroSourcePath(int index) const = 0;
 		virtual const Sex::ISExpression* FindMacroDefinition(cstr shortmacroName) const = 0;
 		virtual int MacroCount() const = 0;
 		virtual cstr GetMacroName(int index) const = 0;

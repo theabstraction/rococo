@@ -1,0 +1,15 @@
+(namespace Sys.Time)
+
+(strong Day (Int32))
+
+(alias Day Sys.Time.Day)
+
+(enum Day 
+	Sunday
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Saturday
+)
