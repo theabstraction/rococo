@@ -2592,7 +2592,7 @@ namespace Rococo::IO
 					return;
 				}
 
-				if (strcmp(text, specimen) == 0)
+				if (memcmp(text, specimen, len) == 0)
 				{
 					match = true;
 				}

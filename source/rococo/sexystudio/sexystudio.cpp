@@ -2314,7 +2314,10 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			int64 value;
 			e->GetEntry(i, OUT name, OUT value);
 
-			editor.AutoCompleteBuilder().AddItem(name);
+			char entry[256];
+			SafeFormat(entry, sizeof entry, ".%s", name);
+
+			editor.AutoCompleteBuilder().AddItem(entry);
 		}
 
 		editor.AutoCompleteBuilder().ShowAndClearItems();

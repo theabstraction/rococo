@@ -78,6 +78,28 @@ void AppendCompactName(StringBuilder& sb, cstr p)
 	}
 }
 
+void CompressKey(char compressedKey[256], cstr key)
+{
+	char* d = compressedKey;
+
+	if (strlen(key) >= 255)
+	{
+		Throw(0, "Key too long");
+	}
+
+	for (const char* s = key; *s != 0; s++)
+	{
+		if (*s == '_')
+		{
+			continue;
+		}
+
+		*d++ = *s;
+	}
+
+	*d = 0;
+}
+
 void AppendContractedName(StringBuilder& sb, cstr p)
 {
 	while (*p != 0)
@@ -352,6 +374,7 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 
 	sb << "UnknownType /*";
 	AppendTypeSansRef(sb, argType);
+	sb << " */";
 }
 
 cstr TypeToString(const IUnrealEnumDef& def)
@@ -2501,30 +2524,6 @@ namespace Rococo::UE::Native::Delegate
 			sb << "\t\t}\n";
 		}
 
-		char compressedKey[256];
-
-		void CompressKey(char compressedKey[256], cstr key)
-		{
-			char* d = compressedKey;
-
-			if (strlen(key) >= 255)
-			{
-				Throw(0, "Key too long");
-			}
-
-			for (const char* s = key; *s != 0; s++)
-			{
-				if (*s == '_')
-				{
-					continue;
-				}
-
-				*d++ = *s;
-			}
-
-			*d = 0;
-		}
-
 		void GenRocks(IStructs& structs, IEnums& enums, crwstr outputDirectory) override
 		{
 			int fnLineNumber = __LINE__ - 2;
@@ -3128,7 +3127,7 @@ namespace Rococo::Unreal
 				}
 			}
 
-			sb << "\n\n\n\n";
+			sb << "\n\n";
 
 			for (auto* fullDef : fullClassDefs)
 			{
@@ -3151,6 +3150,62 @@ namespace Rococo::Unreal
 				}
 
 				sb << ")\n";
+			}
+
+			int i = 0;
+			int64 nextValue = 0;
+
+			sb << "\n\n";
+
+			for (;;)
+			{
+				auto* e = enums.GetEnumByIndex(i++);
+				if (e == nullptr) break;
+
+				if (e->NumberOfKeys() == 1)
+				{
+					// Just the max value, so skip
+					continue;
+				}
+
+				if (!e->IsBlueprintType())
+				{
+					continue;
+				}
+
+				char sprefix[256];
+				e->GetCommonPrefix(sprefix);
+
+				fstring prefix = to_fstring(sprefix);
+
+				char compressedName[256];
+				CompressKey(compressedName, e->Name());
+				sb.AppendFormat("(enum UE.Enums.%s\n", compressedName);
+
+				for (int32 j = 0; j < e->NumberOfKeys(); ++j)
+				{
+					if (j == e->NumberOfKeys() - 1 && EndsWith(e->GetKey(e->NumberOfKeys() - 1), "_MAX"))
+					{
+						break;
+					}
+
+					char compressedKey[256];
+					CompressKey(compressedKey, e->GetKey(j) + prefix.length);
+
+					if (nextValue != e->GetValue(j))
+					{
+						sb << "\t" << compressedKey << "\n";
+					}
+					else
+					{
+						nextValue = e->GetValue(j);
+						sb.AppendFormat("\t(%s 0x%llX)\n", compressedKey, nextValue);
+					}
+
+					nextValue++;
+				}
+
+				sb << ")\n\n";
 			}
 
 			if (sb.Length() > 0)
