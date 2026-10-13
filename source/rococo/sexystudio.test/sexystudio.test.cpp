@@ -706,6 +706,8 @@ void pluginInit(HANDLE /* hModule */)
 			if (factory)
 			{
 				sexyIDE = factory->CreateSexyIDE(topLevelWindow, static_SexyStudioEventHandler);
+				sexyIDE->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+				sexyIDE->GetDatabase().PopulateViaSearchPaths();
 			}
 		}
 
@@ -2373,6 +2375,8 @@ void MainProtected(HMODULE hLib)
 		} eventHandler;
 
 		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+		instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+		instance->GetDatabase().PopulateViaSearchPaths();
 
 		ISexyDatabase& database = instance->GetDatabase();
 
@@ -2418,7 +2422,7 @@ void MainProtected3(HMODULE hLib)
 
 		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
 
-		instance->SetConfigDirectory(R"(D:\work\rococo\content\)");
+		instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
 		instance->GetDatabase().PopulateViaSearchPaths();
 
 		char hint[1024];

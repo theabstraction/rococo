@@ -16,6 +16,11 @@
 		(isActive true)
 	)
 
+	(SearchPath
+		(path "!scripts/test")
+		(isActive true)
+	)
+
 )
 (Packages
 	(#List selected-packages

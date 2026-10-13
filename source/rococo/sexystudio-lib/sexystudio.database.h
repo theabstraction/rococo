@@ -109,6 +109,12 @@ namespace Rococo::SexyStudio
 		virtual int LineNumber() const = 0;
 	};
 
+	ROCOCO_INTERFACE ISXYEnum
+	{
+		virtual size_t NumberOfEntries() const = 0;
+		virtual void GetEntry(size_t index, OUT cstr& name, OUT int64& value) const = 0;
+	};
+
 	ROCOCO_INTERFACE ISXYType
 	{
 		virtual cstr PublicName() const = 0;
@@ -233,11 +239,12 @@ namespace Rococo::SexyStudio
 		virtual IFactoryConfig& Config() = 0;
 		virtual bool EnumerateVariableAndFieldList(Strings::cr_substring variable, Strings::cr_substring type, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void EnumerateTemplateMethods(Strings::cr_substring variable, const Rococo::Sex::Inference::TypeInference& inference, ISexyFieldEnumerator& fieldEnumerator) = 0;
+		virtual const ISXYEnum* FindEnum(cstr typeName) const = 0;
 		virtual const ISXYType* FindFQType(cstr typeName) const = 0;
 		virtual const ISXYType* FindPrimitiveOrFQType(cstr typeName) const = 0;
-		virtual const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) = 0;
-		virtual const ISXYPublicFunction* FindFunction(cstr fqFunctionName) = 0;
-		virtual const ISXYType* FindType(cstr typeName) = 0;
+		virtual const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) const = 0;
+		virtual const ISXYPublicFunction* FindFunction(cstr fqFunctionName) const = 0;
+		virtual const ISXYType* FindType(cstr typeName) const = 0;
 		virtual void FocusProject(cstr projectFilePath) = 0;
 		virtual void ForEachAutoCompleteCandidate(Strings::cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;
 		virtual void ForEachAutoCompleteMacroCandidate(Strings::cr_substring prefix, ISexyFieldEnumerator& fieldEnumerator) = 0;

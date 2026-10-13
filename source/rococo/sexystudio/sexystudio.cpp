@@ -524,7 +524,7 @@ private:
 
 		try
 		{
-			databaseSet.SetConfigDirectory(configDirectory);
+			databaseSet.SetDirectoryContainingConfigFile(configDirectory);
 		}
 		catch (IException& ex)
 		{
@@ -2312,7 +2312,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 						if (EndsWith(defaultConfigFile, "\\sexystudio.config.sexml") && IO::IsFileExistant(defaultConfigFile))
 						{
 							IO::MakeContainerDirectory(container.buf);
-							SetConfigDirectory(container.buf);
+							SetDirectoryContainingConfigFile(container.buf);
 						}
 					}
 				}
@@ -3198,7 +3198,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		return (int)(projects.size() - 1);
 	}
 
-	void SetConfigDirectory(cstr sysPathToConfigDirectory) override
+	void SetDirectoryContainingConfigFile(cstr sysPathToConfigDirectory) override
 	{
 		U8FilePath sexyStudioConfig;
 		Format(sexyStudioConfig, "%ssexystudio.config.sexml", sysPathToConfigDirectory);
