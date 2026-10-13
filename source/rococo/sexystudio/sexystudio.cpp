@@ -2237,6 +2237,91 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		}
 	}
 
+	NOT_INLINE  cstr FindFirstNonBlankPrecedingPoint(cr_substring doc, cstr p)
+	{
+		for (cstr s = p - 1; s > doc.start; s--)
+		{
+			if (!isblank(*s))
+			{
+				return s;
+			}
+		}
+
+		return nullptr;
+	}
+
+	bool TryAddEnumsToAutocomplete(ISexyEditor& editor, cr_substring candidate, int64 tokenDisplacementFromCaret, cr_substring doc)
+	{
+		int64 caretPos = editor.GetCaretPos();
+
+		cstr docCaretPos = doc.start + caretPos;
+		cstr start = docCaretPos - tokenDisplacementFromCaret;
+		cstr end = start + Length(candidate);
+
+		Substring candidateInDoc{ start, end };
+
+		cstr assignmentCandidate = FindFirstNonBlankPrecedingPoint(doc, start);
+		if (!assignmentCandidate)
+		{
+			return false;
+		}
+
+		if (*assignmentCandidate != '=')
+		{
+			// We do not have (... = .)
+			return false;
+		}
+
+		cstr tokenEnd = FindFirstNonBlankPrecedingPoint(doc, assignmentCandidate);
+		if (!tokenEnd)
+		{
+			return false;
+		}
+
+		cstr identifierLeft = Rococo::Sex::Inference::GetFirstNonTokenPointerFromRight(Substring{ doc.start, tokenEnd }, tokenEnd);
+		if (!identifierLeft)
+		{
+			return false;
+		}
+
+		Substring identifier{ identifierLeft + 1, tokenEnd + 1 };
+
+		if (identifier.empty())
+		{
+			return false;
+		}
+
+		bool isThis = false;
+		auto typeInference =  Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, identifier, doc);
+		Substring type = typeInference.declarationType;
+		if (type.empty())
+		{
+			return false;
+		}
+
+		char typeBuffer[256];
+		type.CopyWithTruncate(typeBuffer, sizeof typeBuffer);
+
+		auto* e = GetDatabase().FindEnum(typeBuffer);
+		if (!e || e->NumberOfEntries() == 0)
+		{
+			return false;
+		}
+
+		for (size_t i = 0; i < e->NumberOfEntries(); i++)
+		{
+			cstr name;
+			int64 value;
+			e->GetEntry(i, OUT name, OUT value);
+
+			editor.AutoCompleteBuilder().AddItem(name);
+		}
+
+		editor.AutoCompleteBuilder().ShowAndClearItems();
+
+		return true;
+	}
+
 	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, cr_substring candidate, int64 displacementFromCaret, cr_substring doc)
 	{
 		using namespace Rococo;
@@ -3629,8 +3714,15 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		autoComplete_Replacement_StartPosition = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
 
-		// If blinking caret follows period or alphanumeric such as: Sys._ or Sys_, then we want to complete the dot.
-		if (IsAlphaNumeric(activationChar) || activationChar == '.' || (isblank(activationChar) && *searchToken.start == '#'))
+		if (activationChar == '.' && activationPoint > substringLine.start + 1 && isblank(activationPoint[-1]))
+		{
+			int64 displacementFromCaret = activationPoint - searchToken.start + 1;
+			// We may have something like this: 'day = .', which is an assignment to something of type day that looks to be an enumeration around type day. 
+			// We want to list .Tuesday et al.
+			TryAddEnumsToAutocomplete(editor, searchToken, displacementFromCaret, doc);
+		}
+		else if 	// If blinking caret follows period or alphanumeric such as: Sys._ or Sys_, then we want to complete the dot.
+			(IsAlphaNumeric(activationChar) || activationChar == '.' || (isblank(activationChar) && *searchToken.start == '#'))
 		{
 			int64 displacementFromCaret = activationPoint - searchToken.start + 1;
 

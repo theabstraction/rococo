@@ -866,6 +866,11 @@ namespace ANON
 
 		}
 
+		cstr LocalName() const override
+		{
+			return localName.c_str();
+		}
+
 		cstr PublicName() const override
 		{
 			return publicName.c_str();
@@ -2799,7 +2804,7 @@ namespace ANON
 				return nullptr;
 			}			
 
-			e = FindEnumDirect(t->LocalType()->LocalName());
+			e = FindEnumDirect(t->LocalName());
 			if (e)
 			{
 				return e;

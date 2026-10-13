@@ -117,6 +117,7 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE ISXYType
 	{
+		virtual cstr LocalName() const = 0;
 		virtual cstr PublicName() const = 0;
 		virtual ISXYLocalType* LocalType() = 0;
 		virtual const ISXYLocalType* LocalType() const = 0;
