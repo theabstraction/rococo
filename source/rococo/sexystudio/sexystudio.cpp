@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <list>
 #include <vector>
+#include <array>
 #include <string>
 #include <unordered_map>
 #include <rococo.sexystudio.api.h>
@@ -53,6 +54,16 @@ auto evIDEClose = "EvIDEClose"_event;
 auto evIDEMin = "EvIDEMin"_event;
 auto evIDEMax = "EvIDEMax"_event;
 auto evMetaUpdated = "sexystudio.meta.updated"_event;
+
+bool IsAComparison(cr_substring token)
+{
+	constexpr std::array<const char*, 5> comparisonOperators
+	{
+		"=", "!=", "==", ">=", "<="
+	};
+
+	return std::any_of(comparisonOperators.begin(), comparisonOperators.end(), [token](cstr s) { return Eq(s, token); });
+}
 
 namespace Rococo::SexyStudio
 {
@@ -2260,19 +2271,26 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		Substring candidateInDoc{ start, end };
 
-		cstr assignmentCandidate = FindFirstNonBlankPrecedingPoint(doc, start);
-		if (!assignmentCandidate)
+		cstr tokenEnd = FindFirstNonBlankPrecedingPoint(doc, start);
+		if (!tokenEnd)
 		{
 			return false;
 		}
 
-		if (*assignmentCandidate != '=')
+		cstr precedingTokenPtr = Rococo::Sex::Inference::GetFirstNonTokenPointerFromRight(Substring{ doc.start, tokenEnd }, tokenEnd);
+		if (!precedingTokenPtr)
 		{
-			// We do not have (... = .)
 			return false;
 		}
 
-		cstr tokenEnd = FindFirstNonBlankPrecedingPoint(doc, assignmentCandidate);
+		Substring precedingToken{ precedingTokenPtr + 1, tokenEnd + 1 };
+
+		if (!IsAComparison(precedingToken))
+		{
+			return false;
+		}
+
+		tokenEnd = FindFirstNonBlankPrecedingPoint(doc, precedingTokenPtr);
 		if (!tokenEnd)
 		{
 			return false;
