@@ -978,6 +978,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
+            conf.Options.Add(Options.Vc.General.DebugInformation.ProgramDatabase);
             conf.ProjectPath = @"..\..\source\3rd-Party\libogg\win32\VS2022";
             conf.ProjectFileName = "lib-ogg";
             conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
@@ -1014,6 +1015,7 @@ namespace Rococo
             conf.TargetFileName = "lib-vorbis";
             conf.Output = Configuration.OutputType.Lib; // Required to create dependencies in a compiled/not-generated object
             conf.SolutionFolder = " - Third-Party Projects";
+            conf.Options.Add(Options.Vc.General.DebugInformation.ProgramDatabase);
             conf.AddPublicDependency<OggProject>(target);
         }
     }
@@ -1088,6 +1090,7 @@ namespace Rococo
             conf.IncludePaths.Add(@"..\libogg\include\");
             conf.IncludePaths.Add(@"..\libvorbis\include\");
             conf.Options.Add(Sharpmake.Options.Vc.General.WarningLevel.Level1);
+            conf.Options.Add(Options.Vc.General.DebugInformation.ProgramDatabase);
             conf.ModuleDefinitionFile = Path.Combine(SourceRootPath, @"win32\vorbisfile.def");
 
         }
@@ -2222,6 +2225,10 @@ namespace Rococo
             conf.AddProject<RococoMPlatDynamicProject>(target);
             conf.AddProject<RococoMHostProject>(target);
             conf.AddProject<RococoMathsTestProject>(target);
+        }
+
+        public static void AddUE5ibs(Solution.Configuration conf, Target target)
+        {
             conf.AddProject<RococoSexyGen4UnrealProject>(target);
             conf.AddProject<SexyUE5APILib>(target);
         }
@@ -2279,6 +2286,7 @@ namespace Rococo
             SolutionBuilder.AddThirdPartyLibs(conf, target);
             SolutionBuilder.AddSexyStudio(conf, target);
             SolutionBuilder.AddControlFlowGraphStudio(conf, target);
+            SolutionBuilder.AddUE5ibs(conf, target);
             conf.AddProject<RococoDX11HLSLCompilerProject>(target);
             conf.AddProject<RococoDX11HLSLMonitorProject>(target);
             conf.AddProject<RococoBuildFinalProject>(target);
