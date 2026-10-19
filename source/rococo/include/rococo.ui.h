@@ -43,8 +43,6 @@ namespace Rococo
 		virtual bool OnKeyboardEvent(const KeyboardEventEx& key) = 0;
 	};
 
-#pragma pack(push,1)
-
 	struct MouseContext
 	{
 		uint32 isCtrlHeld : 1;
@@ -68,6 +66,8 @@ namespace Rococo
 		int32 dx;
 		int32 dy;
 
+		uint32 extraInformation;
+
 		Vec2i cursorPos;
 
 		enum Flags { MouseWheel = 0x0400, RDown = 0x0004, RUp = 0x0008, LDown = 0x0001, LUp = 0x0002, MDown = 0x0010, MUp = 0x0020 };
@@ -77,8 +77,6 @@ namespace Rococo
 
 		MouseContext contextFlags;
 	};
-
-#pragma pack(pop)
 
 	struct SourceFileSet;
 

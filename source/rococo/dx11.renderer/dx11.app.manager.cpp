@@ -183,6 +183,8 @@ namespace ANON
 
 		void OnMouseEvent(const RAWMOUSE& m, MouseContext context) override
 		{
+			static_assert(offsetof(MouseEvent, dx) == offsetof(RAWMOUSE, lLastX), "unexpected offset of MouseEvent.dx compared RAWMOUSE.lLastX");
+
 			MouseEvent me;
 			memcpy(&me, &m, sizeof(m));
 			me.contextFlags = context;
