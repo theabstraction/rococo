@@ -417,7 +417,8 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IScriptCompilationEventHandler
 	{
-		virtual void OnCompile(ScriptCompileArgs& args) = 0;
+		virtual void OnInitSexyScript(ScriptCompileArgs& args) = 0;
+		virtual void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs& args) = 0;
 		virtual IScriptEnumerator* ImplicitIncludes() = 0;
 	};
 

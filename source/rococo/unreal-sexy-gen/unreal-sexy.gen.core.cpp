@@ -372,9 +372,8 @@ void AppendNonContainerType_SXY_Private(StringBuilder& sb, cstr argType, IEnums&
 
 	structs.MarkUnknown(argType);
 
-	sb << "UnknownType /*";
+	sb << "UnknownType_";
 	AppendTypeSansRef(sb, argType);
-	sb << " */";
 }
 
 cstr TypeToString(const IUnrealEnumDef& def)

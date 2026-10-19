@@ -56,7 +56,7 @@ namespace MHost
 	{
 		int32 FloatToColourComponent(float f)
 		{
-			return (int32) (255.0f * Maths::Clamp0to1(f));
+			return (int32)(255.0f * Maths::Clamp0to1(f));
 		}
 
 		RGBAb ToRGBAb(const RGBA& colour)
@@ -65,7 +65,7 @@ namespace MHost
 			int32 G = FloatToColourComponent(colour.green);
 			int32 B = FloatToColourComponent(colour.blue);
 			int32 A = FloatToColourComponent(colour.alpha);
-			return RGBAb((uint8) R, (uint8)G, (uint8)B, (uint8)A);
+			return RGBAb((uint8)R, (uint8)G, (uint8)B, (uint8)A);
 		}
 	}
 }
@@ -120,11 +120,16 @@ namespace MHost
 	{
 		struct CLOSURE : IScriptCompilationEventHandler
 		{
-			void OnCompile(ScriptCompileArgs& args) override
+			void OnInitSexyScript(ScriptCompileArgs& args) override
 			{
 				MHost::AddMHostNativeCallSecurity(args);
 				args.ss.AddNativeLibrary("rococo.mathsex");
-			} 
+			}
+
+			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+			{
+
+			}
 
 			IScriptEnumerator* ImplicitIncludes() override
 			{
@@ -176,11 +181,11 @@ namespace MHost
 				return nullptr;
 			}
 
-			void OnCompile(ScriptCompileArgs& args) override
+			void OnInitSexyScript(ScriptCompileArgs& args) override
 			{
 				args.ss.RegisterPackage(&package);
 
-				GetBaseCompileOptions().OnCompile(args);
+				GetBaseCompileOptions().OnInitSexyScript(args);
 
 				Interop::AddNativeCalls_MHostIGui(args.ss, nullptr);
 				Interop::AddNativeCalls_MHostIEngine(args.ss, engine);
@@ -195,6 +200,11 @@ namespace MHost
 				engine->SetRunningScriptContext(&args.ss);
 
 				engine->OnCompile(args.ss);
+			}
+
+			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+			{
+
 			}
 
 		public:

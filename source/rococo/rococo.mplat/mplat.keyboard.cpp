@@ -170,7 +170,7 @@ namespace
          delete this;
       }
 
-      Key GetKeyFromEvent(const KeyboardEvent& ke) override
+      Key GetKeyFromEvent(const KeyboardEventEx& ke) override
       {
          auto& rke = reinterpret_cast<const RAWKEYBOARD&>(ke);
 

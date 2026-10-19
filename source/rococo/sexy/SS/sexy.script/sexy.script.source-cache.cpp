@@ -601,7 +601,7 @@ namespace Rococo
 	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
 	{
 		ScriptCompileArgs args{ ss, mainModule };
-		onCompile.OnCompile(args);
+		onCompile.OnInitSexyScript(args);
 
 		sources.RegisterPackages(ss);
 
@@ -611,6 +611,8 @@ namespace Rococo
 		ss.Compile(declarationBuilder);
 		Preprocess(mainModule.Root(), sources, implicitIncludes, ss);
 		ss.AddTree(mainModule);
+
+		onCompile.OnAddedMainModuleBeforePartialCompile(args);
 
 		object.SetWarningLevel(Compiler::EWarningLevel::Always);
 

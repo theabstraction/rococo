@@ -185,10 +185,14 @@ namespace MHost
 	{
 		IPackage* package = nullptr;
 
-		void OnCompile(ScriptCompileArgs& args) override
+		void OnInitSexyScript(ScriptCompileArgs& args) override
 		{
 			RegisterMHostPackage(args, package);
 			AddMHostNativeCallSecurity(args);
+		}
+
+		void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+		{
 		}
 
 		IScriptEnumerator* ImplicitIncludes() override
@@ -514,7 +518,7 @@ namespace MHost
 
 		struct NoEventArgs : IScriptCompilationEventHandler
 		{
-			void OnCompile(ScriptCompileArgs&) override
+			void OnInitSexyScript(ScriptCompileArgs&) override
 			{
 
 			}
@@ -699,9 +703,13 @@ namespace MHost
 		{
 			struct : IScriptCompilationEventHandler
 			{
-				void OnCompile(ScriptCompileArgs& args) override
+				void OnInitSexyScript(ScriptCompileArgs& args) override
 				{
 					AddMHostNativeCallSecurity(args);
+				}
+
+				void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+				{
 				}
 
 				IScriptEnumerator* ImplicitIncludes() override
@@ -731,9 +739,13 @@ namespace MHost
 		{
 			struct : IScriptCompilationEventHandler
 			{
-				void OnCompile(ScriptCompileArgs& args) override
+				void OnInitSexyScript(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
+				}
+
+				void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+				{
 				}
 				
 				IScriptEnumerator* ImplicitIncludes() override

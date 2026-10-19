@@ -55,9 +55,13 @@ int WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPS
 			return MHost::CreateApp(e, control, GetCommandLineA());
 		}
 
-		void OnCompile(ScriptCompileArgs& args) override
+		void OnInitSexyScript(ScriptCompileArgs& args) override
 		{
 			MHost::AddMHostNativeCallSecurity(args);
+		}
+
+		void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+		{
 		}
 
 		IScriptEnumerator* ImplicitIncludes() override

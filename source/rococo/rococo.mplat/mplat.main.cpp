@@ -657,9 +657,13 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	struct PanelCompilationHandlerProxy : IScriptCompilationEventHandler, IDesignator<IScriptCompilationEventHandler>, IScriptEnumerator
 	{
 		IScriptCompilationEventHandler* target = nullptr;
-		void OnCompile(ScriptCompileArgs& args) override
+		void OnInitSexyScript(ScriptCompileArgs& args) override
 		{
-			if (target) target->OnCompile(args);
+			if (target) target->OnInitSexyScript(args);
+		}
+
+		void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+		{
 		}
 
 		IScriptEnumerator* ImplicitIncludes() override

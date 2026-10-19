@@ -222,7 +222,7 @@ namespace Rococo
 	ROCOCO_INTERFACE IKeyboardSupervisor : public IKeyboard
 	{
 	   virtual cstr GetAction(cstr keyName) = 0;
-	   virtual Key GetKeyFromEvent(const KeyboardEvent& ke) = 0;
+	   virtual Key GetKeyFromEvent(const KeyboardEventEx& ke) = 0;
 	   virtual void AppendKeyboardInputToEditBuffer(int& caretPos, char* buffer, size_t capacity, const KeyboardEventEx& key) = 0;
 	   virtual void Free() = 0;
 	};

@@ -78,11 +78,11 @@ namespace Rococo::Script
 
 			if (genericArgType != NULL)
 			{
-				Throw(e, "Unknown type in argument: (*** %s ***<%s> %s) of function %s%s", type, genericArgType, id, source, nsNote);
+				Throw(e, "Unknown type in argument: (*** %s ***<%s> %s) of function %s. %s", type, genericArgType, id, source, nsNote);
 			}
 			else
 			{
-				Throw(e, "Unknown type in argument (*** %s *** %s) of function %s%s", type, id, source, nsNote);
+				Throw(e, "Unknown type in argument (*** %s *** %s) of function %s. %s", type, id, source, nsNote);
 			}
 		}
 	}

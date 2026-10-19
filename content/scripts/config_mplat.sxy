@@ -3,10 +3,10 @@
 // Since much of MPlat is not initialized at this point, we are restricted to manipulating IConfig
 
 (' #include 
+	"!scripts/interop/rococo/mplat/types.sxy"
 	"!scripts/interop/rococo/mplat/mplat_config_sxh.sxy"
 	"!scripts/interop/rococo/mplat/mplat_sxh.sxy"
 	"!scripts/interop/rococo/mplat/mplat_types.sxy"
-	"!scripts/interop/rococo/mplat/types.sxy"
 )
 
 (namespace EntryPoint)

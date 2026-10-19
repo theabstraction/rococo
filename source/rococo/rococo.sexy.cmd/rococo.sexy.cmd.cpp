@@ -341,7 +341,7 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 		return isRunning && isInteractive ? IDE::EScriptExceptionFlow::Retry : IDE::EScriptExceptionFlow::Terminate;
 	}
 
-	void OnCompile(ScriptCompileArgs& ssArgs) override
+	void OnInitSexyScript(ScriptCompileArgs& ssArgs) override
 	{
 		auto& ss = ssArgs.ss;
 		Rococo::Script::AddNativeCallSecurity_ToSysNatives(ss);
@@ -350,6 +350,10 @@ struct ScriptContext : public IScriptCompilationEventHandler, public Rococo::Win
 
 		auto& sysIO = ss.AddNativeNamespace("Sys.IO");
 		ss.AddNativeCall(sysIO, Static_LoadExpression, this, "LoadExpression (Sys.Type.IString sysOrPingPath) -> (Sys.Reflection.IExpression s)", __FILE__, __LINE__);
+	}
+
+	void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+	{
 	}
 
 	ScriptContext(IO::IInstallation& _installation, ISourceCache& _sourceCache, int argc, char** argv) :installation(_installation), sourceCache(_sourceCache)
