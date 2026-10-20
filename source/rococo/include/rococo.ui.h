@@ -78,6 +78,11 @@ namespace Rococo
 		MouseContext contextFlags;
 	};
 
+	ROCOCO_INTERFACE IUILog
+	{
+		virtual const KeyboardEvent& GetLastKeyEvent() const = 0;
+	};
+
 	struct SourceFileSet;
 
 	namespace IO

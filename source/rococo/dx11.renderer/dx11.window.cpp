@@ -46,7 +46,7 @@ namespace ANON
 
 		RAWINPUTDEVICE keyboardDesc;
 		keyboardDesc.hwndTarget = hWnd;
-		keyboardDesc.dwFlags = 0;
+		keyboardDesc.dwFlags = RIDEV_INPUTSINK;
 		keyboardDesc.usUsage = 0x06;
 		keyboardDesc.usUsagePage = 0x01;
 		if (!RegisterRawInputDevices(&keyboardDesc, 1, sizeof(keyboardDesc)))
@@ -66,6 +66,7 @@ namespace ANON
 		bool hasFocus = true;
 		Rococo::DX11::IDX11Renderer& renderer;
 		bool linkedToDX11Controls;
+		RAWKEYBOARD lastKeyEvent;
 
 		AutoFree<DX11::IDX11WindowBacking> backing;
 
@@ -76,6 +77,11 @@ namespace ANON
 
 		LRESULT RouteInput(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		{
+			if (!hasFocus)
+			{
+				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
+			}
+
 			UINT sizeofBuffer = 0;
 			if (NO_ERROR != GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &sizeofBuffer, sizeof(RAWINPUTHEADER)))
 			{
@@ -91,30 +97,63 @@ namespace ANON
 				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
 			}
 
-			RAWINPUT& raw = *((RAWINPUT*)buffer);
-			RAWINPUT* pRaw = &raw;
+			RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(eventBuffer->GetData());
 
-			if (hasFocus)
+			MouseContext context;
+			context.isAltHeld = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+			context.isCtrlHeld = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+			context.isShiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+
+			if (raw->header.dwType == RIM_TYPEMOUSE)
 			{
-				if (raw.header.dwType == RIM_TYPEMOUSE)
-				{
-					MouseContext context;
-					context.isAltHeld = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
-					context.isCtrlHeld = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
-					context.isShiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
-					if (handler) handler->OnMouseEvent(raw.data.mouse, context);
-				}
-				else if (raw.header.dwType == RIM_TYPEKEYBOARD)
-				{
-					if (handler) handler->OnKeyboardEvent(raw.data.keyboard, keyboardLayout);
-				}
-
-				return 0;
+				if (handler) handler->OnMouseEvent(raw->data.mouse, context);
+			}
+			else if (raw->header.dwType == RIM_TYPEKEYBOARD)
+			{
+				lastKeyEvent = raw->data.keyboard;
+				if (handler) handler->OnKeyboardEvent(raw->data.keyboard, keyboardLayout);
 			}
 			else
 			{
-				return DefRawInputProc(&pRaw, 1, sizeof(RAWINPUTHEADER));
+				return DefWindowProc(hWnd, WM_INPUT, wParam, lParam);
 			}
+
+			for (;;)
+			{
+				UINT packetSize;
+				if (GetRawInputBuffer(nullptr, OUT & packetSize, sizeof(RAWINPUTHEADER)) == 0 && packetSize > 0)
+				{
+					packetSize *= 8;
+					eventBuffer->Resize(packetSize);
+					int count = (int) GetRawInputBuffer(reinterpret_cast<PRAWINPUT>(eventBuffer->GetData()), &packetSize, sizeof(RAWINPUTHEADER));
+					if (count > 0)
+					{
+						raw = reinterpret_cast<RAWINPUT*>(eventBuffer->GetData());
+						for (int i = 0; i < count; ++i)
+						{
+							if (raw->header.dwType == RIM_TYPEMOUSE && hasFocus)
+							{
+								if (handler) handler->OnMouseEvent(raw->data.mouse, context);
+							}
+							if (raw->header.dwType == RIM_TYPEKEYBOARD && hasFocus)
+							{
+								if (handler) handler->OnKeyboardEvent(raw->data.keyboard, keyboardLayout);
+							}
+							raw = reinterpret_cast<RAWINPUT*>(reinterpret_cast<BYTE*>(raw) + raw->header.dwSize);
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			return 0;
 		}
 
 		LRESULT OnMessageProtected(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -230,6 +269,11 @@ namespace ANON
 			SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR) this);
 
 			backing = DX11::CreateDX11WindowBacking(eventHandler, factory.device, factory.dc, hWnd, factory.factory, static_cast<DX11::IDX11TextureManager&>(renderer.Textures()));
+		}
+
+		const Rococo::KeyboardEvent& GetLastKeyEvent() const override
+		{
+			return *reinterpret_cast<const Rococo::KeyboardEvent*>(&lastKeyEvent);
 		}
 
 		void PostConstruct()

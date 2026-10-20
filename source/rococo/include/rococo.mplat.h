@@ -717,6 +717,8 @@ namespace Rococo
 		Rococo::IO::IShaderMonitorEventsProxy& shaderMonitorEventsProxy;
 	};
 
+	DECLARE_ROCOCO_INTERFACE IUILog;
+
 	struct PlatformOS
 	{
 		// Operating system functions
@@ -735,6 +737,8 @@ namespace Rococo
 
 		// Application title
 		const char* const title;
+
+		IUILog& uiLog;
 	};
 
 	struct PlatformScripts

@@ -697,7 +697,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *softBoxBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderOptions->Config(), shaderEventHandler},
 
 		// Platform os
-		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },
+		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title, *mainWindow },
 
 		// Platform scripting
 		{ panelCompilationHandler, panelCompilationHandler, *sourceCache, *debuggerWindow, *ssFactory },
