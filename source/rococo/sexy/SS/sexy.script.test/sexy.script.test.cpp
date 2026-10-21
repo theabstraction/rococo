@@ -8721,6 +8721,45 @@ R"(
 		validate(x == 9);
 	}
 
+	void TestFactoryReturnEmpty(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(interface Sys.IDog (attribute essential)"
+			"    (Id -> (Int32 id))"
+			")"
+
+			"(factory Sys.NullDog Sys.IDog :"
+			"    (return)"
+			")"
+
+			"(function Main -> (Int32 result): "
+			"	(Sys.IDog dog (Sys.NullDog))"
+			"   (if (dog ?)"
+			"		(result = 7)"
+			"	else"
+			"		(result = 9)"
+			"	)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 9);
+	}
+
 	void TestCaptureStruct(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -19010,6 +19049,8 @@ R"(
 		TEST(TestConstants3);
 
 		TEST(TestEnumByCPP);
+
+		TEST(TestFactoryReturnEmpty);
 	}
 
 	void RunPositiveFailures()

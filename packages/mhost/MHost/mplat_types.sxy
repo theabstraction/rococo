@@ -178,7 +178,7 @@
 // Trying out the new strong number types
 
 (strong RococoMPlatTypeROID (Int64))
-(alias RococoMPlatTypeROID Rococo.ROID)
+(alias RococoMPlatTypeROID Sys.Type.ROID)
 
 (strong RococoMPlatTypeRGBAb (Int32))
 
