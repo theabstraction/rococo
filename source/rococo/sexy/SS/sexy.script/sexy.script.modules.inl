@@ -1240,7 +1240,7 @@ namespace Rococo::Script
 				Throw(args, "Expecting a variable of type %s, but found a %s", GetFriendlyName(type), GetFriendlyName(*def.ResolvedType));
 			}
 
-			ce.Builder.AssignVariableAddressToTemp(sargs.buffer, 0); // the src ptr is now in D4
+			ce.Builder.AssignVariableAddressToRegister(sargs.buffer, VM::REGISTER_D4); // the src ptr is now in D4
 			ce.Builder.Assembler().Append_CopyMemory(registerIndexToRef, REGISTER_D4, def.ResolvedType->SizeOfStruct());
 			return;
 		}

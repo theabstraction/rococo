@@ -295,7 +295,7 @@ namespace Anon
 		virtual void AssignPointer(const NameString& name, const void* ptr) override;
 		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget) override;
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection) override;
-		virtual void AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth) override;
+		virtual void AssignVariableAddressToRegister(cstr sourceVariable, int registerIndex) override;
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset) override;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) override;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) override;
@@ -2368,7 +2368,7 @@ namespace Anon
 		RestoreStackFrameFor(*this, def);
 	}
 
-	void CodeBuilder::AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth)
+	void CodeBuilder::AssignVariableAddressToRegister(cstr sourceVariable, int registerIndex)
 	{
 		if (sourceVariable == nullptr || *sourceVariable == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableAddressToTemp: sourceVariable was blank");
 
@@ -2382,11 +2382,11 @@ namespace Anon
 
 		if (def.location == VARLOCATION_OUTPUT || def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
-			Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + (VM::DINDEX) tempDepth, def.SFOffset + def.MemberOffset);
+			Assembler().Append_GetStackFrameAddress((VM::DINDEX) registerIndex, def.SFOffset + def.MemberOffset);
 		}
 		else
 		{
-			Assembler().Append_GetStackFrameMemberPtr((VM::DINDEX) tempDepth + VM::REGISTER_D4, def.SFOffset, def.MemberOffset);
+			Assembler().Append_GetStackFrameMemberPtr((VM::DINDEX) registerIndex, def.SFOffset, def.MemberOffset);
 		}
 
 		RestoreStackFrameFor(*this, def);
