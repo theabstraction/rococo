@@ -531,7 +531,7 @@ namespace Rococo
 			}
 
 			ce.Builder.AddSymbol(varName);
-			ce.Builder.AssignVariableRefToTemp(varName, Rococo::ROOT_TEMPDEPTH, 0);
+			ce.Builder.AssignVariableRefToRegister(varName, VM::REGISTER_D7);
 		}
 
 		void CompileGetStructRefFromAtomic(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name)
@@ -1622,7 +1622,7 @@ namespace Rococo
 					const IStructure& st = GetNodeDef(ce, s, instance);
 					ValidateReturnType(s, returnType, st.VarType());
 
-					ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to D4
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to D4
 
 					if (st.InterfaceCount() > 0)
 					{
@@ -1653,7 +1653,7 @@ namespace Rococo
 				{
 					ValidateReturnType(s, returnType, SexyVarType_Bool);
 
-					ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D7); // Node ptr goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasNext); // Boolean (n.Next != NULL) goes to D7
 
 					return true;
@@ -1662,21 +1662,21 @@ namespace Rococo
 				{
 					ValidateReturnType(s, returnType, SexyVarType_Bool);
 
-					ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D7); // Node ptr goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasPrevious); // Boolean (n.Next != NULL) goes to D7
 
 					return true;
 				}
 				else if (Eq("GoPrevious", methodName))
 				{
-					ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to 4
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to 4
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoPrevious); // Next node updates D4, D7 if previous exists
 					AssignTempToVariableRef(ce, 0, instance);
 					return true;
 				}
 				else if (AreEqual("GoNext", methodName))
 				{
-					ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to D4
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to D4
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoNext); // Previous node updates D4, D7 if next exists
 					AssignTempToVariableRef(ce, 0, instance);
 					return true;
@@ -1826,7 +1826,7 @@ namespace Rococo
 						return false;
 					}
 					
-					ce.Builder.AssignVariableRefToTemp(instance, 0, 0); // This shifts the archetype pointer to D4
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // This shifts the archetype pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Name", instance);
 					AppendInvoke(ce, callbacks.ArchetypeGetName, s); // the IString pointer is now in D7
 					return true;
@@ -2273,7 +2273,7 @@ namespace Rococo
 
 			AddArgVariable("instance", ce, ce.Object.Common().TypePointer());
 
-			ce.Builder.AssignVariableRefToTemp(classInstance, 0);
+			ce.Builder.AssignVariableRefToRegister(classInstance, VM::REGISTER_D4);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
 
 			return (int)sizeof(void*);

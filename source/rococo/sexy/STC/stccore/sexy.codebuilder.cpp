@@ -296,7 +296,7 @@ namespace Anon
 		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget) override;
 		virtual void AssignVariableToRegister(cstr source, int registerIndex, int memberOffsetCorrection) override;
 		virtual void AssignVariableAddressToRegister(cstr sourceVariable, int registerIndex) override;
-		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset) override;
+		virtual void AssignVariableRefToRegister(cstr source, int registerIndex, int offset = 0) override;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) override;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) override;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) override;
@@ -2110,8 +2110,8 @@ namespace Anon
 		int targetOffset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + index * sizeof(size_t);
 		int delta = (targetOffset - offset);
 
-		AssignVariableRefToTemp(source, 0, delta); // D4
-		AssignVariableRefToTemp(target, 1, 0); // D5
+		AssignVariableRefToRegister(source, VM::REGISTER_D4, delta); // D4
+		AssignVariableRefToRegister(target, VM::REGISTER_D5, 0); // D5
 		this->Append_UpdateRefsOnSourceAndTarget();
 
 		AssignRegisterToVariable(VM::REGISTER_D4,target);
@@ -2207,8 +2207,8 @@ namespace Anon
 				if (targetDef.IsParentValue ^ sourceDef.IsParentValue)
 				{
 					// N.B do not refactor into single VM instruction, as SF is not the same for source and target
-					AssignVariableRefToTemp(source, 0, 0);
-					AssignVariableRefToTemp(target, 1, 0);
+					AssignVariableRefToRegister(source, VM::REGISTER_D4);
+					AssignVariableRefToRegister(target, VM::REGISTER_D5);
 					Assembler().Append_CopyMemory(VM::REGISTER_D5, VM::REGISTER_D4, nBytesSource);
 					return;
 				}
@@ -2525,7 +2525,7 @@ namespace Anon
 		}
 	}
 
-	void AssignInterfaceToTemp(CodeBuilder& builder, const MemberDef& sourceDef, cstr source, int tempIndex, int /* memberOffsetCorrection */)
+	void AssignInterfaceToRegister(CodeBuilder& builder, const MemberDef& sourceDef, cstr source, int registerIndex, int /* memberOffsetCorrection */)
 	{
 		UNUSED(source);
 		// Assumes sourceDef is an interface
@@ -2544,17 +2544,17 @@ namespace Anon
 		if (sourceDef.location == VARLOCATION_TEMP && sourceDef.Usage == ARGUMENTUSAGE_BYREFERENCE && sourceDef.IsContained)
 		{
 			// Assign from derefenced pointer to a deferenced pointer -> in this case a list node
-			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref((VM::DINDEX)registerIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
 		}
 		else if (sourceDef.location != VARLOCATION_INPUT || sourceDef.Usage == ARGUMENTUSAGE_BYVALUE || !sourceDef.IsContained)
 		{
 			// Assign from a value
-			builder.Assembler().Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, (VM::DINDEX)tempIndex + VM::REGISTER_D4, BITCOUNT_POINTER);
+			builder.Assembler().Append_GetStackFrameValue(sourceDef.SFOffset + sourceDef.MemberOffset, (VM::DINDEX)registerIndex, BITCOUNT_POINTER);
 		}
 		else
 		{
 			// Assign from derefenced pointer to a deferenced pointer
-			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
+			builder.Assembler().Append_GetStackFrameMemberPtrAndDeref((VM::DINDEX)registerIndex, sourceDef.SFOffset, sourceDef.MemberOffset);
 		}
 
 		RestoreStackFrameFor(builder, sourceDef);
@@ -2578,7 +2578,7 @@ namespace Anon
 
 		if (srcType->InterfaceCount() > 0)
 		{
-			AssignInterfaceToTemp(*this, def, source, registerIndex - VM::REGISTER_D4, memberOffsetCorrection);
+			AssignInterfaceToRegister(*this, def, source, registerIndex, memberOffsetCorrection);
 		}
 		else
 		{
@@ -2632,7 +2632,7 @@ namespace Anon
 		return false;
 	}
 
-	void CodeBuilder::AssignVariableRefToTemp(cstr source, int tempDepth, int offset)
+	void CodeBuilder::AssignVariableRefToRegister(cstr source, int registerIndex, int offset)
 	{
 		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableRefToTemp: source was blank");
 
@@ -2648,32 +2648,32 @@ namespace Anon
 		{
 			if (def.ResolvedType->InterfaceCount() || IsContainerType(*def.ResolvedType))
 			{
-				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset + offset, VM::REGISTER_D4 + (VM::DINDEX)tempDepth, BITCOUNT_POINTER);
+				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset + offset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
 			}
 			else
 			{
-				Assembler().Append_GetStackFrameAddress(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, def.SFOffset + def.MemberOffset + offset);
+				Assembler().Append_GetStackFrameAddress((VM::DINDEX) registerIndex, def.SFOffset + def.MemberOffset + offset);
 			}
 		}
 		else
 		{
 			if (!def.IsContained)
 			{
-				Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + (VM::DINDEX)tempDepth, BITCOUNT_POINTER);
-				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, offset);
+				Assembler().Append_GetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
+				Assembler().Append_IncrementPtr((VM::DINDEX) registerIndex, offset);
 			}
 			else
 			{
 				if (def.IsContained && (def.ResolvedType->InterfaceCount() > 0 || IsContainerType(*def.ResolvedType)))
 				{
-					Assembler().Append_GetStackFrameMemberPtrAndDeref(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, def.SFOffset, def.MemberOffset);
+					Assembler().Append_GetStackFrameMemberPtrAndDeref((VM::DINDEX) registerIndex, def.SFOffset, def.MemberOffset);
 				}
 				else
 				{
-					Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, def.SFOffset, def.MemberOffset);
+					Assembler().Append_GetStackFrameMemberPtr((VM::DINDEX) registerIndex, def.SFOffset, def.MemberOffset);
 				}
 
-				Assembler().Append_IncrementPtr(VM::REGISTER_D4 + (VM::DINDEX)tempDepth, offset);
+				Assembler().Append_IncrementPtr((VM::DINDEX) registerIndex, offset);
 			}
 		}
 

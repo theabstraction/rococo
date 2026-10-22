@@ -924,7 +924,7 @@ namespace Rococo::Script
 
 	void CompileAsMapNodePop(CCompileEnvironment& ce, cr_sex s, cstr name)
 	{
-		ce.Builder.AssignVariableRefToTemp(name, Rococo::ROOT_TEMPDEPTH);
+		ce.Builder.AssignVariableRefToRegister(name, VM::REGISTER_D7);
 		AppendInvoke(ce, GetMapCallbacks(ce).MapNodePop, s);
 	}
 
@@ -1292,7 +1292,7 @@ namespace Rococo::Script
 			}
 			if (AreEqual("Key", methodName))
 			{
-				ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
+				ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D7); // node goes to D7
 
 				SexyVarType valType = mnd.mapdef.KeyType.VarType();
 
@@ -1343,7 +1343,7 @@ namespace Rococo::Script
 			}
 			else if (AreEqual("Value", methodName))
 			{
-				ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
+				ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D7); // node goes to D7
 
 				auto& valueType = mnd.mapdef.ValueType;
 				SexyVarType valType = valueType.VarType();

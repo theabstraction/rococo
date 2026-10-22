@@ -1858,7 +1858,7 @@ namespace Rococo
 			if (!IsAtomic(nodeNameExpr)) Throw(nodeNameExpr, ("Expecting (type id = & <node-name>). The <node-name> element needs to be atomic"));
 
 			cstr nodeName = nodeNameExpr.c_str();
-			ce.Builder.AssignVariableRefToTemp(nodeName, Rococo::ROOT_TEMPDEPTH); // The node pointer is now in D7
+			ce.Builder.AssignVariableRefToRegister(nodeName,VM::REGISTER_D7); // The node pointer is now in D7
 
 			const IStructure* nodeType = ce.Builder.GetVarStructure(nodeName);
 			if (*nodeType == ce.Object.Common().TypeNode())
@@ -2307,9 +2307,8 @@ namespace Rococo
 							Throw(command, __FUNCTION__ ": Expecting Int32 valued expression for array index");
 						} // D7 now contains the array index
 
-						ce.Builder.AssignVariableRefToTemp(commandText, 0); // D4 contains the array ptr
-						ce.Builder.AssignVariableRefToTemp(varName, 1); // D5 contains the structure ptr
-
+						ce.Builder.AssignVariableRefToRegister(commandText, VM::REGISTER_D4); // D4 contains the array ptr
+						ce.Builder.AssignVariableRefToRegister(varName, VM::REGISTER_D5); // D5 contains the structure ptr
 						ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayCopyByRef);
 						return true;
 					}
@@ -2702,7 +2701,7 @@ namespace Rococo
 			v.vPtrValue = (void*)lhsVariableDef.ResolvedType;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D11, v, BITCOUNT_POINTER); // D1 gets the lhs type
 
-			ce.Builder.AssignVariableRefToTemp(lhsVariableName->Buffer, 8); // D12 gets the lhs reference
+			ce.Builder.AssignVariableRefToRegister(lhsVariableName->Buffer, VM::REGISTER_D12); // D12 gets the lhs reference
 
 			VariantValue name;
 			name.vPtrValue = (void*)lhsVariableName->Buffer;
@@ -2711,7 +2710,7 @@ namespace Rococo
 			v.vPtrValue = (void*)rhsVariableDef.ResolvedType;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D14, v, BITCOUNT_POINTER); // D14 gets the rhs type
 
-			ce.Builder.AssignVariableRefToTemp(rhsVariableName->Buffer, 11); // D15 gets the rhs reference
+			ce.Builder.AssignVariableRefToRegister(rhsVariableName->Buffer, VM::REGISTER_D15); // D15 gets the rhs reference
 
 			ce.Builder.Assembler().Append_Invoke(id);
 
@@ -2737,7 +2736,7 @@ namespace Rococo
 			ce.Builder.AssignVariableToRegister(srcName, VM::REGISTER_D5);
 
 			cstr trgName = s[3].c_str();
-			ce.Builder.AssignVariableRefToTemp(trgName, 3); // D7
+			ce.Builder.AssignVariableRefToRegister(trgName, VM::REGISTER_D7); // D7
 
 			VariantValue v;
 			v.vPtrValue = (void*)trgDef.ResolvedType;

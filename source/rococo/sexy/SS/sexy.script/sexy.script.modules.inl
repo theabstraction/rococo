@@ -985,7 +985,7 @@ namespace Rococo::Script
 			// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
 			// After the pseudo variable we can expect the actual reference, a pointer type by value
 
-			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetListCallbacks(ce).NodeReleaseRef, sequence); // release the ref to the node
 		}
 		else if (*def.ResolvedType == ce.Object.Common().TypeMapNode())
@@ -993,7 +993,7 @@ namespace Rococo::Script
 			// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
 			// After the pseudo variable we can expect the actual reference, a pointer type by value
 
-			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetMapCallbacks(ce).MapNodeReleaseRef, sequence); // release the ref to the node
 		}
 	}
@@ -1308,7 +1308,7 @@ namespace Rococo::Script
 
 	void CompileListConstruct(CCompileEnvironment& ce, cr_sex def, const IMember& member, cstr fullName)
 	{
-		ce.Builder.AssignVariableRefToTemp(fullName, 0); // List goes to D4
+		ce.Builder.AssignVariableRefToRegister(fullName, VM::REGISTER_D4); // List goes to D4
 
 		VariantValue v;
 		v.vPtrValue = (void*) member.UnderlyingGenericArg1Type();
@@ -1323,7 +1323,7 @@ namespace Rococo::Script
 	{
 		UNUSED(def);
 
-		ce.Builder.AssignVariableRefToTemp(fullName, Rococo::ROOT_TEMPDEPTH); // Map goes to D7
+		ce.Builder.AssignVariableRefToRegister(fullName, VM::REGISTER_D7); // Map goes to D7
 
 		VariantValue key;
 		key.vPtrValue = (void*) member.UnderlyingGenericArg1Type();

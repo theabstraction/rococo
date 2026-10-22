@@ -1086,7 +1086,7 @@ namespace Rococo
 				   Throw(value, "Could not evaluate the expression as type %s ", GetTypeName(elementType.VarType()));
 			   } // The value is in D7
 
-			   ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // array goes to D4
+			   ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D4); // array goes to D4
 			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPush64);
 
 		   }
@@ -1240,7 +1240,7 @@ namespace Rococo
 
 			   MemberDef def;
 			   AssertGetVariable(def, value.c_str(), ce, value);
-			   ce.Builder.AssignVariableRefToTemp(value.c_str(), Rococo::ROOT_TEMPDEPTH); // The value reference is in D7 
+			   ce.Builder.AssignVariableRefToRegister(value.c_str(), VM::REGISTER_D7); // The value reference is in D7 
 		   }
 
 		   ce.Builder.PopLastVariables(1, true);
