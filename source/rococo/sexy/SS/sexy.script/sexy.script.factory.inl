@@ -148,7 +148,7 @@ namespace Rococo
          vIp0.vPtrValue = ip0;
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, vIp0, BITCOUNT_POINTER);
 
-         ce.Builder.AssignTempToVariable(0, interfaceRefName);
+         ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,interfaceRefName);
 
          int explicitInputCount = ArgCount(factoryFunction) - 1;
          int mapIndex = GetIndexOf(1, args, ("->"));

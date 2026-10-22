@@ -300,7 +300,7 @@ namespace Anon
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) override;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) override;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) override;
-		virtual void AssignTempToVariable(int srcIndex, cstr target) override;
+		virtual void AssignRegisterToVariable(int registerIndex, cstr target) override;
 		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgMutatingIndex, SexyVarType type) override;
 		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgMutatingIndex, SexyVarType type) override;
 		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) override;
@@ -2069,7 +2069,7 @@ namespace Anon
 		if (isConstructingTarget)
 		{
 			builder.AssignVariableToTemp(source, 0); // D4
-			builder.AssignTempToVariable(0, target); 
+			builder.AssignRegisterToVariable(VM::REGISTER_D4,target); 
 			builder.Append_IncRef();
 		}
 		else
@@ -2077,7 +2077,7 @@ namespace Anon
 			builder.AssignVariableToTemp(source, 0); // D4
 			builder.AssignVariableToTemp(target, 1); // D5
 			builder.Append_UpdateRefsOnSourceAndTarget();
-			builder.AssignTempToVariable(0, target);
+			builder.AssignRegisterToVariable(VM::REGISTER_D4,target);
 		}
 	}
 
@@ -2114,7 +2114,7 @@ namespace Anon
 		AssignVariableRefToTemp(target, 1, 0); // D5
 		this->Append_UpdateRefsOnSourceAndTarget();
 
-		AssignTempToVariable(0, target);
+		AssignRegisterToVariable(VM::REGISTER_D4,target);
 
 		return true;
 	}
@@ -2338,31 +2338,31 @@ namespace Anon
 		}
 	}
 
-	void CodeBuilder::AssignTempToVariable(int srcIndex, cstr target)
+	void CodeBuilder::AssignRegisterToVariable(int registerIndex, cstr target)
 	{
 		if (target == nullptr || *target == 0) Rococo::Throw(0, "CodeBuilder::AssignTempToVariable: target was blank");
 
 		MemberDef def;
 		if (!TryGetVariableByName(OUT def, target))
 		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Cannot find variable %s"), target);
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot find variable %s", target);
 		}
-		
+
 		BITCOUNT bitCount = GetBitCountFromStruct(def);
 
 		UseStackFrameFor(*this, def);
 
-		if ((def.ResolvedType->VarType() == SexyVarType_Array && !def.IsContained) 
+		if ((def.ResolvedType->VarType() == SexyVarType_Array && !def.IsContained)
 			|| (def.ResolvedType->VarType() == SexyVarType_Map && !def.IsContained)
 			|| (def.ResolvedType->VarType() == SexyVarType_List && !def.IsContained)
 			|| def.location == VARLOCATION_OUTPUT
 			|| def.Usage != ARGUMENTUSAGE_BYREFERENCE)
 		{
-			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + (VM::DINDEX)srcIndex, bitCount);
+			Assembler().Append_SetStackFrameValue(def.SFOffset + def.MemberOffset, (VM::DINDEX)registerIndex, bitCount);
 		}
 		else
 		{
-			Assembler().Append_SetSFMemberByRefFromRegister((VM::DINDEX) srcIndex + VM::REGISTER_D4, def.SFOffset, def.MemberOffset, bitCount);
+			Assembler().Append_SetSFMemberByRefFromRegister((VM::DINDEX)registerIndex, def.SFOffset, def.MemberOffset, bitCount);
 		}
 
 		RestoreStackFrameFor(*this, def);

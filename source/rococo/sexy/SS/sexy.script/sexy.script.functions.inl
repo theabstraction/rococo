@@ -276,13 +276,13 @@ namespace Rococo
 			VariantValue byteCodeId;
 			byteCodeId.byteCodeIdValue = section.Id;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, byteCodeId, BITCOUNT_64);
-			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariableByteCodeId);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariableByteCodeId);
 
 			AddSymbol(ce.Builder, "%s.parentSF = SF", targetVariable);
 
 			TokenBuffer targetVariableParentSF;
 			StringPrint(targetVariableParentSF, "%s.parentSF", targetVariable);
-			ce.Builder.AssignTempToVariable(-2, targetVariableParentSF);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_SF, targetVariableParentSF);
 			
 			MemberDef def;
 			if (!ce.Builder.TryGetVariableByName(OUT def, targetVariable) || def.ResolvedType->Archetype() != &archetype)
@@ -708,7 +708,7 @@ namespace Rococo
 		{
 			int64 enumValue = AssignEnumToD4(ce, enumKey, enumStruct, directive);
 			AddSymbol(ce.Builder, "%s = %s (%lld/0x%llX)", targetVariable, enumKey, enumValue, enumValue);
-			ce.Builder.AssignTempToVariable(0, targetVariable);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetVariable);
 		}
 
 		bool TryCompilePushEnumLiteral(CCompileEnvironment& ce, cr_sex sInputExpression, const IStructure& inputStruct)
@@ -1033,7 +1033,7 @@ namespace Rococo
 				else
 				{
 					builder.Assembler().Append_GetStackFrameValue(sfOffset, VM::REGISTER_D5, GetBitCount(requiredOutputStruct.VarType()));
-					builder.AssignTempToVariable(1, outputVar);
+					builder.AssignRegisterToVariable(VM::REGISTER_D5, outputVar);
 				}
 			}
 		}
@@ -1209,7 +1209,7 @@ namespace Rococo
 				SafeFormat(localName, 128, "parentSF_%s_%llu", GetFriendlyName(*def.ResolvedType), index++);
 				AddVariable(ce, NameString::From(localName), ce.Object.Common().TypePointer());
 				ce.Builder.AssignVariableToTemp(instanceName, 0);
-				ce.Builder.AssignTempToVariable(0, localName);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,localName);
 			}
 
 			int outputStackAllocByteCount = AllocFunctionOutput(ce, callee, s);

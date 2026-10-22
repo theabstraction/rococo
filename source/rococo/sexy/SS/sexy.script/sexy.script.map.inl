@@ -1243,14 +1243,14 @@ namespace Rococo::Script
 		if (s.NumberOfElements() == 4)
 		{
 			ce.Builder.Assembler().Append_Invoke(GetMapCallbacks(ce).MapInit);
-			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, name);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,name);
 		}
 		else
 		{
 			VariantValue nullPtr;
 			nullPtr.vPtrValue = nullptr;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, nullPtr, BITCOUNT_POINTER);
-			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, name);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,name);
 		}
 	}
 
@@ -1478,7 +1478,7 @@ namespace Rococo::Script
 		if (indexName != NULL)
 		{
 			// Init our index var to the current index value then increment the index value
-			ce.Builder.AssignTempToVariable(7, indexName);
+			ce.Builder.AssignRegisterToVariable(11, indexName);
 
 			VariantValue one;
 			one.int32Value = 1;

@@ -120,8 +120,8 @@ namespace ANON
 
 			for (;;)
 			{
-				UINT packetSize;
-				if (GetRawInputBuffer(nullptr, OUT & packetSize, sizeof(RAWINPUTHEADER)) == 0 && packetSize > 0)
+				UINT packetSize = 0;
+				if (GetRawInputBuffer(nullptr, OUT &packetSize, sizeof(RAWINPUTHEADER)) == 0 && packetSize > 0)
 				{
 					packetSize *= 8;
 					eventBuffer->Resize(packetSize);

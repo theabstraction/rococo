@@ -323,8 +323,11 @@ namespace
 		AddNativeCallSecurity_ToSysNatives(ss);
 	}
 
+	int testCount = 0;
+
 	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines, bool addInIO)
 	{
+		testCount++;
 		{
 			printf("<<<<<< %s\r\n", name);
 
@@ -19105,7 +19108,7 @@ R"(
 		hz = Time::TickHz();
 
 		double dt = (double)(end - start) / (double)hz;
-		printf("\nAll tests completed in %.2f seconds\n", dt);
+		printf("\n%d tests completed in %.2f seconds (%.1f tests per second)\n", testCount, dt, testCount / dt);
 	}
 }
 
@@ -19126,8 +19129,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

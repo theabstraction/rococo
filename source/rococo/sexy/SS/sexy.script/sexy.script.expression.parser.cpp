@@ -401,7 +401,7 @@ namespace Rococo
 					TokenBuffer targetBytecodeId;
 					StringPrint(targetBytecodeId, ("%s.bytecodeId"), targetVariable);
 					ce.Builder.AddSymbol(targetBytecodeId);
-					ce.Builder.AssignTempToVariable(0, targetBytecodeId);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetBytecodeId);
 
 					VariantValue parentSF;
 					parentSF.charPtrValue = NULL;
@@ -410,7 +410,7 @@ namespace Rococo
 					TokenBuffer targetParentSF;
 					StringPrint(targetParentSF, ("%s.parentSF"), targetVariable);
 					ce.Builder.AddSymbol(targetParentSF);
-					ce.Builder.AssignTempToVariable(0, targetParentSF);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetParentSF);
 					return;
 				}
 			}
@@ -510,28 +510,28 @@ namespace Rococo
 						{
 							// If a function returns a derivative type then it returns a pointer to a derivative type
 
-							StringPrint(symbol, ("-> %s"), (cstr) targetVariable);
+							StringPrint(symbol, "-> %s", (cstr) targetVariable);
 							ce.Builder.AddSymbol(symbol);
-							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
+							ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariable);
 						}
 						else if (targetType == SexyVarType_Closure)
 						{	
-							StringPrint(symbol, ("-> %s"), (cstr)targetVariable);
+							StringPrint(symbol, "-> %s", (cstr)targetVariable);
 							ce.Builder.AddSymbol(symbol);
 
 							TokenBuffer bytecodeId;
-							StringPrint(bytecodeId, ("%s.bytecodeId"), targetVariable);
-							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, bytecodeId);
+							StringPrint(bytecodeId, "%s.bytecodeId", targetVariable);
+							ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,bytecodeId);
 
 							TokenBuffer parentSF;
-							StringPrint(parentSF, ("%s.parentSF"), targetVariable);
-							ce.Builder.AssignTempToVariable(10, parentSF);
+							StringPrint(parentSF, "%s.parentSF", targetVariable);
+							ce.Builder.AssignRegisterToVariable(VM::REGISTER_D14, parentSF);
 						}
 						else
 						{						
-							StringPrint(symbol, ("-> %s"), (cstr) targetVariable);
+							StringPrint(symbol, "-> %s", (cstr) targetVariable);
 							ce.Builder.AddSymbol(symbol);
-							ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
+							ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariable);
 						}
 					}
 					else if (*sourceText == '-' && IsLowerCase(sourceText[1]) && IsPrimitiveType(varStruct.VarType()))
@@ -568,7 +568,7 @@ namespace Rococo
 						}
 
 						AddSymbol(ce.Builder, "D4 -> %s", targetVariable);
-						ce.Builder.AssignTempToVariable(0, targetVariable);
+						ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetVariable);
 
 					}
 					else if (sourceText[0] == '.')
@@ -612,7 +612,7 @@ namespace Rococo
 					// D7 assembled to now hold the value of the boolean value of the source expression
 					ce.Builder.AddSymbol(symbol);
 					if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariable);
 					return;
 				}
 				break;
@@ -624,7 +624,7 @@ namespace Rococo
 				{
 					// D7 assembled to now hold the value of the boolean value of the source expression
 					ce.Builder.AddSymbol(symbol);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariable);
 					return;
 				}
 				break;
@@ -636,7 +636,7 @@ namespace Rococo
 					StringPrint(targetId, ("%s.bytecodeId"), targetVariable);
 
 					ce.Builder.AddSymbol(symbol);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetId); 
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetId); 
 
 					TokenBuffer targetSF;
 					StringPrint(targetSF, ("%s.parentSF"), targetVariable);
@@ -644,7 +644,7 @@ namespace Rococo
 					ce.Builder.AddSymbol(symbol);
 				
 					// hotfix for 64-bit binaries - id goest to D7 while parentSF goes to D14, an unused register
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH + 7, targetSF); 
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D14, targetSF);
 					return;
 				}
 				else if (TryCompileClosureDef(ce, sourceValue, *varStruct.Archetype(), ce.Builder.Owner().GetArgumentByName(targetVariable) == NULL))
@@ -655,13 +655,13 @@ namespace Rococo
 
 					TokenBuffer targetVariableByteCodeId;
 					StringPrint(targetVariableByteCodeId, ("%s.bytecodeId"), targetVariable);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariableByteCodeId);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariableByteCodeId);
 
 					TokenBuffer targetVariableParentSF;
 					StringPrint(symbol, ("%s.parentSF = SF"), targetVariable);
 					ce.Builder.AddSymbol(symbol);
 					StringPrint(targetVariableParentSF, ("%s.parentSF"), targetVariable);
-					ce.Builder.AssignTempToVariable(-2, targetVariableParentSF);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_SF, targetVariableParentSF);
 					return;
 				}
 				break;
@@ -669,7 +669,7 @@ namespace Rococo
 				if (TryCompileFunctionCallAndReturnValue(ce, sourceValue, targetType, NULL, NULL))
 				{				
 					ce.Builder.AddSymbol(symbol);
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariable);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariable);
 					return;
 				}			
 				break;
@@ -681,13 +681,13 @@ namespace Rococo
 					char argv[64];
 					SafeFormat(argv, 64, "_retArg%d", returnArgIndex++);
 					AddVariable(ce, NameString::From(argv), ce.Object.Common().TypePointer());
-					ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, argv);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,argv);
 
 					// Decrement the reference of the target variable, as we are assigning a new object to it
 					ce.Builder.AssignVariableToTemp(targetVariable, 0);
 					ce.Builder.Append_DecRef();
 					ce.Builder.AssignVariableToTemp(argv, 0);
-					ce.Builder.AssignTempToVariable(0, targetVariable);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetVariable);
 					return;
 				}			
 				break;
@@ -806,7 +806,7 @@ namespace Rococo
 				else
 				{
 					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, ptrToConstant, BITCOUNT_POINTER);
-					ce.Builder.AssignTempToVariable(0, variableName);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,variableName);
 				}
 			}
 			else if (IsAtomic(src))
@@ -852,7 +852,7 @@ namespace Rococo
 						VariantValue nullInterfValue;
 						nullInterfValue.vPtrValue = nullInterface;
 						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, nullInterfValue, BITCOUNT_POINTER);
-						ce.Builder.AssignTempToVariable(0, variableName);
+						ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,variableName);
 					}
 
 					if (IsAtomic(src))
@@ -908,7 +908,7 @@ namespace Rococo
 			if (def.MemberOffset != 0 || def.Usage != ARGUMENTUSAGE_BYVALUE)
 			{			
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_POINTER);
-				ce.Builder.AssignTempToVariable(0, refName);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,refName);
 			}
 			else
 			{
@@ -1273,7 +1273,7 @@ namespace Rococo
 			   ce.Builder.PushVariable(typeDef);
 			   AddSymbol(ce.Builder, "class type -> D4");
 			   ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idVariableRefToType);
-			   ce.Builder.AssignTempToVariable(0, variableName);
+			   ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,variableName);
 			   return;
 		   }
 		   else
@@ -1677,12 +1677,12 @@ namespace Rococo
 					VariantValue codeRef;
 					codeRef.byteCodeIdValue = section.Id;
 					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, codeRef, BITCOUNT_64);
-					ce.Builder.AssignTempToVariable(0, idcode);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,idcode);
 
 					VariantValue zeroRef;
 					zeroRef.charPtrValue = 0;
 					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_64);
-					ce.Builder.AssignTempToVariable(0, idoffset);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,idoffset);
 
 					AddSymbol(ce.Builder, ("%s -> (Null-Function Null-SF)"), id);
 				}
@@ -1694,7 +1694,7 @@ namespace Rococo
 						VariantValue zeroRef;
 						zeroRef.charPtrValue = 0;
 						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_32);
-						ce.Builder.AssignTempToVariable(0, id);
+						ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,id);
 					}
 				break;
 				case SexyVarType_Int64:
@@ -1704,7 +1704,7 @@ namespace Rococo
 						VariantValue zeroRef;
 						zeroRef.charPtrValue = 0;
 						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, zeroRef, BITCOUNT_64);
-						ce.Builder.AssignTempToVariable(0, id);
+						ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,id);
 					}
 				break;
 			}
@@ -1925,7 +1925,7 @@ namespace Rococo
 			value.vPtrValue = GetInterfacePtrFromNullInstancePtr(stub);
 
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, BITCOUNT_POINTER);
-			ce.Builder.AssignTempToVariable(0, id);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,id);
 		}
 
 		void AssertNoConstructArgs(const IFunction& constructor, cr_sex sDef)
@@ -3342,7 +3342,7 @@ namespace Rococo
 							Throw(exceptionSource, ("Only primitive types can be popped out from an array"));
 						}
 						CompileAsPopOutFromArray(ce, exceptionSource, body, ce.Builder.GetVarType(lhs));
-						ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, lhs);
+						ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,lhs);
 						return;
 					}
 				}
@@ -3409,7 +3409,7 @@ namespace Rococo
 			else
 			{
 				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, ptrToStringConstant, BITCOUNT_POINTER);
-				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, variableName);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,variableName);
 			}
 		}
 
@@ -3598,7 +3598,7 @@ namespace Rococo
 				}
 			}
 
-			ce.Builder.AssignTempToVariable(0, name); // D4 now assigned back to the target variable
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,name); // D4 now assigned back to the target variable
 			return true;
 		}
 

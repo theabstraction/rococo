@@ -385,7 +385,7 @@ namespace Rococo::Compiler
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;
-		virtual void AssignTempToVariable(int srcIndex, cstr target) = 0;
+		virtual void AssignRegisterToVariable(int registerIndex, cstr target) = 0;
 		virtual void AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth) = 0;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;

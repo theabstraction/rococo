@@ -1202,7 +1202,7 @@ namespace Rococo
 		   CompileAsPopOutFromArray(ce, s, instanceName, requiredType);
 
 		   // The front of the queue was popped into D7
-		   ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetToken);
+		   ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetToken);
 	   }
 
 	   void CompileArraySet(CCompileEnvironment& ce, cr_sex s, cstr arrayName)
@@ -1492,7 +1492,7 @@ namespace Rococo
 
 		   TokenBuffer lockSource;
 		   StringPrint(lockSource, "%s._lockSource", (cstr) lockName);
-		   ce.Builder.AssignTempToVariable(arrayTempDepth, lockSource);
+		   ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4 + arrayTempDepth, lockSource);
 
 		   TokenBuffer lockMemberOffset;
 		   StringPrint(lockMemberOffset, "%s._lockMemberOffset", (cstr) lockName);
@@ -1635,7 +1635,7 @@ namespace Rococo
 			   VariantValue nullVal;
 			   nullVal.vPtrValue = (uint8*)elementType.GetInterface(0).UniversalNullInstance()->pVTables;
 			   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, nullVal, BITCOUNT_POINTER);
-			   ce.Builder.AssignTempToVariable(0, refName);
+			   ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,refName);
 		   }
 
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
@@ -1837,7 +1837,7 @@ namespace Rococo
 		   if (TryCompileFunctionCallAndReturnValue(ce, s[4], SexyVarType_Array, elementStruct, nullptr))
 		   {
 				AddSymbol(ce.Builder, "D7 -> %s", (cstr)arrayNameTxt);
-				ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, arrayNameTxt);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,arrayNameTxt);
 		   }
 		   else
 		   {
@@ -1925,7 +1925,7 @@ namespace Rococo
 
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayInit); // new array pointer ends up in D5
 
-		   ce.Builder.AssignTempToVariable(1, fullName);
+		   ce.Builder.AssignRegisterToVariable(VM::REGISTER_D5, fullName);
 	   }
 
 	   void RegisterArrays(ArrayCallbacks& arrayCallbacks, VM::ICore& core, IScriptSystem& ss)

@@ -1211,7 +1211,7 @@ namespace Rococo::Script
 			ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListInit);
 		}
 
-		ce.Builder.AssignTempToVariable(0, listName); // D4 goes to the list variable
+		ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,listName); // D4 goes to the list variable
 	}
 
 	void CompileEnumerateList(CCompileEnvironment& ce, cr_sex s, int hashIndex)
@@ -1308,7 +1308,7 @@ namespace Rococo::Script
 		if (indexName != NULL)
 		{
 			// Init our index var to the current index value then increment the index value
-			ce.Builder.AssignTempToVariable(7, indexName);
+			ce.Builder.AssignRegisterToVariable(11, indexName);
 
 			VariantValue one;
 			one.int32Value = 1;
