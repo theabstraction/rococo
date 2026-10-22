@@ -947,7 +947,7 @@ namespace Rococo::Script
 		{
 			char srcName[256];
 			SafeFormat(srcName, 256, "%s._lockSource", instanceName);
-			ce.Builder.AssignVariableToTemp(srcName, 9); // Lock source Goes to D13
+			ce.Builder.AssignVariableToRegister(srcName, VM::REGISTER_D13); // Lock source Goes to D13
 			ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock);
 		}
 
@@ -1287,7 +1287,7 @@ namespace Rococo::Script
 
 				if (mtype.InterfaceCount() > 0)
 				{
-					ce.Builder.AssignVariableToTemp(GetAtomicArg(arg), 3); // Numeric value in D7
+					ce.Builder.AssignVariableToRegister(GetAtomicArg(arg), VM::REGISTER_D7); // Numeric value in D7
 					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER);
 					ce.Builder.Append_IncRef();
 					ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, BITCOUNT_POINTER, registerIndexToRef, offset); // write the argument to the member

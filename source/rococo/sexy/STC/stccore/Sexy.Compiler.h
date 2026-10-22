@@ -383,7 +383,6 @@ namespace Rococo::Compiler
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;
-		virtual void AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
 		virtual void AssignVariableToRegister(cstr source, int registerIndex, int memberOffsetCorrection = 0) = 0;
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;
 		virtual void AssignRegisterToVariable(int registerIndex, cstr target) = 0;

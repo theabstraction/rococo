@@ -1180,7 +1180,7 @@ namespace Rococo::Script
 
 		CompileAsKeyToTemp(ce, keyExpr, def, Rococo::ROOT_TEMPDEPTH + 1);
 
-		ce.Builder.AssignVariableToTemp(mapName, Rococo::ROOT_TEMPDEPTH); // D7 refers to the map
+		ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D7); // D7 refers to the map
 		AppendInvoke(ce, GetMapCallbacks(ce).MapTryGet, source); // now D7 refers to the correct node
 
 		AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
@@ -1264,7 +1264,7 @@ namespace Rococo::Script
 
 				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
 				AddSymbol(ce.Builder, "%s -> D13", instance);
-				ce.Builder.AssignVariableToTemp(instance, 9, 0); // Reference to the map goes to D13
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D13); // Reference to the map goes to D13
 				AppendInvoke(ce, GetMapCallbacks(ce).MapGetLength, s);
 				ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D13, BITCOUNT_POINTER);
 				return true;
@@ -1286,7 +1286,7 @@ namespace Rococo::Script
 				StringPrint(field, "%s._exists", instance);
 				ValidateReturnType(s, returnType, SexyVarType_Bool);
 				ce.Builder.AddSymbol(field);
-				ce.Builder.AssignVariableToTemp(field, Rococo::ROOT_TEMPDEPTH, 0);
+				ce.Builder.AssignVariableToRegister(field, Rococo::VM::REGISTER_D7, 0);
 				outputType = SexyVarType_Bool;
 				return true;
 			}
@@ -1439,7 +1439,7 @@ namespace Rococo::Script
 
 		ce.Builder.AddSymbol(collectionName);
 		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
-		ce.Builder.AssignVariableToTemp(collectionName, 9, 0);	// Map ref is in D13
+		ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13);	// Map ref is in D13
 
 		AppendInvoke(ce, GetMapCallbacks(ce).MapGetLength, collection); // MapGetLength takes map ref at D13 and assigns map length to D7
 

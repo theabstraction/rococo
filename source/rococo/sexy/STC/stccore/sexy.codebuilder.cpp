@@ -294,7 +294,6 @@ namespace Anon
 		virtual void AssignLiteral(const NameString& name, cstr valueLiteral) override;
 		virtual void AssignPointer(const NameString& name, const void* ptr) override;
 		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget) override;
-		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection) override;
 		virtual void AssignVariableToRegister(cstr source, int registerIndex, int memberOffsetCorrection) override;
 		virtual void AssignVariableAddressToRegister(cstr sourceVariable, int registerIndex) override;
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset) override;
@@ -432,7 +431,7 @@ namespace Anon
 		int index = Rococo::Script::GetIndexOfInterface(structType, interface);
 		if (index < 0) Throw(0, "%s does not support interface %s", GetFriendlyName(structType), interface.Name());
 
-		AssignVariableToTemp("_this", 0, 0); // Interface pointer variable is now in D4
+		AssignVariableToRegister("_this", VM::REGISTER_D4, 0); // Interface pointer variable is now in D4
 
 		VariantValue v;
 		v.ptrDiffValue = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + sizeof(size_t) * index;
@@ -618,7 +617,7 @@ namespace Anon
 
 			if (m.IsInterfaceVariable())
 			{
-				builder.AssignVariableToTemp(fullname, 0, 0); // D4
+				builder.AssignVariableToRegister(fullname, VM::REGISTER_D4, 0); // D4
 				builder.Append_IncRef();
 			}
 			else
@@ -751,7 +750,7 @@ namespace Anon
 
 	void ReleaseInterface(CodeBuilder& builder, cstr name)
 	{
-		builder.AssignVariableToTemp(name, 0, 0);
+		builder.AssignVariableToRegister(name, VM::REGISTER_D4, 0);
 		builder.Append_DecRef();
 	}
 
@@ -804,7 +803,7 @@ namespace Anon
 			{
 				if (v->ResolvedType().Name()[0] == '_')
 				{
-					AssignVariableToTemp(v->Name(), 0, 0);
+					AssignVariableToRegister(v->Name(), VM::REGISTER_D4, 0);
 					Append_DecRef();
 				}
 			}
@@ -1451,7 +1450,7 @@ namespace Anon
 			{
 				if (v.ResolvedType().Name()[0] == '_')
 				{
-					AssignVariableToTemp(v.Name(), 0, 0);
+					AssignVariableToRegister(v.Name(), VM::REGISTER_D4, 0);
 					Append_DecRef();
 				}
 			}
@@ -2069,14 +2068,14 @@ namespace Anon
 
 		if (isConstructingTarget)
 		{
-			builder.AssignVariableToTemp(source, 0); // D4
+			builder.AssignVariableToRegister(source, VM::REGISTER_D4); // D4
 			builder.AssignRegisterToVariable(VM::REGISTER_D4,target); 
 			builder.Append_IncRef();
 		}
 		else
 		{
-			builder.AssignVariableToTemp(source, 0); // D4
-			builder.AssignVariableToTemp(target, 1); // D5
+			builder.AssignVariableToRegister(source, VM::REGISTER_D4); // D4
+			builder.AssignVariableToRegister(target, VM::REGISTER_D5); // D5
 			builder.Append_UpdateRefsOnSourceAndTarget();
 			builder.AssignRegisterToVariable(VM::REGISTER_D4,target);
 		}
@@ -2612,63 +2611,6 @@ namespace Anon
 			{
 				BITCOUNT bitCount = GetBitCountFromStruct(def);
 				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, (VM::DINDEX) registerIndex, bitCount);
-			}
-
-			RestoreStackFrameFor(*this, def);
-		}
-	}
-
-	void CodeBuilder::AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection)
-	{
-		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToTemp: source was blank");
-
-		MemberDef def;
-		if (!TryGetVariableByName(OUT def, source))
-		{
-			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unknown source variable: %s", source);
-		}
-
-		const IStructure* srcType = def.ResolvedType;
-
-		char symbol[256];
-		SafeFormat(symbol, 256, "D%d = %s", tempIndex + VM::REGISTER_D4, source);
-		AddSymbol(symbol);
-
-		if (srcType->InterfaceCount() > 0)
-		{
-			AssignInterfaceToTemp(*this, def, source, tempIndex, memberOffsetCorrection);
-		}
-		else
-		{
-			def.MemberOffset += memberOffsetCorrection;
-
-			UseStackFrameFor(*this, def);
-
-			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
-			{
-				if (def.IsContained)
-				{
-					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
-				}
-				else if (srcType->VarType() == SexyVarType_Array || srcType->VarType() == SexyVarType_Map || srcType->VarType() == SexyVarType_List)
-				{
-					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + (VM::DINDEX)tempIndex, BITCOUNT_POINTER);
-				}
-				else if (srcType->VarType() != SexyVarType_Derivative)
-				{		
-					BITCOUNT bits = GetBitCount(srcType->VarType());
-					// Pointer to primitive. Currently these only exist as a result of (foreach x # array ...) operations
-					Assembler().Append_GetStackFrameMember(VM::REGISTER_D4 + (VM::DINDEX)tempIndex, def.SFOffset, def.MemberOffset, bits);
-				}
-				else
-				{
-					Assembler().Append_GetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + (VM::DINDEX)tempIndex, BITCOUNT_POINTER);
-				}
-			}
-			else // def.Usage is by value
-			{
-				BITCOUNT bitCount = GetBitCountFromStruct(def);
-				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, VM::REGISTER_D4 + (VM::DINDEX)tempIndex, bitCount);
 			}
 
 			RestoreStackFrameFor(*this, def);

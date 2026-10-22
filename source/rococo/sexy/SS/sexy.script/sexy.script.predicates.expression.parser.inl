@@ -292,7 +292,7 @@ namespace Rococo
                   MemberDef def;
                   if (ce.Builder.TryGetVariableByName(OUT def, id))
                   {
-                     ce.Builder.AssignVariableToTemp(id, tempdepth);
+                     ce.Builder.AssignVariableToRegister(id, tempdepth + VM::REGISTER_D4);
                      type = def.ResolvedType->VarType();
                   }
                   else
@@ -306,7 +306,7 @@ namespace Rococo
                const IStructure* st = ce.Builder.GetVarStructure(id);
                if (st != NULL)
                {
-                  ce.Builder.AssignVariableToTemp(id, tempdepth);
+                  ce.Builder.AssignVariableToRegister(id, tempdepth + VM::REGISTER_D4);
                   type = st->VarType();
                }
                else
@@ -447,7 +447,7 @@ namespace Rococo
           }
 
           ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
-          ce.Builder.AssignVariableToTemp(variableName, Rococo::ROOT_TEMPDEPTH + 2);
+          ce.Builder.AssignVariableToRegister(variableName, VM::REGISTER_D7 + 2);
           AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
@@ -476,7 +476,7 @@ namespace Rococo
          }
 
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, newLValue, GetBitCount(varRType));
-         ce.Builder.AssignVariableToTemp(rightVarName, Rococo::ROOT_TEMPDEPTH + 2);
+         ce.Builder.AssignVariableToRegister(rightVarName, VM::REGISTER_D7 + 2);
          AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varRType);
       }
 
@@ -535,7 +535,7 @@ namespace Rococo
           UNUSED(value);
           // Now we have (leftVarName op D4)
 
-          ce.Builder.AssignVariableToTemp(leftVarName, 1);
+          ce.Builder.AssignVariableToRegister(leftVarName, VM::REGISTER_D5);
           // Now we have (D5 op D4)
 
           ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D5, GetBitCount(type.VarType()), VM::REGISTER_D4);
@@ -698,7 +698,7 @@ namespace Rococo
 
              if (varLType == SexyVarType_Bool)
              {
-                 ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+                 ce.Builder.AssignVariableToRegister(sRightVarName.c_str(), VM::REGISTER_D8);
                  AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
                  return;
              }
@@ -733,7 +733,7 @@ namespace Rococo
              }
 
              // assembly placed the boolean value in D7
-             ce.Builder.AssignVariableToTemp(sLeftVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+             ce.Builder.AssignVariableToRegister(sLeftVarName.c_str(), VM::REGISTER_D8);
              AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
              return;
          }
@@ -746,8 +746,8 @@ namespace Rococo
             Throw(parent, "The RHS is not a boolean type");
          }
 
-         ce.Builder.AssignVariableToTemp(sLeftVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
-         ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
+         ce.Builder.AssignVariableToRegister(sLeftVarName.c_str(), VM::REGISTER_D8);
+         ce.Builder.AssignVariableToRegister(sRightVarName.c_str(), VM::REGISTER_D9);
          AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
@@ -781,7 +781,7 @@ namespace Rococo
          }
          else
          {
-            ce.Builder.AssignVariableToTemp(varName, Rococo::ROOT_TEMPDEPTH + A);
+            ce.Builder.AssignVariableToRegister(varName, VM::REGISTER_D7 + A);
          }
 
 		 AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, GetBitCount(type));
@@ -979,8 +979,8 @@ namespace Rococo
          if (TryCompileBooleanExpression(ce, right, true, negate))
          {
             if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-            ce.Builder.AssignVariableToTemp(leftString, Rococo::ROOT_TEMPDEPTH + 1);
-            ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(type));
+            ce.Builder.AssignVariableToRegister(leftString, VM::REGISTER_D8);
+            ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D9, GetBitCount(type));
             AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2);
             return;
          }
