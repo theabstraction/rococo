@@ -1398,7 +1398,7 @@ namespace Rococo
 
 			TokenBuffer pathToId;
 			SafeFormat(pathToId.Text, TokenBuffer::MAX_TOKEN_CHARS, "%s.bytecodeId", closureVariable);
-			ce.Builder.AssignVariableToTemp(pathToId, 0); // Copy the closure bytecode id to D4
+			ce.Builder.AssignVariableToRegister(pathToId, VM::REGISTER_D4); // Copy the closure bytecode id to D4
 
 			TokenBuffer callSymbol;
 			SafeFormat(callSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, "call %s %s", archetype.Name(), closureVariable);
@@ -1494,7 +1494,7 @@ namespace Rococo
 				AddVariable(ce, NameString::From(tempString), ce.Object.Common().TypePointer());
 
 				UseStackFrameFor(ce.Builder, instanceDef);
-				ce.Builder.AssignVariableToTemp(instance, 0); // This gives IString.VTable1 in D4
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // This gives IString.VTable1 in D4
 				RestoreStackFrameFor(ce.Builder, instanceDef);
 
 				MemberDef tempDef;
@@ -1564,7 +1564,7 @@ namespace Rococo
 
 				if (AreEqual("Length", methodName))
 				{
-					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
+					ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Length", instance);
 					AppendInvoke(ce, callbacks.ArrayReturnLength, s); // the length is now written to D7
 					ValidateReturnType(s, returnType, SexyVarType_Int32);
@@ -1572,7 +1572,7 @@ namespace Rococo
 				}
 				else if (AreEqual("Capacity", methodName))
 				{
-					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
+					ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Capacity", instance);
 					AppendInvoke(ce, callbacks.ArrayReturnCapacity, s); // the length is now written to D7
 					ValidateReturnType(s, returnType, SexyVarType_Int32);
@@ -1753,7 +1753,7 @@ namespace Rococo
 				}
 
 				AddSymbol(ce.Builder, "%s -> D4", instance);
-				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the interface goes to D4
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // Reference to the interface goes to D4
 
 				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformParent_D4retIExpressionBuilderD7, s); // output is now D7
 				return true;
@@ -1788,7 +1788,7 @@ namespace Rococo
 				}
 				
 				AddSymbol(ce.Builder, "%s -> D4", instance);
-				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the builder expression goes to D4
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // Reference to the builder expression goes to D4
 
 				AddSymbol(ce.Builder, "index -> D5");
 				ce.Builder.AssignVariableToTemp(indexString, 1, 0); // Index value goes to D5

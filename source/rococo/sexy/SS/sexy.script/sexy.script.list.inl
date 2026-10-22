@@ -859,7 +859,7 @@ namespace Rococo::Script
 
 		int inputStackAllocCount = PushInputs(ce, s, *constructor, true, 1);
 
-		ce.Builder.AssignVariableToTemp(instance, 0, 0); // list goes to D4
+		ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // list goes to D4
 		ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListAppendAndGetRef); // This returns the address of the blank slot in D7
 
 		inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH);

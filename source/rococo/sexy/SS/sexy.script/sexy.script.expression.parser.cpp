@@ -2734,7 +2734,7 @@ namespace Rococo
 			}
 
 			cstr srcName = s[1].c_str();
-			ce.Builder.AssignVariableToTemp(srcName, 1); // D5
+			ce.Builder.AssignVariableToRegister(srcName, VM::REGISTER_D5);
 
 			cstr trgName = s[3].c_str();
 			ce.Builder.AssignVariableRefToTemp(trgName, 3); // D7
@@ -3182,10 +3182,10 @@ namespace Rococo
 			*/
 
 			//AddSymbol(ce.Builder, "%s -> D4", lhsString);
-			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
+			ce.Builder.AssignVariableToRegister(lhsString, VM::REGISTER_D4); // D4 has the LHS reference
 
 			//AddSymbol(ce.Builder, "%s -> D5", rhsString);
-			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference
+			ce.Builder.AssignVariableToRegister(rhsString, VM::REGISTER_D5); // D5 has the RHS reference
 
 			AddSymbol(ce.Builder, "*D5 = *D4. No output");
 			AppendInvoke(ce, GetArrayCallbacks(ce).ArrayAssign, s);
@@ -3220,8 +3220,8 @@ namespace Rococo
 				Throw(s, "Could not assign list. LHS is (list with type %s). RHS is (list with type %s)", GetFriendlyName(lhsType), GetFriendlyName(rhsType));
 			}
 
-			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
-			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference
+			ce.Builder.AssignVariableToRegister(lhsString, VM::REGISTER_D4, 0); // D4 has the LHS reference
+			ce.Builder.AssignVariableToRegister(rhsString, VM::REGISTER_D5, 0); // D5 has the RHS reference
 
 			AddSymbol(ce.Builder, "*D5 = *D4. No output");
 			AppendInvoke(ce, GetListCallbacks(ce).ListAssign, s);
@@ -3263,8 +3263,8 @@ namespace Rococo
 				Throw(s, "Could not assign map. LHS is (map with value type %s). RHS is (map with value type %s)", GetFriendlyName(lhsValueType), GetFriendlyName(rhsValueType));
 			}
 
-			ce.Builder.AssignVariableToTemp(lhsString, 0, 0); // D4 has the LHS reference
-			ce.Builder.AssignVariableToTemp(rhsString, 1, 0); // D5 has the RHS reference
+			ce.Builder.AssignVariableToRegister(lhsString, VM::REGISTER_D4, 0); // D4 has the LHS reference
+			ce.Builder.AssignVariableToRegister(rhsString, VM::REGISTER_D5, 0); // D5 has the RHS reference
 
 			AddSymbol(ce.Builder, "*D5 = *D4. No output");
 			AppendInvoke(ce, GetMapCallbacks(ce).MapAssign, s);
@@ -3515,7 +3515,7 @@ namespace Rococo
 			VariantValue value;
 			if (IsAtomic(rhs) && Parse::TryParse(value, type, rhs.c_str()) == Parse::PARSERESULT_GOOD)
 			{
-				ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
+				ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D5); // target variable value is now in D5
 
 				if (type == SexyVarType_Int32 || type == SexyVarType_Int64)
 				{
@@ -3558,15 +3558,15 @@ namespace Rococo
 							Throw(s, "%s and %s must be of the same type", name, srcName);
 						}
 
-						ce.Builder.AssignVariableToTemp(name, 1); // target variable value is now in D5
-						ce.Builder.AssignVariableToTemp(srcName, 0); // src variable value is now in D4
+						ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D5); // target variable value is now in D5
+						ce.Builder.AssignVariableToRegister(srcName, VM::REGISTER_D4); // src variable value is now in D4
 					}
 				}
 
 				if (TryCompileArithmeticExpression(ce, rhs, true, type))
 				{
 					// value is now assembled to copy to D7
-					ce.Builder.AssignVariableToTemp(name, 1);
+					ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D5);
 					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, GetBitCount(type));
 				}
 				else
