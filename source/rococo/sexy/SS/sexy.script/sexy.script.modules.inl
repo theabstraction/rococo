@@ -933,13 +933,13 @@ namespace Rococo::Script
 
 		if (s == ce.StructList())
 		{
-			ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetListCallbacks(ce).ListRelease, sequence);
 			return;
 		}
 		else if (s == ce.StructMap())
 		{
-			ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetMapCallbacks(ce).MapRelease, sequence);
 			return;
 		}

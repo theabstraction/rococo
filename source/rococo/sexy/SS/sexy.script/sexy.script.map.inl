@@ -953,7 +953,7 @@ namespace Rococo::Script
 			{
 				if (HasInterface(typeIStringInterface, *def.ResolvedType))
 				{
-					ce.Builder.AssignVariableToTemp(keyName, 4);
+					ce.Builder.AssignVariableToRegister(keyName, VM::REGISTER_D8);
 					return;
 				}
 			}
@@ -1069,7 +1069,7 @@ namespace Rococo::Script
 			cstr value = valueExpr.c_str();
 			UNUSED(value);
 			CompileNumericExpression(ce, valueExpr, def.ValueType.VarType()); // value goes to D7
-			ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
+			ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D4); // map ref goes to D4
 			AppendInvoke(ce, GetMemberSize(def.ValueType) == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
 		}
 		else if (def.ValueType.VarType() == SexyVarType_Closure)
@@ -1078,7 +1078,7 @@ namespace Rococo::Script
 			{
 				Throw(s[2], "Expecting archetype %s", GetFriendlyName(def.ValueType));
 			}
-			ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
+			ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D4); // map ref goes to D4
 			AppendInvoke(ce, GetMapCallbacks(ce).MapInsert64, s);
 		}
 		else if (def.ValueType.VarType() == SexyVarType_Derivative)
@@ -1087,7 +1087,7 @@ namespace Rococo::Script
 			{
 				cr_sex valueExpr = s.GetElement(2);
 				CompileGetStructRef(ce, valueExpr, def.ValueType, ("insert-ref")); // structure ref goes to D7
-				ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
+				ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D4); // map ref goes to D4
 
 				if (def.ValueType.InterfaceCount() > 0)
 				{
@@ -1116,7 +1116,7 @@ namespace Rococo::Script
 					Throw(s, "Value should be a compound expression, syntax is: (<map-name>.Insert <key> %s (<constructor-args>))", GetFriendlyName(def.ValueType));
 				}
 
-				ce.Builder.AssignVariableToTemp(mapName, 0); // map ref goes to D4
+				ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D4); // map ref goes to D4
 				AppendInvoke(ce, GetMapCallbacks(ce).MapInsertAndGetRef, s); // The value ref is now in D7
 
 				ConstructByRef(ce, argsExpr, Rococo::ROOT_TEMPDEPTH, def.ValueType);

@@ -1543,7 +1543,7 @@ namespace Rococo
 				ce.Builder.TryGetVariableByName(OUT instanceDef, fqn);
 
 				int interfaceToInstanceOffset = instanceDef.Usage == ARGUMENTUSAGE_BYREFERENCE ? interfaceToInstanceOffsetByRef : 0;
-				ce.Builder.AssignVariableToTemp(fqn, Rococo::ROOT_TEMPDEPTH, -interfaceToInstanceOffset);
+				ce.Builder.AssignVariableToRegister(fqn, VM::REGISTER_D7, -interfaceToInstanceOffset);
 			}
 		}
 
@@ -1603,7 +1603,7 @@ namespace Rococo
 				{
 					ValidateReturnType(s, returnType, SexyVarType_Int32);
 					ce.Builder.AddSymbol(instance);
-					ce.Builder.AssignVariableToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // list ref goes to D7
+					ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D7); // list ref goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListGetLength); // list length goes to D7
 					outType = SexyVarType_Int32;
 					return true;
@@ -1724,7 +1724,7 @@ namespace Rococo
 		{
 			UNUSED(s);
 
-			ce.Builder.AssignVariableToTemp(instance, 0);
+			ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4);
 
 			VariantValue v;
 			v.vPtrValue = (uint8*)(instanceType.GetInterface(0).UniversalNullInstance()) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
@@ -1784,14 +1784,14 @@ namespace Rococo
 				}
 				else
 				{
-					ce.Builder.AssignVariableToTemp(indexString, 1);
+					ce.Builder.AssignVariableToRegister(indexString, VM::REGISTER_D5);
 				}
 				
 				AddSymbol(ce.Builder, "%s -> D4", instance);
 				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // Reference to the builder expression goes to D4
 
 				AddSymbol(ce.Builder, "index -> D5");
-				ce.Builder.AssignVariableToTemp(indexString, 1, 0); // Index value goes to D5
+				ce.Builder.AssignVariableToRegister(indexString, VM::REGISTER_D5); // Index value goes to D5
 
 				AddSymbol(ce.Builder, "%s -> D7", ce.Script.ProgramModule().Name());
 

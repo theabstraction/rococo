@@ -835,7 +835,7 @@ namespace Rococo::Script
 
 	void CompileAsClearList(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	{
-		ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+		ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 		AppendInvoke(ce, GetListCallbacks(ce).ListClear, s);
 	}
 
@@ -901,7 +901,7 @@ namespace Rococo::Script
 
 			cr_sex arg = GetAtomicArg(s, 1);
 			AssertLocalVariableOrMember(arg);
-			ce.Builder.AssignVariableToTemp(arg.c_str(), 3);
+			ce.Builder.AssignVariableToRegister(arg.c_str(), VM::REGISTER_D7);
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
 		}
@@ -973,7 +973,7 @@ namespace Rococo::Script
 		if (elementType.InterfaceCount() > 0)
 		{
 			AssertLocalVariableOrMember(value);
-			ce.Builder.AssignVariableToTemp(value.c_str(), 3); // value to D7
+			ce.Builder.AssignVariableToRegister(value.c_str(), VM::REGISTER_D7); // value to D7
 			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrependInterface : callbacks.NodeAppendInterface);
 		}
@@ -1078,7 +1078,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			Throw(s, ("Unknown node method. Known methods: Append, Prepend."));
+			Throw(s, "Unknown node method. Known methods: Append, Prepend.");
 		}
 	}
 
@@ -1095,7 +1095,7 @@ namespace Rococo::Script
 		cstr srcName, listDirective;
 		if (!splitter.SplitTail(srcName, listDirective))
 		{
-			Throw(source, ("Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression"));
+			Throw(source, "Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression");
 		}
 
 		VariantValue v;
@@ -1108,17 +1108,17 @@ namespace Rococo::Script
 			AddNodeDef(ce.Script, ce.Builder, nodeName, GetListDef(ce, source, srcName), source);
 
 			ce.Builder.AddSymbol(srcName);
-			ce.Builder.AssignVariableToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the list is now in D7
+			ce.Builder.AssignVariableToRegister(srcName, VM::REGISTER_D7); // A pointer to the list is now in D7
 
-			if (AreEqual(listDirective, ("Tail")))
+			if (AreEqual(listDirective, "Tail"))
 			{
-				ce.Builder.AddSymbol(("tail now in D7"));
+				ce.Builder.AddSymbol("tail now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).ListGetTail, source); // tail is now in D7
 				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
 			}
-			else if (AreEqual(listDirective, ("Head")))
+			else if (AreEqual(listDirective, "Head"))
 			{
-				ce.Builder.AddSymbol(("head now in D7"));
+				ce.Builder.AddSymbol("head now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // head is now in D7
 				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the head
 			}
@@ -1134,26 +1134,26 @@ namespace Rococo::Script
 			ce.Builder.AddSymbol(srcName);
 			ce.Builder.AssignVariableRefToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the node is now in D7
 
-			if (AreEqual(listDirective, ("Next")))
+			if (AreEqual(listDirective, "Next"))
 			{
-				ce.Builder.AddSymbol(("tail now in D7"));
+				ce.Builder.AddSymbol("tail now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).NodeNext, source); // tail is now in D7
 				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
 			}
-			else if (AreEqual(listDirective, ("Previous")))
+			else if (AreEqual(listDirective, "Previous"))
 			{
-				ce.Builder.AddSymbol(("head now in D7"));
+				ce.Builder.AddSymbol("head now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).NodePrevious, source); // tail is now in D7
 				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
 			}
 			else
 			{
-				Throw(source, ("Unrecognized node accessor. Recognized accessors: Next, Previous"));
+				Throw(source, "Unrecognized node accessor. Recognized accessors: Next, Previous");
 			}
 		}
 		else
 		{
-			Throw(source, ("Expecting <source-name>.<property>, where <source-name> is a list or node variable."));
+			Throw(source, "Expecting <source-name>.<property>, where <source-name> is a list or node variable.");
 		}
 	}
 
@@ -1249,7 +1249,7 @@ namespace Rococo::Script
 
 		ce.Builder.AddSymbol(collectionName);
 		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
-		ce.Builder.AssignVariableToTemp(collectionName, 9, 0);	// List ref is in D13
+		ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13);	// List ref is in D13
 
 		//////////////////////////////////////////////////////// Test list to see if it is empty //////////////////////////////////////////////////////
 		ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D13, VM::REGISTER_D7, BITCOUNT_POINTER);
