@@ -445,7 +445,7 @@ namespace Rococo
 			}
 
 			AddArgVariable("input_getaccessor_return_ref", ce, argStruct);
-			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, BITCOUNT_POINTER);
 		}
 
 		bool TryCompileStringLiteralInput(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType)
@@ -488,7 +488,7 @@ namespace Rococo
 			return true;
 		}
 
-		bool TryCompileStringLiteralInputToTemp(CCompileEnvironment& ce, cr_sex s, int tempDepth, const IStructure& inputType)
+		bool TryCompileStringLiteralInputToRegister(CCompileEnvironment& ce, cr_sex s, int registerIndex, const IStructure& inputType)
 		{
 			if (!IsStringLiteral(s) || inputType != ce.Object.Common().SysTypeIString().NullObjectType())
 			{
@@ -505,7 +505,7 @@ namespace Rococo
 			VariantValue ptr;
 			ptr.vPtrValue = (void*)&sc->header.pVTables[0];
 
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempDepth, ptr, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_SetRegisterImmediate(registerIndex, ptr, BITCOUNT_POINTER);
 
 			return true;
 		}
@@ -753,7 +753,7 @@ namespace Rococo
 				}
 
 				AddArgVariable("input_return_as_input_ref", ce, inputType);
-				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
+				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, BITCOUNT_POINTER);
 				return true;
 			default:
 				if (expectingStructRef)
@@ -932,7 +932,7 @@ namespace Rococo
 				{
 					Throw(inputExpression, ("Expected boolean input"));
 				}
-				if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D4 + ROOT_TEMPDEPTH);
+				if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 			}
 			else if (IsPrimitiveType(inputType))
 			{
@@ -1671,14 +1671,14 @@ namespace Rococo
 				{
 					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to 4
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoPrevious); // Next node updates D4, D7 if previous exists
-					AssignTempToVariableRef(ce, 0, instance);
+					AssignRegisterToVariableRef(ce, VM::REGISTER_D4, instance);
 					return true;
 				}
 				else if (AreEqual("GoNext", methodName))
 				{
 					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to D4
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoNext); // Previous node updates D4, D7 if next exists
-					AssignTempToVariableRef(ce, 0, instance);
+					AssignRegisterToVariableRef(ce, VM::REGISTER_D4, instance);
 					return true;
 				}
 				else
@@ -2279,11 +2279,11 @@ namespace Rococo
 			return (int)sizeof(void*);
 		}
 
-		int CompileInstancePointerArgFromTemp(CCompileEnvironment& ce, int tempDepth)
+		int CompileInstancePointerArgFromRegister(CCompileEnvironment& ce, int registerIndex)
 		{
 			ce.Builder.AddSymbol("// reference to instance");
 			AddArgVariable("instance", ce, ce.Object.Common().TypePointer());
-			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(registerIndex, BITCOUNT_POINTER);
 			return (int)sizeof(void*);
 		}
 

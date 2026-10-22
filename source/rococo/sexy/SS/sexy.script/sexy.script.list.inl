@@ -862,7 +862,7 @@ namespace Rococo::Script
 		ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // list goes to D4
 		ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListAppendAndGetRef); // This returns the address of the blank slot in D7
 
-		inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH);
+		inputStackAllocCount += CompileInstancePointerArgFromRegister(ce, VM::REGISTER_D7);
 
 		AppendFunctionCallAssembly(ce, *constructor);
 
@@ -1101,7 +1101,7 @@ namespace Rococo::Script
 		VariantValue v;
 		v.vPtrValue = nullptr;
 		ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_POINTER);
-		AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
+		AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName);
 
 		if (*ce.Builder.GetVarStructure(srcName) == ce.StructList())
 		{
@@ -1114,13 +1114,13 @@ namespace Rococo::Script
 			{
 				ce.Builder.AddSymbol("tail now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).ListGetTail, source); // tail is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the tail
 			}
 			else if (AreEqual(listDirective, "Head"))
 			{
 				ce.Builder.AddSymbol("head now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // head is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the head
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the head
 			}
 			else
 			{
@@ -1138,13 +1138,13 @@ namespace Rococo::Script
 			{
 				ce.Builder.AddSymbol("tail now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).NodeNext, source); // tail is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the tail
 			}
 			else if (AreEqual(listDirective, "Previous"))
 			{
 				ce.Builder.AddSymbol("head now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).NodePrevious, source); // tail is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the tail
 			}
 			else
 			{
@@ -1303,7 +1303,7 @@ namespace Rococo::Script
 
 		ptrdiff_t startLoop = ce.Builder.Assembler().WritePosition();
 
-		AssignTempToVariableRef(ce, 8, refName); // refName now gives us the head node
+		AssignRegisterToVariableRef(ce, VM::REGISTER_D12, refName); // refName now gives us the head node
 
 		if (indexName != NULL)
 		{

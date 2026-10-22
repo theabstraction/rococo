@@ -1899,7 +1899,7 @@ namespace Rococo
 			}
 		
 			AddVariableRef(ce, NameString::From(id), type);
-			AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, id); // The id variable is now pointing to the element
+			AssignRegisterToVariableRef(ce, VM::REGISTER_D7, id); // The id variable is now pointing to the element
 		}
 
 		void* GetInterfacePtrFromNullInstancePtr(void* instancePtr);
@@ -2491,7 +2491,7 @@ namespace Rococo
 
 			AddVariable(ce, NameString::From("_instance"), ce.Object.Common().TypePointer());
 
-			AssignTempToVariableRef(ce, 0, "_instance");
+			AssignRegisterToVariableRef(ce, VM::REGISTER_D4, "_instance");
 
 			MemberDef instanceDef;
 			ce.Builder.TryGetVariableByName(instanceDef, "_instance");

@@ -936,7 +936,7 @@ namespace Rococo::Script
 		auto& typeIString = typeIStringInterface.NullObjectType();
 		if (mapDef.KeyType == typeIString)
 		{
-			if (TryCompileStringLiteralInputToTemp(ce, keyExpr, 4, typeIString)) // key ptr goes to D8
+			if (TryCompileStringLiteralInputToRegister(ce, keyExpr, VM::REGISTER_D8, typeIString)) // key ptr goes to D8
 			{
 				return;
 			}
@@ -989,7 +989,7 @@ namespace Rococo::Script
 		}
 	}
 
-	void ConstructExplicitByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type)
+	void ConstructExplicitByRef(CCompileEnvironment& ce, cr_sex args, int registerIndex, const IStructure& type)
 	{
 		// The space has been allocated on the map and the reference is in REGISTER_(tempDepth + D4)
 
@@ -997,14 +997,14 @@ namespace Rococo::Script
 
 		if (type.VarType() == SexyVarType_Derivative && type.MemberCount() > 0)
 		{
-			ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D4 + tempDepth, VM::REGISTER_SF);
+			ce.Builder.Assembler().Append_SwapRegister(registerIndex, VM::REGISTER_SF);
 			InitSubmembers(ce, type, 0);
-			ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D4 + tempDepth, VM::REGISTER_SF);
+			ce.Builder.Assembler().Append_SwapRegister(registerIndex, VM::REGISTER_SF);
 		}
 
 		int inputStackAllocCount = 0;
 		inputStackAllocCount = PushInputs(ce, args, constructor, true, 0);
-		inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, tempDepth);
+		inputStackAllocCount += CompileInstancePointerArgFromRegister(ce, registerIndex);
 
 		AppendFunctionCallAssembly(ce, constructor);
 
@@ -1014,7 +1014,7 @@ namespace Rococo::Script
 		ce.Builder.AssignClosureParentSFtoD6();
 	}
 
-	void ConstructMemberwiseByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type)
+	void ConstructMemberwiseByRef(CCompileEnvironment& ce, cr_sex args, int registerIndex, const IStructure& type)
 	{
 		if (args.NumberOfElements() != type.MemberCount())
 		{
@@ -1022,23 +1022,23 @@ namespace Rococo::Script
 		}
 
 		AddArchiveRegister(ce, 6, 6, BITCOUNT_POINTER); // save D10
-		ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D4 + tempDepth, VM::REGISTER_D10, BITCOUNT_POINTER); // copy our ref to D10
+		ce.Builder.Assembler().Append_MoveRegister((VM::DINDEX)registerIndex, VM::REGISTER_D10, BITCOUNT_POINTER); // copy our ref to D10
 
 		ConstructMemberByRef(ce, args, REGISTER_D10, type, 0);
 
 		ce.Builder.PopLastVariables(1, true);
 	}
 
-	void ConstructByRef(CCompileEnvironment& ce, cr_sex args, int tempDepth, const IStructure& type)
+	void ConstructByRef(CCompileEnvironment& ce, cr_sex args, int registerIndex, const IStructure& type)
 	{
 		const IFunction* constructor = type.Constructor();
 		if (constructor != NULL)
 		{
-			ConstructExplicitByRef(ce, args, tempDepth, type);
+			ConstructExplicitByRef(ce, args, registerIndex, type);
 		}
 		else
 		{
-			ConstructMemberwiseByRef(ce, args, tempDepth, type);
+			ConstructMemberwiseByRef(ce, args, registerIndex, type);
 		}
 	}
 
@@ -1119,7 +1119,7 @@ namespace Rococo::Script
 				ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D4); // map ref goes to D4
 				AppendInvoke(ce, GetMapCallbacks(ce).MapInsertAndGetRef, s); // The value ref is now in D7
 
-				ConstructByRef(ce, argsExpr, Rococo::ROOT_TEMPDEPTH, def.ValueType);
+				ConstructByRef(ce, argsExpr, VM::REGISTER_D7, def.ValueType);
 			}
 		}
 		else
@@ -1183,7 +1183,7 @@ namespace Rococo::Script
 		ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D7); // D7 refers to the map
 		AppendInvoke(ce, GetMapCallbacks(ce).MapTryGet, source); // now D7 refers to the correct node
 
-		AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
+		AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName);
 	}
 
 	void CompileMapDeclaration(CCompileEnvironment& ce, cr_sex s)
@@ -1473,7 +1473,7 @@ namespace Rococo::Script
 
 		ptrdiff_t startLoop = ce.Builder.Assembler().WritePosition();
 
-		AssignTempToVariableRef(ce, 8, refName); // refref now gives us the head node
+		AssignRegisterToVariableRef(ce, VM::REGISTER_D12, refName); // refref now gives us the head node
 
 		if (indexName != NULL)
 		{

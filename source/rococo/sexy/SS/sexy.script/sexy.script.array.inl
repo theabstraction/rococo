@@ -1000,7 +1000,7 @@ namespace Rococo
 		   ce.Builder.AssignVariableToRegister(arrayInstance, VM::REGISTER_D7, 0); // array goes to D7
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPushAndGetRef); // This returns the address of the blank slot in D8
 
-		   inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH + 1);
+		   inputStackAllocCount += CompileInstancePointerArgFromRegister(ce, VM::REGISTER_D8);
 
 		   AppendFunctionCallAssembly(ce, *constructor); 
 

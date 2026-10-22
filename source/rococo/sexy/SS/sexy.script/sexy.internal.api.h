@@ -112,12 +112,12 @@ namespace Rococo::Script
 	void IncrementRef(MapImage* mapImage);
 	bool IsGetAccessor(const Compiler::IArchetype& callee);
 	void ListRelease(ListImage* l, IScriptSystem& ss);
-	bool TryCompileStringLiteralInputToTemp(CCompileEnvironment& ce, Sex::cr_sex s, int tempDepth, const Compiler::IStructure& inputType);
+	bool TryCompileStringLiteralInputToRegister(CCompileEnvironment& ce, Sex::cr_sex s, int registerIndex, const Compiler::IStructure& inputType);
 	void ValidateReturnType(Sex::cr_sex s, SexyVarType returnType, SexyVarType type);
 	bool TryCompileMethodCallWithoutInputAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const Compiler::IStructure* returnTypeStruct, const Compiler::IArchetype* returnArchetype);
 
 	class CCompileEnvironment;
-	int CompileInstancePointerArgFromTemp(CCompileEnvironment& ce, int tempDepth);
+	int CompileInstancePointerArgFromRegister(CCompileEnvironment& ce, int registerIndex);
 
 	void CompileMacroFromExpression(Compiler::IMacroBuilder& macro, CScript& script, Sex::cr_sex macroDef);
 	void CompileGetStructRef(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& inputType, cstr name);

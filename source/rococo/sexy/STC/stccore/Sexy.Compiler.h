@@ -384,7 +384,7 @@ namespace Rococo::Compiler
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;
 		virtual void AssignVariableToRegister(cstr source, int registerIndex, int memberOffsetCorrection = 0) = 0;
-		virtual void AssignVariableRefToRegister(cstr source, int tempDepth, int offset = 0) = 0;
+		virtual void AssignVariableRefToRegister(cstr source, int registerIndex, int offset = 0) = 0;
 		virtual void AssignRegisterToVariable(int registerIndex, cstr target) = 0;
 		virtual void AssignVariableAddressToRegister(cstr sourceVariable, int registerIndex) = 0;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;

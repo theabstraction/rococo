@@ -629,7 +629,7 @@ namespace Rococo
         void CompileConstructFromFactory(CCompileEnvironment& ce, const Compiler::IStructure& nullType, cstr id, Sex::cr_sex args);
         void AppendInvoke(CCompileEnvironment& ce, ID_API_CALLBACK callback, Sex::cr_sex s);
         void AddVariableRef(CCompileEnvironment& ce, const Compiler::NameString& ns, const Compiler::IStructure& typeStruct);
-        void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, cstr name);
+        void AssignRegisterToVariableRef(CCompileEnvironment& ce, int registerIndex, cstr name);
         Compiler::IArchetype* MatchArchetype(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
         bool IsAtomicMatch(Sex::cr_sex s, cstr value);
         bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const Compiler::MemberDef& targetDef, Sex::cr_sex directive);
