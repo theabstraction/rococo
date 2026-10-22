@@ -1248,7 +1248,7 @@ namespace Rococo
                   auto varType = ce.Builder.GetVarType(token);
                   if (SexyVarType_Bool == varType)
                   {
-                      ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+                      ce.Builder.AssignVariableToRegister(token, VM::REGISTER_D7);
                       return true;
                   }
                   else if (varType == SexyVarType_Derivative)
@@ -1264,7 +1264,7 @@ namespace Rococo
                       {
                           // Node ref to D7
                           AddSymbol(ce.Builder, "%s", token);
-                          ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+                          ce.Builder.AssignVariableToRegister(token, VM::REGISTER_D7);
                           AppendInvoke(ce, GetMapCallbacks(ce).DoesMapNodeExist, s);
                           return true;
                       }

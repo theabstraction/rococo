@@ -295,6 +295,7 @@ namespace Anon
 		virtual void AssignPointer(const NameString& name, const void* ptr) override;
 		virtual void AssignVariableToVariable(cstr source, cstr value, bool isConstructingTarget) override;
 		virtual void AssignVariableToTemp(cstr source, int tempIndex, int offsetCorrection) override;
+		virtual void AssignVariableToRegister(cstr source, int registerIndex, int memberOffsetCorrection) override;
 		virtual void AssignVariableAddressToRegister(cstr sourceVariable, int registerIndex) override;
 		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset) override;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) override;
@@ -2558,6 +2559,63 @@ namespace Anon
 		}
 
 		RestoreStackFrameFor(builder, sourceDef);
+	}
+
+	void CodeBuilder::AssignVariableToRegister(cstr source, int registerIndex, int memberOffsetCorrection)
+	{
+		if (source == nullptr || *source == 0) Rococo::Throw(0, "CodeBuilder::AssignVariableToRegister: source was blank");
+
+		MemberDef def;
+		if (!TryGetVariableByName(OUT def, source))
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unknown source variable: %s", source);
+		}
+
+		const IStructure* srcType = def.ResolvedType;
+
+		char symbol[256];
+		SafeFormat(symbol, 256, "D%d = %s", registerIndex, source);
+		AddSymbol(symbol);
+
+		if (srcType->InterfaceCount() > 0)
+		{
+			AssignInterfaceToTemp(*this, def, source, registerIndex - VM::REGISTER_D4, memberOffsetCorrection);
+		}
+		else
+		{
+			def.MemberOffset += memberOffsetCorrection;
+
+			UseStackFrameFor(*this, def);
+
+			if (def.Usage == ARGUMENTUSAGE_BYREFERENCE)
+			{
+				if (def.IsContained)
+				{
+					Assembler().Append_GetStackFrameMember((VM::DINDEX) registerIndex, def.SFOffset, def.MemberOffset, BITCOUNT_POINTER);
+				}
+				else if (srcType->VarType() == SexyVarType_Array || srcType->VarType() == SexyVarType_Map || srcType->VarType() == SexyVarType_List)
+				{
+					Assembler().Append_GetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
+				}
+				else if (srcType->VarType() != SexyVarType_Derivative)
+				{
+					BITCOUNT bits = GetBitCount(srcType->VarType());
+					// Pointer to primitive. Currently these only exist as a result of (foreach x # array ...) operations
+					Assembler().Append_GetStackFrameMember((VM::DINDEX) registerIndex, def.SFOffset, def.MemberOffset, bits);
+				}
+				else
+				{
+					Assembler().Append_GetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
+				}
+			}
+			else // def.Usage is by value
+			{
+				BITCOUNT bitCount = GetBitCountFromStruct(def);
+				Assembler().Append_GetStackFrameValue(def.SFOffset + def.MemberOffset, (VM::DINDEX) registerIndex, bitCount);
+			}
+
+			RestoreStackFrameFor(*this, def);
+		}
 	}
 
 	void CodeBuilder::AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection)

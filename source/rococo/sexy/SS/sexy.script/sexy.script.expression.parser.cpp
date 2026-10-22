@@ -539,7 +539,7 @@ namespace Rococo
 						// Possible negation of a variable
 						cstr sourceVariable = sourceText + 1;
 						AddSymbol(ce.Builder, "%s -> D4", sourceVariable);
-						ce.Builder.AssignVariableToTemp(sourceVariable, 0);
+						ce.Builder.AssignVariableToRegister(sourceVariable, VM::REGISTER_D4);
 
 						AddSymbol(ce.Builder, "Negate D4");
 						switch (varStruct.VarType())
@@ -684,9 +684,9 @@ namespace Rococo
 					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,argv);
 
 					// Decrement the reference of the target variable, as we are assigning a new object to it
-					ce.Builder.AssignVariableToTemp(targetVariable, 0);
+					ce.Builder.AssignVariableToRegister(targetVariable, VM::REGISTER_D4);
 					ce.Builder.Append_DecRef();
-					ce.Builder.AssignVariableToTemp(argv, 0);
+					ce.Builder.AssignVariableToRegister(argv, VM::REGISTER_D4);
 					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetVariable);
 					return;
 				}			
@@ -2983,7 +2983,7 @@ namespace Rococo
 						Throw(s, "yield argument was neither a literal int64 nor an int64 variable");
 					}
 
-					ce.Builder.AssignVariableToTemp(arg, 0);
+					ce.Builder.AssignVariableToRegister(arg, VM::REGISTER_D4);
 				}
 
 				VariantValue nullVal;

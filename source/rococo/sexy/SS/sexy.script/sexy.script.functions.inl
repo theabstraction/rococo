@@ -1208,7 +1208,7 @@ namespace Rococo
 
 				SafeFormat(localName, 128, "parentSF_%s_%llu", GetFriendlyName(*def.ResolvedType), index++);
 				AddVariable(ce, NameString::From(localName), ce.Object.Common().TypePointer());
-				ce.Builder.AssignVariableToTemp(instanceName, 0);
+				ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4);
 				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,localName);
 			}
 

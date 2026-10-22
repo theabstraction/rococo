@@ -919,7 +919,7 @@ namespace Rococo::Script
 
 				auto variable = GetAtomicArg(value);
 				ce.Builder.Append_IncDerivativeRefs(variable.buffer);
-				ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // list goes to 4
+				ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // list goes to 4
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend : callbacks.ListAppend);
 			}
 		}
@@ -937,7 +937,7 @@ namespace Rococo::Script
 				Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 			} // The value is in D7
 
-			ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // list goes to D4
+			ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // list goes to D4
 
 			switch (elementType.VarType())
 			{

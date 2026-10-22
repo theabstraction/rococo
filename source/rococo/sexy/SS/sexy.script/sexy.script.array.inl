@@ -997,7 +997,7 @@ namespace Rococo
 		   int inputStackAllocCount = PushInputs(ce, s, *constructor, true, 1);
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
-		   ce.Builder.AssignVariableToTemp(arrayInstance, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableToRegister(arrayInstance, VM::REGISTER_D7, 0); // array goes to D7
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPushAndGetRef); // This returns the address of the blank slot in D8
 
 		   inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH + 1);
@@ -1022,7 +1022,7 @@ namespace Rococo
 				   Throw(s, "Expecting either (%s.Push <arg>), (%s.Push ( element-constructor-args...)) or (%s.Push %s (memberwise-constructor-args...).", instanceName, instanceName, instanceName, GetFriendlyName(elementType));
 			   }
 
-			   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0);
+			   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 			   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPushAndGetRef);
 
 			   cr_sex memberwiseArgs = s.GetElement(2);
@@ -1045,7 +1045,7 @@ namespace Rococo
 				   // No constructor, so need to copy element
 				   cr_sex value = s.GetElement(1);
 				   CompileGetStructRef(ce, value, elementType, "newArrayElement"); // The address of the value is in D7
-				   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
+				   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // array goes to D4
 
 				   if (elementType.InterfaceCount() > 0)
 				   {
@@ -1101,7 +1101,7 @@ namespace Rococo
 				   Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 			   } // The value is in D7
 		
-			   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
+			   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // array goes to D4
 
 			   switch(SizeOfElement(elementType))
 			   {
@@ -1123,7 +1123,7 @@ namespace Rococo
 		   AssertNotTooFewElements(s, 1);
 		   AssertNotTooManyElements(s, 1);
 	
-		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7); // array goes to D7
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayPop);
@@ -1134,7 +1134,7 @@ namespace Rococo
 		   AssertNotTooFewElements(s, 1);
 		   AssertNotTooManyElements(s, 1);
 
-		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7); // array goes to D7
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayClear);
@@ -1145,7 +1145,7 @@ namespace Rococo
 		   AssertNotTooFewElements(s, 1);
 		   AssertNotTooManyElements(s, 1);
 
-		   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // array goes to D7
+		   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7); // array goes to D7
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 		   ce.Builder.Assembler().Append_Invoke(callbacks.ArrayRelease);
@@ -1161,7 +1161,7 @@ namespace Rococo
 			   Throw(s, "The array pops out type %s, but the expression required type %s", GetTypeName(elementType.VarType()), requiredType);
 		   }
 
-		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
+		   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // array goes to D4
 
 		   switch(GetBitCount(requiredType))
 		   {
@@ -1244,7 +1244,7 @@ namespace Rococo
 		   }
 
 		   ce.Builder.PopLastVariables(1, true);
-		   ce.Builder.AssignVariableToTemp(arrayName, 1, 0); // The array is in D5
+		   ce.Builder.AssignVariableToRegister(arrayName, VM::REGISTER_D5, 0); // The array is in D5
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
@@ -1343,7 +1343,7 @@ namespace Rococo
 
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, instanceName);
 
-		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D13
+		   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // array goes to D13
 
 		   if (elementType.InterfaceCount() >= 1)
 		   {
@@ -1390,7 +1390,7 @@ namespace Rococo
 			   Throw(indexExpr, "Expected expression to evaluate to type Int32 to serve as index to array");
 		   } // D7 now contains the array index
 
-		   ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // array goes to D4
+		   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // array goes to D4
 
 		   VariantValue v;
 		   v.int32Value = offset;
@@ -1437,7 +1437,7 @@ namespace Rococo
 
 	   void CompileValidateIndexLowerThanArrayElementCount(CCompileEnvironment& ce, cr_sex s, int indexTempDepth, cstr arrayName)
 	   {
-		   ce.Builder.AssignVariableToTemp(arrayName, 0, 0); // This shifts the array pointer to D4
+		   ce.Builder.AssignVariableToRegister(arrayName, VM::REGISTER_D4, 0); // This shifts the array pointer to D4
 
 		   const ArrayCallbacks& callbacks = GetArrayCallbacks(ce);
 
@@ -1540,7 +1540,7 @@ namespace Rococo
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
-		   ce.Builder.AssignVariableToTemp(collectionName, 9, 0); // Array ref is now in D13
+		   ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13, 0); // Array ref is now in D13
 				
 		   ce.Builder.AddSymbol("(foreach..."); 
 
@@ -1641,7 +1641,7 @@ namespace Rococo
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
-		   ce.Builder.AssignVariableToTemp(collectionName, 9, 0); // Array ref is now in D13
+		   ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13, 0);  // Array ref is now in D13
 
 		   ce.Builder.AddSymbol("D12 - working index");
 		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
@@ -1751,7 +1751,7 @@ namespace Rococo
 
 		   if (!def.IsContained || def.Usage == ARGUMENTUSAGE_BYVALUE)
 		   {
-			   ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 			   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayRelease, *(const ISExpression*)s.Definition());
 		   }
 	   }
