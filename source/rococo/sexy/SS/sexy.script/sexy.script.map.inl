@@ -1154,15 +1154,6 @@ namespace Rococo::Script
 		}
 	}
 
-	void CompileGetMapElement(CCompileEnvironment& ce, cr_sex s, cstr instanceName, SexyVarType varType, const IStructure* structType)
-	{
-		UNUSED(ce);
-		UNUSED(s);
-		UNUSED(instanceName);
-		UNUSED(varType);
-		UNUSED(structType);
-	}
-
 	void CompileAsMapNodeDeclaration(CCompileEnvironment& ce, cstr nodeName, cr_sex source)
 	{
 		// (node n = (<map-name> <key>))

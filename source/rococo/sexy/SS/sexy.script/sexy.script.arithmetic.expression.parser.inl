@@ -968,12 +968,6 @@ namespace Rococo
 						return true;
 					}
 
-					if (def.ResolvedType == &ce.StructMap())
-					{
-						CompileGetMapElement(ce, s.GetElement(1), command->Buffer, type, NULL);
-						return true;
-					}
-
 					if (def.ResolvedType == &ce.Object.Common().SysTypeIString().NullObjectType())
 					{
 						if (type != SexyVarType_Int32)
