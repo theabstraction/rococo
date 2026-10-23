@@ -126,9 +126,8 @@ namespace MHost
 				args.ss.AddNativeLibrary("rococo.mathsex");
 			}
 
-			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs& args) override
 			{
-
 			}
 
 			IScriptEnumerator* ImplicitIncludes() override
@@ -187,6 +186,14 @@ namespace MHost
 
 				GetBaseCompileOptions().OnInitSexyScript(args);
 
+				engine->SetRunningScriptContext(&args.ss);
+				engine->OnCompile(args.ss);
+			}
+
+			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs& args) override
+			{
+				GetBaseCompileOptions().OnAddedMainModuleBeforePartialCompile(args);
+
 				Interop::AddNativeCalls_MHostIGui(args.ss, nullptr);
 				Interop::AddNativeCalls_MHostIEngine(args.ss, engine);
 				Interop::AddNativeCalls_MHostIGuiOverlay(args.ss, guiOverlay);
@@ -196,15 +203,6 @@ namespace MHost
 
 				auto& mhostOS = args.ss.AddNativeNamespace("MHost.OS");
 				args.ss.AddNativeCall(mhostOS, ScriptContext::NativeLoadExpression, this, "LoadExpression (Sys.Type.IString name) -> (Sys.Reflection.IExpression s)", __FILE__, __LINE__);
-
-				engine->SetRunningScriptContext(&args.ss);
-
-				engine->OnCompile(args.ss);
-			}
-
-			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
-			{
-
 			}
 
 		public:

@@ -303,7 +303,7 @@ Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_windowFontSize =
 		"-font.size:"_fstring,
 		"decimal int32 specifying the initial font size for the windows LOGFONT struct. Clamped from 12 to 240. 24 is the default"_fstring
 	},
-	24, 12, 120
+	12, 12, 120
 };
 
 Rococo::Strings::CLI::CommandLineOption cmdOptionPIX =

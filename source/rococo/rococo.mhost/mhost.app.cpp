@@ -516,14 +516,6 @@ namespace MHost
 			ReleaseMouse();
 		}
 
-		struct NoEventArgs : IScriptCompilationEventHandler
-		{
-			void OnInitSexyScript(ScriptCompileArgs&) override
-			{
-
-			}
-		};
-
 		void RunMPlatScript(const fstring& scriptName) override
 		{
 			MHost::GetBaseCompileOptions();
