@@ -9,7 +9,7 @@
 #include <rococo.sexml.h>
 #include <rococo.functional.h>
 #include <rococo.properties.h>
-#include <..\sexystudio\sexystudio.api.h>
+#include <..\sexystudio-lib\sexystudio.database.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <ctype.h>

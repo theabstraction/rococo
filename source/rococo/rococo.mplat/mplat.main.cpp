@@ -210,7 +210,7 @@ cstr g_smallIcon = nullptr;
 
 ROCOCO_INTERFACE IMainloop
 {
-	virtual void Invoke(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) = 0;
+	virtual void CreateAppManagerAndRunMainloop(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) = 0;
 };
 
 struct HandleManager
@@ -303,7 +303,7 @@ Rococo::Strings::CLI::CommandLineOptionInt32 cmdOptionInt32_windowFontSize =
 		"-font.size:"_fstring,
 		"decimal int32 specifying the initial font size for the windows LOGFONT struct. Clamped from 12 to 240. 24 is the default"_fstring
 	},
-	24, 12, 120
+	12, 12, 120
 };
 
 Rococo::Strings::CLI::CommandLineOption cmdOptionPIX =
@@ -455,7 +455,7 @@ void LinkComponents(IECSSupervisor& ecs, Platform& platform)
 	ECS::LinkToECS_ISkeletonComponentTable(ecs, platform.world.rigs.Skeles());
 }
 
-int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
+int InitPlatformAndExecuteMainLoop(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
 	using namespace Rococo::Components;
 
@@ -657,9 +657,13 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 	struct PanelCompilationHandlerProxy : IScriptCompilationEventHandler, IDesignator<IScriptCompilationEventHandler>, IScriptEnumerator
 	{
 		IScriptCompilationEventHandler* target = nullptr;
-		void OnCompile(ScriptCompileArgs& args) override
+		void OnInitSexyScript(ScriptCompileArgs& args) override
 		{
-			if (target) target->OnCompile(args);
+			if (target) target->OnInitSexyScript(args);
+		}
+
+		void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+		{
 		}
 
 		IScriptEnumerator* ImplicitIncludes() override
@@ -693,7 +697,7 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *softBoxBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderOptions->Config(), shaderEventHandler},
 
 		// Platform os
-		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title },
+		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title, *mainWindow },
 
 		// Platform scripting
 		{ panelCompilationHandler, panelCompilationHandler, *sourceCache, *debuggerWindow, *ssFactory },
@@ -776,52 +780,51 @@ int Main(HINSTANCE hInstance, IMainloop& mainloop, cstr title, HICON hLargeIcon,
 
 	platformSubsystem.Register();
 
-	mainloop.Invoke(platform, hInstanceLock, *mainWindow);
+	mainloop.CreateAppManagerAndRunMainloop(platform, hInstanceLock, *mainWindow);
 
 	SaveAsSexML("mhost.editor", editor->ReflectionTarget());
 
 	return 0;
 }
 
+struct MainLoop : public IMainloop
+{
+	IAppFactory* appFactory = nullptr;
+
+	void CreateAppManagerAndRunMainloop(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) override
+	{
+		AutoFree<IApp> app(appFactory->CreateApp(platform));
+
+		app->OnCreate();
+
+		AutoFree<IAppManager> appManager = CreateAppManager(mainWindow, *app);
+		appManager->Run(hInstanceLock, *app, platform.os.appControl);
+	}
+};
+
 int Main(HINSTANCE hInstance, IAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
-	struct : public IMainloop
-	{
-		IAppFactory* appFactory = nullptr;
-		IScriptCompilationEventHandler* onCompile = nullptr;
-
-		void Invoke(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) override
-		{
-			AutoFree<IApp> app(appFactory->CreateApp(platform));
-
-			app->OnCreate();
-
-			AutoFree<IAppManager> appManager = CreateAppManager(mainWindow, *app);
-			appManager->Run(hInstanceLock, *app, platform.os.appControl);
-		}
-	} proxy;
-
-	proxy.appFactory = &appFactory;
-
-	return Main(hInstance, proxy, title, hLargeIcon, hSmallIcon);
+	MainLoop mainLoop;
+	mainLoop.appFactory = &appFactory;
+	return InitPlatformAndExecuteMainLoop(hInstance, mainLoop, title, hLargeIcon, hSmallIcon);
 }
+
+struct DirectMainLoop : public IMainloop
+{
+	IDirectAppFactory* appFactory;
+
+	void CreateAppManagerAndRunMainloop(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) override
+	{
+		AutoFree<IDirectAppManager> appManager = CreateAppManager(platform, mainWindow, *appFactory);
+		appManager->Run(hInstanceLock);
+	}
+};
 
 int Main(HINSTANCE hInstance, IDirectAppFactory& appFactory, cstr title, HICON hLargeIcon, HICON hSmallIcon)
 {
-	struct : public IMainloop
-	{
-		IDirectAppFactory* appFactory;
-
-		void Invoke(Platform& platform, HANDLE hInstanceLock, IGraphicsWindow& mainWindow) override
-		{
-			AutoFree<IDirectAppManager> appManager = CreateAppManager(platform, mainWindow, *appFactory);
-			appManager->Run(hInstanceLock);
-		}
-	} proxy;
-
-	proxy.appFactory = &appFactory;
-
-	return Main(hInstance, proxy, title, hLargeIcon, hSmallIcon);
+	DirectMainLoop mainloop;
+	mainloop.appFactory = &appFactory;
+	return InitPlatformAndExecuteMainLoop(hInstance, mainloop, title, hLargeIcon, hSmallIcon);
 }
 
 namespace Rococo

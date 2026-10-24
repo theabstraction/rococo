@@ -1,6 +1,7 @@
 #include "sexystudio.impl.h"
 #include <rococo.strings.h>
 #include <rococo.maths.h>
+#include "sexystudio.theme.h"
 
 
 using namespace Rococo;

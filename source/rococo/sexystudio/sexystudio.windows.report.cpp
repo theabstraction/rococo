@@ -1,12 +1,47 @@
 #include "sexystudio.impl.h"
 #include <rococo.hashtable.h>
 #include <rococo.os.h>
+#include <rococo.io.h>
+#include <shlobj.h>
 
 using namespace Rococo::Strings;
 using namespace Rococo::Windows;
 
 namespace Rococo::SexyStudio
 {
+	bool DoesTestPathExist(cstr root)
+	{
+		cstr testSubPath = "textures\\report-checkboxes";
+
+		U8FilePath texturePath;
+		Format(texturePath, "%s\\%s", root, testSubPath);
+
+		return Rococo::IO::IsDirectory(texturePath);
+	}
+
+	U8FilePath GetPluginDir()
+	{
+		U8FilePath pluginPath;
+		GetModuleFileNameA(NULL, pluginPath.buf, U8FilePath::CAPACITY);
+		IO::MakeContainerDirectory(pluginPath.buf);
+
+		if (DoesTestPathExist(pluginPath))
+		{
+			return pluginPath;
+		}
+
+		U8FilePath rococoPath = IO::GetRococoPath();
+		U8FilePath contentPath;
+		Format(contentPath, "%scontent\\sexy-studio", rococoPath.buf);
+
+		if (DoesTestPathExist(contentPath))
+		{
+			return contentPath;
+		}
+		
+		Throw(E_FAIL, "Could not find sexy-studio content in %s", contentPath.buf);
+	}
+
 	struct ReportWidget : IReportWidget, IWin32WindowMessageLoopHandler
 	{
 		IReportWidgetEvent& eventHandler;
@@ -40,9 +75,20 @@ namespace Rococo::SexyStudio
 				Throw(GetLastError(), "%s: Could not create report view window", __ROCOCO_FUNCTION__);
 			}
 
-			U8FilePath sysPath;
-			variableList.Resolver().PingPathToSysPath("!textures/sexy-studio/report-checkboxes", sysPath);
-			hImages = CreateImageList(sysPath, 2);
+			U8FilePath contentPath = GetPluginDir();
+			
+			U8FilePath texturePath;
+			Format(texturePath, "%s\\%s", contentPath.buf, "textures\\report-checkboxes");
+
+			try
+			{
+				hImages = CreateImageList(texturePath, 2);
+			}
+			catch (IException& ex)
+			{
+				Throw(ex.ErrorCode(), "Error loading image list for SexyStudio. Expecting checkboxes in %s\n%s\nCorrect either the path or add the images to the content folder", texturePath.buf, ex.Message());
+			}
+
 			ListView_SetImageList(hReportView, hImages, LVSIL_SMALL);
 
 			int nImages = ImageList_GetImageCount(hImages);

@@ -347,7 +347,7 @@
 
 // Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
 (macro Sys.Type.build in out
-	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##build <variable-name> <arg1> ... <argN>)")
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#build <variable-name> <arg1> ... <argN>)")
 	(ConvertArgsToExpressionPairs in (in 1) out 2)
 )
 
@@ -355,7 +355,7 @@
 (using Sys.Reflection)
 
 (function ExpandStringMacro (IExpression in)(IExpressionBuilder out)-> :
-	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (##string <variable-name> <capacity> <arg1> ... <argN>)")
+	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#string <variable-name> <capacity> <arg1> ... <argN>)")
 	(out.AddAtomic "IStringBuilder")
 	(out.Copy (in 1))
 	(out.AddAtomic "=")

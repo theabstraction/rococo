@@ -172,12 +172,7 @@
 	(Int32 imgWidth)
 	(Int32 imgHeight)
 )
-
 (alias FontMetrics Rococo.Graphics.FontMetrics)
-
-// Trying out the new strong number types
-
-(strong RococoMPlatTypeRGBAb (Int32))
 
 // Defines the top face of a box. The top face has constant z. It has four adjoining faces, the North face, the East face, the South face and the West face.
 // The North face faces (0 1 0) while the East face faces (1 0 0). The top face faces (0 0 1)

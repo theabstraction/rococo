@@ -43,7 +43,7 @@ namespace Rococo
 		virtual void OnMouseEvent(const RAWMOUSE& m, MouseContext context) = 0;
 	};
 
-	ROCOCO_INTERFACE IGraphicsWindow
+	ROCOCO_INTERFACE IGraphicsWindow: IUILog
 	{
 		virtual Graphics::IRenderer & Renderer() = 0;
 		virtual Windows::IWindow& Window() = 0;

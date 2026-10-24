@@ -33,7 +33,14 @@ namespace ANON
 
 		ExceptionEditorContext()
 		{
-			hFont = CreateFontA(-12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New");
+			HWND hWnd = GetDesktopWindow();
+
+			RECT rect;
+			GetClientRect(hWnd, &rect);
+
+			int fontSize = (rect.right - rect.left > 1920) ? -14 : -12;
+
+			hFont = CreateFontA(fontSize, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New");
 		}
 
 		~ExceptionEditorContext()

@@ -410,7 +410,7 @@ namespace ANON
 
 		void OnExit() override
 		{
-			Rococo::OS::SaveUserSEXML(nullptr, CONFIG_SECTION, [this]
+			Rococo::OS::SaveUserSEXML(nullptr, CONFIG_SECTION, true,[this]
 				(Rococo::Sex::SEXML::ISEXMLBuilder& builder)
 				{
 					SaveConfig(builder);

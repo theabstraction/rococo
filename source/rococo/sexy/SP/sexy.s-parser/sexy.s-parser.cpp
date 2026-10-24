@@ -142,7 +142,7 @@ namespace Rococo
 	{
 		using namespace Rococo::IO;
 
-		bool IsToken(cr_sex s, cstr text)
+		SEXY_SPARSER_API bool IsToken(cr_sex s, cstr text)
 		{
 			return IsAtomic(s) && AreEqual(s.String(), text);
 		}
@@ -264,8 +264,10 @@ namespace Rococo
 
 			std::vector<const ISExpression*> children;
 
+			int transformationDepth;
+
 			ExpressionProxy(cr_sex _inner, IAllocator& _allocator, int _numberOfElements) :
-				allocator(_allocator), inner(_inner), numberOfElements(_numberOfElements)
+				allocator(_allocator), inner(_inner), numberOfElements(_numberOfElements), transformationDepth(_inner.TransformationDepth() + 1)
 			{
 				children.resize(numberOfElements);
 			}
@@ -274,6 +276,11 @@ namespace Rococo
 			{
 				this->~ExpressionProxy();
 				allocator.FreeData(this);
+			}
+
+			int TransformationDepth() const override
+			{
+				return transformationDepth;
 			}
 
 			cr_sex Outer() override
@@ -368,9 +375,9 @@ namespace Rococo
 				return token == c_str(); // throws
 			}
 
-			IExpressionTransform& TransformThis() const override
+			IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 			{
-				Throw(inner, "not supported");
+				Throw(inner, "ExpressionProxy.TransformThis not supported");
 			}
 		};
 

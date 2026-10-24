@@ -136,7 +136,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 		void Clear() override
 		{
-			functions.Clear();
+			functions.Clear(false);
 			structures.Clear();
 			prefixes.clear();
 			ClearClosures();
@@ -168,12 +168,18 @@ namespace Rococo { namespace Compiler { namespace Impl
 			Anon::Function* f = (Anon::Function*) functions.Get(prototype.Name);
 			if (f != NULL)
 			{
-				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Function %s already defined in %s"), prototype.Name, name.c_str());
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Function %s already defined in %s", prototype.Name, name.c_str());
 			}
 
 			f = new Anon::Function(prototype, *this, NULL, false, definition, popBytes);
 
 			functions.Register(f->Name(), *f);
+
+			if (strstr(prototype.Name, "_->"))
+			{
+				// We are proxying some kind of native assignment, this needs a unique registration
+				object.RegisterNativeStructFunction(f);
+			}
 
 			return *f;
 		}
@@ -345,6 +351,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return f;
 		}
 
+		const IFunction* FindNativeFactory(cstr name) const override
+		{
+			const IFunction* f = ((Module*)this)->GetNativeFactoryFunctionCore(name);
+			return f;
+		}
+
 		IFunctionBuilder* GetFunctionCore(cstr name)
 		{
 			IFunctionBuilder *f = functions.Get(name);
@@ -366,6 +378,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 			}
 
 			return NULL;
+		}
+
+		const IFunction* GetNativeFactoryFunctionCore(cstr name) const
+		{
+			return functions.GetNativeFactoryFunction(name);
 		}
 
 		IFunctionBuilder* FindFunction(cstr name) override

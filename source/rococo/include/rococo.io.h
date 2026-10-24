@@ -100,13 +100,22 @@ namespace Rococo::IO
 	struct IUnicode16Writer;
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity);
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity, cstr title);
+	ROCOCO_API uint64 GetFileLength(cstr filename);
+
+	// Get the Rococo installation path from $LocalApp$\19th-Century-Software\rococo.cfg
+	// If that fails it will try C:\work\rococo, and if that fails it will try D:\work\rococo. If nothing works it will throw an exception
+	ROCOCO_API U8FilePath GetRococoPath();
 	ROCOCO_API bool IsDirectory(crwstr filename);
 	ROCOCO_API bool IsDirectory(cstr filename);
 	ROCOCO_API void EnsureUserDocumentFolderExists(crwstr subdirectory);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text);
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, cstr filename, const fstring& text);
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text);
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, cstr filename, const fstring& text);
+
+	// Throws an exception if file could not be saved, otherwise returns true if files matched and write was skipped or false if file was overwritten
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text);
+
+	// Throws an exception if file could not be saved, otherwise returns true if files matched and write was skipped or false if file was overwritten
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, cstr filename, const fstring& text);
 	ROCOCO_API bool StripLastSubpath(wchar_t* fullpath);
 	ROCOCO_API bool IsFileExistant(const char* path);
 	ROCOCO_API bool IsFileExistant(crwstr path);
@@ -167,6 +176,7 @@ namespace Rococo::IO
 
 	ROCOCO_INTERFACE IPathCache
 	{
+		virtual void AddLegalExtension(cstr legalExtension) = 0;
 		virtual void AddPathsFromDirectory(const char* directory, bool recurse) = 0;
 		virtual void Sort() = 0;
 		virtual size_t NumberOfFiles() const = 0;
@@ -188,6 +198,7 @@ namespace Rococo::IO
 
 	ROCOCO_API bool TryGetFileAttributes(crwstr sysPath, FileAttributes& attr);
 
+	ROCOCO_API void NormalizePath(U8FilePath& path);
 	ROCOCO_API void NormalizePath(WideFilePath& path);
 
 	ROCOCO_API void ToU8(const U32FilePath& src, U8FilePath& dest);
@@ -392,6 +403,8 @@ namespace Rococo::IO
 		virtual void CompressPingPath(cstr pingPath, U8FilePath& resultPath) const = 0;
 		virtual IOS& OS() = 0;
 	};
+
+	ROCOCO_API void SetContentDirectoryOverride(crwstr directory);
 
 	ROCOCO_INTERFACE IInstallationSupervisor : public IInstallation
 	{

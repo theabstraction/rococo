@@ -1,6 +1,9 @@
 #include "sexystudio.impl.h"
+#include "sexystudio.theme.h"
 #include <rococo.os.h>
 #include <rococo.strings.h>
+#include <rococo.events.h>
+#include <rococo.time.h>
 #include <vector>
 
 

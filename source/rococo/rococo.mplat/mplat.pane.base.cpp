@@ -739,7 +739,7 @@ public:
 		delete this;
 	}
 
-	void OnCompile(ScriptCompileArgs& args) override
+	void OnInitSexyScript(ScriptCompileArgs& args) override
 	{
 		if (onCompile)
 		{
@@ -747,9 +747,18 @@ public:
 			// may want to do something sophisticated with the panels, so give them
 			// more of the MPLAT API to work with.
 
-			onCompile->OnCompile(args);
+			onCompile->OnInitSexyScript(args);
+		}
+	}
+
+	void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs& args) override
+	{
+		if (onCompile)
+		{
+			onCompile->OnAddedMainModuleBeforePartialCompile(args);
 		}
 
+		// The following natives depend on Rococo.GUI types that require loading first
 		GUI::Interop::AddNativeCalls_RococoGUIITabContainer(args.ss, nullptr);
 		GUI::Interop::AddNativeCalls_RococoGUIIFramePane(args.ss, nullptr);
 		GUI::Interop::AddNativeCalls_RococoGUIIPaneContainer(args.ss, nullptr);

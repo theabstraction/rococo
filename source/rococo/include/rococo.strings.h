@@ -128,6 +128,7 @@ namespace Rococo::Strings
 	ROCOCO_API bool EqI(crwstr a, crwstr b);
 	ROCOCO_API bool StartsWith(cstr bigString, cstr prefix);
 	ROCOCO_API bool EndsWith(cstr bigString, cstr suffix);
+	ROCOCO_API bool EndsWith(fstring bigString, cstr suffix);
 
 	// Case insensitive check
 	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix);
@@ -213,6 +214,8 @@ namespace Rococo::Strings
 		virtual StringBuilder& AppendFormat(const char* format, ...) = 0;
 #endif
 		virtual StringBuilder& operator << (cstr text) = 0;
+		virtual StringBuilder& operator << (fstring text) = 0;
+		virtual StringBuilder& operator << (const HString& text) = 0;
 		virtual StringBuilder& AppendChar(char c) = 0;
 		virtual StringBuilder& operator << (int32 value) = 0;
 		virtual StringBuilder& operator << (uint32 value) = 0;
@@ -223,6 +226,8 @@ namespace Rococo::Strings
 		virtual fstring operator * () const = 0;
 		virtual void Clear() = 0;
 		virtual int32 Length() const = 0;
+		// nChars should be negative, so -1 => reverse one char back, -3 = reverse 3 chars back
+		virtual void Undo(int nChars) = 0;
 
 		enum CursorState 
 		{
@@ -273,6 +278,8 @@ namespace Rococo::Strings
 		ROCOCO_API StringBuilder& AppendFormat(const char* format, ...) override;
 #endif
 		ROCOCO_API StringBuilder& operator << (cstr text) override;
+		ROCOCO_API StringBuilder& operator << (fstring text) override;
+		ROCOCO_API StringBuilder& operator << (const HString& text) override;
 		ROCOCO_API StringBuilder& AppendChar(char c) override;
 		ROCOCO_API StringBuilder& operator << (int32 value)  override;
 		ROCOCO_API StringBuilder& operator << (uint32 value) override;
@@ -282,6 +289,7 @@ namespace Rococo::Strings
 		ROCOCO_API StringBuilder& operator << (double value) override;
 		ROCOCO_API void Clear() override;
 		ROCOCO_API int32 Length() const override;
+		ROCOCO_API void Undo(int nChars) override;
 	};
 
 	// Duplicates the item as a null terminated string on the stack, then invokes the populator with a reference to the string pointer

@@ -21,6 +21,12 @@ namespace Rococo::Windows
 		{
 			switch (uMsg)
 			{
+			case WM_UPDATE_TITLE:
+				if (hTitle)
+				{
+					SendMessageA(hTitle, WM_SETFONT, (WPARAM)(HFONT)lParam, 0);
+				}
+				return 0L;
 			case LVM_GETBKCOLOR:
 				return ToCOLORREF(scheme.backColour);
 			case WM_ERASEBKGND:
@@ -165,6 +171,11 @@ namespace Rococo::Windows
 			return *this;
 		}
 
+		int ListView_InsertItemA(HWND hWnd, const LV_ITEMA* pItem)
+		{
+			return (int) SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)pItem);
+		}
+   
 		void AddRow(cstr values[]) override
 		{
 			if (values == nullptr || *values == nullptr)
@@ -177,7 +188,7 @@ namespace Rococo::Windows
 			item.pszText = (char*)values[0];
 			item.iItem = 0x7FFFFFFF;
 			item.cchTextMax = 256;
-			int index = ListView_InsertItem(hWndListView, &item);
+			int index = ListView_InsertItemA(hWndListView, &item);
 			if (index < 0)
 			{
 				Throw(0, "ListViewSupervisor::AddRow failed. ListView_InsertItem returned %d", index);
@@ -189,7 +200,7 @@ namespace Rococo::Windows
 				LVITEMA diddle = { 0 };
 				diddle.iSubItem = k;
 				diddle.pszText = (char*)*value;
-				SendMessage(hWndListView, LVM_SETITEMTEXT, index, (LPARAM)&diddle);
+				SendMessage(hWndListView, LVM_SETITEMTEXTA, index, (LPARAM)&diddle);
 			}
 		}
 
@@ -220,7 +231,8 @@ namespace Rococo::Windows
 				item.mask = LVCF_TEXT | LVCF_WIDTH;
 				item.pszText = (char*)*col;
 				item.cx = widths[index];
-				if (-1 == ListView_InsertColumn(hWndListView, 10000, &item))
+
+				if (-1 == (int)SendMessageA(hWndListView, LVM_INSERTCOLUMNA, (WPARAM)(int)(10000), (LPARAM)(const LV_COLUMNA*)(&item)))
 				{
 					Throw(0, "Error inserting item into a ListView header");
 				}

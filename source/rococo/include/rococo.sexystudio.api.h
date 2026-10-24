@@ -35,13 +35,6 @@ namespace Rococo::SexyStudio
 		virtual void Free() = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyFieldEnumerator
-	{
-		virtual void OnFieldType(Strings::cr_substring fieldType, Strings::cr_substring searchRoot) = 0;
-		virtual void OnField(cstr fieldName, Strings::cr_substring memberSearchToken) = 0;
-		virtual void OnHintFound(Strings::cr_substring hint) = 0;
-	};
-
 	enum class EIDECloseResponse
 	{
 		Continue,
@@ -89,14 +82,19 @@ namespace Rococo::SexyStudio
 		virtual void UpdateAutoComplete(AutoComplete::ISexyEditor& editor, crwstr filepath = nullptr) = 0;
 	};
 
-	ROCOCO_INTERFACE ISexyStudioInstance1
+	ROCOCO_INTERFACE ISexyDatabaseSet
 	{
-		virtual ISexyStudioCompletionGaffer& Gaffer() = 0;
-		virtual ISexyStudioGUI& Gui() = 0;
-
 		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
 		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
 
+		// Finds sexystudio.config.sexml
+		virtual void SetDirectoryContainingConfigFile(cstr sysPathToConfigDirectory) = 0;
+	};
+
+	ROCOCO_INTERFACE ISexyStudioInstance1: ISexyDatabaseSet
+	{
+		virtual ISexyStudioCompletionGaffer& Gaffer() = 0;
+		virtual ISexyStudioGUI& Gui() = 0;		
 		virtual void Activate() = 0;
 		virtual bool IsRunning() const = 0;
 		virtual void Free() = 0;

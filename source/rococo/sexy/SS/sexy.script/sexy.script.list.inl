@@ -100,6 +100,11 @@ namespace Rococo::Script
 
 	ListImage* CreateListImage(IScriptSystem& ss, const IStructure& valueType)
 	{
+		if (!valueType.IsPersistent())
+		{
+			Throw(0, "Could not allocate list of %s. Element type is not persistent. Check for non-persistent members such as handles.", GetFriendlyName(valueType));
+		}
+
 		auto* p = ss.AlignedMalloc(16, sizeof ListImage);
 
 		ListImage* l = new (p) ListImage;
@@ -830,7 +835,7 @@ namespace Rococo::Script
 
 	void CompileAsClearList(CCompileEnvironment& ce, cr_sex s, cstr instanceName)
 	{
-		ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+		ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 		AppendInvoke(ce, GetListCallbacks(ce).ListClear, s);
 	}
 
@@ -854,10 +859,10 @@ namespace Rococo::Script
 
 		int inputStackAllocCount = PushInputs(ce, s, *constructor, true, 1);
 
-		ce.Builder.AssignVariableToTemp(instance, 0, 0); // list goes to D4
+		ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // list goes to D4
 		ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListAppendAndGetRef); // This returns the address of the blank slot in D7
 
-		inputStackAllocCount += CompileInstancePointerArgFromTemp(ce, Rococo::ROOT_TEMPDEPTH);
+		inputStackAllocCount += CompileInstancePointerArgFromRegister(ce, VM::REGISTER_D7);
 
 		AppendFunctionCallAssembly(ce, *constructor);
 
@@ -889,15 +894,15 @@ namespace Rococo::Script
 				VariantValue v;
 				v.vPtrValue = strConst->header.AddressOfVTable0();
 				ce.Builder.Assembler().Append_SetRegisterImmediate(REGISTER_D7, v, BITCOUNT_POINTER);
-				ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
+				ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D4); // list goes to 4
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
 				return;
 			}
 
 			cr_sex arg = GetAtomicArg(s, 1);
 			AssertLocalVariableOrMember(arg);
-			ce.Builder.AssignVariableToTemp(arg.c_str(), 3);
-			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // list goes to 4
+			ce.Builder.AssignVariableToRegister(arg.c_str(), VM::REGISTER_D7);
+			ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D4); // list goes to 4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrependInterface : callbacks.ListAppendInterface);
 		}
 		else if (elementType.VarType() == SexyVarType_Derivative)
@@ -914,7 +919,7 @@ namespace Rococo::Script
 
 				auto variable = GetAtomicArg(value);
 				ce.Builder.Append_IncDerivativeRefs(variable.buffer);
-				ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // list goes to 4
+				ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // list goes to 4
 				ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.ListPrepend : callbacks.ListAppend);
 			}
 		}
@@ -932,7 +937,7 @@ namespace Rococo::Script
 				Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 			} // The value is in D7
 
-			ce.Builder.AssignVariableToTemp(instanceName, 0, 0); // list goes to D4
+			ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4); // list goes to D4
 
 			switch (elementType.VarType())
 			{
@@ -968,8 +973,8 @@ namespace Rococo::Script
 		if (elementType.InterfaceCount() > 0)
 		{
 			AssertLocalVariableOrMember(value);
-			ce.Builder.AssignVariableToTemp(value.c_str(), 3); // value to D7
-			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
+			ce.Builder.AssignVariableToRegister(value.c_str(), VM::REGISTER_D7); // value to D7
+			ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D4); // node goes to D4
 			ce.Builder.Assembler().Append_Invoke(toHead ? callbacks.NodePrependInterface : callbacks.NodeAppendInterface);
 		}
 		else if (elementType.VarType() == SexyVarType_Derivative)
@@ -999,7 +1004,7 @@ namespace Rococo::Script
 				Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 			} // The value is in D7
 
-			ce.Builder.AssignVariableRefToTemp(instanceName, 0, 0); // node goes to D4
+			ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D4); // node goes to D4
 
 			switch (elementType.VarType())
 			{
@@ -1026,7 +1031,7 @@ namespace Rococo::Script
 		AssertNotTooFewElements(s, 1);
 		AssertNotTooManyElements(s, 1);
 
-		ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH, 0); // node goes to D7
+		ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D7, 0); // node goes to D7
 
 		AppendInvoke(ce, GetListCallbacks(ce).NodePop, s);
 	}
@@ -1073,7 +1078,7 @@ namespace Rococo::Script
 		}
 		else
 		{
-			Throw(s, ("Unknown node method. Known methods: Append, Prepend."));
+			Throw(s, "Unknown node method. Known methods: Append, Prepend.");
 		}
 	}
 
@@ -1090,32 +1095,32 @@ namespace Rococo::Script
 		cstr srcName, listDirective;
 		if (!splitter.SplitTail(srcName, listDirective))
 		{
-			Throw(source, ("Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression"));
+			Throw(source, "Expecting <source-name>.<property> There was no dot operator '.' in the atomic expression");
 		}
 
 		VariantValue v;
 		v.vPtrValue = nullptr;
 		ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_POINTER);
-		AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName);
+		AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName);
 
 		if (*ce.Builder.GetVarStructure(srcName) == ce.StructList())
 		{
 			AddNodeDef(ce.Script, ce.Builder, nodeName, GetListDef(ce, source, srcName), source);
 
 			ce.Builder.AddSymbol(srcName);
-			ce.Builder.AssignVariableToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the list is now in D7
+			ce.Builder.AssignVariableToRegister(srcName, VM::REGISTER_D7); // A pointer to the list is now in D7
 
-			if (AreEqual(listDirective, ("Tail")))
+			if (AreEqual(listDirective, "Tail"))
 			{
-				ce.Builder.AddSymbol(("tail now in D7"));
+				ce.Builder.AddSymbol("tail now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).ListGetTail, source); // tail is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the tail
 			}
-			else if (AreEqual(listDirective, ("Head")))
+			else if (AreEqual(listDirective, "Head"))
 			{
-				ce.Builder.AddSymbol(("head now in D7"));
+				ce.Builder.AddSymbol("head now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, source); // head is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the head
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the head
 			}
 			else
 			{
@@ -1127,28 +1132,28 @@ namespace Rococo::Script
 			AddNodeDef(ce.Script, ce.Builder, nodeName, GetNodeDef(ce, source, srcName), source);
 
 			ce.Builder.AddSymbol(srcName);
-			ce.Builder.AssignVariableRefToTemp(srcName, Rococo::ROOT_TEMPDEPTH); // A pointer to the node is now in D7
+			ce.Builder.AssignVariableRefToRegister(srcName, VM::REGISTER_D7); // A pointer to the node is now in D7
 
-			if (AreEqual(listDirective, ("Next")))
+			if (AreEqual(listDirective, "Next"))
 			{
-				ce.Builder.AddSymbol(("tail now in D7"));
+				ce.Builder.AddSymbol("tail now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).NodeNext, source); // tail is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the tail
 			}
-			else if (AreEqual(listDirective, ("Previous")))
+			else if (AreEqual(listDirective, "Previous"))
 			{
-				ce.Builder.AddSymbol(("head now in D7"));
+				ce.Builder.AddSymbol("head now in D7");
 				AppendInvoke(ce, GetListCallbacks(ce).NodePrevious, source); // tail is now in D7
-				AssignTempToVariableRef(ce, Rococo::ROOT_TEMPDEPTH, nodeName); // node now points to the tail
+				AssignRegisterToVariableRef(ce, VM::REGISTER_D7, nodeName); // node now points to the tail
 			}
 			else
 			{
-				Throw(source, ("Unrecognized node accessor. Recognized accessors: Next, Previous"));
+				Throw(source, "Unrecognized node accessor. Recognized accessors: Next, Previous");
 			}
 		}
 		else
 		{
-			Throw(source, ("Expecting <source-name>.<property>, where <source-name> is a list or node variable."));
+			Throw(source, "Expecting <source-name>.<property>, where <source-name> is a list or node variable.");
 		}
 	}
 
@@ -1206,7 +1211,7 @@ namespace Rococo::Script
 			ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListInit);
 		}
 
-		ce.Builder.AssignTempToVariable(0, listName); // D4 goes to the list variable
+		ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,listName); // D4 goes to the list variable
 	}
 
 	void CompileEnumerateList(CCompileEnvironment& ce, cr_sex s, int hashIndex)
@@ -1244,7 +1249,7 @@ namespace Rococo::Script
 
 		ce.Builder.AddSymbol(collectionName);
 		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
-		ce.Builder.AssignVariableToTemp(collectionName, 9, 0);	// List ref is in D13
+		ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13);	// List ref is in D13
 
 		//////////////////////////////////////////////////////// Test list to see if it is empty //////////////////////////////////////////////////////
 		ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D13, VM::REGISTER_D7, BITCOUNT_POINTER);
@@ -1298,12 +1303,12 @@ namespace Rococo::Script
 
 		ptrdiff_t startLoop = ce.Builder.Assembler().WritePosition();
 
-		AssignTempToVariableRef(ce, 8, refName); // refName now gives us the head node
+		AssignRegisterToVariableRef(ce, VM::REGISTER_D12, refName); // refName now gives us the head node
 
 		if (indexName != NULL)
 		{
 			// Init our index var to the current index value then increment the index value
-			ce.Builder.AssignTempToVariable(7, indexName);
+			ce.Builder.AssignRegisterToVariable(11, indexName);
 
 			VariantValue one;
 			one.int32Value = 1;
@@ -1334,7 +1339,7 @@ namespace Rococo::Script
 		ce.Builder.Assembler().Append_Branch(0);
 		size_t breakPos = ce.Builder.Assembler().WritePosition();
 		// We broke, which meant we never enumerated to the final position, so the last thing referenced has an outstanding reference count
-		ce.Builder.AssignVariableRefToTemp(refName, Rococo::ROOT_TEMPDEPTH);
+		ce.Builder.AssignVariableRefToRegister(refName, VM::REGISTER_D7);
 		AppendInvoke(ce, GetListCallbacks(ce).NodeReleaseRef, s); // release the ref to the node
 
 		size_t popEverythingElsePos = ce.Builder.Assembler().WritePosition();

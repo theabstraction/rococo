@@ -170,7 +170,7 @@ namespace
          delete this;
       }
 
-      Key GetKeyFromEvent(const KeyboardEvent& ke) override
+      Key GetKeyFromEvent(const KeyboardEventEx& ke) override
       {
          auto& rke = reinterpret_cast<const RAWKEYBOARD&>(ke);
 
@@ -183,7 +183,7 @@ namespace
                return Key
                {
                   name.c_str(),
-                  (rke.Flags & RI_KEY_BREAK) == 0 ? true : false
+                  (rke.Flags & RI_KEY_BREAK) == RI_KEY_BREAK ? false : true
                };
             }
          }

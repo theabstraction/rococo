@@ -47,10 +47,13 @@ namespace Rococo
 {
 	namespace Compiler 
 	{
-		struct INamespaceBuilder;
-		struct IStructure;
-		struct IObjectInterface;
-		struct IProgramObject;
+		DECLARE_ROCOCO_INTERFACE INamespaceBuilder;
+		DECLARE_ROCOCO_INTERFACE IStructure;
+		DECLARE_ROCOCO_INTERFACE IObjectInterface;
+		DECLARE_ROCOCO_INTERFACE IProgramObject;
+		DECLARE_ROCOCO_INTERFACE IStructureBuilder;
+
+		bool TryResolveStruct(ILog& log, IStructureBuilder& s, bool reportErrors, const void** pErrSrc);
 
 		class CommonStructures
 		{

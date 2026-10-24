@@ -8,18 +8,18 @@
 	
 	The format is 
 	
-	(imported <import-name> -> <declaration-name>
+	(imported <import-name> -> <declaration-name>)
 	
 	and
 	
-	(included <include-name> -> (declaration-name>
+	(included <include-name> -> (declaration-name>)
     
 	Where <import-name> is a string literal matching an import package name in a sxy file
 	and <include-name> is a string literal matching an include ping path in a sxy file
 	and <declaration-name> is a string literal that specifies the declarations that populate the SexyStudio object browser.
 	
 	When a sexy project file is opened by SexyStudio the include and import expressions are scanned for matching names. Only one set of declarations will be used. 
-	Once a match is found SexyStudio will cease to scan for more matches, with the highest expressions in the file taking priority over those lower down in the list
+	Once a match is found SexyStudio will cease to scan for more matches, with the earliest expressions in the file taking priority over those later down in the list
 */
 
 (imported mhost -> "!scripts/mhost/declarations.sxy")

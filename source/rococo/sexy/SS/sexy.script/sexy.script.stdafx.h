@@ -99,7 +99,7 @@ namespace Rococo
         void AddMember(Compiler::IStructureBuilder& s, Sex::cr_sex field, IScriptSystem& ss);
         Compiler::IInterfaceBuilder* MatchInterface(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
 
-        DECLARE_ROCOCO_INTERFACE IStringPool: Rococo::Compiler::IFastStringBuilderControl
+        DECLARE_ROCOCO_INTERFACE IStringPool : Rococo::Compiler::IFastStringBuilderControl
         {
             virtual void Free() = 0;
             virtual Compiler::AllocatorBinding* GetBinding() = 0;
@@ -176,7 +176,7 @@ namespace Rococo
 
         struct CNullDef
         {
-           Compiler::IInterfaceBuilder* Interface;
+            Compiler::IInterfaceBuilder* Interface;
             const Sex::ISExpression* Source;
             Compiler::IStructureBuilder* NullObject;
             Compiler::INamespaceBuilder* NS;
@@ -320,8 +320,8 @@ namespace Rococo
             void AddMapDef(Compiler::ICodeBuilder& builder, cstr name, const Compiler::IStructure& keyType, const Compiler::IStructure& valueType, Sex::cr_sex s);
             void AddMapNodeDef(Compiler::ICodeBuilder& builder, const MapDef& mapDef, cstr mapName, cstr nodeName, Sex::cr_sex s);
             void AddNodeDef(Compiler::ICodeBuilder& builder, cstr nodeName, const Compiler::IStructure& elementType, Sex::cr_sex s);
+            void AddRockToLocalStructures(Sex::cr_sex sRockDirective);
             Sex::cr_sex GetActiveRoot();
-            Sex::cr_sex GetActiveExpression(Sex::cr_sex s);
             void Invoke_S_Macro(Sex::cr_sex sDirective);
             void CompileTopLevelMacrosForModule();
 
@@ -374,6 +374,8 @@ namespace Rococo
             void CompileNullObjects();
             void CompileNextClosures();
             void CompileLocalFunctions();
+            void ComputeEnum(Sex::cr_sex sEnum);
+            void ComputeEnumsAndConstants();
             void CompileJITStubs();
             void CompileVTables();
             void AppendCompiledNamespaces(TNamespaceDefinitions& nsDefs);
@@ -432,7 +434,7 @@ namespace Rococo
         SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, int tempdepth);
         void AssignVariableToVariable(CCompileEnvironment& ce, Sex::cr_sex exceptionSource, cstr lhs, cstr rhs);
         CStringConstant* CreateStringConstant(CScript& script, int length, cstr s, const Sex::ISExpression* srcExpression);
-        Compiler::IFunctionBuilder& DeclareFunction(Compiler::IModuleBuilder& module, Sex::cr_sex source, Compiler::FunctionPrototype& prototype);
+        Compiler::IFunctionBuilder& DeclareFunctionForModule(Compiler::IModuleBuilder& module, Sex::cr_sex source, Compiler::FunctionPrototype& prototype);
         cstr GetContext(const CScript& script);
         const Sex::ISExpression* GetTryCatchExpression(CScript& script);
         bool TryCompileBooleanExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool isExpected, bool& negate);
@@ -458,7 +460,7 @@ namespace Rococo
         int GetCommonInterfaceIndex(const Compiler::IStructure& object, const Compiler::IStructure& argType);
 
         Compiler::IFunctionBuilder& MustMatchFunction(Compiler::IModuleBuilder& module, Sex::cr_sex s, cstr name);
-       Compiler::IInterfaceBuilder* MatchInterface(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
+        Compiler::IInterfaceBuilder* MatchInterface(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
         Compiler::IStructureBuilder* MatchStructure(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
         Compiler::IFunctionBuilder* MatchFunction(Sex::cr_sex nameExpr, Compiler::IModuleBuilder& module);
 
@@ -466,7 +468,6 @@ namespace Rococo
         bool TryCompileArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool expected, SexyVarType type);
 
         void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, Compiler::IFunction& callee, SexyVarType returnType, const Compiler::IArchetype* returnArchetype, const Compiler::IStructure* returnTypeStruct);
-        bool TryCompileMacroInvocation(CCompileEnvironment& ce, Sex::cr_sex s, sexstring token);
         Compiler::IProgramObject& GetProgramObject(CScript& script);
         void CompileJITStub(Compiler::IFunctionBuilder& f, Sex::cr_sex fdef, CScript& script, IScriptSystem& ss);
         void CompileJITStub(Compiler::IFactoryBuilder* f, Sex::cr_sex fdef, CScript& script, IScriptSystem& ss);
@@ -478,6 +479,11 @@ namespace Rococo
         Compiler::IFunctionBuilder& GetNullFunction(CScript& script, const Compiler::IArchetype& archetype);
 
         Compiler::GlobalValue* GetGlobalValue(CScript& script, cstr buffer);
+
+        struct ReflectionCallbacks
+        {
+            ID_API_CALLBACK ArchetypeGetName;
+        };
 
         struct ArrayCallbacks
         {
@@ -587,6 +593,7 @@ namespace Rococo
             ID_API_CALLBACK MapUpdateRefCounts;
         };
 
+        const ReflectionCallbacks& GetReflectionCallbacks(CCompileEnvironment& ce);
         const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce);
         const ListCallbacks& GetListCallbacks(CCompileEnvironment& ce);
         const MapCallbacks& GetMapCallbacks(CCompileEnvironment& ce);
@@ -622,7 +629,7 @@ namespace Rococo
         void CompileConstructFromFactory(CCompileEnvironment& ce, const Compiler::IStructure& nullType, cstr id, Sex::cr_sex args);
         void AppendInvoke(CCompileEnvironment& ce, ID_API_CALLBACK callback, Sex::cr_sex s);
         void AddVariableRef(CCompileEnvironment& ce, const Compiler::NameString& ns, const Compiler::IStructure& typeStruct);
-        void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, cstr name);
+        void AssignRegisterToVariableRef(CCompileEnvironment& ce, int registerIndex, cstr name);
         Compiler::IArchetype* MatchArchetype(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
         bool IsAtomicMatch(Sex::cr_sex s, cstr value);
         bool TryCompileAsLateFactoryCall(CCompileEnvironment& ce, const Compiler::MemberDef& targetDef, Sex::cr_sex directive);

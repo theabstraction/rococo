@@ -78,7 +78,7 @@ namespace Anon
 		a.Append_CallByRegister(VM::REGISTER_D5);
 		a.Append_Exit(VM::REGISTER_D4);
 
-		ID_BYTECODE stubId = program.AddBytecode();
+		ID_BYTECODE stubId = program.AddBytecode("_EntryPointStub");
 		program.UpdateBytecode(stubId, a);
 		a.Clear();
 		return stubId;
@@ -328,6 +328,7 @@ namespace Anon
 
 		DefaultScriptObjectAllocator defaultAllocator;
 		TSexyHashMap<const IStructure*, AllocatorBinding*> allocators;
+		TSexyStringMap<IFunction*> globalNativeMap; // Used where native functions need some global registration, such as native struct assignments
 
 		CallbackIds callbackIds;
 	public:
@@ -381,6 +382,9 @@ namespace Anon
 			ObjectStub* object = (ObjectStub*)pData;
 			DecObjRefCount(object, *this);
 		}
+
+		void ProgramObject::RegisterNativeStructFunction(IFunction* f) override;
+		const IFunction* ProgramObject::FindNative(cstr functionName) const override;
 
 		EWarningLevel warningLevel = EWarningLevel::Always;
 
@@ -469,12 +473,93 @@ namespace Anon
 			return AddSymbol(symbols, text);
 		}
 
+		void FormatStructOrigin(char* buffer, size_t capacity, const IStructure& s)
+		{
+			auto* sDef = s.Definition();
+			if (!sDef)
+			{
+				*buffer = 0;
+			}
+			else
+			{
+				SafeFormat(buffer, capacity, "Original is in %s line %d pos %d", sDef->Tree().Source().Name(), sDef->Start().y, sDef->Start().x);
+			}
+		}
+
+		IStructureBuilder& AddHandleStruct(cstr name, cstr origin, int lineNumber) override
+		{
+			cstr fieldName = "_NativeValue";
+
+			auto* currentDef = intrinsics->Structures().TryGet(name);
+			if (currentDef)
+			{
+				if (currentDef->MemberCount() != 1 || !Eq(currentDef->GetMember(0).Name(), fieldName))
+				{
+					char currentSrc[256];
+					FormatStructOrigin(currentSrc, sizeof currentSrc, *currentDef);
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and it is not a handle type. %s", origin, lineNumber, name, currentSrc);
+				}
+
+				return *currentDef;				
+			}
+
+			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, nullptr, false);
+
+			Structure* s = new Structure(name, prototype, *intrinsics, Rococo::SexyVarType_Derivative, NULL);
+			s->AddMember(NameString::From(fieldName), TypeString::From("Int64"));
+			s->PreventPersistence();
+			intrinsics->Structures().Register(s->Name(), *s);
+
+			return *s;
+		}
+
+		IStructureBuilder& AddRockStruct(cstr name, cstr origin, int lineNumber, size_t alignedSize) override
+		{
+			auto* currentDef = intrinsics->Structures().TryGet(name);
+			if (currentDef)
+			{
+				char currentSrc[256];
+				FormatStructOrigin(currentSrc, sizeof currentSrc, *currentDef);
+
+				if (currentDef->SizeOfStruct() != alignedSize)
+				{
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], and its size %llu does not match the rock type size %llu. %s", origin, lineNumber, name, currentDef->SizeOfStruct(), alignedSize, currentSrc);
+				}
+
+				// Rocks are defined as transients (not persistent) and have the first member _rk0
+				if (currentDef->IsPersistent() || !Eq(currentDef->GetMember(0).Name(), "_rk0"))
+				{
+					Throw(0, __FUNCTION__ ": %s (line %d):  A type already exists by name [%s], but the type is not a rock", origin, lineNumber, name, currentSrc);
+				}
+
+				return *currentDef;
+			}
+
+			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, nullptr, false);
+
+			Structure* s = new Structure(name, prototype, *intrinsics, Rococo::SexyVarType_Derivative, NULL);
+
+			// nInts64s = alignedSize / sizeof(int64)
+			size_t nFields = alignedSize >> 3;
+			for (size_t i = 0; i < nFields; i++)
+			{
+				char fieldName[32];
+				SafeFormat(fieldName, "_rk%llu", i);
+				s->AddMember(NameString::From(fieldName), TypeString::From("Int64"));
+			}
+			
+			s->PreventPersistence();
+			intrinsics->Structures().Register(s->Name(), *s);
+
+			return *s;
+		}
+
 		IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) override
 		{
 			StructurePrototype prototype(MEMBERALIGN_1, INSTANCEALIGN_1, true, archetype, false);
 
 			Structure* s = new Structure(name, prototype, *intrinsics, underlyingType, NULL);
-			s->AddMember(NameString::From(("Value")), TypeString::From(name));
+			s->AddMember(NameString::From("Value"), TypeString::From(name));
 			StructureMember& m = s->GetMemberRef(0);
 			m.SetSize(sizeOfType);
 			s->Seal();
@@ -529,7 +614,7 @@ namespace Anon
 			ResolveTypesInIntrinsics(*this, pSrcErr);
 		}
 
-		bool ResolveDefinitions(const void **pSrcError) override
+		bool ResolveDefinitions(const void **pSrcError, size_t startIndex, size_t endIndex) override
 		{
 			if (!ResolveStructures(*this, pSrcError))
 			{
@@ -542,16 +627,22 @@ namespace Anon
 				return false;
 			}
 
-			for (auto i = modules.begin(); i != modules.end(); ++i)
+			for(auto i = startIndex; i < endIndex; ++i)
 			{
-				Module* module = *i;
+				Module* module = modules[i];
 				if (!module->ResolveDefinitions())
 				{
 					return false;
 				}
 			}
 
-			intrinsics->ResolveDefinitions();
+			if (startIndex == 0)
+			{
+				if (!intrinsics->ResolveDefinitions())
+				{
+					return false;
+				}
+			}
 
 			return true;
 		}
@@ -579,6 +670,35 @@ namespace Anon
 		svmCore->Free();
 
 		if (common) delete common;
+	}
+
+	void ProgramObject::RegisterNativeStructFunction(IFunction* f)
+	{
+		cstr shortName = strstr(f->Name(), "_->");
+		if (shortName == nullptr)
+		{
+			Throw(0, "Compiler error: Do not know how to handle %s", f->Name());
+		}
+
+		auto i = globalNativeMap.insert(shortName + 1, f);
+		if (!i.second)
+		{
+			if (f != i.first->second)
+			{
+				Throw(0, "Error, duplicate native registration of %s in %s and %s", shortName + 1, f->Module().Name(), i.first->second->Module().Name());
+			}
+		}
+	}
+
+	const IFunction* ProgramObject::FindNative(cstr functionName) const
+	{
+		auto i = globalNativeMap.find(functionName);
+		if (i == globalNativeMap.end())
+		{
+			return nullptr;
+		}
+
+		return i->second;
 	}
 
 	void ProgramObject::Free()
@@ -664,7 +784,7 @@ namespace Rococo
 
 		bool IsCapital(char c) { return (c >= 'A' && c <= 'Z'); }
 		bool IsLowerCase(char c) { return (c >= 'a' && c <= 'z'); }
-		bool IsNumeral(char c) { return c >= '0' && c < '9'; }
+		bool IsNumeral(char c) { return c >= '0' && c <= '9'; }
 		bool IsAlpha(char c) { return IsCapital(c) || IsLowerCase(c); }
 		bool IsAlphaNumeral(char c) { return IsAlpha(c) || IsNumeral(c); }
 

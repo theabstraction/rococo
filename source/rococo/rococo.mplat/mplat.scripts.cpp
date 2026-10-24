@@ -338,11 +338,15 @@ namespace Rococo
 					return nullptr;
 				}
 
-				void OnCompile(ScriptCompileArgs& args) override
+				void OnInitSexyScript(ScriptCompileArgs& args) override
 				{
 					args.ss.SetSecurityHandler(*this);
+					onScriptEvent.OnInitSexyScript(args);
+				}
 
-					onScriptEvent.OnCompile(args);
+				void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs& args) override
+				{
+					onScriptEvent.OnAddedMainModuleBeforePartialCompile(args);
 
 					if (addPlatform)
 					{
@@ -467,10 +471,14 @@ namespace Rococo
 					return nullptr;
 				}
 
-				void OnCompile(ScriptCompileArgs& args) override
+				void OnInitSexyScript(ScriptCompileArgs& args) override
 				{
 					args.ss.SetSecurityHandler(*this);
-					onScriptEvent.OnCompile(args);
+					onScriptEvent.OnInitSexyScript(args);
+				}
+
+				void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+				{
 				}
 
 				ScriptContext(IScriptCompilationEventHandler& _onScriptEvent, IDE::EScriptExceptionFlow argFlow, IO::IInstallation& _installation) :
@@ -529,13 +537,17 @@ namespace Rococo
 				Configuration::IConfig* config = nullptr;
 				Graphics::IShaderOptionsConfig* shaderOptions = nullptr;
 
-				void OnCompile(ScriptCompileArgs& args) override
+				void OnInitSexyScript(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
 					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Configuration.Native", "!scripts/interop/rococo/mplat/mplat_config_sxh.sxy");
 					Rococo::Script::AddNativeCallSecurity(args.ss, "Rococo.Graphics.Native", "!scripts/interop/rococo/mplat/mplat_sxh.sxy");
 					Rococo::Configuration::Interop::AddNativeCalls_RococoConfigurationIConfig(args.ss, config);
 					Rococo::Graphics::Interop::AddNativeCalls_RococoGraphicsIShaderOptionsConfig(args.ss, shaderOptions);
+				}
+
+				void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+				{
 				}
 
 				IScriptEnumerator* ImplicitIncludes() override

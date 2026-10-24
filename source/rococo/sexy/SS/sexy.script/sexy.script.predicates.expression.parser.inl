@@ -292,7 +292,7 @@ namespace Rococo
                   MemberDef def;
                   if (ce.Builder.TryGetVariableByName(OUT def, id))
                   {
-                     ce.Builder.AssignVariableToTemp(id, tempdepth);
+                     ce.Builder.AssignVariableToRegister(id, tempdepth + VM::REGISTER_D4);
                      type = def.ResolvedType->VarType();
                   }
                   else
@@ -306,7 +306,7 @@ namespace Rococo
                const IStructure* st = ce.Builder.GetVarStructure(id);
                if (st != NULL)
                {
-                  ce.Builder.AssignVariableToTemp(id, tempdepth);
+                  ce.Builder.AssignVariableToRegister(id, tempdepth + VM::REGISTER_D4);
                   type = st->VarType();
                }
                else
@@ -348,8 +348,11 @@ namespace Rococo
          case SexyVarType_Int64:
             assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_64, VM::REGISTER_D4 + sourceB);
             break;
+         case SexyVarType_Bool:
+            assembler.Append_BooleanCompare(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB);
+            break;
          default:
-            Throw(src, ("Cannot find subtraction rule for the given type"));
+            Throw(src, "Cannot find subtraction rule for the given type");
          }
 
          assembler.Append_SetIf(op, VM::REGISTER_D4 + booleanTargetId, GetBitCount(type));
@@ -444,7 +447,7 @@ namespace Rococo
           }
 
           ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
-          ce.Builder.AssignVariableToTemp(variableName, Rococo::ROOT_TEMPDEPTH + 2);
+          ce.Builder.AssignVariableToRegister(variableName, VM::REGISTER_D7 + 2);
           AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
@@ -473,7 +476,7 @@ namespace Rococo
          }
 
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, newLValue, GetBitCount(varRType));
-         ce.Builder.AssignVariableToTemp(rightVarName, Rococo::ROOT_TEMPDEPTH + 2);
+         ce.Builder.AssignVariableToRegister(rightVarName, VM::REGISTER_D7 + 2);
          AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varRType);
       }
 
@@ -506,6 +509,41 @@ namespace Rococo
 			  break;
 		  }
 	  }
+
+      bool TryCompileAsCompareToEnum(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex sRightExpr)
+      {
+          if (!IsAtomic(sRightExpr))
+          {
+              return false;
+          }
+
+          cstr rightExpr = sRightExpr.c_str();
+          if (*rightExpr != '.')
+          {
+              return false;
+          }
+
+          MemberDef leftDef;
+          if (!ce.Builder.TryGetVariableByName(leftDef, leftVarName))
+          {
+              return false;
+          }
+
+          auto& type = *leftDef.ResolvedType;
+
+          int64 value = AssignEnumToD4(ce, rightExpr + 1, type, sRightExpr);
+          UNUSED(value);
+          // Now we have (leftVarName op D4)
+
+          ce.Builder.AssignVariableToRegister(leftVarName, VM::REGISTER_D5);
+          // Now we have (D5 op D4)
+
+          ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D5, GetBitCount(type.VarType()), VM::REGISTER_D4);
+          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D4, VM::REGISTER_D7, GetBitCount(type.VarType()));
+          ce.Builder.Assembler().Append_SetIf(op, VM::REGISTER_D7, GetBitCount(type.VarType()));
+
+          return true;
+      }
 
 	  bool TryCompileAsCompareStruct(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
 	  {
@@ -631,6 +669,7 @@ namespace Rococo
          ICodeBuilder& builder = ce.Builder;
 
 		 if (TryCompileAsCompareStruct(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
+         if (TryCompileAsCompareToEnum(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
 
          SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
          SexyVarType varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
@@ -659,7 +698,7 @@ namespace Rococo
 
              if (varLType == SexyVarType_Bool)
              {
-                 ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+                 ce.Builder.AssignVariableToRegister(sRightVarName.c_str(), VM::REGISTER_D8);
                  AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
                  return;
              }
@@ -694,7 +733,7 @@ namespace Rococo
              }
 
              // assembly placed the boolean value in D7
-             ce.Builder.AssignVariableToTemp(sLeftVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+             ce.Builder.AssignVariableToRegister(sLeftVarName.c_str(), VM::REGISTER_D8);
              AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
              return;
          }
@@ -707,8 +746,8 @@ namespace Rococo
             Throw(parent, "The RHS is not a boolean type");
          }
 
-         ce.Builder.AssignVariableToTemp(sLeftVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
-         ce.Builder.AssignVariableToTemp(sRightVarName.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
+         ce.Builder.AssignVariableToRegister(sLeftVarName.c_str(), VM::REGISTER_D8);
+         ce.Builder.AssignVariableToRegister(sRightVarName.c_str(), VM::REGISTER_D9);
          AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
       }
 
@@ -742,7 +781,7 @@ namespace Rococo
          }
          else
          {
-            ce.Builder.AssignVariableToTemp(varName, Rococo::ROOT_TEMPDEPTH + A);
+            ce.Builder.AssignVariableToRegister(varName, VM::REGISTER_D7 + A);
          }
 
 		 AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, GetBitCount(type));
@@ -940,8 +979,8 @@ namespace Rococo
          if (TryCompileBooleanExpression(ce, right, true, negate))
          {
             if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
-            ce.Builder.AssignVariableToTemp(leftString, Rococo::ROOT_TEMPDEPTH + 1);
-            ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(type));
+            ce.Builder.AssignVariableToRegister(leftString, VM::REGISTER_D8);
+            ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D9, GetBitCount(type));
             AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2);
             return;
          }
@@ -981,14 +1020,14 @@ namespace Rococo
          SexyVarType lType = ce.Builder.GetVarType(leftString);
          if (lType == SexyVarType_Derivative)
          {
-            Throw(parent, ("LHS was of a derived type, and cannot be directly used in boolean expressions"));
+            Throw(parent, "LHS was of a derived type, and cannot be directly used in boolean expressions");
          }
          else if (lType == SexyVarType_Bad)
          {
             int32 value;
             if (Parse::TryParseBoolean(OUT value, leftString) != Parse::PARSERESULT_GOOD)
             {
-               Throw(parent, ("In the boolean expression the LHS was neither an identifier nor a known boolean value"));
+               Throw(parent, "In the boolean expression the LHS was neither an identifier nor a known boolean value");
             }
 
             CompileBinaryBooleanLiteralVsCompoundExpression(ce, parent, value, op, right);
@@ -996,7 +1035,7 @@ namespace Rococo
          }
          else if (lType != SexyVarType_Bool)
          {
-            Throw(parent, ("Identifier in the LHS of the boolean expression was not of underlying type Int32"));
+            Throw(parent, "Identifier in the LHS of the boolean expression was not of underlying type Int32");
          }
 
          CompileBinaryBooleanVariableVsCompoundExpression(ce, parent, leftString, op, right);
@@ -1017,7 +1056,7 @@ namespace Rococo
             }
             if (!IsAtomic(right))
             {
-               Throw(parent, ("The RHS in the boolean expression is neither an atomic nor compound expression"));
+               Throw(parent, "The RHS in the boolean expression is neither an atomic nor compound expression");
             }
 
             cstr rightString = right.c_str();
@@ -1209,7 +1248,7 @@ namespace Rococo
                   auto varType = ce.Builder.GetVarType(token);
                   if (SexyVarType_Bool == varType)
                   {
-                      ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+                      ce.Builder.AssignVariableToRegister(token, VM::REGISTER_D7);
                       return true;
                   }
                   else if (varType == SexyVarType_Derivative)
@@ -1225,7 +1264,7 @@ namespace Rococo
                       {
                           // Node ref to D7
                           AddSymbol(ce.Builder, "%s", token);
-                          ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+                          ce.Builder.AssignVariableToRegister(token, VM::REGISTER_D7);
                           AppendInvoke(ce, GetMapCallbacks(ce).DoesMapNodeExist, s);
                           return true;
                       }

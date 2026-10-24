@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\unreal-sexy-gen\unreal-sexy-gen.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\unreal-sexy-gen\unreal-sexy.gen.core.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\unreal-sexy-gen\unreal-sexy-gen.h" />
+  </ItemGroup>
+</Project>

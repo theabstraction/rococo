@@ -8,21 +8,6 @@ using namespace Rococo::Windows;
 
 namespace Rococo::SexyStudio
 {
-	uint64 GetFileLength(cstr filename)
-	{
-		WIN32_FILE_ATTRIBUTE_DATA data;
-		if (!GetFileAttributesExA(filename, GetFileExInfoStandard, &data))
-		{
-			return 0;
-		}
-
-		ULARGE_INTEGER len;
-		len.HighPart = data.nFileSizeHigh;
-		len.LowPart = data.nFileSizeLow;
-
-		return len.QuadPart;
-	}
-	
 	void AppendAncestorsToString(IWindow& window, StringBuilder& sb)
 	{
 		HWND hWnd = window;

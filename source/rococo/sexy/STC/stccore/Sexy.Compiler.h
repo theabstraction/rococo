@@ -99,7 +99,7 @@ namespace Rococo::Compiler
 		virtual IArgumentBuilder& AddArrayOutput(const NameString& name, const TypeString& genericType, void* userdata) = 0;
 		virtual bool TryResolveArguments() = 0;
 		virtual void ValidateArguments() = 0;
-
+		virtual void DeclareNative() = 0; // Native functions are not released on a recompile
 		virtual ICodeBuilder& Builder() = 0;
 		virtual IModuleBuilder& Module() = 0;
 		virtual IFunctionBuilder* Parent() = 0;
@@ -111,6 +111,8 @@ namespace Rococo::Compiler
 		virtual void SetProxy(ID_BYTECODE id) = 0;
 
 		virtual void AddSecurity(const Rococo::Script::NativeSecurityHandler& security) = 0;
+
+		virtual void SetCommentary(cstr commentary) = 0;
 	};
 
 	ROCOCO_INTERFACE IFunctionAliasBuilder : public IFunctionAlias
@@ -163,8 +165,10 @@ namespace Rococo::Compiler
 		virtual void ExpandAllocSize(int minimumByteCount) = 0;
 		virtual void FillVirtualTables() = 0;
 		virtual void MakeStrong() = 0;
+		virtual void PreventPersistence() = 0;
 		virtual void Update() = 0;
 		virtual void SetConstructor(const IFunction* cons) = 0;
+		virtual void AddEnum(cstr name, int64 value) = 0;
 
 		virtual IProgramObject& Object() = 0;
 	};
@@ -263,9 +267,11 @@ namespace Rococo::Compiler
 		virtual IModuleBuilder& GetModule(int index) = 0;
 		virtual INamespaceBuilder& GetRootNamespace() = 0;
 		virtual IModuleBuilder& IntrinsicModule() = 0;
+		virtual IStructureBuilder& AddHandleStruct(cstr name, cstr origin, int lineNumber) = 0;
 		virtual IStructureBuilder& AddIntrinsicStruct(cstr name, size_t sizeOfType, SexyVarType underlyingType, const IArchetype* archetype) = 0;
+		virtual IStructureBuilder& AddRockStruct(cstr name, cstr origin, int lineNumber, size_t alignedSize) = 0;
 		virtual void ResolveNativeTypes(const void** pSrcErr) = 0;
-		virtual bool ResolveDefinitions(const void** pSrcErr) = 0;
+		virtual bool ResolveDefinitions(const void** pSrcErr, size_t startIndex, size_t endIndex) = 0;
 		virtual cstr RegisterSymbol(cstr text) = 0;
 		virtual CommonStructures& Common() = 0;
 		virtual void InitCommon() = 0;
@@ -274,6 +280,8 @@ namespace Rococo::Compiler
 		virtual IScriptObjectAllocator& GetDefaultObjectAllocator() = 0;
 		virtual EWarningLevel GetWarningLevel() const = 0;
 		virtual void SetWarningLevel(EWarningLevel level) = 0;
+		virtual void RegisterNativeStructFunction(IFunction* f) = 0;
+		virtual const IFunction* FindNative(cstr functionName) const = 0;
 	};
 
 	IProgramObject* CreateProgramObject_1_0_0_0(const ProgramInitParameters& pip, ILog& log);
@@ -375,10 +383,10 @@ namespace Rococo::Compiler
 		virtual void AssignLiteral(const NameString& name, cstr literalValue) = 0;
 		virtual void AssignPointer(const NameString& name, const void* ptr) = 0;
 		virtual void AssignVariableToVariable(cstr source, cstr target, bool isConstructingTarget = false) = 0;
-		virtual void AssignVariableToTemp(cstr source, int tempIndex, int memberOffsetCorrection = 0) = 0;
-		virtual void AssignVariableRefToTemp(cstr source, int tempDepth, int offset = 0) = 0;
-		virtual void AssignTempToVariable(int srcIndex, cstr target) = 0;
-		virtual void AssignVariableAddressToTemp(cstr sourceVariable, int tempDepth) = 0;
+		virtual void AssignVariableToRegister(cstr source, int registerIndex, int memberOffsetCorrection = 0) = 0;
+		virtual void AssignVariableRefToRegister(cstr source, int registerIndex, int offset = 0) = 0;
+		virtual void AssignRegisterToVariable(int registerIndex, cstr target) = 0;
+		virtual void AssignVariableAddressToRegister(cstr sourceVariable, int registerIndex) = 0;
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) = 0;

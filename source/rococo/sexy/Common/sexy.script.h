@@ -334,10 +334,26 @@ namespace Rococo {
 			// A method that generalized fputs
 			virtual int PutString(cstr text) = 0;
 		};
+
+		ROCOCO_INTERFACE IScriptSystemHook
+		{
+			virtual void OnBeginPartialCompilePostClear(IPublicScriptSystem& ss) = 0;
+			virtual void OnBeginPartialCompilePostSysNatives(IPublicScriptSystem& ss) = 0;
+			virtual void OnCompilePostSysNativeCompilation(IPublicScriptSystem& ss) = 0;
+		};
+
+		struct EnumBinding
+		{
+			cstr name;
+			int64 value;
+		};
 		
 		ROCOCO_INTERFACE IPublicScriptSystem : public IFreeable
 		{
 			virtual void AddCommonSource(const char* dynamicLinkLibOfNativeCalls) = 0;
+
+			// Determines which module subsequent AddNativeCall(...) methods will target. Resolution of native call arguments occurs when the module is compiled.
+			virtual void SetNativeCallTarget(Compiler::IModule* module) = 0;
 			virtual void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName = true, int popBytes = 0) = 0; // Example: AddNativeCall(ns, ANON::CpuHz, NULL, "CpuHz -> (Int64 hz)");
 			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, const NativeCallSecurity& security) = 0;
 			virtual void AddNativeCallSecurityForNS(const Compiler::INamespace& ns, cstr permittedPingPath) = 0;
@@ -345,6 +361,27 @@ namespace Rococo {
 			virtual void AddNativeLibrary(const char *sexyLibraryFile) = 0;
 
 			virtual void AddRawNativeReflectionCall(cstr functionName, FN_RAW_NATIVE_REFLECTION_CALL, void* context) = 0;
+
+			virtual void SetScriptContext(int64 context) = 0;
+
+			// Find or create a 64-bit handle object (struct [typeName] (Int64 _nativeHandle)) and aliases into the namespace.
+			// The [typeName] must be unique.
+			// [origin] and [lineNumber] give the source line that invoked CreateHandleType
+			virtual void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) = 0;
+
+			// Find or create a 64-bit enum type. The scripting language implements this as a strong Int64 with the given typeName.
+			// The [typeName] must be unique.
+			// [origin] and [lineNumber] give the source line that invoked CreateEnumType
+			virtual void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, SexyVarType underlyingType) = 0;
+
+			virtual void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, const EnumBinding* bindings, size_t numberOfBindings) = 0;
+
+			// Find or create a native opaque struct object - a rock - and aliases into the namespace.
+			// The [typeName] must be unique.
+			// [origin] and [lineNumber] give the source line that invoked CreateRockType
+			// Warning: the actual size of the struct may exceed that specified in the argument for virtual machine alignment requirements
+			// Returns the aligned size of the struct.
+			virtual size_t CreateRockType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, size_t nSizeofStruct) = 0;
 
 			// Override the script system string writing function, this is used for Sys.Print et al
 			virtual void SetPutString(IPutString* putString) = 0;
@@ -378,6 +415,9 @@ namespace Rococo {
 			// Creates a blank linked list with no elements. The implementation should allocate memory with ss.AlignedMalloc(16, capacity * a->ElementLength); 
 			// and use ss.AlignedFree to clean up the memory (generally when reference count hits zero)
 			virtual ListImage* CreateListImage(const Compiler::IStructure& valueType) = 0;
+
+			// Returns the value set by SetScriptContext
+			virtual int64 GetScriptContext() const = 0;
 
 			virtual Rococo::uint8* AppendListNode(ListImage& image) = 0;
 
@@ -418,6 +458,9 @@ namespace Rococo {
 			virtual void ReleaseTree(Sex::ISParserTree* tree) = 0;
 			virtual void ThrowNative(int errorNumber, cstr source, cstr message) = 0;
 			virtual Sex::ISParserTree* GetSourceCode(const Compiler::IModule& module) const = 0;
+
+			// Adds a compilation hook. If one existed prior to the call, it is overwritten
+			virtual void AddCompilationHook(IScriptSystemHook* hook) = 0;
 
 			// Call this from within a C++ script function to pass the message up to the try catch block of the sexy script file.
 			// Since it is the virtual machine that has its stack corrected, and not C++, you should immediately return from the calling function after invoking this method
@@ -528,6 +571,9 @@ namespace Rococo {
 			virtual Compiler::IMemberLife* GetListLifetimeManager() = 0;
 			virtual Compiler::IMemberLife* GetArrayLifetimeManager() = 0;
 			virtual Compiler::IMemberLife* GetMapLifetimeManager() = 0;
+
+			virtual void RegisterEnums() = 0;
+			virtual Sex::ISTransformResolver& Resolver() = 0;
 		};
 
 		ROCOCO_INTERFACE INativeLib

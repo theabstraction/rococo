@@ -317,7 +317,7 @@ namespace Rococo::OS
 
 	// Attempts to build an SEXML using the callback provided builder and then, if successful, saves the result to $USER-DOCS/organization/section.sexml
 	// If organization is not provided the default is chosen.
-	ROCOCO_SEXML_API void SaveUserSEXML(cstr organization, cstr section, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
+	ROCOCO_SEXML_API void SaveUserSEXML(cstr organization, cstr section, bool isCompact, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
 
 	// Sets the default organization string. Must be definite
 	ROCOCO_SEXML_API void SetDefaultOrganization(cstr defaultOrganization);
@@ -329,7 +329,7 @@ namespace Rococo::OS
 	
 	ROCOCO_SEXML_API void LoadSXMLBySysPath(cstr filename, Function<void(const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives)> onLoad);
 
-	ROCOCO_SEXML_API void SaveSXMLBySysPath(cstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(cstr filename, bool isCompact, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
 
-	ROCOCO_SEXML_API void SaveSXMLBySysPath(crwstr filename, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
+	ROCOCO_SEXML_API void SaveSXMLBySysPath(crwstr filename, bool isCompact, Function<void(Rococo::Sex::SEXML::ISEXMLBuilder& builder)> onBuild);
 }

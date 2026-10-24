@@ -20,6 +20,8 @@
 
 #include "rococo.sxytype-inference.h"
 
+#include "sexystudio.database.h"
+
 using namespace Rococo;
 using namespace Rococo::Sex;
 using namespace Rococo::SexyStudio;
@@ -27,44 +29,99 @@ using namespace Rococo::Strings;
 
 fstring pckPrefix = "[package]:"_fstring;
 
-cstr AlwaysGetAtomic(cr_sex s)
-{
-	return IsAtomic(s) ? s.c_str() : "<expected atomic argument>";
-}
-
-cstr AlwaysGetAtomic(cr_sex s, int index)
-{
-	if (index < 0 || index >= s.NumberOfElements()) return "<invalid subexpression index>";
-	return IsAtomic(s[index]) ? s[index].c_str() : "<expected atomic argument>";
-}
-
-int CountDots(cr_substring prefix)
-{
-	int dots = 0;
-
-	for (auto p = prefix.start; p < prefix.finish; ++p)
-	{
-		char c = *p;
-
-		switch (c)
-		{
-		case '(':
-		case ')':
-		case '\r':
-		case '\n':
-		case '\t':
-			return dots;
-		case '.':
-			dots++;
-			break;
-		}
-	}
-
-	return dots;
-}
-
 namespace Rococo::SexyStudio
 {
+	cstr AlwaysGetAtomic(cr_sex s)
+	{
+		return IsAtomic(s) ? s.c_str() : "<expected atomic argument>";
+	}
+
+	cstr AlwaysGetAtomic(cr_sex s, int index)
+	{
+		if (index < 0 || index >= s.NumberOfElements()) return "<invalid subexpression index>";
+		return IsAtomic(s[index]) ? s[index].c_str() : "<expected atomic argument>";
+	}
+
+	int CountDots(cr_substring prefix)
+	{
+		int dots = 0;
+
+		for (auto p = prefix.start; p < prefix.finish; ++p)
+		{
+			char c = *p;
+
+			switch (c)
+			{
+			case '(':
+			case ')':
+			case '\r':
+			case '\n':
+			case '\t':
+				return dots;
+			case '.':
+				dots++;
+				break;
+			}
+		}
+
+		return dots;
+	}
+
+	void PopulateWithFullNamespaceName(const ISxyNamespace& ns, IStringPopulator& populator)
+	{
+		// Suppose there are 3 subspaces with 2 characters each as in: AB.CD.EF, then the total length is 9 characters, with the final being the terminating null.
+		// The total length is the sum of the lengths of the subspace strings + number of subspace strings
+		size_t totalLength = 0;
+		if (ns.GetParent() == nullptr)
+		{
+			populator.Populate("");
+			return;
+		}
+
+		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+		{
+			totalLength += strlen(n->Name()) + 1;
+		}
+
+		char* temp = (char*)_alloca(totalLength + 1);
+		temp[totalLength] = 0;
+		cstr writeEnd = temp + totalLength;
+		char* writePos = (char*)writeEnd;
+
+		for (const ISxyNamespace* n = &ns; n->GetParent() != nullptr; n = n->GetParent())
+		{
+			size_t len = strlen(n->Name());
+			writePos -= (len + 1);
+			if (writePos < temp)
+			{
+				// We dont' have enough space for the operation, which is unexpected.
+				populator.Populate("<error>");
+				return;
+			}
+
+			*writePos = '.';
+			memcpy(writePos + 1, n->Name(), len);
+		}
+
+		populator.Populate(writePos + 1);
+	}
+
+	SEXYSTUDIO_API void GetFullNamespaceName(char* fullName, size_t bufferCapacity, const ISxyNamespace& ns)
+	{
+		struct ANON : IStringPopulator
+		{
+			char* fullName = nullptr;
+			size_t capacity = 0;
+			void Populate(cstr text) override
+			{
+				CopyString(fullName, capacity, text);
+			}
+		} populator;
+		populator.capacity = bufferCapacity;
+		populator.fullName = fullName;
+		PopulateWithFullNamespaceName(ns, populator);
+	}
+
 	ParseKeyword keywordNamespace("namespace");
 	ParseKeyword keywordInterface("interface");
 	ParseKeyword keywordStruct("struct");
@@ -75,9 +132,10 @@ namespace Rococo::SexyStudio
 	ParseKeyword keywordFactory("factory");
 	ParseKeyword keywordArchetype("archetype");
 	ParseKeyword keywordClass("class");
+	ParseKeyword keywordEnum("enum");
 	AtomicArg ParseAtomic;
 
-	cstr FindDot(cstr s)
+	SEXYSTUDIO_API cstr FindDot(cstr s)
 	{
 		while (*s != '.' && *s != 0)
 		{
@@ -493,6 +551,90 @@ namespace ANON
 		std::vector<SXYMethod> methods;
 	};
 
+	struct SXYEnum : ISXYEnum
+	{
+		SXYEnum(ISXYFile& _source_file, cr_sex _s): source_file(_source_file), sEnumDef(_s)
+		{
+			type = _s[1].c_str();
+		}
+
+		std::string type;
+
+		struct Binding
+		{
+			std::string key;
+			int64 value;
+		};
+
+		mutable std::vector<Binding> values;
+		ISXYFile& source_file;
+		cr_sex sEnumDef;
+
+		// An enum looks like this (enum <type> <items>), 
+		// e.g (enum Sys.Animals.Snake Adder Python (Viper 3))
+
+		void Free()
+		{
+			delete this;
+		}
+
+		size_t NumberOfEntries() const override
+		{
+			Cache();
+			return values.size();
+		}
+
+		void GetEntry(size_t index, OUT cstr& name, OUT int64& value) const override
+		{
+			Cache();
+			const auto& item = values[index];
+			OUT name = item.key.c_str();
+			OUT value = item.value;
+		}
+
+		void Cache() const
+		{
+			if (!values.empty())
+			{
+				return;
+			}
+			
+			int64 value = 0;
+
+			for (int32 i = 2; i < sEnumDef.NumberOfElements(); i++)
+			{
+				cr_sex sElement = sEnumDef[i];
+				if (IsCompound(sElement))
+				{
+					if (sElement.NumberOfElements() == 2)
+					{
+						cr_sex sKey = sElement[0];
+						cr_sex sValue = sElement[1];
+						if (IsAtomic(sKey) && IsAtomic(sValue))
+						{
+							cstr key = sKey.c_str();
+							value = atoll(sValue.c_str());
+							if (isalnum(*key))
+							{
+								values.push_back({ key, value });
+							}
+						}
+					}
+				}
+				else if (IsAtomic(sElement))
+				{
+					cstr key = sElement.c_str();
+					if (isalnum(*key))
+					{
+						values.push_back({ key, value });
+					}
+				}
+
+				value++;
+			}
+		}
+	};
+
 	struct SXYMacro
 	{
 		std::string shortName;
@@ -724,6 +866,11 @@ namespace ANON
 
 		}
 
+		cstr LocalName() const override
+		{
+			return localName.c_str();
+		}
+
 		cstr PublicName() const override
 		{
 			return publicName.c_str();
@@ -916,7 +1063,7 @@ namespace ANON
 		std::vector<SxyFactory> factories;
 		std::vector<SxyInterface> interfaces;
 		std::vector<SXYMacro> macros;
-		std::vector<SXYMacro> enums;
+		std::vector<SXYMacro> enumMacros;
 		std::vector<SXYPublicFunction> functions;
 		std::vector<SXYPublicStruct> structures;
 		std::vector<SXYNSAlias> nsAlias;
@@ -1051,24 +1198,24 @@ namespace ANON
 			return (int) factories.size();
 		}
 
-		int EnumCount() const override
+		int NumberOfMacroEnums() const override
 		{
-			return (int)enums.size();
+			return (int)enumMacros.size();
 		}
 
-		cstr GetEnumName(int index) const override
+		cstr GetEnumMacroName(int index) const override
 		{
-			return enums[index].shortName.c_str();
+			return enumMacros[index].shortName.c_str();
 		}
 
-		cstr GetEnumValue(int index) const override
+		cstr GetEnumMacroValue(int index) const override
 		{
-			return enums[index].GetMacroValue();
+			return enumMacros[index].GetMacroValue();
 		}
 
-		cstr GetEnumSourcePath(int index) const override
+		cstr GetEnumMacroSourcePath(int index) const override
 		{
-			return enums[index].sMacroDef.Tree().Source().Name();
+			return enumMacros[index].sMacroDef.Tree().Source().Name();
 		}
 
 		IImplicitNamespaces* ImplicitNamespaces() override
@@ -1407,7 +1554,7 @@ namespace ANON
 			}
 			else
 			{
-				enums.push_back(macro);
+				enumMacros.push_back(macro);
 			}
 		}
 
@@ -1727,7 +1874,7 @@ namespace ANON
 			return scriptPath;
 		}
 
-		void SetContentFolder(cstr path) override
+		void SetConfigDirectory(cstr path) override
 		{
 			Format(contentPath, "%s", path);
 			Format(packageRoot, "%s", path);
@@ -1742,6 +1889,7 @@ namespace ANON
 			mapPrefixToPackageSource.clear();
 			packages.clear();
 
+			// TODO - convert this to SEXML
 			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
 			{
 				cr_sex sDirective = sRoot[i];
@@ -1909,7 +2057,43 @@ namespace ANON
 		}
 	};
 
-	struct SexyDatabase : ISexyDatabaseSupervisor
+	struct DatabaseViewBuilder : IEventCallback<IO::FileItemData>
+	{
+		ISexyDatabase& database;
+		float totalCount = 0;
+		float count = 0;
+
+		DatabaseViewBuilder(ISexyDatabase& _database) : database(_database)
+		{
+
+		}
+
+		IEventCallback<IO::FileItemData>& AppendFile()
+		{
+			return *this;
+		}
+
+		void OnEvent(IO::FileItemData& item) override
+		{
+			count += 1.0f;
+
+			if (item.isDirectory)
+			{
+			}
+			else
+			{
+				if (EndsWith(item.fullPath, L".sxy"))
+				{
+					U8FilePath u8Path;
+					Format(u8Path, "%ls", item.fullPath);
+
+					database.UpdateFile_SXY(u8Path);
+				}
+			}
+		}
+	};
+
+	struct SexyDatabase : ISexyDatabaseSupervisor, IPingPathResolver
 	{
 		IFactoryConfig& config;
 		AutoRelease<ISParser> sparser;
@@ -1924,6 +2108,8 @@ namespace ANON
 		stringmap<int> mapCppCodeToUsage;
 		stringmap<int> resourceCount;
 
+		std::vector<AutoFree<SXYEnum>> enums;
+
 		SexyDatabase(IFactoryConfig& _config): 
 			config(_config),
 			sparser(Rococo::Sex::CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
@@ -1935,6 +2121,11 @@ namespace ANON
 		~SexyDatabase()
 		{
 			
+		}
+
+		IPingPathResolver& PingPathResolver() override
+		{
+			return *this;
 		}
 
 		bool HasResource(cstr id) const override
@@ -1958,9 +2149,38 @@ namespace ANON
 			return solutionFile;
 		}
 
+		void PopulateViaSearchPaths() override
+		{
+			DatabaseViewBuilder databaseViewBuilder(*this);
+
+			for (size_t i = 0;; i++)
+			{
+				auto atom = Config().GetSearchPath(i);
+				if (!atom.pingPath)
+				{
+					break;
+				}
+
+				if (!atom.isActive)
+				{
+					continue;
+				}
+
+				U8FilePath sysPath;
+				PingPathResolver().PingPathToSysPath(atom.pingPath, sysPath);
+
+				if (Rococo::IO::IsDirectory(sysPath))
+				{
+					WideFilePath wPath;
+					Assign(wPath, sysPath);
+					Rococo::IO::ForEachFileInDirectory(wPath, databaseViewBuilder.AppendFile(), true, nullptr);
+				}
+			}
+		}
+
 		void SetContentPath(cstr contentFolder) override
 		{
-			solutionFile.SetContentFolder(contentFolder);
+			solutionFile.SetConfigDirectory(contentFolder);
 
 			WideFilePath wContentFolder;
 			Assign(wContentFolder, contentFolder);
@@ -1970,18 +2190,23 @@ namespace ANON
 			WideFilePath associationPath;
 			installation->ConvertPingPathToSysPath("!scripts/declarations/sys/sexystudio.solution.sxyq", associationPath);
 
-			AutoRelease<ISourceCode> src = sparser->LoadSource(associationPath, { 1,1 });
-			AutoRelease<ISParserTree> tree;
+			if (Rococo::IO::IsFileExistant(associationPath))
+			{
+				AutoRelease<ISourceCode> src = sparser->LoadSource(associationPath, { 1,1 });
+				AutoRelease<ISParserTree> tree;
 
-			try
-			{
-				tree = sparser->CreateTree(*src);
-				solutionFile.ParseSolution(tree->Root());
+				try
+				{
+					tree = sparser->CreateTree(*src);
+					solutionFile.ParseSolution(tree->Root());
+				}
+				catch (ParseException& ex)
+				{
+					Throw(ex.ErrorCode(), "%ls error %s line column %d line %d", associationPath.buf, ex.Message(), ex.Start().x, ex.Start().y);
+				}
 			}
-			catch (ParseException& ex)
-			{
-				Throw(ex.ErrorCode(), "%ls error %s line column %d line %d", associationPath.buf, ex.Message(), ex.Start().x, ex.Start().y);
-			}
+
+			PopulateViaSearchPaths();
 		}
 
 		void PingPathToSysPath(cstr pingPath, U8FilePath& sysPath) override
@@ -2014,6 +2239,11 @@ namespace ANON
 		}
 
 		ISxyNamespace& GetRootNamespace()
+		{
+			return rootNS;
+		}
+
+		const ISxyNamespace& GetRootNamespace() const
 		{
 			return rootNS;
 		}
@@ -2161,7 +2391,7 @@ namespace ANON
 				i = filenameToFile.insert(std::make_pair(filename, new File_SXY(filename))).first;
 				auto& file = *i->second;
 
-				uint64 len = GetFileLength(fullpathToSxy);
+				uint64 len = IO::GetFileLength(fullpathToSxy);
 
 				if (len > 32_megabytes)
 				{
@@ -2212,11 +2442,11 @@ namespace ANON
 
 		void Clear() override
 		{
+			enums.clear();
 			mapCppCodeToUsage.clear();
 			resourceCount.clear();
 			filenameToFile.clear();
 			rootNS.subspaces.clear();
-			rootNS.enums.clear();
 			rootNS.functions.clear();
 			rootNS.structures.clear();
 			rootNS.interfaces.clear();
@@ -2394,10 +2624,10 @@ namespace ANON
 				trailer.start++;
 			}
 
-			for (int i = 0; i < ns.EnumCount(); ++i)
+			for (int i = 0; i < ns.NumberOfMacroEnums(); ++i)
 			{
 				// Let us suppose postHashPrefix is Sys.Graphics.H, then this is a match for #Sys.Graphics.HighRez, so if HighRez in an enum in Sys.Graphics, we should append it. We match H to HighRez
-				cstr enumName = ns.GetEnumName(i);
+				cstr enumName = ns.GetEnumMacroName(i);
 				if (StartsWith(enumName, trailer))
 				{
 					if (*nsFullname != 0)
@@ -2439,7 +2669,7 @@ namespace ANON
 
 
 		// Recursive enumeration of all subspaces and their descendants of the branch. The callback returns true to continue enumeration, else returns false to terminate it.
-		bool ForEachSubspace(ISxyNamespace& branch, Rococo::Function<bool(const ISxyNamespace& ns)> callback)
+		bool ForEachSubspace(const ISxyNamespace& branch, Rococo::Function<bool(const ISxyNamespace& ns)> callback) const
 		{
 			if (!callback.Invoke(branch))
 			{
@@ -2458,7 +2688,7 @@ namespace ANON
 			return true;
 		}
 
-		void ForeachSubspaceInTree(const ISxyNamespace& branch, const fstring& subspaceName, int depth, Rococo::Function<void(const ISxyNamespace& ns)> callback)
+		void ForeachSubspaceInTree(const ISxyNamespace& branch, const fstring& subspaceName, int depth, Rococo::Function<void(const ISxyNamespace& ns)> callback) const
 		{
 			char name[256];
 			StackStringBuilder nameBuilder(name, sizeof name);
@@ -2485,7 +2715,7 @@ namespace ANON
 			}
 		}
 
-		const ISXYPublicFunction* FindFunction(cstr functionName) override
+		const ISXYPublicFunction* FindFunction(cstr functionName) const override
 		{
 			NamespaceSplitter splitter(functionName);
 
@@ -2530,7 +2760,7 @@ namespace ANON
 			return result;
 		}
 
-		const ISXYInterface* FindInterfaceAtBranch(const ISxyNamespace& ns, cstr interfaceName)
+		const ISXYInterface* FindInterfaceAtBranch(const ISxyNamespace& ns, cstr interfaceName) const
 		{
 			for (int i = 0; i < ns.InterfaceCount(); i++)
 			{
@@ -2544,7 +2774,46 @@ namespace ANON
 			return nullptr;
 		}
 
-		const ISXYType* FindType(cstr typeName) override
+		mutable stringmap<const ISXYEnum*> mapTypeToEnum;
+
+		const ISXYEnum* FindEnumDirect(cstr typeName) const
+		{
+			if (mapTypeToEnum.empty())
+			{
+				for (auto& e : enums)
+				{
+					mapTypeToEnum.insert(e->type.c_str(), e);
+				}
+			}
+
+			auto i = mapTypeToEnum.find(typeName);
+			return i == mapTypeToEnum.end() ? nullptr : i->second;
+		}
+
+		const ISXYEnum* FindEnum(cstr typeName) const override
+		{
+			auto* e = FindEnumDirect(typeName);
+			if (e)
+			{
+				return e;
+			}
+
+			auto* t = FindType(typeName);
+			if (t == nullptr)
+			{
+				return nullptr;
+			}			
+
+			e = FindEnumDirect(t->LocalName());
+			if (e)
+			{
+				return e;
+			}
+
+			return FindEnumDirect(t->PublicName());
+		}
+
+		const ISXYType* FindType(cstr typeName) const override
 		{
 			NamespaceSplitter splitter(typeName);
 
@@ -2590,7 +2859,7 @@ namespace ANON
 			return RecursivelySearchForType(GetRootNamespace(), Substring::ToSubstring(typeName));
 		}
 
-		const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) override
+		const ISXYInterface* FindInterface(cstr typeString, const ISxyNamespace** ppNamespace = nullptr) const override
 		{
 			auto* direct = FindInterfaceDirect(GetRootNamespace(), typeString, ppNamespace);
 			if (direct)
@@ -2642,7 +2911,7 @@ namespace ANON
 			return RecursivelySearchForInterface(GetRootNamespace(), typeString, ppNamespace);
 		}
 
-		const ISXYInterface* FindInterfaceDirect(ISxyNamespace& ns, cstr typeString, const ISxyNamespace** ppNamespace)
+		const ISXYInterface* FindInterfaceDirect(const ISxyNamespace& ns, cstr typeString, const ISxyNamespace** ppNamespace) const
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -2678,7 +2947,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		const ISXYInterface* RecursivelySearchForInterface(const ISxyNamespace& ns, cstr typeString, const ISxyNamespace** ppNamespace)
+		const ISXYInterface* RecursivelySearchForInterface(const ISxyNamespace& ns, cstr typeString, const ISxyNamespace** ppNamespace) const
 		{
 			auto* implicits = ns.ImplicitNamespaces();
 
@@ -2766,7 +3035,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		const ISXYType* SearchForTypeWithoutRecursion(const ISxyNamespace& ns, cr_substring typeString)
+		const ISXYType* SearchForTypeWithoutRecursion(const ISxyNamespace& ns, cr_substring typeString) const
 		{
 			int typeCount = ns.TypeCount();
 			for (int j = 0; j < typeCount; ++j)
@@ -2781,7 +3050,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		const ISXYType* SearchForLocalTypeWithoutRecursion(const ISxyNamespace& ns, cr_substring typeString)
+		const ISXYType* SearchForLocalTypeWithoutRecursion(const ISxyNamespace& ns, cr_substring typeString) const
 		{
 			int typeCount = ns.TypeCount();
 			for (int j = 0; j < typeCount; ++j)
@@ -2803,7 +3072,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		const ISxyNamespace* FindSubspaceWithoutRecursion(const ISxyNamespace& ns, cr_substring subName)
+		const ISxyNamespace* FindSubspaceWithoutRecursion(const ISxyNamespace& ns, cr_substring subName) const
 		{
 			for (int i = 0; i < ns.SubspaceCount(); ++i)
 			{
@@ -2815,7 +3084,7 @@ namespace ANON
 			return nullptr;
 		}
 
-		const ISXYType* RecursivelySearchForType(const ISxyNamespace& ns, cr_substring typeString)
+		const ISXYType* RecursivelySearchForType(const ISxyNamespace& ns, cr_substring typeString) const
 		{
 			Substring subsearch = typeString;
 
@@ -3731,6 +4000,16 @@ namespace ANON
 			InsertMacroRecursive(fqMacroName, rootNS, file, s);
 		}
 
+		void InsertEnum(cr_sex s, const fstring& _type, File_SXY& file)
+		{
+			// We have two sorts of enum: 
+			//     1) (enum Sys.Type.Day Sun Mon Tue Wed Thu Fri Sat) // FQN types
+			//     2) (enum Day          Sun Mon Tue Wed Thu Fri Sat) // local types
+			std::string type = _type;
+			std::vector<SXYEnum::Binding> values;
+			enums.emplace_back(new SXYEnum(file,  s));
+		}
+
 		void InsertAlias(cr_sex s, const fstring& aliasFrom, const fstring& const_aliasTo, File_SXY& file)
 		{
 			// We have two sorts of alias: 
@@ -3923,8 +4202,6 @@ namespace ANON
 						InsertMacro(s, macroName, file);
 					}
 				)) continue;
-
-
 				// Example (factory $.NewUIStack $.IUIStack : (construct UIStack))
 				enum { MAX_ARGS_PER_FACTORY = 128 };
 				if (match_compound(sRoot[i], MAX_ARGS_PER_FACTORY, keywordFactory, ParseAtomic, ParseAtomic,
@@ -3968,6 +4245,20 @@ namespace ANON
 					}
 				);
 			}
+
+			for (int i = 0; i < sRoot.NumberOfElements(); ++i)
+			{
+				// Compute the enums
+				// Example (enum Day Sun Mon Tue Wed Thu Fri Sat)
+				enum { MAX_ARGS_PER_ENUM_DEFINITION = 32768 };
+				match_compound(sRoot[i], MAX_ARGS_PER_ENUM_DEFINITION, keywordEnum, ParseAtomic,
+					[this, &file](cr_sex s, const fstring& sKeyword, const fstring& typeName)
+					{
+						UNUSED(sKeyword);
+						InsertEnum(s, typeName, file);
+					}
+				);
+			}
 		}
 	};
 }
@@ -3976,12 +4267,12 @@ namespace Rococo::SexyStudio
 {
 	void PopulateWithFullNamespaceName(const ISxyNamespace& ns, IStringPopulator& populator);
 
-	ISexyDatabaseSupervisor* CreateSexyDatabase(IFactoryConfig& config)
+	SEXYSTUDIO_API ISexyDatabaseSupervisor* CreateSexyDatabase(IFactoryConfig& config)
 	{
 		return new ANON::SexyDatabase(config);
 	}
 
-	void AppendFullName(const ISxyNamespace& ns, REF StringBuilder& sb)
+	SEXYSTUDIO_API void AppendFullName(const ISxyNamespace& ns, REF StringBuilder& sb)
 	{
 		struct ANON : IStringPopulator
 		{

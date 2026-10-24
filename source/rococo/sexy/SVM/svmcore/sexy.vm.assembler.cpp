@@ -184,6 +184,11 @@ namespace
 			AddTwoByteInstruction(Opcodes::BooleanNot, r);
 		}
 
+		void Append_BooleanCompare(DINDEX Da, DINDEX Db) override
+		{
+			AddThreeByteInstruction(Opcodes::BooleanCompare, Da, Db);
+		}
+
 		void Append_IntAdd(DINDEX Da, BITCOUNT bits, DINDEX Db) override
 		{
 			if (bits == BITCOUNT_32)

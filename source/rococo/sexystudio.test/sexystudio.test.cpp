@@ -1,4 +1,9 @@
-#include <rococo.os.win32.h>
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX
+#include <rococo.target.h>
+#include <Windows.h>
+#include <rococo.window.h>
+
 #include <winerror.h>
 #include <rococo.strings.h>
 #include <rococo.io.h>
@@ -14,14 +19,14 @@ using namespace Rococo::Strings;
 using namespace Rococo::SexyStudio;
 using namespace Rococo::AutoComplete;
 using namespace Rococo::Windows;
-using namespace MSWindows;
 
 auto DLL_NAME = L"sexystudio.dll";
 
 cstr ErrorCaption = "SexyStudio Standalone App - error!";
 
 #include <rococo.sexystudio.api.h>
-#include "..\sexystudio\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.database.h"
 
 #include <cstdio>
 
@@ -701,6 +706,8 @@ void pluginInit(HANDLE /* hModule */)
 			if (factory)
 			{
 				sexyIDE = factory->CreateSexyIDE(topLevelWindow, static_SexyStudioEventHandler);
+				sexyIDE->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+				sexyIDE->GetDatabase().PopulateViaSearchPaths();
 			}
 		}
 
@@ -2219,6 +2226,24 @@ R"<CODE>(
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
 }
 
+void TestShowCompletionsForEnum()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Sys.Time.Day day)
+	(day = ."
+)<CODE>";
+
+	FileDesc desc(file, '.');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+}
+
+
 void TestShowCompletionsForeachReferenceVariable()
 {
 	cstr file =
@@ -2311,9 +2336,10 @@ void MainProtected2(HMODULE /* hLib */)
 	TestLocalMapInference2();
 
 	TestShowCompletionsForStruct();
+	TestShowCompletionsForeachReferenceVariable();
 
 skip:
-	TestShowCompletionsForeachReferenceVariable();
+	TestShowCompletionsForEnum();
 }
 
 void MainProtected(HMODULE hLib)
@@ -2349,10 +2375,60 @@ void MainProtected(HMODULE hLib)
 		} eventHandler;
 
 		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+		instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+		instance->GetDatabase().PopulateViaSearchPaths();
 
 		ISexyDatabase& database = instance->GetDatabase();
 
 		RunTests(database);
+	}
+	else
+	{
+		Throw(nErr, "CreateSexyStudioFactory did not recognize interface %s", interfaceURL);
+	}
+}
+
+void MainProtected3(HMODULE hLib)
+{
+	FARPROC proc = GetProcAddress(hLib, "CreateSexyStudioFactory");
+	if (proc == nullptr)
+	{
+		Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", DLL_NAME);
+	}
+
+	auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;
+
+	cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";
+
+	AutoFree<ISexyStudioFactory1> lfactory;
+	int nErr = CreateSexyStudioFactory((void**)&lfactory, interfaceURL);
+	if (nErr == 0)
+	{
+		struct ANON : ISexyStudioEventHandler
+		{
+			bool TryOpenEditor(cstr filename, int lineNumber) override
+			{
+				UNUSED(filename);
+				UNUSED(lineNumber);
+				return false;
+			}
+
+			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+			{
+				UNUSED(topLevelParent);
+				return EIDECloseResponse::Shutdown;
+			}
+		} eventHandler;
+
+		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+
+		instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+		instance->GetDatabase().PopulateViaSearchPaths();
+
+		char hint[1024];
+		instance->Gaffer().GetHintForCandidate(Substring::ToSubstring("UE"), hint);
+
+		printf("Hint: %s\n", hint);
 	}
 	else
 	{
@@ -2365,7 +2441,7 @@ void MainProtected(HMODULE hLib)
 int main()
 {
 	WideFilePath directory;
-	if (!GetModuleFileNameW(HMODULE::Null(), directory.buf, directory.CAPACITY)) return GetLastError();
+	if (!GetModuleFileNameW(NULL, directory.buf, directory.CAPACITY)) return GetLastError();
 	Rococo::IO::StripLastSubpath(directory.buf);
 
 	// path now contains the directory
@@ -2377,7 +2453,7 @@ int main()
 	{
 		U8FilePath msg;
 		Format(msg, "Could not load library: %ls", pathToDLL.buf);
-		MessageBoxA(HWND::Null(), msg, ErrorCaption, MB_ICONERROR);
+		MessageBoxA(NULL, msg, ErrorCaption, MB_ICONERROR);
 		return GetLastError();
 	}
 
@@ -2387,6 +2463,7 @@ int main()
 	{
 	//	MainProtected(hLib);
 		MainProtected2(hLib);
+	//	MainProtected3(hLib);
 		Rococo::Debugging::ValidateCriticalLog();
 	}
 	catch (IException& ex)

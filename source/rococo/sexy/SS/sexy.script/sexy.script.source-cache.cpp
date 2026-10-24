@@ -310,7 +310,11 @@ namespace Rococo
 			{
 				if (installation.DoPingsMatch(i->first, resourceName))
 				{
-					i->second.tree->Release();
+					if (i->second.tree)
+					{
+						i->second.tree->Release();
+					}
+
 					i->second.code->Release();
 					sources.erase(i);
 					break;
@@ -596,8 +600,8 @@ namespace Rococo
 
 	SCRIPTEXPORT_API void InitSexyScript(ISParserTree& mainModule, IPublicScriptSystem& ss, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IScriptCompilationEventHandler& onCompile, StringBuilder* declarationBuilder)
 	{
-		ScriptCompileArgs args{ ss };
-		onCompile.OnCompile(args);
+		ScriptCompileArgs args{ ss, mainModule };
+		onCompile.OnInitSexyScript(args);
 
 		sources.RegisterPackages(ss);
 
@@ -607,6 +611,8 @@ namespace Rococo
 		ss.Compile(declarationBuilder);
 		Preprocess(mainModule.Root(), sources, implicitIncludes, ss);
 		ss.AddTree(mainModule);
+
+		onCompile.OnAddedMainModuleBeforePartialCompile(args);
 
 		object.SetWarningLevel(Compiler::EWarningLevel::Always);
 

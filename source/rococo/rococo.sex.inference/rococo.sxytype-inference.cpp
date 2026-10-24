@@ -872,7 +872,7 @@ namespace Rococo::Sex::Inference
 		}
 	}
 
-	EFlowLogic PassFieldToEnumerator(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring fieldDef)
+	EFlowLogic PassFieldToEnumerator(ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring fieldDef)
 	{
 		if (fieldDef.empty())
 		{
@@ -997,7 +997,7 @@ namespace Rococo::Sex::Inference
 		return EFlowLogic::BREAK;
 	}
 
-	void EnumerateLocalFieldsOfCandidate(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring candidate, cr_substring file)
+	void EnumerateLocalFieldsOfCandidate(ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring candidate, cr_substring file)
 	{
 		// We found some type name TYPE in the file, we need to see if it is part of a type definition, e.g (struct <TYPE> <fields>)
 
@@ -1071,7 +1071,7 @@ namespace Rococo::Sex::Inference
 		}
 	}
 
-	void EnumerateLocalFields(SexyStudio::ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring type, cr_substring file)
+	void EnumerateLocalFields(ISexyFieldEnumerator& fieldEnumerator, cr_substring searchTerm, cr_substring type, cr_substring file)
 	{
 		if (type.Length() < 3)
 		{

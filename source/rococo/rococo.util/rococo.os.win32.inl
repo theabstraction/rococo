@@ -529,6 +529,8 @@ namespace Rococo
 
 		ROCOCO_API void NormalizePath(WideFilePath& path)
 		{
+			ToSysPath(path.buf);
+
 			WideFilePath out;
 			HRESULT hr = PathCchCanonicalizeEx(OUT out.buf, WideFilePath::CAPACITY, path, PATHCCH_NONE);
 			if FAILED(hr)
@@ -537,6 +539,30 @@ namespace Rococo
 			}
 
 			path = out;
+		}
+
+		ROCOCO_API void NormalizePath(U8FilePath& path)
+		{
+			WideFilePath in;
+			Assign(in, path);
+
+			ToSysPath(in.buf);
+
+			WideFilePath out;
+			HRESULT hr = PathCchCanonicalizeEx(OUT out.buf, WideFilePath::CAPACITY, in, PATHCCH_NONE);
+			if FAILED(hr)
+			{
+				Throw(hr, "Failed to normalize path for %ls", path.buf);
+			}
+
+			Assign(path, out);
+
+			fstring fPath = to_fstring(path);
+
+			if (EndsWith(fPath, "\\\\"))
+			{
+				path.buf[fPath.length - 1] = 0;
+			}
 		}
 
 		ROCOCO_API void GetExeName(U8FilePath& path)
@@ -1254,6 +1280,28 @@ namespace Rococo::OS
 	}
 } // Rococo::OS
 
+namespace Rococo::IO
+{
+	WideFilePath contentDirectoryOverride;
+
+	ROCOCO_API void SetContentDirectoryOverride(crwstr directory)
+	{
+		if (directory == nullptr)
+		{
+			Throw(0, "SetContentDirectoryOverride: null argument");
+		}
+
+		if (!IO::IsDirectory(directory))
+		{
+			Throw(0, "No such content directory: %ls", directory);
+		}
+
+		Format(contentDirectoryOverride, L"%ls", directory);
+
+		IO::EndDirectoryWithSlash(contentDirectoryOverride.buf, WideFilePath::CAPACITY);
+	}
+}
+
 namespace Rococo
 {
 	ROCOCO_API MemoryUsage ProcessMemory()
@@ -1286,7 +1334,15 @@ namespace WIN32_ANON
 	public:
 		Installation(crwstr contentIndicatorName, IOS& _os) : os(_os)
 		{
-			GetContentDirectory(contentIndicatorName, contentDirectory, os);
+			if (*IO::contentDirectoryOverride.buf == 0)
+			{
+				GetContentDirectory(contentIndicatorName, contentDirectory, os);
+			}
+			else
+			{
+				contentDirectory = IO::contentDirectoryOverride;
+			}
+
 			len = (int32)wcslen(contentDirectory);
 
 			if (!IO::IsDirectory(contentDirectory))
@@ -2299,7 +2355,7 @@ namespace Rococo::OS
 
 	ROCOCO_API void PrintDebug(const char* format, ...)
 	{
-#if _DEBUG
+#ifdef _DEBUG
 		va_list arglist;
 		va_start(arglist, format);
 		char line[4096];
@@ -2330,7 +2386,12 @@ namespace Rococo::OS
 		memset(username, 0, UNLEN + 1);
 	}
 
-	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack)
+	ROCOCO_API void SetConsoleDimensions(int, int)
+	{
+		Throw(0, __FUNCTION__ ": not implemented");
+	}
+
+	ROCOCO_API void BuildExceptionString(char* buffer, size_t capacity, IException& ex, bool appendStack, bool appendStackModule, bool appendStackAddress)
 	{
 		StackStringBuilder sb(buffer, capacity);
 
@@ -2355,31 +2416,46 @@ namespace Rococo::OS
 		sb << ex.Message() << "\n";
 
 		auto stackFrames = ex.StackFrames();
+
 		if (appendStack && stackFrames)
 		{
 			sb << "Stack Frames\n";
 			struct ANON : Debugging::IStackFrameFormatter
 			{
 				StringBuilder* sb;
+				bool appendStackModule;
+				bool appendStackAddress;
+				bool skip = false;
 
 				void Format(const Debugging::StackFrame& sf) override
 				{
+					if (skip) return;
+
 					auto& s = *sb;
-					s.AppendFormat("#%-2u %-48.48s ", sf.depth, sf.functionName);
+
+					if (Eq("invoke_main", sf.functionName))
+					{
+						skip = true;
+						return;
+					}
+
+					s.AppendFormat("%-2u %-36.36s ", sf.depth, sf.functionName);
 					if (*sf.sourceFile)
 					{
-						s.AppendFormat("Line #%4u of %-64s ", sf.lineNumber, sf.sourceFile);
+						s.AppendFormat("%s (%d) ", sf.sourceFile, sf.lineNumber);
 					}
 					else
 					{
 						s.AppendFormat("%-79.79s", "");
 					}
-					s.AppendFormat("%-64s ", sf.moduleName);
-					s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
+					if (appendStackModule) s.AppendFormat("%-64s ", sf.moduleName);
+					if (appendStackAddress) s.AppendFormat("%4.4u:%016.16llX", sf.address.segment, sf.address.offset);
 					s << "\n";
 				}
 			} formatter;
 			formatter.sb = &sb;
+			formatter.appendStackAddress = appendStackAddress;
+			formatter.appendStackModule = appendStackModule;
 
 			stackFrames->FormatEachStackFrame(formatter);
 		}
@@ -2488,7 +2564,7 @@ namespace Rococo::IO
 		}
 	}
 
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text)
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, crwstr filename, const fstring& text)
 	{
 		std::vector<wchar_t> fullPath;
 		GetFullPathFromTarget(target, filename, OUT fullPath);
@@ -2516,7 +2592,7 @@ namespace Rococo::IO
 					return;
 				}
 
-				if (strcmp(text, specimen) == 0)
+				if (memcmp(text, specimen, len) == 0)
 				{
 					match = true;
 				}
@@ -2536,17 +2612,114 @@ namespace Rococo::IO
 		{
 			SaveAsciiTextFile(target, fullPath.data(), text);
 		}
+
+		return onLoad.match;
 	}
 
-	ROCOCO_API void SaveAsciiTextFileIfDifferent(TargetDirectory target, const char* filename, const fstring& text)
+	ROCOCO_API bool SaveAsciiTextFileIfDifferent(TargetDirectory target, const char* filename, const fstring& text)
 	{
 		WideFilePath wPath;
 		Assign(wPath, filename);
-		SaveAsciiTextFileIfDifferent(target, wPath, text);
+		return SaveAsciiTextFileIfDifferent(target, wPath, text);
+	}
+
+	ROCOCO_API crwstr FindChar(crwstr token, char c)
+	{
+		for (crwstr p = token; *p != 0; p++)
+		{
+			if (*p == c)
+			{
+				return p;
+			}
+		}
+
+		return nullptr;
+	}
+
+
+	HANDLE OpenFileForWriteCreatingDirectories(crwstr filename)
+	{
+		HANDLE hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			int err = GetLastError();
+
+			if (wcslen(filename) >= WideFilePath::CAPACITY)
+			{
+				Throw(err, "Cannot create file %ls. Unexpected filename length", filename);
+			}
+
+			WideFilePath subPath;
+
+			bool addedDirectory = false;
+
+			// Path not found:
+			if (err == 3)
+			{
+				WideFilePath pathBuilder;
+				crwstr slashPos = FindChar(filename + 1, '\\');
+				if (!slashPos)
+				{
+					Throw(err, "Cannot create file %ls", filename);
+				}
+
+				crwstr p = slashPos;
+				for (;;)
+				{
+					p = FindChar(p + 1, '\\');
+					if (p == nullptr)
+					{
+						break;
+					}
+
+					wcsncpy_s(subPath.buf, WideFilePath::CAPACITY, filename, p - filename);
+
+					if (!IO::IsDirectory(subPath.buf))
+					{
+						try
+						{
+							IO::CreateDirectoryFolder(subPath);
+						}
+						catch (IException& ex)
+						{
+							Throw(ex.ErrorCode(), "Error: %s attempting to create subpath for %ls", ex.Message(), filename);
+						}
+						addedDirectory = true;
+					}
+				}
+
+				if (!addedDirectory)
+				{
+					// We did not added subpaths, so we will not be able to recreate the file
+					Throw(err, "Cannot create file %ls. Path not found and paths were not created", filename);
+				}
+
+				// Figure first slash follows device, such as C: or My-System//
+				hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+				if (hFile == INVALID_HANDLE_VALUE)
+				{
+					err = GetLastError();
+					Throw(err, "Cannot create file %ls. Subpaths *were* created however", filename);
+				}
+			}
+			else
+			{
+				Throw(err, "Cannot create file %ls", filename);
+			}
+		}
+
+		return hFile;
 	}
 
 	ROCOCO_API void SaveAsciiTextFile(TargetDirectory target, crwstr filename, const fstring& text)
 	{
+		if (!filename || *filename == 0)
+		{
+			Throw(0, "Rococo::IO::SaveAsciiTextFile(<blank>): filename was blank");
+		}
+
 		if (text.length > 1024_megabytes)
 		{
 			Throw(0, "Rococo::IO::SaveAsciiTextFile(%ls): Sanity check. String was > 1 gigabyte in length", filename);
@@ -2579,21 +2752,11 @@ namespace Rococo::IO
 				Throw(0, "Error allocating memory for SaveAsciiTextFile");
 			}
 
-			hFile = CreateFileW(fullPath.data(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-			if (hFile == INVALID_HANDLE_VALUE)
-			{
-				Throw(GetLastError(), "Cannot create file %ls", fullPath.data());
-			}
+			hFile = OpenFileForWriteCreatingDirectories(fullPath.data());
 		}
 		break;
 		case TargetDirectory_Root:
-			hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-			if (hFile == INVALID_HANDLE_VALUE)
-			{
-				Throw(GetLastError(), "Cannot create file %ls in root directory", filename);
-			}
+			hFile = OpenFileForWriteCreatingDirectories(filename);
 			break;
 		default:
 			Throw(0, "Rococo::IO::SaveAsciiTextFile(... %ls): Unrecognized target directory", filename);
@@ -2696,6 +2859,94 @@ namespace Rococo::IO
 
 		operator T* () { return instance; }
 	};
+
+	struct LocalFolderPath
+	{
+		PWSTR path = nullptr;
+
+		LocalFolderPath()
+		{
+			HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
+			if (FAILED(hr) || path == nullptr)
+			{
+				Throw(hr, "Failed to identify FOLDERID_LocalAppData folder. Win32 issue?");
+			}
+
+			if (wcslen(path) > 128)
+			{
+				CoTaskMemFree(path);
+				path = nullptr;
+				Throw(E_FAIL, "Cannot run sexy studio. FOLDERID_LocalAppData path > 128 characters.");
+			}
+		}
+
+		~LocalFolderPath()
+		{
+			if (path)
+			{
+				CoTaskMemFree(path);
+			}
+		}
+
+		operator crwstr () const
+		{
+			return path;
+		}
+	};
+
+	ROCOCO_API U8FilePath GetRococoPath()
+	{
+		LocalFolderPath localFolderPath;
+
+		struct OnLoad : IStringPopulator
+		{
+			U8FilePath path;
+			void Populate(cstr text) override
+			{
+				Format(path, "%hs", text);
+			}
+		} onLoad;
+
+		WideFilePath wPath;
+		Format(wPath, L"%s\\19th-Century-Software\\rococo.cfg", (crwstr)localFolderPath);
+
+		try
+		{
+			Rococo::IO::LoadAsciiTextFile(onLoad, wPath);
+			return onLoad.path;
+		}
+		catch (...)
+		{
+			Format(onLoad.path, "C:\\work\\rococo\\");
+			if (IO::IsDirectory(onLoad.path))
+			{
+				return onLoad.path;
+			}
+
+			Format(onLoad.path, "D:\\work\\rococo\\");
+			if (IO::IsDirectory(onLoad.path))
+			{
+				return onLoad.path;
+			}
+
+			throw;
+		}
+	}
+
+	ROCOCO_API uint64 GetFileLength(cstr filename)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA data;
+		if (!GetFileAttributesExA(filename, GetFileExInfoStandard, &data))
+		{
+			return 0;
+		}
+
+		ULARGE_INTEGER len;
+		len.HighPart = data.nFileSizeHigh;
+		len.LowPart = data.nFileSizeLow;
+
+		return len.QuadPart;
+	}
 
 	ROCOCO_API bool ChooseDirectory(char* name, size_t capacity)
 	{
@@ -3207,27 +3458,43 @@ namespace Rococo::IO
 		searchObj.RouteSearchResults(nullptr, onFile, containerContext, recurse);
 	}
 
-	struct PathCache : IPathCacheSupervisor
+	struct PathCache : IPathCacheSupervisor, IEventCallback<U8FileItemData>
 	{
 		stringmap<int> files;
 		mutable std::vector<cstr> results; // These point to the persistent strings in the stringmap, so will be valid for the lifetime of the file map
 
-		void AddPathsFromDirectory(const char* directory, bool recurse) override
+		std::vector<HString> legalExtensions;
+
+		void AddLegalExtension(cstr legalExtension)
 		{
-			struct ANON : IEventCallback<U8FileItemData>
+			legalExtensions.push_back(legalExtension);
+		}
+
+		void OnEvent(U8FileItemData& item)
+		{
+			if (!item.isDirectory)
 			{
-				stringmap<int>* files;
-				void OnEvent(U8FileItemData& item)
+				if (!legalExtensions.empty())
 				{
-					if (!item.isDirectory)
+					for (const HString& ext : legalExtensions)
 					{
-						files->insert(item.fullPath, 0);
+						if (EndsWith(item.fullPath, ext))
+						{
+							files.insert(item.fullPath, 0);
+							return;
+						}
 					}
 				}
-			} onFile;
-			onFile.files = &files;
+				else
+				{
+					files.insert(item.fullPath, 0);
+				}				
+			}
+		}
 
-			ForEachFileInDirectory(directory, onFile, recurse, nullptr);
+		void AddPathsFromDirectory(const char* directory, bool recurse) override
+		{
+			ForEachFileInDirectory(directory, *this, recurse, nullptr);
 
 			results.clear();
 		}

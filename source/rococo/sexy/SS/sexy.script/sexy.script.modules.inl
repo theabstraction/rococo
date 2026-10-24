@@ -57,13 +57,32 @@ namespace Rococo::Script
 	{
 		if (!arg.TryResolveArgument())
 		{
+			char nsNote[256] = { 0 };
+
+			cstr body, tail;
+			NamespaceSplitter splitter(type);
+			if (splitter.SplitTail(body, tail))
+			{
+				if (isupper(*body))
+				{										
+					if (arg.Parent().Object().GetRootNamespace().FindSubspace(body))
+					{
+						SafeFormat(nsNote, "The namespace '%s' was recognized.", body);
+					}
+					else
+					{
+						SafeFormat(nsNote, "The namespace '%s' was not recognized.", body);
+					}
+				}
+			}
+
 			if (genericArgType != NULL)
 			{
-				Throw(e, "Unknown type in argument: *** %s *** %s %s of function %s", type, genericArgType, id, source);
+				Throw(e, "Unknown type in argument: (*** %s ***<%s> %s) of function %s. %s", type, genericArgType, id, source, nsNote);
 			}
 			else
 			{
-				Throw(e, "Unknown type in argument (*** %s *** %s of function %s", type, id, source);
+				Throw(e, "Unknown type in argument (*** %s *** %s) of function %s. %s", type, id, source, nsNote);
 			}
 		}
 	}
@@ -120,7 +139,6 @@ namespace Rococo::Script
 			Throw(src, "%s", e.Message());
 		}
 	}
-
 	INamespaceBuilder& ValidateSplitTail
 		(
 			REF NamespaceSplitter& splitter,
@@ -832,22 +850,19 @@ namespace Rococo::Script
 
 	void AppendInvokeCallDestructor(CCompileEnvironment& ce, const IStructure& s, cstr name, int SFoffset)
 	{
-		TokenBuffer destructorName;
-		StringPrint(destructorName, ("%s.Destruct"), s.Name());
-		
 		if (!IsNullType(s))
 		{
 			if (s == ce.StructList())
 			{
 				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
-				AppendInvoke(ce, GetListCallbacks(ce).ListRelease, *(const ISExpression*) s.Definition());
+				AppendInvoke(ce, GetListCallbacks(ce).ListRelease, *(const ISExpression*)s.Definition());
 				return;
 			}
 
 			if (s == ce.StructMap())
 			{
 				ce.Builder.Assembler().Append_GetStackFrameValue(SFoffset, VM::REGISTER_D7, BITCOUNT_POINTER);
-				AppendInvoke(ce, GetMapCallbacks(ce).MapRelease,  *(const ISExpression*) s.Definition());
+				AppendInvoke(ce, GetMapCallbacks(ce).MapRelease, *(const ISExpression*)s.Definition());
 				return;
 			}
 
@@ -857,20 +872,35 @@ namespace Rococo::Script
 				AppendInvoke(ce, GetArrayCallbacks(ce).ArrayRelease, *(const ISExpression*)s.Definition());
 				return;
 			}
-
-			// Regular class			
-			const IFunction* f = s.Module().FindFunction(destructorName);
-			if (f == NULL)
-			{
-				// concrete class without destructor
-				return;
-			}
 		}
-		
+
+		// Regular class			
+		const IFunction* f;
+		TokenBuffer destructorName;
+		if (s.IsPersistent())
+		{
+			StringPrint(destructorName, ("%s.Destruct"), s.Name());
+			f = s.Module().FindFunction(destructorName);
+		}
+		else
+		{
+			StringPrint(destructorName, ("--%s"), s.Name());
+			f = s.Module().FindNativeFactory(destructorName);
+		}
+		if (f == NULL)
+		{
+			// concrete class without destructor
+			return;
+		}
+
+		CodeSection code;
+		f->Code().GetCodeSection(OUT code);
+
 		TokenBuffer destructorSymbol;
 		StringPrint(destructorSymbol, ("%s %s.Destruct"), GetFriendlyName(s), name);
 		ce.Builder.AddSymbol(destructorSymbol);	
-		ce.Builder.Assembler().Append_CallVirtualFunctionByAddress(SFoffset, sizeof(ID_BYTECODE));
+		ce.Builder.PushVariableRef(name, -1);
+		ce.Builder.Assembler().Append_CallById(code.Id);
 		ce.Builder.Assembler().Append_Pop(sizeof(size_t));
 	}
 
@@ -903,13 +933,13 @@ namespace Rococo::Script
 
 		if (s == ce.StructList())
 		{
-			ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetListCallbacks(ce).ListRelease, sequence);
 			return;
 		}
 		else if (s == ce.StructMap())
 		{
-			ce.Builder.AssignVariableToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetMapCallbacks(ce).MapRelease, sequence);
 			return;
 		}
@@ -917,7 +947,7 @@ namespace Rococo::Script
 		{
 			char srcName[256];
 			SafeFormat(srcName, 256, "%s._lockSource", instanceName);
-			ce.Builder.AssignVariableToTemp(srcName, 9); // Lock source Goes to D13
+			ce.Builder.AssignVariableToRegister(srcName, VM::REGISTER_D13); // Lock source Goes to D13
 			ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayUnlock);
 		}
 
@@ -955,7 +985,7 @@ namespace Rococo::Script
 			// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
 			// After the pseudo variable we can expect the actual reference, a pointer type by value
 
-			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetListCallbacks(ce).NodeReleaseRef, sequence); // release the ref to the node
 		}
 		else if (*def.ResolvedType == ce.Object.Common().TypeMapNode())
@@ -963,7 +993,7 @@ namespace Rococo::Script
 			// Expecting node to be by ARGUMENTUSAGE_BYVALUE and allocsize to be zero, as the only such here are pseudo variables
 			// After the pseudo variable we can expect the actual reference, a pointer type by value
 
-			ce.Builder.AssignVariableRefToTemp(instanceName, Rococo::ROOT_TEMPDEPTH);
+			ce.Builder.AssignVariableRefToRegister(instanceName, VM::REGISTER_D7);
 			AppendInvoke(ce, GetMapCallbacks(ce).MapNodeReleaseRef, sequence); // release the ref to the node
 		}
 	}
@@ -1036,7 +1066,10 @@ namespace Rococo::Script
 		for(int i = start; i <= end; i++)
 		{
 			cr_sex s = sequence.GetElement(i);
-			CompileExpression(ce, s); 
+
+			auto* sTransform = ce.SS.GetTransform(s);
+			sTransform = sTransform ? sTransform : &s;
+			CompileExpression(ce, *sTransform);
 		}
 
 		AppendDeconstruct(ce, sequence, true);
@@ -1207,7 +1240,7 @@ namespace Rococo::Script
 				Throw(args, "Expecting a variable of type %s, but found a %s", GetFriendlyName(type), GetFriendlyName(*def.ResolvedType));
 			}
 
-			ce.Builder.AssignVariableAddressToTemp(sargs.buffer, 0); // the src ptr is now in D4
+			ce.Builder.AssignVariableAddressToRegister(sargs.buffer, VM::REGISTER_D4); // the src ptr is now in D4
 			ce.Builder.Assembler().Append_CopyMemory(registerIndexToRef, REGISTER_D4, def.ResolvedType->SizeOfStruct());
 			return;
 		}
@@ -1254,7 +1287,7 @@ namespace Rococo::Script
 
 				if (mtype.InterfaceCount() > 0)
 				{
-					ce.Builder.AssignVariableToTemp(GetAtomicArg(arg), 3); // Numeric value in D7
+					ce.Builder.AssignVariableToRegister(GetAtomicArg(arg), VM::REGISTER_D7); // Numeric value in D7
 					ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER);
 					ce.Builder.Append_IncRef();
 					ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, BITCOUNT_POINTER, registerIndexToRef, offset); // write the argument to the member
@@ -1275,7 +1308,7 @@ namespace Rococo::Script
 
 	void CompileListConstruct(CCompileEnvironment& ce, cr_sex def, const IMember& member, cstr fullName)
 	{
-		ce.Builder.AssignVariableRefToTemp(fullName, 0); // List goes to D4
+		ce.Builder.AssignVariableRefToRegister(fullName, VM::REGISTER_D4); // List goes to D4
 
 		VariantValue v;
 		v.vPtrValue = (void*) member.UnderlyingGenericArg1Type();
@@ -1290,7 +1323,7 @@ namespace Rococo::Script
 	{
 		UNUSED(def);
 
-		ce.Builder.AssignVariableRefToTemp(fullName, Rococo::ROOT_TEMPDEPTH); // Map goes to D7
+		ce.Builder.AssignVariableRefToRegister(fullName, VM::REGISTER_D7); // Map goes to D7
 
 		VariantValue key;
 		key.vPtrValue = (void*) member.UnderlyingGenericArg1Type();
@@ -1467,7 +1500,7 @@ namespace Rococo::Script
 		CodeSection section;
 		f.Builder().GetCodeSection(OUT section);
 
-		auto proxyId = f.Object().ProgramMemory().AddBytecode();
+		auto proxyId = f.Object().ProgramMemory().AddBytecode(f.Name());
 		f.SetProxy(proxyId);
 
 		auto& a = f.Builder().Assembler();
@@ -1561,7 +1594,7 @@ namespace Rococo::Script
 		builder.Assembler().Clear();
 	}
 
-	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype);
+	IFunctionBuilder& DeclareFunctionForScript(CScript& script, cr_sex source, FunctionPrototype& prototype);
 
 	void CompileNullMethod_Throws(IScriptSystem& ss, const IObjectInterface& interface, IFunctionBuilder& f)
 	{
@@ -1641,6 +1674,27 @@ namespace Rococo::Script
 
 #define VALIDATE_ARG
 #define ALLOW_REWRITE_VTABLES // This should increase vcall speed by about 2.5x, or from 40M to 100M virtual calls per second on an i7-11700 @ 2.50GHz
+
+	VM_CALLBACK(ArchetypeGetName)
+	{
+		IScriptSystem& ss = *(IScriptSystem*)context;
+
+		struct Archetype
+		{
+			ID_BYTECODE byteCodeId;
+			void* sf;
+		};
+
+		Archetype* archetype = reinterpret_cast<Archetype*>(registers[REGISTER_D4].vPtrValue);
+
+		fstring fName = ss.ProgramObject().ProgramMemory().GetFunctionNameById(archetype->byteCodeId);
+
+		CStringConstant* sc = ss.ReflectImmutableStringPointer(fName.buffer, fName.length);
+
+		VariantValue v;
+		v.sizetValue = (size_t)sc->header.AddressOfVTable0();
+		registers[REGISTER_D7] = v;
+	}
 
 	VM_CALLBACK(JumpFromProxyToMethod)
 	{
@@ -1977,7 +2031,7 @@ namespace Rococo::Script
 		StringPrint(qualifiedMethodName, ("%s.%s"), nullObject.Name(), nullMethod.Name());
 
 		FunctionPrototype fp(qualifiedMethodName, true);
-		IFunctionBuilder& f = Rococo::Script::DeclareFunction(nullObject.Module(), source, fp);
+		IFunctionBuilder& f = Rococo::Script::DeclareFunctionForModule(nullObject.Module(), source, fp);
 
 		for (int i = 0; i < nullMethod.NumberOfOutputs(); ++i)
 		{
@@ -2270,6 +2324,8 @@ namespace Rococo::Script
 				CScript* script = scriptBinding.second;
 				cstr name = script->ProgramModule().Name();	
 
+				ResolverContext rc(script->Tree(), System().Resolver());
+
 				cr_sex root = script->Tree().Root();
 				
 				try
@@ -2492,7 +2548,11 @@ namespace Rococo::Script
 			ForEachUncompiledScript(fnctorComputeArchetypes);
 
 			const void* pSrcError = nullptr;
-			if (!programObject.ResolveDefinitions(&pSrcError))
+
+			size_t startIndex = limits.startingIndex;
+			size_t endIndex = limits.maxModuleCount == 0 ? scripts.size() : limits.maxModuleCount;
+
+			if (!programObject.ResolveDefinitions(&pSrcError, startIndex, endIndex))
 			{
 				if (pSrcError)
 				{
@@ -2504,7 +2564,7 @@ namespace Rococo::Script
 				start.x = end.x = 0;
 				start.y = end.y = 0;
 
-				ParseException ex(start, end, "Sexy Script System", "Failed to resolve definitions", "", NULL);
+				ParseException ex(start, end, "Sexy Script System", "Failed to resolve definitions. Check logs", "", NULL);
 				OS::TripDebugger();
 				throw ex;
 			}
@@ -2557,6 +2617,19 @@ namespace Rococo::Script
 			ForEachUncompiledScript(fnctorComputeGlobals);
 
 			globalBaseIndex = fnctorComputeGlobals.globalBaseIndex;
+		}
+
+		void CompileEnumsAndConstants()
+		{
+			struct FnctorComputeEnumsAndConstants
+			{
+				void Process(CScript& script, cstr name)
+				{
+					UNUSED(name);
+					script.ComputeEnumsAndConstants();
+				}
+			} fnctorComputeEnumsAndConstants;
+			ForEachUncompiledScript(fnctorComputeEnumsAndConstants);
 		}
 
 		bool TryInlineIString()
@@ -2733,7 +2806,7 @@ namespace Rococo::Script
 		cr_sex source = *(const Sex::ISExpression*) archetype.Definition();
 
       FunctionPrototype fp(nullFunctionName, true);
-      IFunctionBuilder& f = Rococo::Script::DeclareFunction(module, source, fp);
+      IFunctionBuilder& f = Rococo::Script::DeclareFunctionForModule(module, source, fp);
 
 		scripts.nullArchetypeFunctions.insert(std::make_pair(&archetype, &f));
 
@@ -3087,18 +3160,56 @@ namespace Rococo::Script
 	   return false;
    }
 
-   void CompileMacrosRecursive(CScript& script, cr_sex sParent)
+   const ISExpression& GetCurrentTransform(IScriptSystem& ss, cr_sex src)
    {
-	   for (int i = 0; i < sParent.NumberOfElements(); i++)
+	   const ISExpression* result = &src;
+
+	   for (;;)
 	   {
-		   auto& s = sParent[i];
-		   if (IsMacroInvocation(s))
+		   const ISExpression* transform = ss.GetTransform(*result);
+		   if (transform)
 		   {
-			   script.Invoke_S_Macro(s);
+			   result = transform;
 		   }
 		   else
 		   {
-			   CompileMacrosRecursive(script, s);
+			   return *result;
+		   }
+	   }
+   }
+
+   void CompileMacrosRecursive(CScript& script, cr_sex sAnyParent, int depth)
+   {
+	   enum { MAX_DEPTH = 255 };
+
+	   if (depth >= MAX_DEPTH)
+	   {
+		   Throw(sAnyParent, "CompileMacrosRecursive failed, maximum expansion depth reached: %d", depth);
+	   }
+
+	   auto& ss = script.System();
+
+	   cr_sex sParent = GetCurrentTransform(ss, sAnyParent);
+
+	   for (int i = 0; i < sParent.NumberOfElements(); i++)
+	   {
+		   auto& sChild = GetCurrentTransform(ss, sParent[i]);
+
+		   if (IsMacroInvocation(sChild))
+		   {
+			   script.Invoke_S_Macro(sChild);
+
+			   // The macro created a new parent to replace the old, so we need to recurse through that to expand other macros
+			   auto* sTransformedParent = ss.GetTransform(sParent);
+			   if (sTransformedParent)
+			   {
+				   CompileMacrosRecursive(script, *sTransformedParent, depth + 1);
+				   return;
+			   }
+		   }
+		   else
+		   {
+			   CompileMacrosRecursive(script, sChild, depth + 1);
 		   }
 	   }
    }
@@ -3106,7 +3217,8 @@ namespace Rococo::Script
    void CScript::CompileTopLevelMacrosForModule()
    {
 	   cr_sex root = tree.Root();
-	   CompileMacrosRecursive(*this, root);
+	   int depth = 0;
+	   CompileMacrosRecursive(*this, root, depth);
    }
 
    void  CScript::CompileNextClosures()
@@ -3661,37 +3773,48 @@ namespace Rococo::Script
 			archetypes[count] = MatchArchetype(type, module);
 			genericArg1s[count] = NULL;
 			isOut[count] = true;
-			if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
+			if (resolvedTypes[count] == NULL) Throw(typeNameExptr, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
 			count++;
 		}
 
 		for (int i = 2; i < mapIndex; ++i)
 		{
-			cr_sex typeNameExptr = methodExpr.GetElement(i);
-			AssertCompound(typeNameExptr);
-			AssertNotTooFewElements(typeNameExptr, 2);
+			cr_sex sArgDef = methodExpr.GetElement(i);
+			AssertCompound(sArgDef);
+			AssertNotTooFewElements(sArgDef, 2);
 
-			cr_sex type = GetAtomicArg(typeNameExptr, 0);
+			cr_sex sType = GetAtomicArg(sArgDef, 0);
 
-			if (AreEqual(type.String(), ("array")))
+			if (AreEqual(sType.String(), "array"))
 			{
-				AssertNotTooManyElements(typeNameExptr, 3);
-				cr_sex name = GetAtomicArg(typeNameExptr, 2);
-				cr_sex elementType = GetAtomicArg(typeNameExptr, 1);
+				AssertNotTooManyElements(sArgDef, 3);
+				cr_sex name = GetAtomicArg(sArgDef, 2);
+				cr_sex elementType = GetAtomicArg(sArgDef, 1);
 				names[count] = name.c_str();
-				resolvedTypes[count] = MatchStructure(type, module);
-				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
+				resolvedTypes[count] = MatchStructure(sType, module);
+				if (resolvedTypes[count] == NULL) Throw(sArgDef, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
 				archetypes[count] = NULL;
 				genericArg1s[count] = MatchStructure(elementType, module);
 			}
+			else if (AreEqual(sType.String(), "out") || AreEqual(sType.String(), "ref") || AreEqual(sType.String(), "const"))
+			{
+				AssertNotTooManyElements(sArgDef, 3);
+				cr_sex sName = GetAtomicArg(sArgDef, 2);
+				cr_sex sArgType = GetAtomicArg(sArgDef, 1);
+				names[count] = sName.c_str();
+				resolvedTypes[count] = MatchStructure(sArgType, module);
+				if (resolvedTypes[count] == NULL) Throw(sArgDef, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
+				archetypes[count] = MatchArchetype(sArgType, module);
+				genericArg1s[count] = NULL;
+			}
 			else
 			{
-				AssertNotTooManyElements(typeNameExptr, 2);
-				cr_sex name = GetAtomicArg(typeNameExptr, 1);
+				AssertNotTooManyElements(sArgDef, 2);
+				cr_sex name = GetAtomicArg(sArgDef, 1);
 				names[count] = name.c_str();
-				resolvedTypes[count] = MatchStructure(type, module);
-				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));
-				archetypes[count] = MatchArchetype(type, module);
+				resolvedTypes[count] = MatchStructure(sType, module);
+				if (resolvedTypes[count] == NULL) Throw(sArgDef, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
+				archetypes[count] = MatchArchetype(sType, module);
 				genericArg1s[count] = NULL;
 			}
 
@@ -3699,8 +3822,8 @@ namespace Rococo::Script
 			count++;;
 		}
 
-		names[count] = ("_vTable");
-		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure(("Pointer"));
+		names[count] = "_vTable";
+		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure("Pointer");
 		archetypes[count] = NULL;
 		genericArg1s[count] = NULL;
 		isOut[count] = false;
@@ -4134,6 +4257,7 @@ namespace Rococo::Script
 		"global",
 		"$",
 		"strong",
+		"enum",
 		NULL
 	};
 
@@ -4523,10 +4647,7 @@ namespace Rococo::Script
 		return tree.Root();
 	}
 
-	cr_sex CScript::GetActiveExpression(cr_sex s)
-	{
-		return s;
-	}
+	void ValidateConstantName(cr_sex src, cstr type, sexstring name);
 
 	void CScript::ComputeStructureNames()
 	{
@@ -4536,7 +4657,7 @@ namespace Rococo::Script
 
 		for(int i = 0; i < root.NumberOfElements(); i++)
 		{
-			cr_sex topLevelItem = GetActiveExpression(root[i]);
+			cr_sex topLevelItem = root[i];
 			AssertNotTooFewElements(topLevelItem, 1);
 			cr_sex elementNameExpr = GetAtomicArg(topLevelItem, 0);
 			sexstring elementName = elementNameExpr.String();
@@ -4614,6 +4735,8 @@ namespace Rococo::Script
 				cr_sex strongNameExpr = GetAtomicArg(topLevelItem, 1);
 				cstr strongName = strongNameExpr.c_str();
 
+				ValidateConstantName(strongNameExpr, "strong", strongNameExpr.String());
+
 				cr_sex wrapper = topLevelItem[2];
 				if (wrapper.NumberOfElements() != 1)
 				{
@@ -4632,6 +4755,134 @@ namespace Rococo::Script
 				structDef.StructDef = &topLevelItem;
 
 				localStructures.push_back(structDef);
+			}
+		}
+	}
+
+	void ValidateConstantName(cr_sex src, cstr type, sexstring name)
+	{
+		if (name->Length == 0 || name->Length >= 64)
+		{
+			Throw(src, "Expecting %s with length 1 <= length < 64", type);
+		}
+
+		cstr b = name->Buffer;
+		if (!IsCapital(b[0]))
+		{
+			Throw(src, "Expecting %s to begin with a capital letter", type);
+		}
+
+		for (cstr p = b + 1; *p != 0; p++)
+		{
+			if (!IsAlphaNumeric(*p))
+			{
+				Throw(src, "Expecting %s to be an alpha numeric sequence", type);
+			}
+		}
+	}
+
+	void CScript::ComputeEnum(cr_sex sEnum)
+	{
+		// (enum <associated-type> <...items...>), e.g (enum Sys.Type.Days (Mon 1) Tue Wed Thu Fri Sat Sun)
+
+		if (sEnum.NumberOfElements() < 3)
+		{
+			Throw(sEnum, "Expecting at least three elements in an enum expression (enum <type> <...items...>)");
+		}
+
+		cr_sex sEnumType = sEnum[1];
+
+		fstring fqTypeName = GetAtomicArg(sEnumType);
+
+		if (!IsCapital(fqTypeName.buffer[0]))
+		{
+			Throw(sEnum, "Expecting a fully qualified enum type name at least three elements in an enum expression (enum <type> <...items...>)");
+		}
+
+		IStructureBuilder* type = module.FindStructure(fqTypeName);
+		if (!type)
+		{
+			type = const_cast<IStructureBuilder*>(static_cast<const IStructureBuilder*>(FindStructure(System(), fqTypeName)));
+		}
+
+		if (type == nullptr)
+		{
+			Throw(sEnumType, "Could not identify underlying enumeration type. Ensure the type is defined and compiled before the (enum %s ...) statement.", fqTypeName.buffer);
+		}
+
+		int64 counter = 0;
+
+		for (int32 i = 2; i < sEnum.NumberOfElements(); i++)
+		{
+			cr_sex sArg = sEnum[i];
+			if (IsAtomic(sArg))
+			{
+				sexstring sArgStr = sArg.String();
+				ValidateConstantName(sArg, "enum", sArgStr);
+
+				type->AddEnum(sArgStr->Buffer, counter++);
+			}
+			else if (IsCompound(sArg))
+			{
+				if (sArg.NumberOfElements() != 2)
+				{
+					Throw(sArg, "Expecting (<enum-name> <start-value>)");
+				}
+
+				cr_sex sArgName = sArg[0];
+
+				if (!IsAtomic(sArgName))
+				{
+					Throw(sArgName, "Expecting an enum name");
+				}
+
+				ValidateConstantName(sArg, "enum", sArgName.String());
+
+				cr_sex sArgValue = sArg[1];
+
+				if (!IsAtomic(sArgValue))
+				{
+					Throw(sArgValue, "Expecting an enum value (64-bit signed int)");
+				}
+
+				VariantValue v;
+				Parse::PARSERESULT result = Parse::TryParse(OUT v, Rococo::SexyVarType_Int64, sArgValue.c_str());
+				if (result != Parse::PARSERESULT_GOOD)
+				{
+					Throw(sArgValue, "Expecting an enum value (64-bit signed int)");
+				}
+
+				counter = v.int64Value;
+
+				try
+				{
+					type->AddEnum(sArgName.String()->Buffer, counter++);
+				}
+				catch(IException& ex)
+				{
+					Throw(sArgName, "%s", ex.Message());
+				}
+			}
+			else
+			{
+				Throw(sArg, "Expecting either an enum name atomic, or a compound expression (atomic-enum-name <int64-value>), E.g (Dimensions 4)");
+			}
+		}
+	}
+
+	void CScript::ComputeEnumsAndConstants()
+	{
+		cr_sex root = tree.Root();
+		for (int i = 0; i < root.NumberOfElements(); i++)
+		{
+			cr_sex topLevelItem = root.GetElement(i);
+			AssertNotTooFewElements(topLevelItem, 1);
+
+			cr_sex elementName = GetAtomicArg(topLevelItem, 0);
+
+			if (AreEqual(elementName.String(), "enum"))
+			{
+				ComputeEnum(topLevelItem);
 			}
 		}
 	}
@@ -4667,7 +4918,7 @@ namespace Rococo::Script
 
 				FunctionPrototype prototype(functionName.c_str(), isMethod);
 				
-				IFunctionBuilder& f = DeclareFunction(*this, topLevelItem, prototype);			
+				IFunctionBuilder& f = DeclareFunctionForScript(*this, topLevelItem, prototype);
 
 				CBindFnDefToExpression binding;
 				binding.Fn = &f;
@@ -4716,7 +4967,7 @@ namespace Rococo::Script
 		}
 	}
 
-	IFunctionBuilder& DeclareFunction(IModuleBuilder& module, cr_sex source, FunctionPrototype& prototype)
+	IFunctionBuilder& DeclareFunctionForModule(IModuleBuilder& module, cr_sex source, FunctionPrototype& prototype)
 	{
 		try
 		{
@@ -4729,9 +4980,9 @@ namespace Rococo::Script
 		}		
 	}
 
-	IFunctionBuilder& DeclareFunction(CScript& script, cr_sex source, FunctionPrototype& prototype)
+	IFunctionBuilder& DeclareFunctionForScript(CScript& script, cr_sex source, FunctionPrototype& prototype)
 	{
-		return DeclareFunction(script.ProgramModule(), source, prototype);
+		return DeclareFunctionForModule(script.ProgramModule(), source, prototype);
 	}
 
 	IScriptSystem& GetSystem(CScripts& scripts)

@@ -185,10 +185,14 @@ namespace MHost
 	{
 		IPackage* package = nullptr;
 
-		void OnCompile(ScriptCompileArgs& args) override
+		void OnInitSexyScript(ScriptCompileArgs& args) override
 		{
 			RegisterMHostPackage(args, package);
 			AddMHostNativeCallSecurity(args);
+		}
+
+		void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+		{
 		}
 
 		IScriptEnumerator* ImplicitIncludes() override
@@ -512,17 +516,8 @@ namespace MHost
 			ReleaseMouse();
 		}
 
-		struct NoEventArgs : IScriptCompilationEventHandler
-		{
-			void OnCompile(ScriptCompileArgs&) override
-			{
-
-			}
-		};
-
 		void RunMPlatScript(const fstring& scriptName) override
 		{
-			MHost::GetBaseCompileOptions();
 			platform.plumbing.utilities.RunEnvironmentScriptWithId(NoImplicitIncludes(), GetBaseCompileOptions(), 0, scriptName, true, false);
 		}
 
@@ -699,9 +694,13 @@ namespace MHost
 		{
 			struct : IScriptCompilationEventHandler
 			{
-				void OnCompile(ScriptCompileArgs& args) override
+				void OnInitSexyScript(ScriptCompileArgs& args) override
 				{
 					AddMHostNativeCallSecurity(args);
+				}
+
+				void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+				{
 				}
 
 				IScriptEnumerator* ImplicitIncludes() override
@@ -731,9 +730,13 @@ namespace MHost
 		{
 			struct : IScriptCompilationEventHandler
 			{
-				void OnCompile(ScriptCompileArgs& args) override
+				void OnInitSexyScript(ScriptCompileArgs& args) override
 				{
 					Rococo::Script::AddNativeCallSecurity_ToSysNatives(args.ss);
+				}
+
+				void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
+				{
 				}
 				
 				IScriptEnumerator* ImplicitIncludes() override

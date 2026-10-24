@@ -88,7 +88,6 @@ namespace Anon
 		virtual ISExpressionLinkBuilder* GetFirstChild() = 0;
 		virtual void SetArrayStart(ISExpression** pArray) = 0;
 		virtual void SetOffsets(int32 startOffset, int32 endOffset) = 0;
-		virtual void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const = 0;
 	};
 
 	ROCOCO_INTERFACE IExpressionBuilder
@@ -554,29 +553,74 @@ namespace Anon
 	ISExpression& GetISExpression(RootExpression& root);
 	cr_sex GetISExpression(const RootExpression& root);
 
+	struct STransformations : Rococo::Sex::ISExpressionTransformationsSupervisor
+	{
+		std::unordered_map<const ISExpression*, IExpressionTransform*> transforms;
+
+		void ClearTransforms() override
+		{
+			for (auto& i : transforms)
+			{
+				i.second->Free();
+			}
+
+			transforms.clear();
+		}
+
+		void Free() override
+		{
+			ClearTransforms();
+			delete this;
+		}
+
+		void ReleaseTransform(cr_sex s) override
+		{
+			auto i = transforms.find(&s);
+			if (i != transforms.end())
+			{
+				auto* t = i->second;
+				t->Free();
+				transforms.erase(i);
+			}
+		}
+
+		IExpressionTransform& Transform(cr_sex s)
+		{
+			auto i = transforms.find(&s);
+			if (i != transforms.end())
+			{
+				Throw(s, "Transform for expression already exists");
+			}
+
+			IExpressionTransform* newTransform = CreateExpressionTransform(s);
+
+			auto binding = std::make_pair(&s, newTransform);
+			i = transforms.insert(binding).first;
+			return *i->second;
+		}
+	};
+
 	struct ExpressionTree : Rococo::Sex::ISParserTree
 	{
 		char* block = nullptr;
+		ISTransformResolver* resolver = nullptr;
 		ISExpression** arraySets = nullptr;
 		RootExpression* root = nullptr;
 		ISourceCode* sourceCode = nullptr;
 		ISParser* sParser = nullptr;
 		IAllocator& allocator;
 		refcount_t refcount = 1;
-		mutable IExpressionTransform* transform = nullptr;
 		size_t aIndex = 0;
 
 		std::unordered_map<const ISExpression*, std::vector<HString>>* mapExpressionPtrToCommentBlock = nullptr;
-		mutable std::unordered_map<const ISExpression*, IExpressionTransform*>* transforms = nullptr;
-
+		
 		ExpressionTree(IAllocator& _allocator) : allocator(_allocator)
 		{
-
+			resolver = &GetPassthroughResolver();
 		}
 
 		virtual ~ExpressionTree()
 		{
-			delete transforms;
 			delete mapExpressionPtrToCommentBlock;
 			sParser->Release();
 			if (sourceCode) sourceCode->Release();
@@ -586,42 +630,25 @@ namespace Anon
 			}
 		}
 
+		void ThrowRoot(cstr message);
+
+		void Lock(ISTransformResolver& resolver) override
+		{
+			if (this->resolver->IsALockedResolver())
+			{
+				ThrowRoot("ExpressionTree::Lock failed. A resolver is already in place");
+			}
+
+			this->resolver = &resolver;
+		}
+
+		void Unlock()
+		{
+			this->resolver = &GetPassthroughResolver();
+		}
+
 		void MakeTransforms() const
 		{
-		}
-
-		IExpressionTransform* Transform(cr_sex s) const
-		{
-			if (!transforms)
-			{
-				transforms = new std::unordered_map<const ISExpression*, IExpressionTransform*>();
-			}
-
-			auto i = transforms->find(&s);
-			if (i != transforms->end())
-			{
-				Throw(s, "Transform for expression already exists");
-			}
-
-			IExpressionTransform* newTransform = CreateExpressionTransform(s);
-
-			auto binding = std::make_pair(&s, newTransform);
-			i = transforms->insert(binding).first;
-			return i->second;
-		}
-
-		void ReleaseTransform(cr_sex s) const
-		{
-			if (transforms)
-			{
-				auto i = transforms->find(&s);
-				if (i != transforms->end())
-				{
-					auto* t = i->second;
-					t->Free();
-					transforms->erase(i);
-				}
-			}
 		}
 
 		Vec2i OffsetToPos(int32 offset)
@@ -638,12 +665,12 @@ namespace Anon
 
 		ISExpression& Root() override
 		{
-			return GetISExpression(*root);
+			return const_cast<ISExpression&>(resolver->Resolve(GetISExpression(*root)));
 		}
 
 		const ISExpression& Root() const override
 		{
-			return transform ? transform->Root() : GetISExpression(*root);
+			return resolver->Resolve(GetISExpression(*root));
 		}
 
 		ISParser& Parser() override
@@ -696,12 +723,6 @@ namespace Anon
 
 			return i->second.size();
 		}
-
-		void TransformRoot(IExpressionTransform& _transform, const ICompoundSExpression& _root) const
-		{
-			UNUSED(_root);
-			this->transform = &_transform;
-		}
 	};
 
 #pragma pack(push,1)
@@ -712,38 +733,34 @@ namespace Anon
 	};
 #pragma pack(pop)
 
-	IExpressionTransform& TransformExpression(ICompoundSExpression* parent, cr_sex s, const ExpressionTree& tree)
+	IExpressionTransform& TransformExpression(ICompoundSExpression* parent, cr_sex s, ISExpressionTransformations& transforms)
 	{
 		if (!parent)
 		{
 			Throw(s, "not supported - Compound Expression had no parent");
 		}
 
-		auto* transform = tree.Transform(s);
-
-		try
-		{
-			parent->TransformChild(*transform, s);
-		}
-		catch (...)
-		{
-			tree.ReleaseTransform(s);
-			throw;
-		}
-
-		return *transform;
+		auto& transform = transforms.Transform(s);
+		return transform;
 	}
 
 	struct AtomicExpression : ISExpressionLinkBuilder
 	{
 		ICompoundSExpression* parent = nullptr;
+		ISParserTree* tree = nullptr;
 		ISExpressionLinkBuilder* next = nullptr;
 		CodeOffsets offsets;
 		sexstring_header header;
 
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
+
 		AtomicExpression(ptrdiff_t startOffset, ptrdiff_t endOffset) :
 			offsets{ (int32)startOffset, (int32)endOffset }
 		{
+
 		}
 
 		void Free() override
@@ -807,7 +824,7 @@ namespace Anon
 
 		const ISParserTree& Tree() const override
 		{
-			return parent->Tree();
+			return *tree;
 		}
 
 		int NumberOfElements() const override
@@ -818,7 +835,7 @@ namespace Anon
 		const ISExpression& GetElement(int index) const override
 		{
 			UNUSED(index);
-			Throw(0, "Atomic node has no elements");
+			Throw(*this, "Atomic node has no elements");
 		}
 
 		const ISExpression* Parent() const override
@@ -836,37 +853,30 @@ namespace Anon
 			return Eq(token, header.Buffer);
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations& transforms) const override
 		{
 			if (!parent)
 			{
 				Throw(*this, "not supported - Compound Expression had no parent");
 			}
 
-			auto& tree = static_cast<const ExpressionTree&>(Tree());
-
-			auto* transform = tree.Transform(*this);
-
-			try
-			{
-				parent->TransformChild(*transform, *this);
-			}
-			catch (...)
-			{
-				tree.ReleaseTransform(*this);
-				throw;
-			}
-
-			return *transform;
+			auto& transform = transforms.Transform(*this);
+			return transform;
 		}
 	};
 
 	struct LiteralExpression : ISExpressionLinkBuilder
 	{
 		ICompoundSExpression* parent = nullptr;
+		ISParserTree* tree = nullptr;
 		ISExpressionLinkBuilder* next = nullptr;
 		CodeOffsets offsets;
 		sexstring_header header;
+
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
 
 		LiteralExpression(ptrdiff_t startOffset, ptrdiff_t endOffset) : offsets { (int32)startOffset, (int32)endOffset }
 		{
@@ -933,7 +943,7 @@ namespace Anon
 
 		const ISParserTree& Tree() const override
 		{
-			return parent->Tree();
+			return *tree;
 		}
 
 		int NumberOfElements() const override
@@ -962,9 +972,9 @@ namespace Anon
 			return Eq(token, header.Buffer);
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations& transforms) const override
 		{
-			return TransformExpression(parent, *this, static_cast<const ExpressionTree&>(Tree()));
+			return TransformExpression(parent, *this, transforms);
 		}
 	};
 
@@ -984,6 +994,11 @@ namespace Anon
 		LinkOrArray children;
 		int32 numberOfChildren = 0;
 		ISExpressionLinkBuilder* lastChild = nullptr;
+
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
 
 		void Free() override
 		{
@@ -1086,7 +1101,7 @@ namespace Anon
 #ifdef _DEBUG
 			if (index < 0 || index >= numberOfChildren) Rococo::Sex::Throw(*this, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
 #endif
-			return *children.pArray[index];
+			return tree->resolver->Resolve(*children.pArray[index]);
 		}
 
 		const ISExpression* Parent() const override
@@ -1104,41 +1119,36 @@ namespace Anon
 			return token == nullptr;
 		}
 
-		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
-		{
-			int index = GetIndexOf(sCompound);
-			if (index < 0)	Throw(*this, "sCompound was not a child of the parent");
-
-			children.pArray[index] = &transform.Root();
-		}
-
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations& transforms) const override
 		{
 			if (!tree)
 			{
 				Throw(*this, "not supported - Root Expression had no tree");
 			}
 
-			auto& t = static_cast<const ExpressionTree&>(Tree());
-
-			auto* transform = t.Transform(*this);
+			auto& transform = transforms.Transform(*this);
 
 			try
 			{
-				t.TransformRoot(*transform, *this);
+				transforms.Transform(tree->Root());
 			}
 			catch (...)
 			{
-				t.ReleaseTransform(*this);
+				transforms.ReleaseTransform(tree->Root());
 				throw;
 			}
 
-			return *transform;
+			return transform;
 		}
 	};
 
 	ISExpression& GetISExpression(RootExpression& root) { return root; }
 	cr_sex GetISExpression(const RootExpression& root) { return root; }
+
+	void ExpressionTree::ThrowRoot(cstr message)
+	{
+		Rococo::Sex::Throw(*root, message);
+	}
 
 	struct ChildTransformArray
 	{
@@ -1149,10 +1159,16 @@ namespace Anon
 	{
 		ICompoundSExpression* parent = nullptr;
 		ISExpressionLinkBuilder* nextSibling; // used in the generation phase, when expression form a linked list
+		ExpressionTree* tree;
 
 		CodeOffsets offsets;
 		LinkOrArray children;
 		int32 numberOfChildren;
+
+		int TransformationDepth() const override
+		{
+			return 0;
+		}
 
 		void Free() override
 		{
@@ -1251,7 +1267,7 @@ namespace Anon
 
 		const ISParserTree& Tree() const override
 		{
-			return parent->Tree();
+			return *tree;
 		}
 
 		int NumberOfElements() const override
@@ -1264,12 +1280,13 @@ namespace Anon
 #ifdef _DEBUG
 			if (index < 0 || index >= numberOfChildren) Rococo::Sex::Throw(*this, "CompoundExpression.GetElement(index): index %d of %d out of range", index, numberOfChildren);
 #endif
-			return *children.pArray[index];
+			cr_sex s = *children.pArray[index];
+			return tree->resolver->Resolve(s);
 		}
 
 		const ISExpression* Parent() const override
 		{
-			return parent;
+			return parent ? &tree->resolver->Resolve(*parent) : nullptr;
 		}
 
 		const ISExpression* GetOriginal() const override
@@ -1283,17 +1300,9 @@ namespace Anon
 			return false;
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations& transforms) const override
 		{
-			return TransformExpression(parent, *this, static_cast<const ExpressionTree&>(Tree()));
-		}
-
-		void TransformChild(IExpressionTransform& transform, cr_sex sCompound) const override
-		{
-			int index = GetIndexOf(sCompound);
-			if (index < 0)	Throw(*this, "sCompound was not a child of the parent");
-
-			children.pArray[index] = &transform.Root();
+			return TransformExpression(parent, *this, transforms);
 		}
 	};
 
@@ -1578,6 +1587,7 @@ namespace Anon
 #endif
 
 			auto* atomic = new (writePos) AtomicExpression(begin - sourceStart, end - sourceStart);
+			atomic->tree = &const_cast<ISParserTree&>(parent->Tree());
 			atomic->parent = parent;
 			parent->AddChild(atomic);
 
@@ -1615,6 +1625,7 @@ namespace Anon
 			UNUSED(beginPoint);
 			auto* n = nextFreeCompoundSlot;
 			new (n) CompoundExpression();
+			n->tree = static_cast<ExpressionTree*>(&const_cast<ISParserTree&>(parent->Tree()));
 			n->parent = parent;
 			parent->AddChild(n);
 			nextFreeCompoundSlot++;
@@ -1667,6 +1678,7 @@ namespace Anon
 			}
 #endif
 			auto* literal = new (writePos) LiteralExpression(sStart - sourceStart, sEnd - sourceStart);
+			literal->tree = &const_cast<ISParserTree&>(parent->Tree());
 			literal->parent = parent;
 			parent->AddChild(literal);
 
@@ -1963,6 +1975,11 @@ namespace Rococo::Sex
 		return new (buffer) Anon::SParser_2_0(allocator, maxStringLength);
 	}
 
+	SEXY_SPARSER_API ISExpressionTransformationsSupervisor* CreateSTransformationsContainer()
+	{
+		return new Anon::STransformations();
+	}
+
 	void TestBlockAllocator(cstr sExpression)
 	{
 		Anon::SCostEvaluator ce(32768, 32768);
@@ -1994,6 +2011,25 @@ namespace Rococo::Sex
 		{
 			Rococo::Throw(0, "SBlockAllocator: Difference between string write position and start of compound element array was non-zero");
 		}
+	}
+
+	SEXY_SPARSER_API ISTransformResolver& GetPassthroughResolver()
+	{
+		struct Passthrough : ISTransformResolver
+		{
+			cr_sex Resolve(cr_sex s) const override
+			{
+				return s;
+			}
+
+			bool IsALockedResolver() const override
+			{
+				return false;
+			}
+		};
+
+		static Passthrough passthrough;
+		return passthrough;
 	}
 } 
 

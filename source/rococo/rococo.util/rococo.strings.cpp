@@ -178,6 +178,23 @@ namespace StringsAnon
 			return *this;
 		}
 
+		ROCOCO_API StringBuilder& operator << (fstring text)
+		{
+			size_t len = text.length;
+			size_t containerLen = internalBuffer.size();
+
+			internalBuffer.resize(containerLen + len);
+			memcpy(internalBuffer.data() + containerLen - 1, text, len);
+			internalBuffer[containerLen + len - 1] = 0;
+
+			return *this;
+		}
+
+		ROCOCO_API StringBuilder& operator << (const HString& text)
+		{
+			return *this << (fstring)text;
+		}
+
 		StringBuilder& AppendChar(char c) override
 		{
 			char data[2];
@@ -231,6 +248,27 @@ namespace StringsAnon
 		int32 Length() const override
 		{
 			return (int32)(internalBuffer.size()-1);
+		}
+
+		void Undo(int nChars) override
+		{
+			if (nChars == 0)
+			{
+				return;
+			}
+
+			if (nChars > 0)
+			{
+				Throw(0, __FUNCTION__ " requires a negative argument");
+			}
+
+			if (nChars + (int) internalBuffer.size() < 1)
+			{
+				Throw(0, __FUNCTION__ " undo length >= internal buffer length");
+			}
+
+			internalBuffer.resize((int) internalBuffer.size() + nChars);
+			internalBuffer[internalBuffer.size()-1] = 0;
 		}
 
 		void Free() override
@@ -997,6 +1035,14 @@ namespace Rococo::Strings
 		return Eq(suffix, t);
 	}
 
+	ROCOCO_API bool EndsWith(fstring bigString, cstr suffix)
+	{
+		size_t len = strlen(suffix);
+		size_t lenBig = bigString.length;
+		const char* t = bigString + lenBig - len;
+		return Eq(suffix, t);
+	}
+
 	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix)
 	{
 		size_t len = strlen(suffix);
@@ -1073,6 +1119,16 @@ namespace Rococo::Strings
 		return AppendFormat("%s", text);
 	}
 
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (fstring text)
+	{
+		return AppendFormat("%s", text.buffer);
+	}
+
+	ROCOCO_API StringBuilder& StackStringBuilder::operator << (const HString& text)
+	{
+		return AppendFormat("%s", text.c_str());
+	}
+
 	ROCOCO_API StringBuilder& StackStringBuilder::AppendChar(char c)
 	{
 		return AppendFormat("%c", c);
@@ -1112,6 +1168,27 @@ namespace Rococo::Strings
 	{
 		buffer[0] = 0;
 		length = 0;
+	}
+
+	ROCOCO_API void StackStringBuilder::Undo(int nChars)
+	{
+		if (nChars == 0)
+		{
+			return;
+		}
+
+		if (nChars > 0)
+		{
+			Throw(0, __FUNCTION__ " requires a negative argument");
+		}
+
+		if (nChars + length < 0)
+		{
+			Throw(0, __FUNCTION__ " undo length > string length");
+		}
+
+		length += nChars;
+		buffer[length] = 0;
 	}
 
 	ROCOCO_API bool IsFQNamespace(cr_substring s)

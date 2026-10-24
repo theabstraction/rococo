@@ -1,0 +1,28 @@
+(Directories
+	(content "$HERE$")
+	(project "--any--") :
+	(SearchPath
+		(path "!scripts/interop")
+		(isActive true)
+	)
+
+	(SearchPath
+		(path "!scripts/declarations")
+		(isActive true)
+	)
+
+	(SearchPath
+		(path "!scripts/native")
+		(isActive true)
+	)
+
+	(SearchPath
+		(path "!scripts/test")
+		(isActive true)
+	)
+
+)
+(Packages
+	(#List selected-packages
+	)
+)

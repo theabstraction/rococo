@@ -117,12 +117,6 @@ namespace Rococo
 	DECLARE_ROCOCO_INTERFACE IExpandingBuffer;
 	DECLARE_ROCOCO_INTERFACE ISubsystemMonitor;
 
-	ROCOCO_INTERFACE IPingPathResolver
-	{
-		virtual void PingPathToSysPath(cstr pingPath, U8FilePath & sysPath) = 0;
-		virtual void SysPathToPingPath(cstr sysPath, U8FilePath& pingPath) = 0;
-	};
-
 	namespace Script
 	{
 		DECLARE_ROCOCO_INTERFACE IPublicScriptSystem;

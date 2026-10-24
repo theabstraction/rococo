@@ -1,5 +1,6 @@
 #include "cfgs.sexy.ide.h"
-#include "..\sexystudio\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.api.h"
+#include "..\sexystudio-lib\sexystudio.database.h"
 #include <rococo.strings.h>
 #include <rococo.cfgs.h>
 #include <rococo.functional.h>
@@ -158,7 +159,7 @@ namespace Rococo::CFGS
 
 		void SaveCosmetics()
 		{
-			OS::SaveUserSEXML(nullptr, "cfgs.sexy.cosmetics",
+			OS::SaveUserSEXML(nullptr, "cfgs.sexy.cosmetics", true,
 				[this](ISEXMLBuilder& builder)
 				{
 					builder.AddDirective("Header");

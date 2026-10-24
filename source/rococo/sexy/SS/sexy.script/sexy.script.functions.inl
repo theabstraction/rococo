@@ -276,13 +276,13 @@ namespace Rococo
 			VariantValue byteCodeId;
 			byteCodeId.byteCodeIdValue = section.Id;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, byteCodeId, BITCOUNT_64);
-			ce.Builder.AssignTempToVariable(Rococo::ROOT_TEMPDEPTH, targetVariableByteCodeId);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7,targetVariableByteCodeId);
 
 			AddSymbol(ce.Builder, "%s.parentSF = SF", targetVariable);
 
 			TokenBuffer targetVariableParentSF;
 			StringPrint(targetVariableParentSF, "%s.parentSF", targetVariable);
-			ce.Builder.AssignTempToVariable(-2, targetVariableParentSF);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_SF, targetVariableParentSF);
 			
 			MemberDef def;
 			if (!ce.Builder.TryGetVariableByName(OUT def, targetVariable) || def.ResolvedType->Archetype() != &archetype)
@@ -445,7 +445,7 @@ namespace Rococo
 			}
 
 			AddArgVariable("input_getaccessor_return_ref", ce, argStruct);
-			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, BITCOUNT_POINTER);
 		}
 
 		bool TryCompileStringLiteralInput(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType)
@@ -488,7 +488,7 @@ namespace Rococo
 			return true;
 		}
 
-		bool TryCompileStringLiteralInputToTemp(CCompileEnvironment& ce, cr_sex s, int tempDepth, const IStructure& inputType)
+		bool TryCompileStringLiteralInputToRegister(CCompileEnvironment& ce, cr_sex s, int registerIndex, const IStructure& inputType)
 		{
 			if (!IsStringLiteral(s) || inputType != ce.Object.Common().SysTypeIString().NullObjectType())
 			{
@@ -505,7 +505,7 @@ namespace Rococo
 			VariantValue ptr;
 			ptr.vPtrValue = (void*)&sc->header.pVTables[0];
 
-			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempDepth, ptr, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_SetRegisterImmediate(registerIndex, ptr, BITCOUNT_POINTER);
 
 			return true;
 		}
@@ -531,7 +531,7 @@ namespace Rococo
 			}
 
 			ce.Builder.AddSymbol(varName);
-			ce.Builder.AssignVariableRefToTemp(varName, Rococo::ROOT_TEMPDEPTH, 0);
+			ce.Builder.AssignVariableRefToRegister(varName, VM::REGISTER_D7);
 		}
 
 		void CompileGetStructRefFromAtomic(CCompileEnvironment& ce, cr_sex s, const IStructure& inputType, cstr name)
@@ -625,6 +625,113 @@ namespace Rococo
 			}
 		}
 
+		int64 AssignEnumToD4(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive)
+		{
+			int64 enumValue;
+			if (!enumStruct.TryGetEnumValue(enumKey, OUT enumValue))
+			{
+				Throw(directive, "Cannot identify '%s' as an enum", enumKey);
+			}
+
+			VariantValue v;
+
+			if (enumStruct.IsStrongType())
+			{
+				switch (enumStruct.VarType())
+				{
+				case SexyVarType_Int32:
+					if (enumValue >= INT32_MIN && enumValue <= INT32_MAX)
+					{
+						v.int32Value = (int32)enumValue;
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+						break;
+					}
+					else
+					{
+						Throw(directive, "The value %lld / 0x%llX cannot represent an int32 (the underlying type of %s)", enumValue, enumValue, GetFriendlyName(enumStruct));
+					}
+					break;
+				case SexyVarType_Int64:
+					v.int64Value = (int32)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				case SexyVarType_Float32:
+					v.floatValue = (float)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+					break;
+				case SexyVarType_Float64:
+					v.doubleValue = (double)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				default:
+					Throw(directive, "The underlying type of %s is incompatble with enumeration assignment", GetFriendlyName(enumStruct));
+				}
+
+				return enumValue;
+			}
+			else
+			{
+				switch (enumStruct.VarType())
+				{
+				case SexyVarType_Int32:
+					if (enumValue >= INT32_MIN && enumValue <= INT32_MAX)
+					{
+						v.int32Value = (int32)enumValue;
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+					}
+					else
+					{
+						Throw(directive, "The value %lld / 0x%llX cannot represent an int32", enumValue, enumValue);
+					}
+					break;
+				case SexyVarType_Int64:
+					v.int64Value = (int32)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				case SexyVarType_Float32:
+					v.floatValue = (float)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_32);
+					break;
+				case SexyVarType_Float64:
+					v.doubleValue = (double)enumValue;
+					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
+					break;
+				default:
+					Throw(directive, "Type %s is incompatble with enumeration assignment", GetFriendlyName(enumStruct));
+				}
+
+				return enumValue;
+			}
+		}
+		
+		void AssignEnumToVariable(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive, cstr targetVariable)
+		{
+			int64 enumValue = AssignEnumToD4(ce, enumKey, enumStruct, directive);
+			AddSymbol(ce.Builder, "%s = %s (%lld/0x%llX)", targetVariable, enumKey, enumValue, enumValue);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetVariable);
+		}
+
+		bool TryCompilePushEnumLiteral(CCompileEnvironment& ce, cr_sex sInputExpression, const IStructure& inputStruct)
+		{
+			if (!IsAtomic(sInputExpression))
+			{
+				return false;
+			}
+
+			cstr inputExpr = sInputExpression.c_str();
+
+			if (*inputExpr != '.')
+			{
+				return false;
+			}
+
+			int64 enumValue = AssignEnumToD4(ce, inputExpr + 1, inputStruct, sInputExpression);
+			AddSymbol(ce.Builder, "D4 = %s (%lld / 0x%llX)", inputExpr + 1, enumValue, enumValue);
+			AddArgVariable("inputExpr", ce, inputStruct);
+			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, GetBitCount(inputStruct.VarType()));
+			return true;
+		}
+
 		bool TryCompilePushStructRef(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType, cstr name, const IStructure* genericArg1)
 		{
 			// TODO refactor all of this, its old and ugly
@@ -646,7 +753,7 @@ namespace Rococo
 				}
 
 				AddArgVariable("input_return_as_input_ref", ce, inputType);
-				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + ROOT_TEMPDEPTH, BITCOUNT_POINTER);
+				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D7, BITCOUNT_POINTER);
 				return true;
 			default:
 				if (expectingStructRef)
@@ -825,10 +932,14 @@ namespace Rococo
 				{
 					Throw(inputExpression, ("Expected boolean input"));
 				}
-				if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D4 + ROOT_TEMPDEPTH);
+				if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 			}
 			else if (IsPrimitiveType(inputType))
 			{
+				if (TryCompilePushEnumLiteral(ce, inputExpression, inputStruct))
+				{
+					return inputStruct.SizeOfStruct();
+				}
 				if (!TryCompileArithmeticExpression(ce, inputExpression, true, inputType))
 				{
 					Throw(inputExpression, "Expected %s valued expression", GetTypeName(inputType));
@@ -922,7 +1033,7 @@ namespace Rococo
 				else
 				{
 					builder.Assembler().Append_GetStackFrameValue(sfOffset, VM::REGISTER_D5, GetBitCount(requiredOutputStruct.VarType()));
-					builder.AssignTempToVariable(1, outputVar);
+					builder.AssignRegisterToVariable(VM::REGISTER_D5, outputVar);
 				}
 			}
 		}
@@ -1097,8 +1208,8 @@ namespace Rococo
 
 				SafeFormat(localName, 128, "parentSF_%s_%llu", GetFriendlyName(*def.ResolvedType), index++);
 				AddVariable(ce, NameString::From(localName), ce.Object.Common().TypePointer());
-				ce.Builder.AssignVariableToTemp(instanceName, 0);
-				ce.Builder.AssignTempToVariable(0, localName);
+				ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,localName);
 			}
 
 			int outputStackAllocByteCount = AllocFunctionOutput(ce, callee, s);
@@ -1287,7 +1398,7 @@ namespace Rococo
 
 			TokenBuffer pathToId;
 			SafeFormat(pathToId.Text, TokenBuffer::MAX_TOKEN_CHARS, "%s.bytecodeId", closureVariable);
-			ce.Builder.AssignVariableToTemp(pathToId, 0); // Copy the closure bytecode id to D4
+			ce.Builder.AssignVariableToRegister(pathToId, VM::REGISTER_D4); // Copy the closure bytecode id to D4
 
 			TokenBuffer callSymbol;
 			SafeFormat(callSymbol.Text, TokenBuffer::MAX_TOKEN_CHARS, "call %s %s", archetype.Name(), closureVariable);
@@ -1383,7 +1494,7 @@ namespace Rococo
 				AddVariable(ce, NameString::From(tempString), ce.Object.Common().TypePointer());
 
 				UseStackFrameFor(ce.Builder, instanceDef);
-				ce.Builder.AssignVariableToTemp(instance, 0); // This gives IString.VTable1 in D4
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // This gives IString.VTable1 in D4
 				RestoreStackFrameFor(ce.Builder, instanceDef);
 
 				MemberDef tempDef;
@@ -1432,7 +1543,7 @@ namespace Rococo
 				ce.Builder.TryGetVariableByName(OUT instanceDef, fqn);
 
 				int interfaceToInstanceOffset = instanceDef.Usage == ARGUMENTUSAGE_BYREFERENCE ? interfaceToInstanceOffsetByRef : 0;
-				ce.Builder.AssignVariableToTemp(fqn, Rococo::ROOT_TEMPDEPTH, -interfaceToInstanceOffset);
+				ce.Builder.AssignVariableToRegister(fqn, VM::REGISTER_D7, -interfaceToInstanceOffset);
 			}
 		}
 
@@ -1453,7 +1564,7 @@ namespace Rococo
 
 				if (AreEqual("Length", methodName))
 				{
-					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
+					ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Length", instance);
 					AppendInvoke(ce, callbacks.ArrayReturnLength, s); // the length is now written to D7
 					ValidateReturnType(s, returnType, SexyVarType_Int32);
@@ -1461,7 +1572,7 @@ namespace Rococo
 				}
 				else if (AreEqual("Capacity", methodName))
 				{
-					ce.Builder.AssignVariableToTemp(instance, 0, 0); // This shifts the array pointer to D4
+					ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // This shifts the array pointer to D4
 					AddSymbol(ce.Builder, "D7 = %s.Capacity", instance);
 					AppendInvoke(ce, callbacks.ArrayReturnCapacity, s); // the length is now written to D7
 					ValidateReturnType(s, returnType, SexyVarType_Int32);
@@ -1492,7 +1603,7 @@ namespace Rococo
 				{
 					ValidateReturnType(s, returnType, SexyVarType_Int32);
 					ce.Builder.AddSymbol(instance);
-					ce.Builder.AssignVariableToTemp(instance, Rococo::ROOT_TEMPDEPTH, 0); // list ref goes to D7
+					ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D7); // list ref goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).ListGetLength); // list length goes to D7
 					outType = SexyVarType_Int32;
 					return true;
@@ -1511,7 +1622,7 @@ namespace Rococo
 					const IStructure& st = GetNodeDef(ce, s, instance);
 					ValidateReturnType(s, returnType, st.VarType());
 
-					ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to D4
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to D4
 
 					if (st.InterfaceCount() > 0)
 					{
@@ -1542,7 +1653,7 @@ namespace Rococo
 				{
 					ValidateReturnType(s, returnType, SexyVarType_Bool);
 
-					ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D7); // Node ptr goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasNext); // Boolean (n.Next != NULL) goes to D7
 
 					return true;
@@ -1551,23 +1662,23 @@ namespace Rococo
 				{
 					ValidateReturnType(s, returnType, SexyVarType_Bool);
 
-					ce.Builder.AssignVariableRefToTemp(instance, Rococo::ROOT_TEMPDEPTH); // Node ptr goes to D7
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D7); // Node ptr goes to D7
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeHasPrevious); // Boolean (n.Next != NULL) goes to D7
 
 					return true;
 				}
 				else if (Eq("GoPrevious", methodName))
 				{
-					ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to 4
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to 4
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoPrevious); // Next node updates D4, D7 if previous exists
-					AssignTempToVariableRef(ce, 0, instance);
+					AssignRegisterToVariableRef(ce, VM::REGISTER_D4, instance);
 					return true;
 				}
 				else if (AreEqual("GoNext", methodName))
 				{
-					ce.Builder.AssignVariableRefToTemp(instance, 0); // Node ptr goes to D4
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // Node ptr goes to D4
 					ce.Builder.Assembler().Append_Invoke(GetListCallbacks(ce).NodeGoNext); // Previous node updates D4, D7 if next exists
-					AssignTempToVariableRef(ce, 0, instance);
+					AssignRegisterToVariableRef(ce, VM::REGISTER_D4, instance);
 					return true;
 				}
 				else
@@ -1613,7 +1724,7 @@ namespace Rococo
 		{
 			UNUSED(s);
 
-			ce.Builder.AssignVariableToTemp(instance, 0);
+			ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4);
 
 			VariantValue v;
 			v.vPtrValue = (uint8*)(instanceType.GetInterface(0).UniversalNullInstance()) + ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0;
@@ -1642,7 +1753,7 @@ namespace Rococo
 				}
 
 				AddSymbol(ce.Builder, "%s -> D4", instance);
-				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the interface goes to D4
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // Reference to the interface goes to D4
 
 				AppendInvoke(ce, ce.SS.GetScriptCallbacks().idTransformParent_D4retIExpressionBuilderD7, s); // output is now D7
 				return true;
@@ -1673,14 +1784,14 @@ namespace Rococo
 				}
 				else
 				{
-					ce.Builder.AssignVariableToTemp(indexString, 1);
+					ce.Builder.AssignVariableToRegister(indexString, VM::REGISTER_D5);
 				}
 				
 				AddSymbol(ce.Builder, "%s -> D4", instance);
-				ce.Builder.AssignVariableToTemp(instance, 0, 0); // Reference to the builder expression goes to D4
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // Reference to the builder expression goes to D4
 
 				AddSymbol(ce.Builder, "index -> D5");
-				ce.Builder.AssignVariableToTemp(indexString, 1, 0); // Index value goes to D5
+				ce.Builder.AssignVariableToRegister(indexString, VM::REGISTER_D5); // Index value goes to D5
 
 				AddSymbol(ce.Builder, "%s -> D7", ce.Script.ProgramModule().Name());
 
@@ -1695,6 +1806,35 @@ namespace Rococo
 			return false;
 		}
 
+		bool TryCompileAsArchetypeNameReturnValue(CCompileEnvironment& ce, cr_sex s, cstr instance, cstr methodName, const IStructure& returnTypeStruct)
+		{
+			if (returnTypeStruct.IsNullType() && returnTypeStruct.InterfaceCount() > 0 && returnTypeStruct.GetInterface(0) == ce.Object.Common().SysTypeIString())
+			{
+				const ReflectionCallbacks& callbacks = GetReflectionCallbacks(ce);
+
+				if (Eq("Name"_fstring, methodName))
+				{
+					MemberDef def;
+					if (!ce.Builder.TryGetVariableByName(OUT def, instance))
+					{
+						return false;
+					}
+
+					auto* archetype = def.ResolvedType->Archetype();
+					if (!archetype)
+					{
+						return false;
+					}
+					
+					ce.Builder.AssignVariableRefToRegister(instance, VM::REGISTER_D4); // This shifts the archetype pointer to D4
+					AddSymbol(ce.Builder, "D7 = %s.Name", instance);
+					AppendInvoke(ce, callbacks.ArchetypeGetName, s); // the IString pointer is now in D7
+					return true;
+				}
+			}
+
+			return false;
+		}
 
 		bool TryCompileMethodCallAndReturnValue(CCompileEnvironment& ce, cr_sex s, SexyVarType returnType, const IStructure* returnTypeStruct, const IArchetype* returnArchetype)
 		{
@@ -1770,6 +1910,11 @@ namespace Rococo
 			if (!IsCapital(methodName[0]))
 			{
 				return false;
+			}
+
+			if (returnTypeStruct && TryCompileAsArchetypeNameReturnValue(ce, s, instance, methodName, *returnTypeStruct))
+			{
+				return true;
 			}
 
 			if (TryCompileAsInlineArrayAndReturnValue(ce, s, instance, methodName, returnType, *instanceStruct))
@@ -2128,17 +2273,17 @@ namespace Rococo
 
 			AddArgVariable("instance", ce, ce.Object.Common().TypePointer());
 
-			ce.Builder.AssignVariableRefToTemp(classInstance, 0);
+			ce.Builder.AssignVariableRefToRegister(classInstance, VM::REGISTER_D4);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);
 
 			return (int)sizeof(void*);
 		}
 
-		int CompileInstancePointerArgFromTemp(CCompileEnvironment& ce, int tempDepth)
+		int CompileInstancePointerArgFromRegister(CCompileEnvironment& ce, int registerIndex)
 		{
 			ce.Builder.AddSymbol("// reference to instance");
 			AddArgVariable("instance", ce, ce.Object.Common().TypePointer());
-			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+			ce.Builder.Assembler().Append_PushRegister(registerIndex, BITCOUNT_POINTER);
 			return (int)sizeof(void*);
 		}
 

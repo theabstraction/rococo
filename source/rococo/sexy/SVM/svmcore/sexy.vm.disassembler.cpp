@@ -693,6 +693,15 @@ namespace
 		rep.ByteCount = 3;
 	}
 
+	void FormatBooleanCompare(const Ins& I, OUT IDisassembler::Rep& rep)
+	{
+		bool aIndex = (bool) I.Opmod1;
+		bool bIndex = (bool) I.Opmod2;
+
+		format(rep, ("D[%d]=D[%d]"), (int32) aIndex, (int32) bIndex);
+		rep.ByteCount = 3;
+	}
+
 	void FormatSetStackFrameImmediate64(const Ins& I, OUT IDisassembler::Rep& rep)
 	{
 		int32 offset = (int32) (Rococo::int8) I.Opmod1;
@@ -1196,6 +1205,7 @@ namespace
 		EnableFormatter(Test32);
 		EnableFormatter(Swap);
 		EnableFormatter(SetStackFrameImmediate32);
+		EnableFormatter(BooleanCompare);
 		EnableFormatter(SetSFValueFromSFValue32);
 		EnableFormatter(SetStackFrameImmediate64);
 		EnableFormatter(SetStackFrameImmediateFar);

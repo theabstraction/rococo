@@ -56,6 +56,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		typedef TSexyVector<FunctionAlias> TFunctions;
 		typedef TSexyStringMap<IFunctionBuilder*> TFunctionsByName;
 		TFunctions functions;
+		TFunctionsByName nativeFactoryFunctions;
 		TFunctionsByName functionsByName;
 		bool managesLifetime;
 
@@ -64,21 +65,51 @@ namespace Rococo { namespace Compiler { namespace Impl
 		
 		~FunctionRegistry()
 		{
-			Clear();
+			Clear(true);
 		}
 
-		virtual void Clear()
+		virtual void Clear(bool alsoClearNatives)
 		{		
-			if (managesLifetime)
+			if (alsoClearNatives)
 			{
-				for(auto i = functionsByName.begin(); i != functionsByName.end(); ++i)
+				if (managesLifetime)
 				{
-					 i->second->Free();
+					for (auto i = functionsByName.begin(); i != functionsByName.end(); ++i)
+					{
+						i->second->Free();
+					}
 				}
+
+				functionsByName.clear();
+				functions.clear();
 			}
-			
-			functionsByName.clear();
-			functions.clear();
+			else
+			{
+				auto i = functionsByName.begin();
+				while (i != functionsByName.end())
+				{
+					auto* f = i->second;
+					if (!f->IsNative())
+					{
+						i = functionsByName.erase(i);
+					}
+					else
+					{
+						i++;
+					}
+				}
+				
+				auto removeAt = std::remove_if(functions.begin(), functions.end(), [](const FunctionAlias& f) { return !f.GetFunction().IsNative(); });
+
+				if (managesLifetime)
+				{
+					for (auto j = removeAt; j != functions.end(); j++)
+					{
+						static_cast<IFunctionBuilder&>(j->GetFunction()).Free();
+					}
+				}
+				functions.erase(removeAt, functions.end());
+			}
 		}
 
 		virtual int size() const
@@ -90,6 +121,32 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			functions.push_back(FunctionAlias(publicName, f));
 			functionsByName.insert(f.Name(), &f);
+
+			// Native functions are prefixed by an underscore, and native factories have the format _XXX_++FactoryName, or _XXX_--FactoryName for constructors and destructors respectively
+			if (*publicName == '_')
+			{
+				fstring plusplus = "++"_fstring;
+				cstr constructorToken = strstr(publicName + 1, plusplus);
+				if (constructorToken)
+				{
+					if (!nativeFactoryFunctions.insert(constructorToken, &f).second)
+					{
+						Throw(ERRORCODE_BAD_ARGUMENT, __FUNCTION__, "%s registration duplicated", publicName);
+					}
+				}
+				else
+				{
+					fstring negneg = "--"_fstring;
+					cstr destructorToken = strstr(publicName + 1, negneg);
+					if (destructorToken)
+					{
+						if (!nativeFactoryFunctions.insert(destructorToken, &f).second)
+						{
+							Throw(ERRORCODE_BAD_ARGUMENT, __FUNCTION__, "%s registration duplicated", publicName);
+						}
+					}
+				}
+			}
 		}
 
 		virtual int FunctionCount() const
@@ -117,6 +174,12 @@ namespace Rococo { namespace Compiler { namespace Impl
 		{
 			auto i = functionsByName.find(name);
 			return i != functionsByName.end() ? i->second : NULL;
+		}
+
+		IFunction* GetNativeFactoryFunction(cstr name) const
+		{
+			auto i = nativeFactoryFunctions.find(name);
+			return i != nativeFactoryFunctions.end() ? i->second : NULL;
 		}
 	};
 
@@ -497,8 +560,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		TSexyVector<StructureAttribute> attributes;
 		TInterfaceNames interfaceNames;
 		TInterfaces interfaces;
-		mutable ID_BYTECODE destructorId;
+		mutable ID_BYTECODE destructorId = 0;
 		mutable ID_BYTECODE** virtualTables;
+		mutable ID_BYTECODE assignmentId = 0;
 		const Sex::ISExpression* definition;
 		const IFunction* constructor;
 		mutable int hasInterfaceMembers; // -1, untested, 0 = no, 1 = yes
@@ -506,14 +570,76 @@ namespace Rococo { namespace Compiler { namespace Impl
 		mutable TSexyVector<const IArchetype*> cachedMethods; // Methods cached by the reflection system. Most structures do not need them. The raw pointers do not need deleting after the container is deleted
 		bool isNullType = false;
 		bool isStrongType = false;
+		mutable bool isPersistent = true;
+
+		stringmap<int64> enums;
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, SexyVarType type, const Sex::ISExpression* _definition);
-		~Structure();
+		virtual ~Structure();
+
+		void AddEnum(cstr name, int64 value) override
+		{
+			auto i = enums.find(name);
+			if (i != enums.end())
+			{
+				if (i->second != value)
+				{
+					Rococo::Throw(0, "Cannot add an enum '%s' to '%s'. Conflict of values %lld vs %lld", name, this->name.c_str(), i->second, value);
+				}
+
+				return;
+			}
+
+			enums.insert(name, value);
+		}
+
+		bool TryGetEnumValue(cstr name, OUT int64& value) const override
+		{
+			auto i = enums.find(name);
+			if (i == enums.end())
+			{
+				value = 0;
+				return false;
+			}
+
+			value = i->second;
+			return true;
+		}
 
 		bool IsNullType() const override
 		{
 			return isNullType;
 		}
+
+		bool IsSealed() const override
+		{
+			return isSealed;
+		}
+
+		bool IsPersistent() const override
+		{
+			if (!isPersistent)
+			{
+				return false;
+			}
+
+			for (auto& m : members)
+			{
+				auto* memberType = m.UnderlyingType();
+				if (memberType)
+				{
+					if (!memberType->IsPersistent())
+					{
+						isPersistent = false;
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		ID_BYTECODE AssignmentFunction() const override;
 
 		bool IsStrongType() const override
 		{
@@ -525,6 +651,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 			isStrongType = true;
 		}
 
+		void PreventPersistence() override
+		{
+			isPersistent = false;
+		}
+		
 		void* operator new(size_t nBytes)
 		{
 			return Rococo::Memory::AllocateSexyMemory(nBytes);

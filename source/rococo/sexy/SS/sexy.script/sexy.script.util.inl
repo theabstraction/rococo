@@ -41,7 +41,7 @@ namespace Rococo
 			ce.Builder.AddVariableRef(ns, typeStruct, hint);
 		}
 
-		void AssignTempToVariableRef(CCompileEnvironment& ce, int tempDepth, cstr name)
+		void AssignRegisterToVariableRef(CCompileEnvironment& ce, int registerIndex, cstr name)
 		{
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(def, name);
@@ -49,12 +49,12 @@ namespace Rococo
 			if (def.IsParentValue)
 			{
 				ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
-				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
 				ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
 			}
 			else
 			{
-				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, VM::REGISTER_D4 + tempDepth, BITCOUNT_POINTER);
+				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
 			}
 		}
 

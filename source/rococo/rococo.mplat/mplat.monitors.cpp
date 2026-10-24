@@ -31,7 +31,7 @@ namespace Rococo::IO
 		{
 			if (!OS::IsUserSEXMLExistant(nullptr, section))
 			{
-				OS::SaveUserSEXML(nullptr, section, [](ISEXMLBuilder& builder)
+				OS::SaveUserSEXML(nullptr, section, true, [](ISEXMLBuilder& builder)
 					{
 						builder.AddDirective("Directories");
 						builder.AddStringLiteral("monitor-path", R"(\work\rococo\source\rococo\dx11.renderer\shaders\)");

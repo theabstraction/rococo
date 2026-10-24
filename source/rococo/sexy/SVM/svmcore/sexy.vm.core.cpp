@@ -65,6 +65,8 @@ namespace
 		ID_API_CALLBACK nextId;
 		typedef TSexyHashMap<ID_API_CALLBACK, ApiCallbackBinding> TMapIdToCallback;
 		TMapIdToCallback callbacks;
+		typedef TSexyHashMapByStdString<ID_API_CALLBACK> TMapFunctionNameToId;
+		TMapFunctionNameToId mapNameToCallbackId;
 	public:
 		Core(const CoreSpec&):
 			logger(NULL),nextId(1)
@@ -115,10 +117,16 @@ namespace
 			}
 		}
 
-		cstr GetCallbackSymbolName(ID_API_CALLBACK id) override
+		cstr GetCallbackSymbolName(ID_API_CALLBACK id) const override
 		{
 			TMapIdToCallback::const_iterator i = callbacks.find(id);
 			return (i != callbacks.end()) ? i->second.Symbol.c_str() : NULL;
+		}
+
+		ID_API_CALLBACK GetCallbackBySymbolName(cstr symbol) const override
+		{
+			auto i = mapNameToCallbackId.find(symbol);
+			return (i != mapNameToCallbackId.end()) ? i->second : 0;
 		}
 
 		ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, cstr symbol) override
@@ -128,7 +136,16 @@ namespace
 			binding.Callback = callback;
 			binding.Context = context;
 			binding.Symbol = symbol;
-			callbacks.insert(std::make_pair(id, binding));
+			auto i = callbacks.insert(std::make_pair(id, binding));
+			if (!i.second)
+			{
+				Throw(0, "%s: Duplicate callback id for %s", __FUNCTION__, symbol);
+			}
+			auto j = mapNameToCallbackId.insert(std::make_pair(stdstring(symbol), id));
+			if (!j.second)
+			{
+				Throw(0, "%s: Duplicate callback symbol for %s", __FUNCTION__, symbol);
+			}
 			return id;
 		}
 

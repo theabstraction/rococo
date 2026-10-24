@@ -95,7 +95,6 @@ namespace Rococo { namespace VM
 		uint32 Reserved;
 	};
 
-	struct ICore;
 	struct IVirtualMachine;
 	struct IAssembler;
 	struct IDisassembler;
@@ -115,7 +114,8 @@ namespace Rococo { namespace VM
 		virtual IDisassembler* CreateDisassembler() = 0;
 		virtual ISymbols* CreateSymbolTable() = 0;
 
-		virtual cstr GetCallbackSymbolName(ID_API_CALLBACK id) = 0;
+		virtual cstr GetCallbackSymbolName(ID_API_CALLBACK id) const = 0;
+		virtual ID_API_CALLBACK GetCallbackBySymbolName(cstr symbol) const = 0;
 		virtual bool TryInvoke(ID_API_CALLBACK id, VariantValue* registers) = 0;
 		virtual ID_API_CALLBACK RegisterCallback(FN_API_CALLBACK callback, void* context, cstr symbol) = 0;
 		virtual void UnregisterCallback(ID_API_CALLBACK id) = 0;
@@ -272,9 +272,11 @@ namespace Rococo { namespace VM
 		virtual const uint8* StartOfMemory() const = 0;
 		virtual const uint8* EndOfMemory() const = 0;
 
-		virtual ID_BYTECODE AddBytecode() = 0;
+		// AddBytecode requires and assumes that [name] is valid for the lifetime of the script execution
+		virtual ID_BYTECODE AddBytecode(cstr name) = 0;
 		virtual void UnloadBytecode(ID_BYTECODE id) = 0;
 		virtual bool UpdateBytecode(ID_BYTECODE id, const IAssembler& assember) = 0;
+		virtual fstring GetFunctionNameById(ID_BYTECODE functionId) const = 0;
 		virtual size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const = 0;
 
 		inline size_t GetFunctionAddress(ID_BYTECODE id) const
@@ -296,7 +298,8 @@ namespace Rococo { namespace VM
 	ROCOCO_INTERFACE IAssemblerBuilder
 	{
 		virtual void Append_AddImmediate(DINDEX source,  BITCOUNT bits, DINDEX target, const VariantValue& v) = 0;
-		virtual void Append_BooleanNot(DINDEX target) = 0;
+		virtual void Append_BooleanCompare(DINDEX Da, DINDEX Db) = 0;
+		virtual void Append_BooleanNot(DINDEX Da) = 0;
 		virtual void Append_CallById(ID_BYTECODE id) = 0;
 		virtual void Append_CallByIdIndirect(DINDEX Di) = 0;
 		virtual void Append_CallByRegister(DINDEX offsetRegister) = 0;

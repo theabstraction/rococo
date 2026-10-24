@@ -398,17 +398,17 @@ namespace Rococo
 							{
 								Throw(parent, "Exepecting %s, but %s is of type %s", Rococo::Script::GetTypeName(type), id, def.ResolvedType->Name());
 							}
-							ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
+							ce.Builder.AssignVariableToRegister(id, VM::REGISTER_D7);
 						}
 						else
 						{
-							ThrowTokenNotFound(parent, instance, ce.Builder.Owner().Name(), ("variable"));
+							ThrowTokenNotFound(parent, instance, ce.Builder.Owner().Name(), "variable");
 						}
 					}
 				}
 				else if (ce.Builder.GetVarStructure(id) != NULL)
 				{
-					ce.Builder.AssignVariableToTemp(id, Rococo::ROOT_TEMPDEPTH);
+					ce.Builder.AssignVariableToRegister(id, VM::REGISTER_D7);
 				}
 				else if (*id == '-')
 				{
@@ -417,23 +417,23 @@ namespace Rococo
 					switch (ce.Builder.GetVarType(id + 1))
 					{
 					case SexyVarType_Int32:
-						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.AssignVariableToRegister(id + 1, VM::REGISTER_D7);
 						ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D7, BITCOUNT_32);
 						break;
 					case SexyVarType_Float32:
-						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.AssignVariableToRegister(id + 1, VM::REGISTER_D7);
 						ce.Builder.Assembler().Append_FloatNegate32(VM::REGISTER_D7);
 						break;
 					case SexyVarType_Int64:
-						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.AssignVariableToRegister(id + 1, VM::REGISTER_D7);
 						ce.Builder.Assembler().Append_IntNegate(VM::REGISTER_D7, BITCOUNT_64);
 						break;
 					case SexyVarType_Float64:
-						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.AssignVariableToRegister(id + 1, VM::REGISTER_D7);
 						ce.Builder.Assembler().Append_FloatNegate64(VM::REGISTER_D7);
 						break;
 					case SexyVarType_Bool:
-						ce.Builder.AssignVariableToTemp(id + 1, Rococo::ROOT_TEMPDEPTH);
+						ce.Builder.AssignVariableToRegister(id + 1, VM::REGISTER_D7);
 						ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 						break;
 					case SexyVarType_Bad:
@@ -518,8 +518,8 @@ namespace Rococo
 				if (*token == '-')
 				{
 					// Negation
-					ValidateArithmeticVariable(parent, token + 1, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("LHS") : ("RHS"));
-					ce.Builder.AssignVariableToTemp(token + 1, tempDepth);
+					ValidateArithmeticVariable(parent, token + 1, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? "LHS" : "RHS");
+					ce.Builder.AssignVariableToRegister(token + 1, tempDepth + VM::REGISTER_D4);
 
 					int dx = VM::REGISTER_D4 + tempDepth;
 
@@ -543,8 +543,8 @@ namespace Rococo
 				}
 				else
 				{
-					ValidateArithmeticVariable(parent, token, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? ("LHS") : ("RHS"));
-					ce.Builder.AssignVariableToTemp(token, tempDepth);
+					ValidateArithmeticVariable(parent, token, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? "LHS" : "RHS");
+					ce.Builder.AssignVariableToRegister(token, tempDepth + VM::REGISTER_D4);
 				}
 			}
 		}
@@ -705,7 +705,7 @@ namespace Rococo
 			}
 			else
 			{
-				ce.Builder.AssignVariableToTemp(value, Rococo::ROOT_TEMPDEPTH);
+				ce.Builder.AssignVariableToRegister(value, VM::REGISTER_D7);
 				ce.Builder.Append_GetAllocSize();
 			}
 		}
@@ -713,14 +713,11 @@ namespace Rococo
 		void CompileSizeOfType(CCompileEnvironment& ce, cr_sex valueExpr)
 		{
 			cstr value = valueExpr.c_str();
-
-			UNUSED(value);
-
 			IStructure* s = MatchStructure(valueExpr, ce.Builder.Module());
 
 			if (s == NULL)
 			{
-				Throw(valueExpr, ("Token began with a capital letter. Expected type name."));
+				Throw(*valueExpr.Parent(), "%s: Failed to match structure %s", __FUNCTION__, value);
 			}
 
 			VariantValue sizeOfType;
@@ -771,7 +768,7 @@ namespace Rococo
 						Throw(s, "Cannot assign from %s. Closures cannot be persisted.", GetFriendlyName(*def.ResolvedType));
 					}
 
-					ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+					ce.Builder.AssignVariableToRegister(token, VM::REGISTER_D7);
 					return true;
 				}
 				else
@@ -855,7 +852,7 @@ namespace Rococo
 			}
 
 			// Code will now have put the index in D7
-			ce.Builder.AssignVariableToTemp(name, 0); // String ref is now in D4
+			ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D4); // String ref is now in D4
 
 			VariantValue sValue;
 			sValue.vPtrValue = const_cast<ISExpression*>(&s);
@@ -971,12 +968,6 @@ namespace Rococo
 						return true;
 					}
 
-					if (def.ResolvedType == &ce.StructMap())
-					{
-						CompileGetMapElement(ce, s.GetElement(1), command->Buffer, type, NULL);
-						return true;
-					}
-
 					if (def.ResolvedType == &ce.Object.Common().SysTypeIString().NullObjectType())
 					{
 						if (type != SexyVarType_Int32)
@@ -1053,7 +1044,7 @@ namespace Rococo
 				SexyVarType tokenType = ce.Builder.GetVarType(token);
 				if (type == tokenType)
 				{
-					ce.Builder.AssignVariableToTemp(token, Rococo::ROOT_TEMPDEPTH);
+					ce.Builder.AssignVariableToRegister(token, VM::REGISTER_D7);
 					return true;
 				}
 				else

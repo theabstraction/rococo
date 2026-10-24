@@ -31,6 +31,17 @@ namespace Rococo
             }
         }
 
+        // This gives the root of the Rococo.Reflect project. Rather than put it in the rococo directory, it is made a sibling and given its own repo
+        // Ultimately FAB requires self-contained repos, and we can't sell the rococo directory through the FAB website since it does not confirm to FAB's directory specification
+        // Ergo we have a synchronized subset of Rococo as part of Rococo.Reflect's third-party plugin directories
+        public static string RococoReflectPath
+        {
+            get
+            {
+                return Path.Combine(Roots.RococoRootPath, @"..\Rococo.Reflect\");
+            }
+        }
+
         public static string RococoProjectPath
         {
             get
@@ -535,6 +546,30 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoSexyGen4UnrealProject : RococoProject
+    {
+        public RococoSexyGen4UnrealProject() : base("unreal-sexy-gen")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Exe);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Console);
+
+            string sexyFileDir = string.Format(@"{0}RococoUE5SexportTest\Content\rococo-content\scripts\native", Roots.RococoReflectPath);
+
+            string cmdLine = string.Format(@"-UnityBuild -SEXML:{0}\..\Rococo.Reflect\S-API\all-classes.sexml -OUTDIR:{1}\source\rococo\sexy.UE5.API\ -SXYOUTDIR:{2}", Roots.RococoRootPath, Roots.RococoRootPath, sexyFileDir);
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
+            conf.VcxprojUserFile.LocalDebuggerCommandArguments = cmdLine;
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoIncludeProject : RococoProject
     {
         public RococoIncludeProject() : base("rococo.include", "include")
@@ -592,6 +627,26 @@ namespace Rococo
             conf.AddPublicDependency<RococoComponentsSkeletonProject>(target);
             conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
             conf.SolutionFolder = "ECS";
+        }
+    }
+
+    [Sharpmake.Generate]
+    public class SexyUE5APILib : RococoProject
+    {
+        public SexyUE5APILib() : base("sexy.UE5.API")
+        {
+            SourceFilesExcludeRegex.Add(@"natives.*\.cpp$");
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            ImportSexyScriptProject(conf, target);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Defines.Add("SEXY_MARSHALLING_API=__declspec(dllexport)");
+            conf.Defines.Add("TCHAR=wchar_t");
         }
     }
 
@@ -923,6 +978,7 @@ namespace Rococo
         [Configure()]
         public void ConfigureAll(Configuration conf, Target target)
         {
+            conf.Options.Add(Options.Vc.General.DebugInformation.ProgramDatabase);
             conf.ProjectPath = @"..\..\source\3rd-Party\libogg\win32\VS2022";
             conf.ProjectFileName = "lib-ogg";
             conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
@@ -959,6 +1015,7 @@ namespace Rococo
             conf.TargetFileName = "lib-vorbis";
             conf.Output = Configuration.OutputType.Lib; // Required to create dependencies in a compiled/not-generated object
             conf.SolutionFolder = " - Third-Party Projects";
+            conf.Options.Add(Options.Vc.General.DebugInformation.ProgramDatabase);
             conf.AddPublicDependency<OggProject>(target);
         }
     }
@@ -1033,6 +1090,7 @@ namespace Rococo
             conf.IncludePaths.Add(@"..\libogg\include\");
             conf.IncludePaths.Add(@"..\libvorbis\include\");
             conf.Options.Add(Sharpmake.Options.Vc.General.WarningLevel.Level1);
+            conf.Options.Add(Options.Vc.General.DebugInformation.ProgramDatabase);
             conf.ModuleDefinitionFile = Path.Combine(SourceRootPath, @"win32\vorbisfile.def");
 
         }
@@ -1049,6 +1107,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Lib);
+            conf.Defines.Add("SEXYIDE_API="); 
         }
     }
 
@@ -1070,6 +1129,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             ImportSexyScriptProject(conf,target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
+            conf.Defines.Add("SEXYIDE_API=");
         }
     }
 
@@ -1277,6 +1337,7 @@ namespace Rococo
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
+            conf.Defines.Add("SEXYIDE_API=");
             AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
         }
     }
@@ -1309,6 +1370,7 @@ namespace Rococo
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
+            conf.Defines.Add("SEXYIDE_API=");
         }
     }
 
@@ -1393,6 +1455,26 @@ namespace Rococo
     }
 
     [Sharpmake.Generate]
+    public class RococoSexyStudioLibProject : RococoProject
+    {
+        public RococoSexyStudioLibProject() : base("sexystudio-lib")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoSexInferenceProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
+            conf.SolutionFolder = " - SexyStudio";
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllexport)");
+        }
+    }
+
+    [Sharpmake.Generate]
     public class RococoSexyStudioProject : RococoProject
     {
         public RococoSexyStudioProject() : base("sexystudio")
@@ -1404,6 +1486,7 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoSexyStudioLibProject>(target);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             ImportSexyScriptProject(conf,target);
@@ -1411,6 +1494,7 @@ namespace Rococo
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
             conf.SolutionFolder = " - SexyStudio";
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllimport)");
         }
     }
 
@@ -1508,6 +1592,7 @@ namespace Rococo
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);
             conf.SolutionFolder = SolutionFolders.CFGS;
             conf.Defines.Add("CFGS_CONTEXT_POPUP_API=__declspec(dllexport)");
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllimport)");
         }
     }
 
@@ -1584,6 +1669,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.SolutionFolder = " - SexyStudio";
+            conf.Defines.Add("SEXYSTUDIO_API=__declspec(dllimport)");
         }
     }
 
@@ -1601,6 +1687,10 @@ namespace Rococo
             conf.Defines.Add("UNICODE");
             conf.Defines.Add("_ITERATOR_DEBUG_LEVEL=0");
             conf.SolutionFolder = " - SexyStudio";
+
+            string cmdLine = string.Format(@"C:\Program Files\Notepad++\notepad++.exe");
+            conf.VcxprojUserFile = new Configuration.VcxprojUserFileSettings();
+            conf.VcxprojUserFile.LocalDebuggerCommand = cmdLine;
         }
     }
 
@@ -1981,6 +2071,7 @@ namespace Rococo
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189", "4244"));
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllexport)");
+            conf.Defines.Add("SEXYIDE_API=");
             conf.SolutionFolder = " - Sexy";
 
             string flags = "/i  /y  /d  /q";
@@ -2136,12 +2227,19 @@ namespace Rococo
             conf.AddProject<RococoMathsTestProject>(target);
         }
 
+        public static void AddUE5ibs(Solution.Configuration conf, Target target)
+        {
+            conf.AddProject<RococoSexyGen4UnrealProject>(target);
+            conf.AddProject<SexyUE5APILib>(target);
+        }
+
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
         {
             conf.AddProject<RococoSexyStudioProject>(target);
             conf.AddProject<RococoSexyStudioAppProject>(target);
             conf.AddProject<RococoSexyStudioTestProject>(target);
             conf.AddProject<RococoSexyStudio4NPPProject>(target);
+            conf.AddProject<RococoSexyStudioLibProject>(target);
         }
 
         public static void AddControlFlowGraphStudio(Solution.Configuration conf, Target target)
@@ -2188,6 +2286,7 @@ namespace Rococo
             SolutionBuilder.AddThirdPartyLibs(conf, target);
             SolutionBuilder.AddSexyStudio(conf, target);
             SolutionBuilder.AddControlFlowGraphStudio(conf, target);
+            SolutionBuilder.AddUE5ibs(conf, target);
             conf.AddProject<RococoDX11HLSLCompilerProject>(target);
             conf.AddProject<RococoDX11HLSLMonitorProject>(target);
             conf.AddProject<RococoBuildFinalProject>(target);
@@ -2343,6 +2442,7 @@ namespace Rococo
             arguments.Generate<RococoMPlatProject>();
             arguments.Generate<RococoMPlatDynamicProject>();
             arguments.Generate<RococoMHostProject>();
+            arguments.Generate<RococoSexyStudioLibProject>();
             arguments.Generate<RococoSexyStudioProject>();
             arguments.Generate<RococoSexyStudioAppProject>();
             arguments.Generate<RococoSexyStudioTestProject>();
@@ -2383,6 +2483,10 @@ namespace Rococo
 
             arguments.Generate<DommeProject>();
             arguments.Generate<DommeTestProject>();
+
+            arguments.Generate<RococoSexyGen4UnrealProject>();
+
+            arguments.Generate<SexyUE5APILib>();
         }
     }
 }

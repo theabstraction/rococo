@@ -396,6 +396,17 @@ namespace MSWindows
         MB_ICONINFORMATION = MB_ICONASTERISK,
         MB_ICONSTOP = MB_ICONHAND,
     };
+
+    ROCOCO_OS_WIN32_API HWND GetActiveWindow();
+
+    enum EAncestor
+    {
+        GA_PARENT = 1,
+        GA_ROOT,
+        GA_ROOTOWNER
+    };
+
+    ROCOCO_OS_WIN32_API HWND GetAncestor(HWND hwnd, UINT gaFlags);
 }
 
 namespace Rococo

@@ -204,6 +204,11 @@ namespace Rococo
 		return kb * 1024;
 	}
 
+	FORCE_INLINE constexpr lsize_t operator "" _bytes(lsize_t b)
+	{
+		return b;
+	}
+
 	template<int OPTIMAL_SIZE, typename TYPENAME, typename ... ARGS>
 	class ArbitraryFunction;
 
@@ -255,6 +260,12 @@ namespace Rococo
 	typedef FilePath<char32_t> U32FilePath;
 	typedef FilePath<ROCOCO_WIDECHAR>  WideFilePath;
 	typedef FilePath<char>	   U8FilePath;
+
+	ROCOCO_INTERFACE IPingPathResolver
+	{
+		virtual void PingPathToSysPath(cstr pingPath, U8FilePath & sysPath) = 0;
+		virtual void SysPathToPingPath(cstr sysPath, U8FilePath& pingPath) = 0;
+	};
 
 	union WindowHandle
 	{
@@ -393,6 +404,7 @@ namespace Rococo
 	namespace Sex
 	{
 		DECLARE_ROCOCO_INTERFACE ISExpression;
+		typedef const ISExpression& cr_sex;
 	}
 
 	namespace Strings
@@ -405,7 +417,8 @@ namespace Rococo
 
 	ROCOCO_INTERFACE IScriptCompilationEventHandler
 	{
-		virtual void OnCompile(ScriptCompileArgs& args) = 0;
+		virtual void OnInitSexyScript(ScriptCompileArgs& args) = 0;
+		virtual void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs& args) = 0;
 		virtual IScriptEnumerator* ImplicitIncludes() = 0;
 	};
 
@@ -501,6 +514,7 @@ namespace Rococo
 			d(t);
 			t = src.t;
 			src.t = nullptr;
+			return *this;
 		}
 
 		FORCE_INLINE ~AutoFree()

@@ -224,6 +224,7 @@ namespace Anon
 		const IStructure* type;
 		int popBytes = 0;
 		ID_BYTECODE proxyId = 0;
+		stdstring commentary;
 
 		// Assumes security is valid pointer for the lifetime of the function object
 		const Rococo::Script::NativeSecurityHandler* security = nullptr;
@@ -290,6 +291,18 @@ namespace Anon
 			return popBytes;
 		}
 
+		bool isNative = false;
+
+		void DeclareNative() override
+		{
+			isNative = true;
+		}
+
+		bool IsNative() const override
+		{
+			return isNative;
+		}
+
 		void Free() override
 		{
 			delete this;
@@ -304,6 +317,11 @@ namespace Anon
 
 			Anon::FunctionArgument* arg = args.back();
 			arg->SetDefault(defaultValueString);
+		}
+
+		void SetCommentary(cstr commentary) override
+		{
+			this->commentary = commentary;
 		}
 
 		virtual cstr GetDefaultValue(int index) const override
@@ -424,7 +442,7 @@ namespace Anon
 				FunctionArgument* arg = *i;
 				if (!arg->TryResolveArgument())
 				{
-					Throw(0, "Cannot resolve argument (%s %s) of %s defined in %s", arg->TypeString(), arg->Name(), Name(), module.Name());
+					Throw(0, "Cannot resolve argument (%s %s) of %s defined in %s. %s", arg->TypeString(), arg->Name(), Name(), module.Name(), commentary.empty() ? "" : commentary.c_str());
 				}
 			}
 		}
@@ -436,6 +454,10 @@ namespace Anon
 				FunctionArgument* arg = *i;
 				if (!arg->TryResolveArgument())
 				{
+					char msg[1024];
+					StackStringBuilder sb(msg, sizeof msg);
+					sb << "Error resolving argument " << arg->Name() << ". Type is " << arg->TypeString() << ". Function " << Name() << " is defined in module " << module.Name() << ". " << commentary.c_str();
+					module.Object().Log().Write(msg);
 					return false;
 				}
 				else
@@ -447,7 +469,7 @@ namespace Anon
 						{
 							if (argType->VarType() == SexyVarType_Derivative && argType->InterfaceCount() == 0)
 							{
-								Throw(0, "Output arguments cannot be of derived type. Error with output %s in %s of %s", arg->Name(), name.c_str(), module.Name());
+								Throw(0, "Output arguments cannot be of derived type. Error with output '%s' in '%s' of '%s'. %s", arg->Name(), name.c_str(), module.Name(), commentary.empty() ? "" : commentary.c_str());
 							}
 						}			
 					}

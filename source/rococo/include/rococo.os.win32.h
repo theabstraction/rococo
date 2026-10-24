@@ -15,10 +15,20 @@ namespace Windows
 {
 	MINIMAL_WINDOWS_API DWORD GetLastError();
 	inline bool IsNull(HANDLE handle) { return handle == nullptr; }
+    MINIMAL_WINDOWS_API HWND GetActiveWindow();
+
+    enum EAncestor
+    {
+        GA_PARENT = 1,
+        GA_ROOT,
+        GA_ROOTOWNER
+    };
+
+    MINIMAL_WINDOWS_API HWND GetAncestor(HWND hwnd, UINT gaFlags);
 }
 
 #else
-# include <rococo.os.win32.mswindow.h>
+# include "rococo.os.win32.mswindow.h"
 
 namespace MSWindows
 {
@@ -26,5 +36,15 @@ namespace MSWindows
 }
 
 #endif
+
+#ifndef ROCOCO_WINDOWS_API
+# define ROCOCO_WINDOWS_API __declspec(dllimport)
+#endif
+
+namespace Rococo::Windows
+{
+    // WindowsAPI free version of InitRococoWindows. Note, you need to provide HINSTANCE for the app to pInstance
+    ROCOCO_WINDOWS_API void InitRococoWindows(void* pInstance, const char* titleFontFaceName, int titleHeight, const char* controlFontFaceName, int controlFontHeight);
+}
 
 #endif

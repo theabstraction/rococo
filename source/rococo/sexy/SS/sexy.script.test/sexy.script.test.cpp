@@ -57,6 +57,7 @@
 #include <rococo.os.win32.h>
 
 #include <limits>
+#include <new>
 
 #include "sexy.vm.h"
 #include "sexy.vm.cpu.h"
@@ -232,19 +233,30 @@ namespace
 
 	void PrintParseException(const ParseException& e)
 	{
-		WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: line %d pos %d to line %d pos %d\r\nReason: %s\r\n", e.Name(), e.Start().y, e.Start().x, e.End().y, e.End().x, e.Message());
+		WriteToStandardOutput("\r\nParse error:\r\nSource: %s\r\nExpression: line %d pos %d to line %d pos %d", e.Name(), e.Start().y, e.Start().x, e.End().y, e.End().x);
 
-		int depth = 0;
-		for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
+		if (e.Source())
 		{
-			if (depth++ > 0)  WriteToStandardOutput("Macro expansion %d:\r\n", depth);
+			WriteToStandardOutput(" depth %d\r\n", e.Source()->TransformationDepth());
+		}
 
-			int totalOutput = 0;
-			PrintExpression(*s, totalOutput, 1024);
+		WriteToStandardOutput("\r\nReason: % s\r\n", e.Message());
+		
+		if (e.Source())
+		{
+			WriteToStandardOutput("\n\nTransformationDepth: %d\r\n", e.Source()->TransformationDepth());
+			int depth = 0;
+			for (const ISExpression* s = e.Source(); s != NULL; s = s->GetOriginal())
+			{
+				if (depth++ > 0)  WriteToStandardOutput("Macro expansion %d:\r\n", depth);
 
-			if (totalOutput > 1024) WriteToStandardOutput("...");
+				int totalOutput = 0;
+				PrintExpression(*s, totalOutput, 1024);
 
-			WriteToStandardOutput("\r\n");
+				if (totalOutput > 1024) WriteToStandardOutput("...");
+
+				WriteToStandardOutput("\r\n");
+			}
 		}
 	}
 
@@ -311,8 +323,11 @@ namespace
 		AddNativeCallSecurity_ToSysNatives(ss);
 	}
 
+	int testCount = 0;
+
 	void Test(const char* name, FN_TEST fnTest, bool addinCoroutines, bool addInIO)
 	{
+		testCount++;
 		{
 			printf("<<<<<< %s\r\n", name);
 
@@ -708,6 +723,48 @@ namespace
 
       auto result = vm.Execute(VM::ExecutionFlags(false, true));
       ValidateExecution(result);
+   }
+
+   void TestMacroExpandCatch(IPublicScriptSystem& ss)
+   {
+	   cstr srcCode =
+		   R"sexy(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(function Main -> (Int32 exitCode):
+	(
+		try
+		(
+			(#string msg2 256 "Bonjour!")
+			(Int32 len = msg2.Length)
+			(if (len > 0)
+				(exitCode = 1)
+			)
+		)
+		catch e
+		(
+		)
+	)
+
+	(#string msg 256 "Hello World")
+	(Sys.Print msg)
+)
+)sexy";
+
+	   Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+	   Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   vm.Push(0); // Allocate stack space for the int32 exitcode
+
+	   auto result = vm.Execute(VM::ExecutionFlags(false, true));
+	   ValidateExecution(result);
+
+	   int32 exitCode = vm.PopInt32();
+	   validate(exitCode == 1);
    }
 
    void TestPackage(IPublicScriptSystem& ss)
@@ -1315,6 +1372,29 @@ namespace
 		validate(x == 0);
 		validate(y == 1);
 		validate(z == 1);
+	}
+
+	void TestBooleanVarCompare(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 x):\n"
+			"   (Bool a = true)\n"
+			"   (Bool b = true)\n"
+			"   (if (a == b) (x = 6))\n"
+			"   (if (a == true) (x += 6))\n"
+			"   (if (false != b) (x += 6))\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(100); // Allocate stack space for the int32 x
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 x = vm.PopInt32();
+		validate(x == 18);
 	}
 
 	void TestBooleanCompareVarToCompound(IPublicScriptSystem& ss)
@@ -1990,6 +2070,32 @@ namespace
 		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
 		int32 x = vm.PopInt32();
 		validate(x == 7);
+	}
+
+	void TestFunctionCallWithOutParameter(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(using Sys.Maths)\n"
+			"(namespace EntryPoint)\n"
+			"(function Main -> (Int32 exitValue):\n"
+			"    (Vec2i result)"
+			"    (GenerateResult result)"
+			"    (exitValue = result.x / result.y)"
+			")\n"
+			"(function GenerateResult (out Vec2i v)-> :\n"
+			"   (v.x = 27)\n"
+			"   (v.y = 3)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 exitValue
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 x = vm.PopInt32();
+		validate(x == 9);
 	}
 
 	void TestFunctionCall1(IPublicScriptSystem& ss)
@@ -3491,7 +3597,7 @@ R"((namespace EntryPoint)
 			")"				
 			"(namespace EntryPoint)(alias Main EntryPoint.Main)";
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 },"TestNativeCall");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -3501,6 +3607,369 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		int64 x = vm.PopInt64();
 		validate(170 == x);
+	}
+
+	static int marbleCode = 0;
+
+	void TestEnumByCPP(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(function Main -> (Int32 result):
+				(Sys.Time.Day day = 6)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)
+				(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		const INamespace& nsTime = ss.AddNativeNamespace("Sys.Time");
+
+		try
+		{
+			ss.CreateEnumType(nsTime, __FILE__, __LINE__, "Day", Rococo::SexyVarType_Int32);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		ss.PartialCompile(nullptr);
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 6);
+	}
+
+	void TestRock(IPublicScriptSystem& ss)
+	{
+		struct Marble
+		{
+			int64 value1;
+			int64 value2;
+
+			Marble(): value1(marbleCode + 8), value2(marbleCode + 16)
+			{
+				printf("ConstructMarble: %p %llu %llu\n", this, value1, value2);
+			}
+		};
+
+		struct ANON
+		{
+			static void AssignMarble(NativeCallEnvironment& e)
+			{
+				marbleCode += 3;
+
+				Marble* marbleDest;
+				ReadInput(1, marbleDest, e);
+
+				Marble* marbleSrc;
+				ReadInput(0, marbleSrc, e);
+
+				printf("AssignMarble: dest  %p %llu %llu\n", marbleDest, marbleDest->value1, marbleDest->value2);
+				printf("AssignMarble: src  %p %llu %llu\n", marbleSrc, marbleSrc->value1, marbleSrc->value2);
+
+				marbleDest->value1 = marbleSrc->value1 + 1;
+				marbleDest->value2 = marbleSrc->value2 + 2;
+
+				printf("AssignMarble: dest  %p %llu %llu\n", marbleDest, marbleDest->value1, marbleDest->value2);
+				printf("AssignMarble: src  %p %llu %llu\n", marbleSrc, marbleSrc->value1, marbleSrc->value2);
+			}
+
+			static void ConstructMarble(NativeCallEnvironment& e)
+			{
+				marbleCode += 7;
+				Marble* marble;
+				ReadInput(0, marble, e);
+				new (marble) Marble();
+			}
+
+			static void DestructMarble(NativeCallEnvironment& e)
+			{
+				marbleCode += 9;
+				Marble* m;
+				ReadInput(0, m, e);
+
+				printf("Destruct: %p %llu %llu\n", m, m->value1, m->value2);
+			}
+		};
+
+		const INamespace& ns = ss.AddNativeNamespace("Sys.Rock");
+
+		try
+		{
+			ss.CreateRockType(ns, __FILE__, __LINE__, "Marble", 16_bytes);
+
+			ss.AddNativeCall(ns, ANON::ConstructMarble, NULL, "++Marble (out Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::DestructMarble, NULL,  "--Marble (const Sys.Rock.Marble marble)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, ANON::AssignMarble, NULL, "->Marble (const Sys.Rock.Marble src)(out Sys.Rock.Marble dest)->", __FILE__, __LINE__, false, 0);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		cstr srcCode = 
+		R"(
+			(function Main -> (Int32 result):
+				(Sys.Rock.Marble marble)
+				(if ((sizeof Sys.Rock.Marble) != 16) 
+					(Sys.Throw 0 "Expecting sizeof marble to be 16 bytes")
+				)
+
+				(Sys.Rock.Marble stone = marble)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		marbleCode = 0;
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+
+		validate(marbleCode == 35);
+	}
+
+	void TestConstants(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Sys.Type.Day day = .Wednesday)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 3);
+	}
+
+	void TestConstants2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function ToInt (Day day) -> (Int32 value):
+				(value = day.Value)
+			)
+
+			(function Main -> (Int32 result):
+				(result = ToInt .Wednesday)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 3);
+	}
+
+	void TestConstants3(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day today = .Wednesday)
+				(Day tomorrow = .Thursday)
+				(if (today == .Friday)
+					 (result = 4)
+					 (return)
+				)
+				
+				(if (today != .Friday)
+					 (result += 3)
+				)
+
+				(if (today == .Wednesday)
+					 (result += 5)
+				)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 8);
+	}
+
+
+	static int64 TestNativeHandle_globalHandle = 0;
+
+	struct HandleImage
+	{
+		int64 nativeValue;
+	};
+
+	void TestNativeHandle(IPublicScriptSystem& ss)
+	{
+		struct ANON
+		{
+			static void SetGlobalHandle(NativeCallEnvironment& e)
+			{
+				Rococo::uint8* _sf = e.cpu.SF();
+				ptrdiff_t _offset = 2 * sizeof(size_t);
+
+				HandleImage* handle;
+				_offset += sizeof(handle);
+				ReadInput(handle, _sf, -_offset);
+
+				TestNativeHandle_globalHandle = handle->nativeValue;
+			}
+
+			static void GetHandle9001(NativeCallEnvironment& e)
+			{
+				Rococo::uint8* _sf = e.cpu.SF();
+				ptrdiff_t _offset = 2 * sizeof(size_t);
+
+				HandleImage* handle;
+				_offset += sizeof(handle);
+				ReadInput(handle, _sf, -_offset);
+
+				handle->nativeValue = 9001LL;
+			}
+		};
+
+		try
+		{
+			auto& nsAnimals = ss.AddNativeNamespace("Sys.Animals");
+			ss.CreateHandleType(nsAnimals, __FILE__, __LINE__, "HMONKEY");
+
+			ss.AddNativeCall(nsAnimals, ANON::GetHandle9001, NULL, "GetHandle9001 (Sys.Animals.HMONKEY hMonkey) ->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(nsAnimals, ANON::SetGlobalHandle, NULL, "SetGlobalHandle (Sys.Animals.HMONKEY hMonkey) ->", __FILE__, __LINE__, false, 0);
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		cstr srcCode =
+			"(function Main -> (Int32 result):"
+			"		(Sys.Animals.HMONKEY hMonkey)"
+			"		(Sys.Animals.GetHandle9001 hMonkey)"
+			"		(Sys.Animals.SetGlobalHandle hMonkey)"
+			")"
+			"(namespace EntryPoint)(alias Main EntryPoint.Main)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestNativeHandle");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int64 x = vm.PopInt32();
+		validate(0 == x);
+		validate(TestNativeHandle_globalHandle == 9001LL);
+	}
+
+	void TestNativeHandleSecurity(IPublicScriptSystem& ss)
+	{
+		try
+		{
+			auto& nsAnimals = ss.AddNativeNamespace("Sys.Animals");
+			ss.CreateHandleType(nsAnimals, __FILE__, __LINE__, "HMONKEY");
+		}
+		catch (IException& ex)
+		{
+			s_logger.Write(ex.Message());
+			validate(false);
+		}
+
+		// This will fail because HMONKEY is a handle with no public members, so memberwise assignment fails
+		cstr srcCode =
+			"(function Main -> (Int32 result):\n"
+			"		(MyMonkey monkey = 0 (614))\n"
+			")\n"
+			"(struct MyMonkey (Int64 a)(Sys.Animals.HMONKEY hMonkey))\n"
+			"(namespace EntryPoint)(alias Main EntryPoint.Main)\n";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestNativeHandleSecurity");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		s_logger.Clear();
 	}
 
 	void TestNativeCall2(IPublicScriptSystem& ss)
@@ -4249,6 +4718,100 @@ R"((namespace EntryPoint)
 		ValidateExecution(result);
 		int32 x = vm.PopInt32();
 		validate(x == 27);
+	}
+
+	void TestStringAndBuild(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+		(namespace TestApp)
+
+		(using Sys.Type)
+
+		(namespace EntryPoint)
+		(function Main -> (Int32 result):
+			(#string sb 256 "Hello ")
+			(#build sb "World") 
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
+	}
+
+	void TestThrowInCatch(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+R"(
+		(namespace TestApp)
+
+		(using Sys.Type)
+
+		(archetype TestApp.VoidFunction -> )
+
+		(function RunTest(TestApp.VoidFunction f) -> :
+			(IString functionName = f.Name)
+
+			(
+				try
+				(
+					(f)
+				)
+				catch e
+				(
+					(#string msg 256 functionName " threw an exception:" e.Message)
+					(Sys.Throw e.ErrorCode msg)
+				)
+			)
+
+			(#string msg 256 functionName " succeeded&n")
+			(Sys.Print msg)
+		)
+
+		(function AssertMatchInt32(IString msg)(Int32 a)(Int32 b)-> :
+			(if (a == b) (return))
+			//(IStringBuilder errMsg = (Sys.Type.NewParagraphBuilder))
+			//(#build errMsg a b) 
+			(#string errMsg 256 msg)
+			(errMsg.SetFormat 4 4 false false)
+			(#build errMsg a b) // ": (" a " != " b ") ")
+		//	(Sys.Throw 0 errMsg)
+		)
+
+		(function Test -> :
+			(AssertMatchInt32 "Return result" 1 2)
+		)
+
+		(namespace EntryPoint)
+		(function Main -> (Int32 result):
+			(RunTest Test)
+			(IStringBuilder sb = (Sys.Type.NewParagraphBuilder))
+			(#build sb "World") 
+		)
+
+		(alias Main EntryPoint.Main)
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 0);
 	}
 
 	void TestDeepCatch(IPublicScriptSystem& ss)
@@ -6295,6 +6858,36 @@ R"((namespace EntryPoint)
 		validate(x == -1);
 	}
 
+	void TestGetArchetypeName(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+(archetype Sys.VoidFunction -> )
+(function BitBang -> : )
+
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(function Main -> (Int32 result):
+	(Sys.VoidFunction f = BitBang)
+	(Sys.Print f.Name)
+)
+)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 0);
+	}
+
 	void TestSysThrow2(IPublicScriptSystem& ss) // like sys.throw, but adds a stack spanner in the works
 	{
 		cstr srcCode =
@@ -8110,6 +8703,45 @@ R"((namespace EntryPoint)
 
 			"(function Main -> (Int32 result): "
 			"	(Sys.IDog dog)"
+			"   (if (dog ?)"
+			"		(result = 7)"
+			"	else"
+			"		(result = 9)"
+			"	)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+
+		int x = vm.PopInt32();
+		validate(x == 9);
+	}
+
+	void TestFactoryReturnEmpty(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+
+			"(using Sys.Type)"
+
+			"(interface Sys.IDog (attribute essential)"
+			"    (Id -> (Int32 id))"
+			")"
+
+			"(factory Sys.NullDog Sys.IDog :"
+			"    (return)"
+			")"
+
+			"(function Main -> (Int32 result): "
+			"	(Sys.IDog dog (Sys.NullDog))"
 			"   (if (dog ?)"
 			"		(result = 7)"
 			"	else"
@@ -16595,9 +17227,17 @@ R"(
 		   }
 	   };
 
-	   ss.AddNativeCall(ns, MessageDispatcher::Dispatch, nullptr, "DispatchMessage (Sys.DispatchEventHandler handler) -> ", __FILE__, __LINE__, true, 0);
+	   IModule* srcModule = ss.AddTree(*tree);
 
-	   VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+	   ss.SetNativeCallTarget(srcModule);
+	   ss.AddNativeCall(ns, MessageDispatcher::Dispatch, nullptr, "DispatchMessage (Sys.DispatchEventHandler handler) -> ", __FILE__, __LINE__, true, 0);
+	   ss.SetNativeCallTarget(nullptr);
+	   ss.Compile();
+
+	   const INamespace* entryPointNS = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+	   SetProgramAndEntryPoint(ss.PublicProgramObject(), *entryPointNS, "Main");
+
+	   auto& vm = ss.PublicProgramObject().VirtualMachine();
 
 	   vm.Push(1815); // Allocate stack space for the int32 result
 	   EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
@@ -17994,6 +18634,8 @@ R"(
 	{
 		validate(true);
 
+		TEST(TestNativeHandle);
+
 		TEST(TestTypenames);
 
 		TEST(TestDefaultParameter);
@@ -18058,6 +18700,8 @@ R"(
 
 	//	TEST(TestPackage);
 
+		TEST(TestMacroExpandCatch);
+
 		TEST(TestUseDefaultNamespace);
 		TEST(TestUseDefaultNamespace2);
 
@@ -18091,6 +18735,8 @@ R"(
 		TEST3(TestLoopFinally);
 		TEST(TestBadClosureArg);
 		TEST(TestNullArchetypeArg);
+		TEST(TestGetArchetypeName);
+
 		TEST(TestBadClosureArg7);
 		TEST(TestBadClosureArg6);
 		TEST(TestBadClosureArg5);
@@ -18125,6 +18771,7 @@ R"(
 		TEST(TestBitwiseOr);
 		TEST(TestOperatorOverload2);
 		TEST(TestStructWithVec4f);
+		TEST(TestBooleanVarCompare);
 		TEST(TestBooleanCompareVarToCompound);
 		TEST(TestAssignDerivativeFromRef);
 		TEST(TestMemberwise2);
@@ -18195,6 +18842,7 @@ R"(
 		TEST(TestFunctionCall2);
 		TEST(TestFunctionCall3);
 		TEST(TestFunctionCall4);
+		TEST(TestFunctionCallWithOutParameter);
 
 		TEST(TestFunctionCallRecursion1);
 		TEST(TestFunctionCallMultiOutput1);
@@ -18245,6 +18893,8 @@ R"(
 		TEST(TestAssignPointerFromFunction);
 
 		TEST(TestClassExtendsInterface);
+
+		TEST(TestStringAndBuild);
 
 		TEST(TestMultipleDerivation2);
 		TEST(TestMultipleDerivation);
@@ -18395,10 +19045,20 @@ R"(
 		TEST2(TestCoroutine1);
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
+		TEST(TestRock);
+
+		TEST(TestConstants);
+		TEST(TestConstants2);
+		TEST(TestConstants3);
+
+		TEST(TestEnumByCPP);
+
+		TEST(TestFactoryReturnEmpty);
 	}
 
 	void RunPositiveFailures()
 	{	
+		TEST(TestNativeHandleSecurity);
 		TEST(TestInvokeMethodViaReflectionFails);
 		TEST(TestThrowInConstructor);
 		TEST(TestMissingMethod);
@@ -18441,12 +19101,14 @@ R"(
 		RunPositiveFailures();
 		TestArrays();
 		TestLists();
-		TestMaps();
+		TestLists();
+		TestMaps();goto finish;
+	finish:
 		end = Time::TickCount();
 		hz = Time::TickHz();
 
 		double dt = (double)(end - start) / (double)hz;
-		printf("\nAll tests completed in %.2f seconds\n", dt);
+		printf("\n%d tests completed in %.2f seconds (%.1f tests per second)\n", testCount, dt, testCount / dt);
 	}
 }
 
@@ -18467,8 +19129,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

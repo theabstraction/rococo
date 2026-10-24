@@ -863,6 +863,28 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 	}
 
+	ID_BYTECODE Structure::AssignmentFunction() const
+	{
+		if (assignmentId != 0)
+		{
+			return assignmentId;
+		}
+
+		char assignmentName[MAX_FQ_NAME_LEN];
+		SafeFormat(assignmentName, sizeof assignmentName, "->%s", name.c_str());
+
+		auto* f = static_cast<IProgramObject&>(Object()).FindNative(assignmentName);
+		if (!f)
+		{
+			return 0;
+		}
+
+		CodeSection code;
+		f->Code().GetCodeSection(OUT code);
+		assignmentId = code.Id;
+		return assignmentId;
+	}
+
 	void Structure::FillVirtualTable(int interfaceIndex)
 	{
 		const IObjectInterface& interf = GetInterface(interfaceIndex);
@@ -945,3 +967,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 		return (const ID_BYTECODE*)virtualTables[interfaceIndex];
 	}
 }}} //Rococo::Compiler::Impl
+
+namespace Rococo::Compiler
+{
+	bool TryResolveStruct(ILog& log, IStructureBuilder& s, bool reportErrors, const void** pErrSrc)
+	{
+		return Impl::TryResolve(log, static_cast<Impl::Structure&>(s), reportErrors, pErrSrc);
+	}
+}

@@ -21,6 +21,7 @@ namespace Rococo::Script
 
 	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IObjectInterface& i);
 	SCRIPTEXPORT_API bool IsIString(const Rococo::Compiler::IStructure& typeDesc);
+	SCRIPTEXPORT_API void SetDefaultNativeBinPath(crwstr pathname);
 	SCRIPTEXPORT_API void SetDefaultNativeSourcePath(crwstr pathname);
 	SCRIPTEXPORT_API const Rococo::Sex::ISExpression* GetSexSymbol(VM::CPU& cpu, const uint8* pcAddress, Rococo::Script::IPublicScriptSystem& ss);
 	SCRIPTEXPORT_API const Rococo::Compiler::IFunction* GetFunctionFromBytecode(const Rococo::Compiler::IModule& module, Rococo::ID_BYTECODE id);

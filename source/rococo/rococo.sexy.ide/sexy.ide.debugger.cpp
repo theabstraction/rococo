@@ -24,7 +24,6 @@
 #include <rococo.visitors.h>
 #include <commctrl.h>
 
-#include <string>
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
@@ -43,7 +42,7 @@ using namespace Rococo::VM;
 
 namespace Rococo::Windows::IDE
 {
-	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data);
+	SEXYIDE_API IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data);
 }
 
 namespace
@@ -87,6 +86,7 @@ namespace
 		MENU_SPACER = 0,
 		MENU_SYS_EXIT = 1000,
 		MENU_SYSFONT,
+		MENU_TITLEFONT,
 		MENU_SYSRESET,
 		MENU_SYS_LOADLAYOUT,
 		MENU_SYS_LOAD4KLAYOUT,
@@ -98,6 +98,16 @@ namespace
 		MENU_EXECUTE_NEXT_SYMBOL,
 		MENU_EXECUTE_CONTINUE
 	};
+
+	BOOL ListView_GetItemA(HWND hWnd, LV_ITEMA* item)
+	{
+		return (BOOL) SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM) item);
+	}
+
+	BOOL ListView_GetColumnA(HWND hwnd, int iCol, LV_COLUMNA* pcol)
+	{
+		return (BOOL) SendMessageA(hwnd, LVM_GETCOLUMNA, (WPARAM)iCol, (LPARAM)pcol);
+	}
 
 	NOT_INLINE void LV_DrawItem(const ColourScheme& scheme, DRAWITEMSTRUCT& d)
 	{
@@ -114,7 +124,7 @@ namespace
 		item.stateMask = LVIS_SELECTED | LVIS_FOCUSED;
 		item.iItem = d.itemID;
 		item.iSubItem = 0;
-		if (ListView_GetItem(d.hwndItem, &item))
+		if (ListView_GetItemA(d.hwndItem, &item))
 		{
 			if (HasFlag(LVIS_SELECTED, item.state))
 			{
@@ -154,7 +164,7 @@ namespace
 			LVCOLUMNA col = { 0 };	
 			col.mask = LVCF_WIDTH;
 
-			if (ListView_GetColumn(d.hwndItem, i, &col))
+			if (ListView_GetColumnA(d.hwndItem, i, &col))
 			{
 				x1 = x + col.cx;
 
@@ -164,7 +174,7 @@ namespace
 				item.iSubItem = i;
 				item.cchTextMax = sizeof text;
 				item.pszText = text;
-				if (ListView_GetItem(d.hwndItem, &item))
+				if (ListView_GetItemA(d.hwndItem, &item))
 				{
 					RECT itemRect = d.rcItem;
 					itemRect.left = x;
@@ -204,6 +214,42 @@ namespace
 		}
 	}
 
+	class AutoFont
+	{
+	private:
+		HFONT hFont = nullptr;
+
+	public:
+		~AutoFont()
+		{
+			if (hFont)
+			{
+				DeleteObject(hFont);
+			}
+		}
+
+		void SetFont(const LOGFONTW& logFont)
+		{
+			if (hFont)
+			{
+				DeleteObject(hFont);
+				hFont = nullptr;
+			}
+
+			hFont = CreateFontIndirectW(&logFont);
+		}
+
+		operator bool() const
+		{
+			return hFont != nullptr;
+		}
+
+		HFONT operator()()
+		{
+			return hFont;
+		}
+	};
+
 	class TabbedDebuggerWindowHandler :
 		public StandardWindowHandler,
 		public IDebuggerWindow,
@@ -224,7 +270,10 @@ namespace
 		IDEPANE_ID migratingId;
 
 		LOGFONTW logFont;
-		HFONT hFont;
+		LOGFONTW headerLogFont;
+
+		AutoFont schemeFont;
+		AutoFont headerFont;
 
 		int32 requiredDepth; // Function to view according to stack depth 
 
@@ -305,7 +354,7 @@ namespace
 			isVisible(false),
 			debugControl(nullptr),
 			spatialManager(nullptr),
-			disassemblyId(false), hFont(nullptr),
+			disassemblyId(false),
 			requiredDepth(1),
 			eventHandler(CreateDebuggerEventHandler(installation, *this)),
 			menuHandler(eventHandler->GetMenuCallback()),
@@ -316,7 +365,10 @@ namespace
 			auto& sysMenu = mainMenu->AddPopup("&Sys");
 			auto& sysDebug = mainMenu->AddPopup("&Debug");
 
-			sysMenu.AddString("&Font...", MENU_SYSFONT);
+			auto& fontMenu = sysMenu.AddPopup("&Fonts...");
+			fontMenu.AddString("&Data Font...", MENU_SYSFONT);
+			fontMenu.AddString("&Header Font...", MENU_TITLEFONT);
+
 			sysMenu.AddString("&Reset UI", MENU_SYSRESET);
 			sysMenu.AddString("&Load layout", MENU_SYS_LOADLAYOUT);
 
@@ -340,22 +392,56 @@ namespace
 			variableEventHandler.This = this;
 
 			logFont = LOGFONTW{ 0 };
-			SecureFormat(logFont.lfFaceName, (size_t) LF_FACESIZE, L"Courier New");
+			SecureFormat(logFont.lfFaceName, (size_t) LF_FACESIZE, L"Consolas");
 
-			logFont.lfHeight = -11;
+			logFont.lfHeight = -18;
+			logFont.lfWeight = FW_NORMAL;
+			logFont.lfCharSet = ANSI_CHARSET;
+			logFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+			logFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+			logFont.lfQuality = CLEARTYPE_QUALITY;
+			logFont.lfPitchAndFamily = DEFAULT_PITCH;
 
-			hFont = CreateFontIndirectW(&logFont);
+			headerLogFont = logFont;
+
+			schemeFont.SetFont(logFont);
+			if (!schemeFont)
+			{
+				Throw(GetLastError(), "Could not create font: " __FUNCTION__);
+			}
 		}
 
-		void OnChooseFont()
+		void OnChooseDataFont()
 		{
 			LOGFONTW output;
+			output.lfHeight = logFont.lfHeight;
 			if (OpenChooseFontBox(*dialog, output))
 			{
-				DeleteObject(hFont);
-				hFont = CreateFontIndirectW(&output);
+				schemeFont.SetFont(output);
 				logFont = output;
-				spatialManager->SetFontRecursive(hFont);
+				spatialManager->SetFontRecursive(schemeFont());
+			}
+		}
+
+		static BOOL UpdateTitleOnAllDescendants(HWND hChild, HFONT hFont)
+		{
+			SendMessageA(hChild, WM_UPDATE_TITLE, 0, (LPARAM) hFont);
+			EnumChildWindows(hChild, (WNDENUMPROC) UpdateTitleOnAllDescendants, (LPARAM) hFont);
+			return TRUE;
+		}
+
+		void OnChooseTitleFont()
+		{
+			LOGFONTW output;
+			output.lfHeight = -18;
+			if (OpenChooseFontBox(*dialog, output))
+			{
+				headerLogFont = output;
+			}
+
+			if (spatialManager)
+			{
+				UpdateTitleOnAllDescendants(*spatialManager, 0);
 			}
 		}
 
@@ -373,11 +459,28 @@ namespace
 			{
 				spatialManager->Free();
 				IO::DeleteUserFile("debugger.ide.sxy");
-				spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
 
-				DeleteObject(hFont);
-				hFont = CreateFontIndirectW(&logFont);
-				spatialManager->SetFontRecursive(hFont);
+				HString err;
+				spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT headerLogFont, OUT darkMode, "debugger", OUT err);
+
+				memset(&logFont, 0, sizeof logFont);
+				logFont.lfWeight = FW_NORMAL;
+				logFont.lfCharSet = ANSI_CHARSET;
+				logFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+				logFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+				logFont.lfQuality = CLEARTYPE_QUALITY;
+				logFont.lfPitchAndFamily = DEFAULT_PITCH;
+				SecureFormat(logFont.lfFaceName, L"Courier New");
+				logFont.lfHeight = -18;
+
+				headerLogFont = logFont;
+				headerFont.SetFont(headerLogFont);
+
+				UpdateTitleOnAllDescendants(*spatialManager, headerFont());
+
+				schemeFont.SetFont(logFont);
+
+				spatialManager->SetFontRecursive(schemeFont());
 
 				LayoutChildren();
 			}
@@ -425,7 +528,10 @@ namespace
 				appControl.ShutdownApp();
 				break;
 			case MENU_SYSFONT:
-				OnChooseFont();
+				OnChooseDataFont();
+				break;
+			case MENU_TITLEFONT:
+				OnChooseTitleFont();
 				break;
 			case MENU_SYSRESET:
 				ResetUI();
@@ -508,10 +614,21 @@ namespace
 		~TabbedDebuggerWindowHandler()
 		{
 			Rococo::Free(dialog); // top level windows created with CreateDialogWindow have to be manually freed
-			DeleteObject(hFont);
 		}
 
 		enum { IDE_FILE_VERSION = 0x1002 };
+
+		void UpdateDarkMode()
+		{
+			if (darkMode || IsDarkmode())
+			{
+				darkMode = true;
+				// Windows makes it stupidly hard to set the colour of scrollbars, menus and other widgets.
+				// We will leave the 100% dark mode solution for another day
+			}
+
+			SyncColourScheme();
+		}
 
 		void PostConstruct(IWindow& parent)
 		{
@@ -524,22 +641,22 @@ namespace
 			config.top = workArea.y / 10;
 			dialog = Windows::CreateDialogWindow(config, this); // Specify 'this' as our window handler
 
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
+			HString err;
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT headerLogFont, OUT darkMode, "debugger", OUT err);
 
-			DeleteObject(hFont);
-			hFont = CreateFontIndirectW(&logFont);
-			spatialManager->SetFontRecursive(hFont);
-
-			if (darkMode || IsDarkmode())
+			if (err.length() > 0)
 			{
-				darkMode = true;
-				SyncColourScheme();
-				
-				// Windows makes it stupidly hard to set the colour of scrollbars, menus and other widgets.
-				// We will leave the 100% dark mode solution for another day
+				this->logSegments.push_back(ColouredTextSegment{ RGBAb(255,255,255), err });
 			}
-
+		
 			LayoutChildren();
+
+			headerFont.SetFont(headerLogFont);
+
+			UpdateTitleOnAllDescendants(*spatialManager, headerFont());
+
+			schemeFont.SetFont(logFont);
+			spatialManager->SetFontRecursive(schemeFont());
 		}
 
 		void LayoutChildren()
@@ -577,6 +694,7 @@ namespace
 			}
 
 			MoveWindow(*spatialManager, offset.x, offset.y, desktopSpan.x, desktopSpan.y, TRUE);
+			UpdateDarkMode();
 		}
 
 		void GetName(char name[256], IDEPANE_ID id) override
@@ -616,43 +734,49 @@ namespace
 			case EPaneId_ID_DISASSEMBLER:
 			{
 				auto report = Windows::IDE::CreateTextWindow(parent);
-				report->SetFont(hFont);
+				report->SetFont(schemeFont());
 				return report;
 			}
 			case EPaneId_ID_SOURCE:
 			{
 				auto report = Windows::IDE::CreateTextWindow(parent, true);
-				report->SetFont(hFont);
+				report->SetFont(schemeFont());
 				return report;
 			}
 			case EPaneId_ID_STACK:
 			{
 				auto report = CreateReportView(parent, variableEventHandler, true);
-				report->SetFont(hFont);
+				cstr columns[] = { "DSF", "Address", "Loc", "Type", "Name", "Value", nullptr };
+				int widths[] = { 60, 160, 90, 120, 160, 340, -1 };
+				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
+				report->SetFont(schemeFont());
 				return report;
 			}
 			case EPaneId_ID_MEMBERS:
 			{
 				auto report = CreateTreeView(parent, this);
-				report->SetFont(hFont);
+				report->SetFont(schemeFont());
 				return report;
 			}
 			case EPaneId_ID_CALLSTACK:
 			{
 				auto report = CreateReportView(parent, callstackEventHandler, true);
-				report->SetFont(hFont);
+				report->SetFont(schemeFont());
 				return report;
 			}
 			case EPaneId_ID_REGISTER:
 			{
 				auto report = CreateReportView(parent, registerEventHandler, true);
-				report->SetFont(hFont);
+				report->SetFont(schemeFont());
+				cstr columns[] = { "VM", "Values", "VM", "Values", "VM", "Values", "VM", "Values", nullptr };
+				int widths[] = { 40, 360, 40, 360, 40, 360, 40, 360, -1 };
+				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 				return report;
 			}
 			case EPaneId_ID_API:
 			{
 				auto apiTree = CreateTreeView(parent, this);
-				apiTree->SetFont(hFont);
+				apiTree->SetFont(schemeFont());
 				if (debugControl)
 				{
 					debugControl->PopulateAPITree(apiTree->GetTreeSupervisor().Tree());
@@ -662,10 +786,10 @@ namespace
 			case EPaneId_ID_LOG:
 			{
 				auto report = Windows::IDE::CreateTextWindow(parent);
-				report->SetFont(hFont);
+				report->SetFont(schemeFont());
 				for (const auto& segment : logSegments)
 				{
-					report->AddSegment(true, segment.colour, segment.text.c_str(), segment.text.size(), RGBAb(255, 255, 255));
+					report->AddSegment(true, segment.colour, segment.text.c_str(), segment.text.length(), RGBAb(255, 255, 255));
 				}
 				return report;
 			}
@@ -676,8 +800,8 @@ namespace
 
 		struct Hilight
 		{
-			std::string source;
-			std::string toolTip;
+			HString source;
+			HString toolTip;
 			Vec2i start;
 			Vec2i end;
 		} hilight;
@@ -734,7 +858,7 @@ namespace
 		struct ColouredTextSegment
 		{
 			RGBAb colour;
-			std::string text;
+			HString text;
 		};
 
 		std::vector<ColouredTextSegment> logSegments;
@@ -755,7 +879,7 @@ namespace
 			text[len] = L'\n';
 			text[len + 1] = 0;
 
-			logSegments.push_back({ RGB(0,0,0), text });
+			logSegments.push_back({ scheme.foreSelectColour, text });
 
 			auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
 			if (logPane)
@@ -971,9 +1095,6 @@ namespace
 				RECT rect;
 				GetClientRect(report->GetListViewSupervisor(), &rect);
 
-				cstr columns[] = { "DSF", "Address", "Loc", "Type", "Name", "Value", nullptr };
-				int widths[] = { 40, 120, 60, 120, 120, 340, -1 };
-				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
 				report->GetListViewSupervisor().UIList().ClearRows();
 
 				ListView_SetExtendedListViewStyle(report->GetListViewSupervisor().ListViewHandle(), LVS_EX_FULLROWSELECT);
@@ -988,7 +1109,7 @@ namespace
 			IIDETreeWindow* report = static_cast<IIDETreeWindow*>(spatialManager->FindPane(IDEPANE_ID_MEMBERS));
 			if (report)
 			{
-				report->GetTreeSupervisor().Tree().ResetContent();
+			//	report->GetTreeSupervisor().Tree().ResetContent();
 				populator.Populate(report->GetTreeSupervisor().Tree());
 			}
 		}
@@ -1024,10 +1145,11 @@ namespace
 				RECT rect;
 				GetClientRect(report->GetListViewSupervisor(), &rect);
 
+				/* TODO delete this
 				cstr columns[] = { "VM", "Values", "VM", "Values", "VM", "Values", "VM", "Values", nullptr};
 				int widths[] = { 40, 240, 40, 240, 40, 240, 40, 240, -1 };
 				report->GetListViewSupervisor().UIList().SetColumns(columns, widths);
-
+				*/
 				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_HIDE);
 				populator.Populate(report->GetListViewSupervisor().UIList());
 				::ShowWindow(report->GetListViewSupervisor().ListViewHandle(), SW_SHOW);
@@ -1125,33 +1247,37 @@ namespace
 			return *dialog;
 		}
 
-		void Load()
+		void Load(cstr path)
 		{
 			spatialManager->Free();
 			spatialManager = nullptr;
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "debugger");
-			DeleteObject(hFont);
-			hFont = CreateFontIndirectW(&logFont);
-			spatialManager->SetFontRecursive(hFont);
-			spatialManager->SetColourSchemeRecursive(scheme);
+
+			HString err;
+			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT headerLogFont, OUT darkMode, path, OUT err);
+
+			headerFont.SetFont(headerLogFont);
+
+			UpdateTitleOnAllDescendants(*spatialManager, headerFont());
+
+			schemeFont.SetFont(logFont);
 			LayoutChildren();
+			spatialManager->SetFontRecursive(schemeFont());
+			spatialManager->SetColourSchemeRecursive(scheme);
+		}
+
+		void Load()
+		{
+			Load("debugger");
 		}
 
 		void Load4KDefault()
 		{
-			spatialManager->Free();
-			spatialManager = nullptr;
-			spatialManager = LoadSpatialManager(*dialog, *this, &defaultPaneSet[0], defaultPaneSet.size(), IDE_FILE_VERSION, OUT logFont, OUT darkMode, "!ide/debugger.4k");
-			DeleteObject(hFont);
-			hFont = CreateFontIndirectW(&logFont);
-			spatialManager->SetFontRecursive(hFont);
-			spatialManager->SetColourSchemeRecursive(scheme);
-			LayoutChildren();
+			Load("!ide/debugger.4k");
 		}
 
 		void Save()
 		{
-			spatialManager->Save(logFont, IDE_FILE_VERSION, darkMode);
+			spatialManager->Save(logFont, headerLogFont, IDE_FILE_VERSION, darkMode);
 		}
 
 		LRESULT OnMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override
@@ -1172,7 +1298,7 @@ namespace
 		{
 			ShowWindow(true, &debugControl);
 
-			MSG msg;
+			MSG msg = { 0 };
 			while (GetMessage(&msg, 0, 0, 0) && IsVisible())
 			{
 				if (msg.message == WM_DEBUGGER_TABCHANGED)
@@ -1193,6 +1319,12 @@ namespace
 				}
 
 				DispatchMessage(&msg);
+			}
+
+			if (msg.message == WM_QUIT)
+			{
+				appControl.ShutdownApp();
+				return;
 			}
 
 			auto* logPane = spatialManager->FindPane(IDEPANE_ID_LOG);
@@ -1271,12 +1403,12 @@ namespace
 
 namespace Rococo::Windows::IDE
 {
-    IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation)
+	SEXYIDE_API IDebuggerWindow* CreateDebuggerWindow(IWindow& parent, OS::IAppControl& appControl, IO::IInstallation& installation)
     {
 		return TabbedDebuggerWindowHandler::Create(parent, installation, appControl);
     }
 
-	IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data)
+	SEXYIDE_API IDebuggerEventHandler* CreateDebuggerEventHandler(IO::IInstallation& installation, IDebuggerEventHandlerData& data)
 	{
 		return new DebuggerEventHandler(installation, data);
 	}

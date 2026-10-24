@@ -106,14 +106,13 @@
 	(KeyboardEvent keyEvent)
 	
 //	(KeyState keys)
+	(IUIEventHandler uiIgnoreMouseEvents)
+	(IEventHandler ignoreMouseEvents)
 			
 	(while this.engine.IsRunning
-	//	(this.engine.PollKeyState keys)
-	
-		(IUIEventHandler ignoreMouseEvents)
-		
+	//	(this.engine.PollKeyState keys)		
 		(while (this.engine.GetNextMouseEvent mouseEvent)
-			(TranslateMouseEvent mouseEvent ignoreMouseEvents ignoreMouseEvents)
+			(TranslateMouseEvent mouseEvent this.activeScreen ignoreMouseEvents)
 		)
 			
 		(while (this.engine.GetNextKeyboardEvent keyEvent)

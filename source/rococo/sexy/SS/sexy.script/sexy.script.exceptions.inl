@@ -111,13 +111,13 @@ namespace Rococo
              Throw(s[2], "Expecting 'catch' keyword as s[2]");
          }
 
-         cr_sex body = s.GetElement(1);
+         cr_sex body = GetCurrentTransform(ce.SS, s.GetElement(1));
          AssertCompoundOrNull(body);
 
          cr_sex exNameExpr = GetAtomicArg(s, 3);
          AssertLocalIdentifier(exNameExpr);
 
-         cr_sex handler = s.GetElement(4);
+         cr_sex handler = GetCurrentTransform(ce.SS, s.GetElement(4));
          AssertCompoundOrNull(handler);
 
          if (s.NumberOfElements() == 7)
@@ -186,7 +186,7 @@ namespace Rococo
 
          AddSymbol(ce.Builder, "%s", exName);
 
-         ce.Builder.AssignVariableToTemp(exName, 0 /* D4 */); // Push a ref to the exception on the stack
+         ce.Builder.AssignVariableToRegister(exName, VM::REGISTER_D4); // Push a ref to the exception on the stack
 
          AddArgVariable(("exception"), ce, ce.Object.Common().TypePointer());
          ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, BITCOUNT_POINTER);

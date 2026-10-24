@@ -53,6 +53,7 @@ namespace Anon
 
 		struct FunctionDef
 		{
+			fstring functionName;
 			size_t StartIndex;
 			size_t Length;
 			size_t UsedLength;
@@ -71,7 +72,6 @@ namespace Anon
 			nextStartIndex = 0;
 			nextId = 1;
 			refCount = 1;
-
 		}
 
 		~ProgramMemory()
@@ -81,12 +81,12 @@ namespace Anon
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS;
 
-		virtual void AddRef()
+		void AddRef() override
 		{
 			refCount++;
 		}
 		
-		virtual void Release()
+		void Release() override
 		{
 			refCount--;
 			if (refCount == 0) 
@@ -95,33 +95,45 @@ namespace Anon
 			}
 		}
 
-		virtual void Clear()
+		void Clear() override
 		{
 			functions.clear();
 			nextStartIndex = 0;
 			nextId = 1;
 		}
 
-		virtual uint8* StartOfMemory() { return memory; }
-		virtual uint8* EndOfMemory()  { return memory + allocSize;	}
-		virtual const uint8* StartOfMemory() const { return memory; }
-		virtual const uint8* EndOfMemory() const { return memory + allocSize;	}
+		uint8* StartOfMemory() override { return memory; }
+		uint8* EndOfMemory() override { return memory + allocSize;	}
+		const uint8* StartOfMemory() const override { return memory; }
+		const uint8* EndOfMemory() const  override { return memory + allocSize;	}
 
-		virtual ID_BYTECODE AddBytecode() 
+		ID_BYTECODE AddBytecode(cstr functionName) override
 		{
 			FunctionDef fd;		
 			fd.Length = 0;
 			fd.StartIndex = 0;
 			fd.UsedLength = 0;
 			fd.isImmutable = false;
+			fd.functionName = to_fstring(functionName);
 
 			ID_BYTECODE id = nextId++;
 			functions.insert(std::make_pair(id, fd));
 
 			return id;
 		}
+
+		fstring GetFunctionNameById(ID_BYTECODE id) const override
+		{
+			auto i = functions.find(id);
+			if (i == functions.end())
+			{
+				return  "_UnknownFunction"_fstring;
+			}
+
+			return i->second.functionName;
+		}
 			
-		virtual void UnloadBytecode(ID_BYTECODE id) 
+		void UnloadBytecode(ID_BYTECODE id) override
 		{
 			auto i = functions.find(id);
 			if (i != functions.end())
@@ -133,7 +145,7 @@ namespace Anon
 		}
 
 		// Returns true if the function address can never be remapped for the lifetime of the program
-		bool IsImmutable(ID_BYTECODE id) const
+		bool IsImmutable(ID_BYTECODE id) const override
 		{
 			auto i = functions.find(id);
 			if (i != functions.end())
@@ -146,7 +158,7 @@ namespace Anon
 		}
 
 		// Prevents function address remapping. Essential for optimization, where CallById self-modifies itself to become Call <by address>
-		void SetImmutable(ID_BYTECODE id)
+		void SetImmutable(ID_BYTECODE id) override
 		{
 			auto i = functions.find(id);
 			if (i != functions.end())
@@ -159,7 +171,7 @@ namespace Anon
 			Throw(0, "No such function: ID_BYTECODE #%lld", id);
 		}
 
-		size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const
+		size_t GetFunctionAddress(ID_BYTECODE id, OUT bool& isImmutable) const override
 		{
 			auto i = functions.find(id);			 
 			if (i != functions.end())
@@ -174,7 +186,7 @@ namespace Anon
 			}
 		}
 
-		ID_BYTECODE GetFunctionContaingAddress(size_t pcOffset) const
+		ID_BYTECODE GetFunctionContaingAddress(size_t pcOffset) const override
 		{
 			for(auto i = functions.begin(); i != functions.end(); ++i)
 			{
@@ -188,7 +200,7 @@ namespace Anon
 			return 0;
 		}
 
-		size_t GetFunctionLength(ID_BYTECODE id) const
+		size_t GetFunctionLength(ID_BYTECODE id) const override
 		{
 			TFunctions::const_iterator i = functions.find(id);			 
 			if (i != functions.end())
@@ -202,7 +214,7 @@ namespace Anon
 			}
 		}
 
-		virtual bool UpdateBytecode(ID_BYTECODE id, const IAssembler& assembler) 
+		bool UpdateBytecode(ID_BYTECODE id, const IAssembler& assembler) override
 		{
 			size_t newLength;
 			const uint8* byteCode = assembler.Program(OUT newLength);

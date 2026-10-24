@@ -69,6 +69,7 @@ using namespace Rococo::Strings;
 namespace
 {
 	WideFilePath defaultNativeSourcePath;
+	WideFilePath defaultNativeBinPath;
 
 	// Careful that we had enough buffer space
 	void AddSlashToDirectory(wchar_t* buffer)
@@ -112,6 +113,20 @@ namespace Rococo::Script
 
 		// Terminate with slash
 		AddSlashToDirectory(defaultNativeSourcePath.buf);
+	}
+
+	SCRIPTEXPORT_API void SetDefaultNativeBinPath(crwstr pathname)
+	{
+		if (pathname == nullptr)
+		{
+			defaultNativeBinPath.buf[0] = 0;
+			return;
+		}
+
+		Format(defaultNativeBinPath, L"%ls", pathname);
+
+		// Terminate with slash
+		AddSlashToDirectory(defaultNativeBinPath.buf);
 	}
 
 	ISexyPackagerSupervisor* CreatePackager(IScriptSystem& ss);
@@ -397,6 +412,7 @@ namespace Rococo::Script
 		rstdstring sourceFile;
 		int lineNumber;
 		bool declaredSomewhere = false;
+		bool compiled = false;
 
 		NativeFunction(IPublicScriptSystem& ss, const IFunction& f, CPU& cpu, void* context, cstr _sourceFile, int _lineNumber) :
 			e(ss, f, cpu, context), sourceFile(_sourceFile), lineNumber(_lineNumber) {}
@@ -535,6 +551,12 @@ namespace Rococo::Script
 		for (auto i = nativeCalls.begin(); i != nativeCalls.end(); ++i)
 		{
 			NativeFunction& nf = *i->second;
+
+			if (nf.compiled)
+			{
+				continue;
+			}
+
 			NamespaceSplitter splitter(i->first.c_str());
 
 			cstr body, publicName;
@@ -576,8 +598,9 @@ namespace Rococo::Script
 				ID_API_CALLBACK idCallback = rootNS.Object().VirtualMachine().Core().RegisterCallback(RouteToNative, i->second, i->first.c_str());
 				builder.Assembler().Append_Invoke(idCallback);
 				builder.Assembler().Append_Pop(f->GetExtraPopBytes());
-				builder.End();
+				builder.End();			
 				builder.Assembler().Clear();
+				nf.compiled = true;
 			}
 			catch (IException& e)
 			{
@@ -657,7 +680,7 @@ namespace Rococo::Script
 		if (mapIndex < 0)
 		{
 			char fullError[512];
-			SafeFormat(fullError, 512, "Cannot find the mapping token -> in the archetype: %s.%s. %s line %d", ns.FullName()->Buffer, publicName, sourceFile, lineNumber);
+			SafeFormat(fullError, 512, "Cannot find the mapping token -> in the archetype: %s. %s. %s line %d", ns.FullName()->Buffer, publicName, sourceFile, lineNumber);
 			Throw(archetype, fullError);
 		}
 
@@ -673,6 +696,11 @@ namespace Rococo::Script
 		}
 
 		IFunctionBuilder& f = module.DeclareFunction(FunctionPrototype(nativeName, false), &archetype, popBytes);
+		f.DeclareNative();
+
+		char commentary[512];
+		SafeFormat(commentary, "Src: %s #%d", sourceFile, lineNumber);
+		f.SetCommentary(commentary);
 
 		if (security) f.AddSecurity(*security);
 
@@ -748,7 +776,7 @@ namespace Rococo::Script
 		IO::NormalizePath(hashDir);
 	}
 
-	class CScriptSystem : public IScriptSystem, private INativeSecurity, public IPutString
+	class CScriptSystem : public IScriptSystem, private INativeSecurity, public IPutString, public ISTransformResolver
 	{
 	private:
 		TMemoAllocator memoAllocator;
@@ -795,6 +823,365 @@ namespace Rococo::Script
 		bool hasNullFunction = false;
 
 		IPutString* putStringInterface;
+
+		int64 scriptContext = 0;
+
+		struct EnumType
+		{
+			HString origin;
+			int lineNumber;
+			SexyVarType underlyingType;
+		};
+
+		stringmap<EnumType> enumTypes;
+
+		Sex::ISTransformResolver& Resolver()
+		{
+			return *this;
+		}
+
+		void CreateEnumType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, SexyVarType underlyingType) override
+		{
+			if (origin == nullptr)
+			{
+				origin = __FUNCTION__;
+				lineNumber = __LINE__;
+			}
+
+			if (typeName == nullptr || *typeName == 0)
+			{
+				Throw(0, __FUNCTION__ ": null [typeName]");
+			}
+
+			enum { MAX_HANDLE_NAME_LEN = 63 };
+
+			if (strlen(typeName) > MAX_HANDLE_NAME_LEN)
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length", typeName);
+			}
+
+			if (!isupper(*typeName))
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter", typeName);
+			}
+
+			for (cstr p = typeName + 1; *p != 0; p++)
+			{
+				if (!IsAlphaNumeric(*p))
+				{
+					Throw(0, __FUNCTION__ ": [typeName=%s] must consist of alphanumerics", typeName);
+				}
+			}
+
+			if (&ns == &PublicProgramObject().GetRootNamespace())
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed", typeName);
+			}
+
+			switch (underlyingType)
+			{
+			case SexyVarType_Int32:
+			case SexyVarType_Int64:
+				break;
+			default:
+				Throw(0, __FUNCTION__, ":[typeName: %s] only int32 and int64 supported for enum types", typeName);
+			}
+
+			char fqName[256];
+			SafeFormat(fqName, "%s.%s", ns.FullName()->Buffer, typeName);
+			enumTypes.insert(fqName, EnumType{ origin, lineNumber, underlyingType });
+		}
+
+		void AddEnumValues(const Rococo::Compiler::INamespace& ns, cstr enumType, const EnumBinding* bindings, size_t numberOfBindings) override
+		{
+			auto* e = ns.FindStructure(enumType);
+			if (e == nullptr)
+			{
+				Throw(0, "Could not find %s in %s", enumType, ns.FullName()->Buffer);
+			}
+
+			auto& type = *static_cast<IStructureBuilder*>(const_cast<IStructure*>(e));
+
+			auto* end = bindings + numberOfBindings;
+			for (auto* b = bindings; b != end; b++)
+			{
+				type.AddEnum(b->name, b->value);
+			}
+		}
+
+		struct HandleType
+		{
+			HString origin;
+			int lineNumber;
+		};
+
+		stringmap<HandleType> handleTypes;
+
+		void CreateHandleType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName) override
+		{
+			if (origin == nullptr)
+			{
+				origin = __FUNCTION__;
+				lineNumber = __LINE__;
+			}
+
+			if (typeName == nullptr || *typeName == 0)
+			{
+				Throw(0, __FUNCTION__ ": null [typeName]");
+			}
+
+			enum { MAX_HANDLE_NAME_LEN = 63 };
+
+			if (strlen(typeName) > MAX_HANDLE_NAME_LEN)
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length", typeName);
+			}
+
+			if (!isupper(*typeName))
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter", typeName);
+			}
+
+			for (cstr p = typeName+1; *p != 0; p++)
+			{
+				if (!IsAlphaNumeric(*p))
+				{
+					Throw(0, __FUNCTION__ ": [typeName=%s] must consist of alphanumerics", typeName);
+				}
+			}
+
+			if (&ns == &PublicProgramObject().GetRootNamespace())
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed", typeName);
+			}
+
+			char fqName[256];
+			SafeFormat(fqName, "%s.%s", ns.FullName()->Buffer, typeName);
+			handleTypes.insert(fqName, HandleType{ origin, lineNumber });
+		}
+
+		struct RockType
+		{
+			HString origin;
+			int lineNumber;
+			size_t alignedSize;
+		};
+
+		stringmap<RockType> rockTypes;
+
+		
+		size_t /* aligned size */ CreateRockType(const Rococo::Compiler::INamespace& ns, cstr origin, int lineNumber, cstr typeName, size_t sizeOfNativeType) override
+		{
+			if (origin == nullptr)
+			{
+				origin = __FUNCTION__;
+				lineNumber = __LINE__;
+			}
+
+			if (typeName == nullptr || *typeName == 0)
+			{
+				Throw(0, __FUNCTION__ ": null [typeName]");
+			}
+
+			enum { MAX_HANDLE_NAME_LEN = 63 };
+
+			if (strlen(typeName) > MAX_HANDLE_NAME_LEN)
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must be less than 64 characters in length. %s #%d", typeName, origin, lineNumber);
+			}
+
+			if (!isupper(*typeName))
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] must start with a capital letter. %s #%d", typeName, origin, lineNumber);
+			}
+
+			for (cstr p = typeName + 1; *p != 0; p++)
+			{
+				if (!IsAlphaNumeric(*p))
+				{
+					Throw(0, __FUNCTION__ ": [typeName=%s] must only consist of alphanumerics. %s #%d", typeName, origin, lineNumber);
+				}
+			}
+
+			if (&ns == &PublicProgramObject().GetRootNamespace())
+			{
+				Throw(0, __FUNCTION__ ": [typeName=%s] namespace was root, which is disallowed. Pick a subspace. %s #%d", typeName, origin, lineNumber);
+			}
+
+			if (sizeOfNativeType >= 1_megabytes)
+			{
+				Throw(0, __FUNCTION__ ": [sizeOfNativeType] limited to 1 megabyte. %s #%d", origin, lineNumber);
+			}
+
+			// Round size upwards to the nearest multiple of 8 (sizeof int64)
+			size_t alignedSize = (sizeOfNativeType + 7) & 0xFFFFFFF8;
+			if (alignedSize == 0)
+			{
+				// Sexy types require a minimum size
+				alignedSize = 8;
+			}
+
+			char fqName[256];
+			SafeFormat(fqName, "%s.%s", ns.FullName()->Buffer, typeName);
+			auto i = rockTypes.insert(fqName, RockType{ origin, lineNumber, alignedSize });
+			if (!i.second)
+			{
+				const auto& rock = i.first->second;
+				// Duplicate
+				if (alignedSize != rock.alignedSize)
+				{
+					Throw(0, __FUNCTION__ ": Inconsistent rock definitions\n%s %d vs %s %d, with size %llu != size %llu\n", origin, lineNumber, rock.origin.c_str(), rock.lineNumber, alignedSize, rock.alignedSize);
+				}
+			}
+
+			return alignedSize;
+		}
+
+		void RegisterEnums()
+		{
+			for (auto& e : enumTypes)
+			{
+				cstr fqNSandName = e.first;
+				NamespaceSplitter splitter(fqNSandName);
+
+				cstr ns, name;
+				if (!splitter.SplitTail(OUT ns, OUT name))
+				{
+					Throw(0, __FUNCTION__ ": expected to be able to split %s", fqNSandName);
+				}
+
+				auto& nsRef = AddNativeNamespace(ns);
+				RegisterEnumType(nsRef, name, e.second.origin, e.second.lineNumber, e.second.underlyingType);
+			}
+
+			enumTypes.clear();
+		}
+
+		void RegisterHandles()
+		{
+			for (auto& item : handleTypes)
+			{
+				cstr key = item.first;
+				NamespaceSplitter splitter(key);
+
+				cstr body, tail;
+				if (!splitter.SplitTail(OUT body, OUT tail))
+				{
+					Throw(0, __FUNCTION__ ": expected to be able to split %s", key);
+				}
+
+				auto& ns = AddNativeNamespace(body);
+				RegisterHandleType(ns, tail, item.second.origin, item.second.lineNumber);
+			}
+
+			handleTypes.clear();
+		}
+
+		void RegisterRocks()
+		{
+			for (auto& rock : rockTypes)
+			{
+				cstr fqNSandName = rock.first;
+				NamespaceSplitter splitter(fqNSandName);
+
+				cstr ns, name;
+				if (!splitter.SplitTail(OUT ns, OUT name))
+				{
+					Throw(0, __FUNCTION__ ": expected to be able to split %s", fqNSandName);
+				}
+
+				auto& nsRef = AddNativeNamespace(ns);
+				RegisterRockType(nsRef, name, rock.second.origin, rock.second.lineNumber, rock.second.alignedSize);
+			}
+
+			rockTypes.clear();
+		}
+
+		void RegisterEnumType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber, SexyVarType underlyingType)
+		{
+			IStructureBuilder& sb = progObjProxy->IntrinsicModule().DeclareStrongType(typeName, underlyingType);
+			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
+			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
+
+			const void* errSrc;
+			if (!Rococo::Compiler::TryResolveStruct(progObjProxy->Log(), sb, true, &errSrc))
+			{
+				Throw(*reinterpret_cast<const ISExpression*>(errSrc), "Error resolving handle %s. Check logs", typeName);
+			}
+
+			auto* currentAlias = nb.FindStructure(typeName);
+			if (currentAlias == nullptr)
+			{
+				nb.Alias(typeName, sb);
+				return;
+			}
+
+			if (currentAlias != &sb)
+			{
+				Throw(0, __FUNCTION__  ": %s (line %d): current alias for [%s] in namespace does not match the enum type", origin, lineNumber, typeName);
+			}
+		}
+
+		void RegisterHandleType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber)
+		{
+			IStructureBuilder& s = progObjProxy->AddHandleStruct(typeName, origin, lineNumber);
+			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
+			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
+
+			const void* errSrc;
+			if (!Rococo::Compiler::TryResolveStruct(progObjProxy->Log(), s, true, &errSrc))
+			{
+				Throw(*reinterpret_cast<const ISExpression*>(errSrc), "Error resolving handle %s. Check logs", typeName);
+			}
+
+			auto* currentAlias = nb.FindStructure(typeName);
+			if (currentAlias == nullptr)
+			{
+				nb.Alias(typeName, s);
+				return;
+			}
+
+			if (currentAlias != &s)
+			{
+				Throw(0, __FUNCTION__  ": %s (line %d): current alias for [%s] in namespace does not match the newly created handle type", origin, lineNumber, typeName);
+			}
+		}
+
+		void RegisterRockType(const Rococo::Compiler::INamespace& ns, cstr typeName, cstr origin, int lineNumber, size_t alignedSize)
+		{
+			IStructureBuilder& s = progObjProxy->AddRockStruct(typeName, origin, lineNumber, alignedSize);
+			auto& mutable_ns = const_cast<Rococo::Compiler::INamespace&>(ns);
+			auto& nb = static_cast<Rococo::Compiler::INamespaceBuilder&>(mutable_ns);
+
+			const void* errSrc;
+			if (!Rococo::Compiler::TryResolveStruct(progObjProxy->Log(), s, true, &errSrc))
+			{
+				Throw(*reinterpret_cast<const ISExpression*>(errSrc), "Error resolving rock %s. Check logs", typeName);
+			}
+
+			auto* currentAlias = nb.FindStructure(typeName);
+			if (currentAlias == nullptr)
+			{
+				nb.Alias(typeName, s);
+				return;
+			}
+
+			if (currentAlias != &s)
+			{
+				Throw(0, __FUNCTION__  ": %s (line %d): current alias for [%s] in namespace does not match the newly created rock type", origin, lineNumber, typeName);
+			}
+		}
+
+
+		int64 GetScriptContext() const override
+		{
+			return scriptContext;
+		}
+
+		void SetScriptContext(int64 context) override
+		{
+			scriptContext = context;
+		}
 
 		void SetPutString(IPutString* putString) override
 		{
@@ -922,6 +1309,7 @@ namespace Rococo::Script
 
 		CScriptSystemClass* reflectionRoot;
 
+		ReflectionCallbacks reflectionCallbacks;
 		ArrayCallbacks arrayCallbacks;
 		ListCallbacks listCallbacks;
 		MapCallbacks mapCallbacks;
@@ -944,6 +1332,10 @@ namespace Rococo::Script
 		int numberOfNativeSources = 4;
 
 		IScriptSystemFactory& ssFactory;
+
+		IScriptSystemHook* hook = nullptr;
+
+		AutoFree<ISExpressionTransformationsSupervisor> transforms = CreateSTransformationsContainer();
 	public:
 		CScriptSystem(IScriptSystemFactory& _ssFactory, TMapNameToSTree& _nativeSources, const ProgramInitParameters& pip, ILog& _logger) :
 
@@ -978,17 +1370,22 @@ namespace Rococo::Script
 				IO::ToSysPath(srcEnvironment.buf);
 				AddSlashToDirectory(srcEnvironment.buf);
 
-				if (pip.NativeBinPath == nullptr)
+				if (*defaultNativeBinPath != 0)
+				{
+					Format(nativeBinDirectory, L"%ls", defaultNativeBinPath.buf);
+				}
+				else if (pip.NativeBinPath == nullptr)
 				{
 					nativeBinDirectory = srcEnvironment;
 				}
 				else
 				{
 					Format(nativeBinDirectory, L"%ls", pip.NativeBinPath);
-					IO::EndDirectoryWithSlash(nativeBinDirectory.buf, WideFilePath::CAPACITY);
-					IO::ToSysPath(nativeBinDirectory.buf);
-					IO::NormalizePath(nativeBinDirectory);
 				}
+
+				IO::EndDirectoryWithSlash(nativeBinDirectory.buf, WideFilePath::CAPACITY);
+				IO::ToSysPath(nativeBinDirectory.buf);
+				IO::NormalizePath(nativeBinDirectory);
 			}
 			catch (IException& innerEx)
 			{
@@ -1076,6 +1473,7 @@ namespace Rococo::Script
 
 			jitId = core.RegisterCallback(Compile_JIT, this, "Compile_JIT");
 
+			RegisterReflectionCallbacks(reflectionCallbacks, core, *this);
 			RegisterArrays(arrayCallbacks, core, *this);
 			RegisterLists(listCallbacks, core, *this);
 			RegisterMaps(mapCallbacks, core, *this);
@@ -1092,6 +1490,11 @@ namespace Rococo::Script
 			return expressionProxies;
 		}
 
+		void AddCompilationHook(IScriptSystemHook* hook) override
+		{
+			this->hook = hook;
+		}
+
 		ISExpressionBuilder* CreateMacroTransform(cr_sex src) override
 		{
 			//IExpressionTransform& transform = src.TransformThis();
@@ -1105,8 +1508,7 @@ namespace Rococo::Script
 			else
 			{
 				TransformData td;
-				IExpressionTransform& transform = src.TransformThis();
-				//td.transform = Rococo::Sex::CreateExpressionTransform(src);
+				IExpressionTransform& transform =  src.TransformThis(*transforms);
 				td.transform = &transform;
 				mapExpressionToTransform[&src] = td;
 				return &td.transform->Root();
@@ -1153,6 +1555,17 @@ namespace Rococo::Script
 		{
 			auto i = mapExpressionToTransform.find(&src);
 			return i == mapExpressionToTransform.end() ? nullptr : &i->second.transform->Root();
+		}
+
+		cr_sex Resolve(cr_sex src) const override
+		{
+			auto i = mapExpressionToTransform.find(&src);
+			return i == mapExpressionToTransform.end() ? src : i->second.transform->Root();
+		}
+
+		bool IsALockedResolver() const override
+		{
+			return true;
 		}
 
 		const ScriptCallbacks& GetScriptCallbacks() override
@@ -1505,6 +1918,11 @@ namespace Rococo::Script
 		ID_API_CALLBACK JITCallbackId() const
 		{
 			return jitId;
+		}
+
+		const ReflectionCallbacks& GetReflectionCallbacks() const
+		{
+			return reflectionCallbacks;
 		}
 
 		const ArrayCallbacks& GetArrayCallbacks() const
@@ -2128,13 +2546,8 @@ namespace Rococo::Script
 
 			symbols.clear();
 
-			for (auto& t : mapExpressionToTransform)
-			{
-				t.second.transform->Free();
-			}
-
 			mapExpressionToTransform.clear();
-
+			
 			scripts->ExceptionLogic().Clear();
 			progObjProxy->GetRootNamespace().Clear();
 			progObjProxy->ClearCustomAllocators();
@@ -2180,6 +2593,11 @@ namespace Rococo::Script
 
 			Clear();
 
+			if (hook)
+			{
+				hook->OnBeginPartialCompilePostClear(*this);
+			}
+
 			for (auto i : nsToSecurity)
 			{
 				auto& nativeNamespaceText = i.first;
@@ -2200,6 +2618,10 @@ namespace Rococo::Script
 			}
 
 			stringPool = NewStringPool();
+
+			RegisterEnums();
+			RegisterHandles();
+			RegisterRocks();
 
 			INamespaceBuilder& sysTime = progObjProxy->GetRootNamespace().AddNamespace("Sys.Time", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			AddNativeCall(sysTime, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);
@@ -2233,11 +2655,16 @@ namespace Rococo::Script
 
 		void PartialCompile(StringBuilder* declarationBuilder) override
 		{
+			RegisterEnums();
+			RegisterHandles();
+			RegisterRocks();
+
 			// We need namespaces first, because macros do not have be fully-qualified, this means we cannot macro namespaces or using directives, but these are rare use-cases, and the cost would be FQ each macro.
 			scripts->CompileNamespaces();
 			scripts->CompileTopLevelMacros(numberOfNativeSources);
 			scripts->CompileDeclarations();
-
+			scripts->CompileEnumsAndConstants();
+			
 			InstallNullFunction();
 
 			if (usesSysIO && !ioSystem) ioSystem = CreateIOSystem(*this);
@@ -2248,8 +2675,7 @@ namespace Rococo::Script
 			}
 
 			InstallNativeCalls(IN nativeCalls, REF ProgramObject().GetRootNamespace(), false);
-			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
-
+			
 			scripts->CompileBytecode();
 
 			BuildExtraSymbols();
@@ -2267,9 +2693,16 @@ namespace Rococo::Script
 		{
 			BeginPartialCompilation(declarationBuilder);
 
+			InstallRawReflections(IN rawReflectionBindings, ProgramObject().VirtualMachine().Core());
+
 			scripts->EnterCompileLimits(0, numberOfNativeSources);
 			PartialCompile(declarationBuilder);
 			scripts->ReleaseCompileLimits();
+
+			if (hook)
+			{
+				hook->OnCompilePostSysNativeCompilation(*this);
+			}
 
 			PartialCompile(declarationBuilder);
 		}
@@ -2341,6 +2774,13 @@ namespace Rococo::Script
 			AddNativeCallSecurityForNS(ns, security);
 		}
 
+		Compiler::IModuleBuilder* nativeCallTargetModule = nullptr;
+
+		void SetNativeCallTarget(Compiler::IModule* module) override
+		{
+			nativeCallTargetModule = static_cast<Compiler::IModuleBuilder*>(module);
+		}
+
 		void AddNativeCall(const Compiler::INamespace& ns, FN_NATIVE_CALL callback, void* context, cstr archetype, cstr sourceFile, int lineNumber, bool checkName, int popBytes) override
 		{
 			enum { MAX_ARCHETYPE_LEN = 1024 };
@@ -2391,7 +2831,9 @@ namespace Rococo::Script
 			try
 			{
 				Auto<ISParserTree> tree = SParser().CreateTree(src());
-				AddNativeCallViaTree(REF nativeCalls, REF ProgramObject().IntrinsicModule(), IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN sourceFile, IN lineNumber, IN checkName, IN popBytes, IN security);
+
+				auto* module = nativeCallTargetModule == nullptr ? &ProgramObject().IntrinsicModule() : nativeCallTargetModule;
+				AddNativeCallViaTree(REF nativeCalls, REF *module, IN *this, IN ns, IN callback, IN context, IN tree(), IN nativeCallIndex, IN sourceFile, IN lineNumber, IN checkName, IN popBytes, IN security);
 				nativeCallIndex++;
 			}
 			catch (ParseException& e)
@@ -2744,6 +3186,12 @@ namespace Rococo::Script
 	IProgramObject& GetProgramObject(CScript& script)
 	{
 		return script.Object();
+	}
+
+	const ReflectionCallbacks& GetReflectionCallbacks(CCompileEnvironment& ce)
+	{
+		CScriptSystem& css = (CScriptSystem&)GetSystem(ce.Script);
+		return css.GetReflectionCallbacks();
 	}
 
 	const ArrayCallbacks& GetArrayCallbacks(CCompileEnvironment& ce)

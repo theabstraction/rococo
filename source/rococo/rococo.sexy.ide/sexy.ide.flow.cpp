@@ -45,19 +45,19 @@ namespace
 		IDebuggerWindow& debugger;
 		ScriptLogger(IDebuggerWindow& _debugger) : debugger(_debugger) {}
 		char lastError[1024] = { 0 };
-		virtual void Write(cstr text)
+		void Write(cstr text) override
 		{
 			SafeFormat(lastError, sizeof(lastError), "%s", text);
 			debugger.Log("%s", text);
 		}
 
-		virtual void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance)
+		void OnUnhandledException(int errorCode, cstr exceptionType, cstr message, void* exceptionInstance) override
 		{
 			UNUSED(exceptionInstance);
 			debugger.Log("Unhandled: %s\n%s. Code %d", exceptionType, message, errorCode);
 		}
 
-		virtual void OnJITCompileException(Sex::ParseException& ex)
+		void OnJITCompileException(Sex::ParseException& ex) override
 		{
 			// Ensure we can capture the error
 			SaveInCriticalErrorLog(ex);
@@ -405,7 +405,7 @@ namespace Rococo
 				return 0;
 			}
 
-			IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler)
+			SEXYIDE_API IPersistentScript* CreatePersistentScript(size_t maxBytes, IScriptSystemFactory& factory, ISourceCache& sources, IScriptEnumerator& implicitIncludes, IDebuggerWindow& debugger, cstr resourcePath, IScriptCompilationEventHandler& onCompile, IScriptExceptionHandler& exceptionHandler)
 			{
 				return new PersistentScript(maxBytes, factory, sources, implicitIncludes, debugger, resourcePath, onCompile, exceptionHandler);
 			}

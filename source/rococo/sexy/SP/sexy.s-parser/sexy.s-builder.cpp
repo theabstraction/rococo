@@ -54,6 +54,13 @@ namespace ANON
 		ExpressionBuilder* parent;
 		mutable sexstring_header text;
 
+		int transformationDepth;
+
+		int TransformationDepth() const override
+		{
+			return transformationDepth;
+		}
+
 		void Free() override
 		{
 			Throw(0, "LeafExpressions should be deleted by their parent.");
@@ -122,9 +129,9 @@ namespace ANON
 			Throw(*this, "operation not supported on this class");
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 		{
-			Throw(0, "not supported");
+			Throw(0, __FUNCTION__ ".TransformThis:  not supported");
 		}
 	};
 	
@@ -141,9 +148,11 @@ namespace ANON
 		TSexyVector<ChildElement> children;
 		ExpressionBuilder* parent;
 
-		ExpressionBuilder(ExpressionBuilder* _parent): parent(_parent)
-		{
+		int transformationDepth;
 
+		ExpressionBuilder(ExpressionBuilder* _parent, int transformationDepth): parent(_parent)
+		{
+			this->transformationDepth = transformationDepth;
 		}
 
 		DEFINE_SEXY_ALLOCATORS_FOR_CLASS
@@ -171,6 +180,11 @@ namespace ANON
 					}
 				}
 			}
+		}
+
+		int TransformationDepth() const override
+		{
+			return transformationDepth;
 		}
 
 		const Vec2i Start() const override
@@ -244,7 +258,7 @@ namespace ANON
 
 		ISExpressionBuilder* AddChild() override
 		{
-			auto* eb = new ExpressionBuilder(this);
+			auto* eb = new ExpressionBuilder(this, transformationDepth);
 			eb->parent = this;
 			children.push_back({ eb, false });
 			return eb;
@@ -274,7 +288,7 @@ namespace ANON
 				std::advance(i, index + 1);
 			}
 
-			auto* eb = new ExpressionBuilder(this);
+			auto* eb = new ExpressionBuilder(this, transformationDepth);
 			eb->parent = this;
 
 			children.insert(i, { eb, false });
@@ -287,6 +301,7 @@ namespace ANON
 			size_t len = strlen(text);
 			char* buffer = (char*) Rococo::Memory::AllocateSexyMemory(sizeof(Leaf) + strlen(text) + ((8 - (len % 0x7LL)) % 0x7LL));
 			auto* leaf = new (buffer) Leaf();
+			leaf->transformationDepth = transformationDepth;
 			leaf->parent = this;
 			leaf->text.Length = (int32)len;
 			memcpy(leaf->text.Buffer, text, len);
@@ -304,9 +319,9 @@ namespace ANON
 			AddLeaf<LeafExpression<EXPRESSION_TYPE_STRING_LITERAL>>(text);
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 		{
-			Throw(0, "not supported");
+			Throw(0, "ExpressionBuilder.TransformThis not supported");
 		}
 	};
 
@@ -332,7 +347,9 @@ namespace ANON
 		char name[64];
 		cr_sex original;
 
-		RootExpression(cr_sex _original): ExpressionBuilder(nullptr), original(_original)
+		ISTransformResolver* resolver;
+
+		RootExpression(cr_sex _original): ExpressionBuilder(nullptr, _original.TransformationDepth() + 1), original(_original), resolver(&Rococo::Sex::GetPassthroughResolver())
 		{
 			SafeFormat(name, sizeof(name), "['] %s", _original.Tree().Source().Name());
 		}
@@ -340,6 +357,21 @@ namespace ANON
 		~RootExpression()
 		{
 
+		}
+
+		void Lock(ISTransformResolver& resolver) override
+		{
+			if (this->resolver->IsALockedResolver())
+			{
+				Throw(*this, "ExpressionTree::Lock failed. A resolver is already in place");
+			}
+
+			this->resolver = &resolver;
+		}
+
+		void Unlock()
+		{
+			this->resolver = &GetPassthroughResolver();
 		}
 
 		void MapComments() override
@@ -388,8 +420,15 @@ namespace ANON
 			}
 		}
 
-		ISExpression& Root() override { return *this; }
-		cr_sex Root() const override { return *this; }
+		ISExpression& Root() override
+		{
+			return *this;		
+		}
+
+		cr_sex Root() const override
+		{
+			return resolver->Resolve(*this);
+		}
 
 		const Vec2i& Origin() const override
 		{
@@ -452,9 +491,9 @@ namespace ANON
 			Throw(0, "Not implemented on Expression Builder");
 		}
 
-		IExpressionTransform& TransformThis() const override
+		IExpressionTransform& TransformThis(ISExpressionTransformations&) const override
 		{
-			Throw(0, "not supported");
+			Throw(0, "RootExpression.TransformThis not supported");
 		}
 	};
 

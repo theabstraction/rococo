@@ -629,7 +629,7 @@ namespace ANON
 				Throw(ex.ErrorCode(), "Error attempting to backup control flow graph to %s. %s", backPath.buf, ex.Message());
 			}
 
-			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
+			Rococo::OS::SaveSXMLBySysPath(lastSavedSysPath, true, [this](Rococo::Sex::SEXML::ISEXMLBuilder& sb)
 				{
 					SaveDatabase(*db, sb, *this);
 					db->SetOrigin(lastSavedSysPath);

@@ -140,6 +140,16 @@ namespace Rococo
          CodeSection section;
          factoryFunction.Code().GetCodeSection(OUT section);
 
+         // Factories can potentially return early, or not invoke a construct, so we have to leave dog as a null object by default
+         auto* nullObject = interf.UniversalNullInstance();
+         InterfacePointer ip0 = nullObject->AddressOfVTable0();
+
+         VariantValue vIp0;
+         vIp0.vPtrValue = ip0;
+         ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, vIp0, BITCOUNT_POINTER);
+
+         ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,interfaceRefName);
+
          int explicitInputCount = ArgCount(factoryFunction) - 1;
          int mapIndex = GetIndexOf(1, args, ("->"));
          if (mapIndex > 0) Throw(args, ("Mapping token are not allowed in constructor calls, which have no output"));
