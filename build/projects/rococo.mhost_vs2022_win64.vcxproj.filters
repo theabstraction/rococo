@@ -33,4 +33,7 @@
       <UniqueIdentifier>{3f1a0423-872a-7268-957e-55842a5c2622}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\..\source\rococo\rococo.mhost\mhost.manifest" />
+  </ItemGroup>
 </Project>

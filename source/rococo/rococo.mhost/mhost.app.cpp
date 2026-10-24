@@ -518,7 +518,6 @@ namespace MHost
 
 		void RunMPlatScript(const fstring& scriptName) override
 		{
-			MHost::GetBaseCompileOptions();
 			platform.plumbing.utilities.RunEnvironmentScriptWithId(NoImplicitIncludes(), GetBaseCompileOptions(), 0, scriptName, true, false);
 		}
 
