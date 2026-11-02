@@ -3,9 +3,8 @@
 #include <rococo.textures.h>
 #include <rococo.imaging.h>
 
-#include <unordered_map>
+#include <rococo.hashtable.h>
 #include <vector>
-#include <string>
 #include <algorithm>
 
 #include <rococo.strings.h>
@@ -188,7 +187,9 @@ namespace
         ICompressedResourceLoader& loader;
         IBitmapArray& textureArray;
 
-        std::unordered_map<std::string, BitmapLocationImpl>  mapNameToLoc;
+        int newBitmaps = 0;
+
+        stringmap<BitmapLocationImpl> mapNameToLoc;
 
         struct TextureSpec
         {
@@ -211,14 +212,9 @@ namespace
 
         void AddBitmap(cstr name) override
         {
-            if (textureArray.TextureCount() != 0)
+            if (mapNameToLoc.insert(name, BitmapLocationImpl{ GuiRect {0,0,0,0}, {0,0},0 }).second)
             {
-                Throw(0, "Cannot add %s to the bitmap arrays - they have already been computed", name);
-            }
-            auto i = mapNameToLoc.find(name);
-            if (i == mapNameToLoc.end())
-            {
-                i = mapNameToLoc.insert(std::make_pair(std::string(name), BitmapLocationImpl{ GuiRect {0,0,0,0}, {0,0},0 })).first;
+                newBitmaps++;
             }
         }
 
@@ -287,25 +283,23 @@ namespace
                 }
             } onLoad;
 
-
             onLoad.maxWidth = textureArray.MaxWidth();
 
             Vec2i maxSpan = { 0,0 };
 
-            auto i = mapNameToLoc.begin();
-            while (i != mapNameToLoc.end())
+            for(auto& i: mapNameToLoc)
             {
                 onLoad.span = { 0,0 };
-                onLoad.name = i->first.c_str();
+                onLoad.name = i.first;
 
                 try
                 {
-                    loader.Load(i->first.c_str(), onLoad);
+                    loader.Load(i.first, onLoad);
 
                     if (onUpdate)
                     {
                         BitmapUpdate bu;
-                        bu.name = i->first.c_str();
+                        bu.name = i.first;
                         bu.msg = "";
                         bu.hr = 0;
                         onUpdate->OnEvent(bu);
@@ -316,7 +310,7 @@ namespace
                     if (onUpdate)
                     {
                         BitmapUpdate bu;
-                        bu.name = i->first.c_str();
+                        bu.name = i.first;
                         bu.msg = ex.Message();
                         bu.hr = ex.ErrorCode();
                         onUpdate->OnEvent(bu);
@@ -330,20 +324,11 @@ namespace
                     Throw(0, "The span of %s was greater than the largest texture supported (%u x %u)", onLoad.name, textureArray.MaxWidth(), textureArray.MaxWidth());
                 }
 
-                if (onLoad.span.x == 0)
-                {
-                    i = mapNameToLoc.erase(i);
-                }
-                else
-                {
-                    i->second.span = onLoad.span;
-                    i->second.index = -1;
+                i.second.span = onLoad.span;
+                i.second.index = -1;
 
-                    maxSpan.x = max(maxSpan.x, onLoad.span.x);
-                    maxSpan.y = max(maxSpan.y, onLoad.span.y);
-
-                    i++;
-                }
+                maxSpan.x = max(maxSpan.x, onLoad.span.x);
+                maxSpan.y = max(maxSpan.y, onLoad.span.y);
             }
 
             int32 maxWidth = max(maxSpan.x, maxSpan.y);
@@ -480,7 +465,7 @@ namespace
             std::vector<cstr> orderedNames;
             for (auto& bmp : mapNameToLoc)
             {
-                orderedNames.push_back(bmp.first.c_str());
+                orderedNames.push_back(bmp.first);
             }
             std::sort(orderedNames.begin(), orderedNames.end(), sortBy);
 
@@ -548,11 +533,76 @@ namespace
             }
         }
 
+        struct SubImageWriterOnLoad : public IEventCallback<CompressedTextureBuffer>, public Imaging::IImageLoadEvents
+        {
+            cstr name;
+            Vec2i span;
+            BitmapLocationImpl* loc;
+            IBitmapArray* ta;
+
+            void OnEvent(CompressedTextureBuffer& buffer) override
+            {
+                if (buffer.type == COMPRESSED_TYPE_JPG)
+                {
+                    Imaging::DecompressJPeg(*this, buffer.data, buffer.nBytes);
+                }
+                else
+                {
+                    Imaging::DecompressTiff(*this, buffer.data, buffer.nBytes);
+                }
+            }
+
+            void OnError(const char* message) override
+            {
+                Throw(0, "Could not load image %s:\n%s", name, message);
+            }
+
+            void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
+            {
+                if (this->span.x != span.x || this->span.y != span.y)
+                {
+                    Throw(0, "Span of image %s changed during execution of the application", name);
+                }
+
+                Vec2i spanUv = { loc->uv.right - loc->uv.left, loc->uv.bottom - loc->uv.top };
+                if (span.x != spanUv.x || span.y != spanUv.y)
+                {
+                    Throw(0, "Algorithmic error -> BuildTextures(...) loc inconsistent with span");
+                }
+
+                ta->WriteSubImage(loc->index, data, loc->uv);
+            }
+
+            void OnAlphaImage(const Vec2i&, const uint8*) override
+            {
+                Throw(0, "Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
+            }
+        };
+
+        void WriteSubImages()
+        {
+            for (auto& i : mapNameToLoc)
+            {
+                SubImageWriterOnLoad onLoad;
+                onLoad.name = i.first;
+                onLoad.span = i.second.span;
+                onLoad.loc = &i.second;
+                onLoad.ta = &textureArray;
+
+                loader.Load(i.first, onLoad);
+            }
+        }
+
         void BuildBitmaps(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) override
         {
+            if (newBitmaps == 0)
+            {
+                return;
+            }
+
             if (textureArray.TextureCount() != 0)
             {
-                Throw(0, "Cannot add %llu bitmaps to the bitmap arrays - they have already been computed", textureArray.TextureCount());
+                textureArray.Clear();
             }
 
             int32 width = EvaluateRequiredTextureSpan(minWidth, onUpdate);
@@ -568,61 +618,9 @@ namespace
 
             TileBuildSmallestSquares(width);
 
-            for (auto& i : mapNameToLoc)
-            {
-                struct ANON : public IEventCallback<CompressedTextureBuffer>, public Imaging::IImageLoadEvents
-                {
-                    cstr name;
-                    Vec2i span;
-                    BitmapLocationImpl* loc;
-                    IBitmapArray* ta;
+            WriteSubImages();
 
-                    void OnEvent(CompressedTextureBuffer& buffer) override
-                    {
-                        if (buffer.type == COMPRESSED_TYPE_JPG)
-                        {
-                            Imaging::DecompressJPeg(*this, buffer.data, buffer.nBytes);
-                        }
-                        else
-                        {
-                            Imaging::DecompressTiff(*this, buffer.data, buffer.nBytes);
-                        }
-                    }
-
-                    void OnError(const char* message) override
-                    {
-                        Throw(0, "Could not load image %s:\n%s", name, message);
-                    }
-
-                    void OnRGBAImage(const Vec2i& span, const RGBAb* data) override
-                    {
-                        if (this->span.x != span.x || this->span.y != span.y)
-                        {
-                            Throw(0, "Span of image %s changed during execution of the application", name);
-                        }
-
-                        Vec2i spanUv = { loc->uv.right - loc->uv.left, loc->uv.bottom - loc->uv.top };
-                        if (span.x != spanUv.x || span.y != spanUv.y)
-                        {
-                            Throw(0, "Algorithmic error -> BuildTextures(...) loc inconsistent with span");
-                        }
-
-                        ta->WriteSubImage(loc->index, data, loc->uv);
-                    }
-
-                    void OnAlphaImage(const Vec2i&, const uint8*) override
-                    {
-                        Throw(0, "Image %s was an alpha, or single channel bitmap.\nOnly 32-bt RGBA or 24-bit RGB files supported.", name);
-                    }
-                } onLoad;
-
-                onLoad.name = i.first.c_str();
-                onLoad.span = i.second.span;
-                onLoad.loc = &i.second;
-                onLoad.ta = &textureArray;
-
-                loader.Load(i.first.c_str(), onLoad);
-            }
+            newBitmaps = 0;
         }
 
         void Clear() override

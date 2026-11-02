@@ -37,14 +37,14 @@ namespace Rococo
 		ROCOCO_INTERFACE IFileBrowserRenderContext
 		{
 			virtual void DrawArrowButton(Vec2 direction, const GuiRect & rect) = 0;
-			virtual void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer) = 0;
+			virtual void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer, int row) = 0;
 			virtual void DrawAsciiTextWithCaret(int pos, const GuiRect& rect, cstr buffer) = 0;
-			virtual void DrawU16Text(const GuiRect& rect, BrowserComponent component, crwstr buffer) = 0;
+			virtual void DrawU16Text(const GuiRect& rect, BrowserComponent component, crwstr buffer, int row) = 0;
 			virtual GuiRect GetContainerRect() const = 0;
 			virtual void DrawIcon(const GuiRect& rect, BrowserComponent component) = 0;
-			virtual void DrawBackground(const GuiRect& rect, BrowserComponent component) = 0;
+			virtual void DrawBackground(const GuiRect& rect, BrowserComponent component, int row = 0) = 0;
 			virtual void SetClipRect(const GuiRect& rect) = 0;
-			virtual void DrawBorder(const GuiRect& rect, BrowserComponent component) = 0;
+			virtual void DrawBorder(const GuiRect& rect, BrowserComponent component, int row = 0) = 0;
 		};
 
 		ROCOCO_INTERFACE IFileBrowserStyle
@@ -94,6 +94,7 @@ namespace Rococo
 			virtual void LimitRoot(const U32FilePath& prefix) = 0;
 			virtual void Free() = 0;
 		};
+
 		struct FileBrowsingAPI
 		{
 			IDirectoryPopulator& directoryPopulator;

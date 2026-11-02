@@ -458,10 +458,41 @@ public:
 		}
 	} textureVenue;
 
-	virtual IMathsVenue* TextureVenue()
+	IMathsVenue* TextureVenue() override
 	{
 		textureVenue.This = this;
 		return &textureVenue;
+	}
+
+	void ShowBorderlessFullscreenWindow() override
+	{
+		if (IsFullscreen())
+		{
+			SwitchToWindowMode();
+		}
+
+		HWND hWnd = currentWindowBacking->Window();
+
+		auto style = GetWindowLongPtrA(hWnd, GWL_STYLE);
+		style &= ~WS_CAPTION;
+		SetWindowLongPtrA(hWnd, GWL_STYLE, style);
+		ShowWindow(hWnd, SW_MAXIMIZE);
+	}
+
+	void ShowBorderedFullscreenWindow() override
+	{
+		if (IsFullscreen())
+		{
+			SwitchToWindowMode();
+		}
+
+		HWND hWnd = currentWindowBacking->Window();
+
+		auto style = GetWindowLongPtrA(hWnd, GWL_STYLE);
+		style |= WS_CAPTION;
+		SetWindowLongPtrA(hWnd, GWL_STYLE, style);
+
+		ShowWindow(hWnd, SW_SHOWDEFAULT);
 	}
 
 	void ShowTextureVenue(IMathsVisitor& visitor)
@@ -516,14 +547,14 @@ public:
 		pipeline->ShowVenue(visitor);
 	}
 
-	IMathsVenue* Venue()
+	IMathsVenue* Venue() override
 	{
 		return this;
 	}
 
 	bool isFullScreen = false;
 
-	void ShowWindowVenue(IMathsVisitor& visitor)
+	void ShowWindowVenue(IMathsVisitor& visitor) override
 	{
 		if (currentWindowBacking)
 		{
@@ -532,7 +563,7 @@ public:
 		}
 	}
 
-	void Free()
+	void Free() override
 	{
 		delete this;
 	}
@@ -739,7 +770,7 @@ public:
 		return "DX11AppRenderer";
 	}
 
-	IReflectionTarget* ReflectionTarget()
+	IReflectionTarget* ReflectionTarget() override
 	{
 		return this;
 	}

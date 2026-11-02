@@ -126,7 +126,7 @@ namespace MHost
 				args.ss.AddNativeLibrary("rococo.mathsex");
 			}
 
-			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs& args) override
+			void OnAddedMainModuleBeforePartialCompile(ScriptCompileArgs&) override
 			{
 			}
 

@@ -24,7 +24,7 @@ namespace Rococo::Gui
 		virtual void NotifyPanelDeleted(int64 uniqueId) = 0;
 		virtual EGREventRouting OnGREvent(GRWidgetEvent& ev) = 0;
 		virtual void OnTick(float dt) = 0;
-		virtual void FocusDefaultTab() = 0;
+		virtual EGREventRouting FocusDefaultTab() = 0;
 		virtual void Free() = 0;
 	};
 
@@ -96,7 +96,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void DrawMenuButton(IGRPanel& panel, const GuiRect& rect, bool focused, bool raised, IGRRenderContext& g);
 	ROCOCO_GUI_RETAINED_API void DrawButtonText(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, RGBAb shadowColour, GRFontId fontId, IGRRenderContext& g, Vec2i shadowOffset = {1,1});
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackground(IGRPanel& panel, IGRRenderContext& g);
-	ROCOCO_GUI_RETAINED_API void DrawPanelBackgroundEx(IGRPanel& panel, IGRRenderContext& g, EGRSchemeColourSurface back, EGRSchemeColourSurface leftEdge, EGRSchemeColourSurface rightEdge, float alphaScale = 1.0f, bool raised = false, bool focused = false);
+	ROCOCO_GUI_RETAINED_API void DrawPanelBackgroundEx(IGRPanel& panel, IGRRenderContext& g, EGRSchemeColourSurface back, EGRSchemeColourSurface bottomLeftSurface, EGRSchemeColourSurface topRightSurface, float alphaScale = 1.0f, bool raised = false, bool focused = false);
 	ROCOCO_GUI_RETAINED_API void DrawGameOptionBackground(IGRWidgetText& title, IGRPanel& panel, IGRRenderContext& rc);
 	// Dynamic casting methods
 	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b);

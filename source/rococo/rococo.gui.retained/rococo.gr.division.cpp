@@ -137,8 +137,8 @@ namespace Rococo::Gui
 		IGRPanel& panel, 
 		IGRRenderContext& g,
 		EGRSchemeColourSurface back, 
-		EGRSchemeColourSurface leftEdge,
-		EGRSchemeColourSurface rightEdge, 
+		EGRSchemeColourSurface bottomLeftEdge,
+		EGRSchemeColourSurface topRightEdge, 
 		float alphaScale,
 		bool isRaised,
 		bool isFocused)
@@ -150,8 +150,8 @@ namespace Rococo::Gui
 		RGBAb backColour = panel.GetColour(back, rs);
 		g.DrawRect(rect, Modulate(backColour, alphaScale), panel.RectStyle(), panel.CornerRadius());
 
-		RGBAb edge1Colour = panel.GetColour(leftEdge, rs);
-		RGBAb edge2Colour = panel.GetColour(rightEdge, rs);
-		g.DrawRectEdge(rect, Modulate(edge1Colour, alphaScale), Modulate(edge2Colour, alphaScale), panel.RectStyle(), panel.CornerRadius());
+		RGBAb bottomLeftEdgeColour = panel.GetColour(bottomLeftEdge, rs);
+		RGBAb topRightEdgeColour = panel.GetColour(topRightEdge, rs);
+		g.DrawRectEdge(rect, Modulate(bottomLeftEdgeColour, alphaScale), Modulate(topRightEdgeColour, alphaScale), panel.RectStyle(), panel.CornerRadius());
 	}
 }

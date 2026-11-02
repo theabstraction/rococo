@@ -116,7 +116,7 @@ void RenderSubFolder(IFileBrowserRenderContext& rc, cstr subpath, int index, int
 
 	GuiRect iconRect{ textRect.left - ICONSPACE, textRect.top, textRect.left,  textRect.bottom };
 	rc.DrawIcon(iconRect, BrowserComponent::FOLDER_ICON);
-	rc.DrawAsciiText(fontRect, BrowserComponent::TREE_FOLDER_ENTRY, subpath);
+	rc.DrawAsciiText(fontRect, BrowserComponent::TREE_FOLDER_ENTRY, subpath, 0);
 	rc.DrawBorder(textRect, BrowserComponent::TREE_FOLDER_ENTRY);
 }
 
@@ -232,11 +232,11 @@ struct FileBrowser : public IFileBrowser
 		}
 	}
 
-	void DrawString(IFileBrowserRenderContext& rc, BrowserComponent component, const U32FilePath& path, const GuiRect& rect)
+	void DrawString(IFileBrowserRenderContext& rc, BrowserComponent component, const U32FilePath& path, const GuiRect& rect, int row)
 	{
 		U8FilePath asciiPath;
 		ToU8FilePathWithSubstitutions(path, asciiPath, '?');
-		rc.DrawAsciiText(rect, component, asciiPath.buf);
+		rc.DrawAsciiText(rect, component, asciiPath.buf, row);
 	}
 
 	void RenderFileArea(IFileBrowserRenderContext& rc)
@@ -252,7 +252,7 @@ struct FileBrowser : public IFileBrowser
 		targetRect.left += borderDeltas.left;
 		targetRect.right -= borderDeltas.right;
 		targetRect.top += borderDeltas.top - (int32) cursorPos;
-		targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+		targetRect.bottom = targetRect.top + rowHeight + borderDeltas.bottom;
 
 		files.clear();
 
@@ -260,8 +260,8 @@ struct FileBrowser : public IFileBrowser
 		{
 			if (targetRect.bottom <= fileRect.top)
 			{
-				targetRect.top += rowHeight;
-				targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+				targetRect.top += rowHeight + borderDeltas.bottom;
+				targetRect.bottom = targetRect.top + rowHeight + borderDeltas.bottom;
 				continue;
 			}
 
@@ -275,10 +275,10 @@ struct FileBrowser : public IFileBrowser
 			subtargetRect.left = iconRect.right + borderDeltas.left;
 			subtargetRect.top += 4;
 			subtargetRect.bottom -= 4;
-			DrawString(rc, BrowserComponent::FILE_ENTRY, dirpath, subtargetRect);
+			DrawString(rc, BrowserComponent::FILE_ENTRY, dirpath, subtargetRect, (int) i);
 
-			targetRect.top += rowHeight;
-			targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+			targetRect.top += rowHeight + borderDeltas.bottom;
+			targetRect.bottom = targetRect.top + rowHeight + borderDeltas.bottom;
 
 			if (targetRect.top >= fileRect.bottom)
 			{
@@ -290,8 +290,8 @@ struct FileBrowser : public IFileBrowser
 		{
 			if (targetRect.bottom <= fileRect.top)
 			{
-				targetRect.top += rowHeight;
-				targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+				targetRect.top += rowHeight + borderDeltas.bottom;
+				targetRect.bottom += targetRect.top + rowHeight + borderDeltas.bottom;
 				continue;
 			}
 
@@ -302,7 +302,9 @@ struct FileBrowser : public IFileBrowser
 			GuiRect textRect = targetRect;
 			textRect.top += 4;
 			textRect.bottom -= 4;
-			DrawString(rc, BrowserComponent::FILE_ENTRY, f, textRect);
+
+			rc.DrawBackground(targetRect, BrowserComponent::FILE_ENTRY, (int) j);
+			DrawString(rc, BrowserComponent::FILE_ENTRY, f, textRect, (int) j);
 
 			GuiRect infoRect = textRect;
 			infoRect.left = textRect.right - 480;
@@ -331,10 +333,11 @@ struct FileBrowser : public IFileBrowser
 			textRect.right = infoRect.right;
 			files.push_back({ f, fullrect });
 
-			rc.DrawAsciiText(infoRect, BrowserComponent::FILE_ENTRY, desc);
+			rc.DrawAsciiText(infoRect, BrowserComponent::FILE_ENTRY, desc, (int) j);
+			rc.DrawBorder(targetRect, BrowserComponent::FILE_ENTRY, (int) j);
 
-			targetRect.top += rowHeight;
-			targetRect.bottom = targetRect.top + rowHeight - borderDeltas.bottom;
+			targetRect.top += rowHeight + borderDeltas.bottom;
+			targetRect.bottom = targetRect.top + rowHeight + borderDeltas.bottom;
 
 			if (targetRect.top >= fileRect.bottom)
 			{

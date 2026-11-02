@@ -921,22 +921,22 @@ namespace Rococo::Graphics
 		grc.AddTriangle(q + 3);
 	}
 
-	ROCOCO_GRAPHICS_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag)
+	ROCOCO_GRAPHICS_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb bottomLeftColour, RGBAb topRightColour)
 	{
 		GuiRectf rect{ (float)grect.left, (float)grect.top, (float)grect.right, (float)grect.bottom };
 		BaseVertexData noFont{ {0, 0}, 0 };
 		SpriteVertexData solid{ 1.0f, 0, 0, 0 };
 		GuiVertex q[] =
 		{
-			{ {rect.left,  rect.top},    noFont, solid, diag },
-			{ {rect.right, rect.top},    noFont, solid, backdiag },
-			{ {rect.right, rect.bottom}, noFont, solid, diag },
-			{ {rect.right, rect.bottom}, noFont, solid, diag },
-			{ {rect.left,  rect.bottom}, noFont, solid, backdiag },
-			{ {rect.left,  rect.top},    noFont, solid, diag }
+			{ {rect.left,  rect.top},    noFont, solid, topRightColour },
+			{ {rect.right, rect.top},    noFont, solid, topRightColour },
+			{ {rect.right, rect.bottom}, noFont, solid, bottomLeftColour },
+			{ {rect.right, rect.bottom}, noFont, solid, bottomLeftColour },
+			{ {rect.left,  rect.bottom}, noFont, solid, bottomLeftColour },
+			{ {rect.left,  rect.top},    noFont, solid, topRightColour }
 		};
 
-		if (diag.alpha > 0 && backdiag.alpha > 0)
+		if (bottomLeftColour.alpha > 0 && topRightColour.alpha > 0)
 		{
 			grc.AddTriangle(q);
 			grc.AddTriangle(q + 3);
@@ -1477,25 +1477,25 @@ namespace Rococo::Graphics
 		RenderHQText_LeftAligned_VCentre(grc, fontId, finalRect, text, colour);
 	}
 
-	ROCOCO_GRAPHICS_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag)
+	ROCOCO_GRAPHICS_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb bottomLeftColour, RGBAb topRightColour)
 	{
-		if (diag.alpha != 0)
+		if (topRightColour.alpha != 0)
 		{
-			GuiRect topRect{ rect.left, rect.top - width.y, rect.right, rect.top };
-			DrawRectangle(grc, topRect, diag, diag);
+			GuiRect topRect{ rect.left, rect.top, rect.right, rect.top + width.y };
+			DrawRectangle(grc, topRect, topRightColour, topRightColour);
 
-			GuiRect rightRect{ rect.right, rect.top, rect.right + width.x, rect.bottom };
-			DrawRectangle(grc, rightRect, diag, diag);
+			GuiRect rightRect{ rect.right - width.x, rect.top, rect.right, rect.bottom };
+			DrawRectangle(grc, rightRect, topRightColour, topRightColour);
 		}
 
 
-		if (backdiag.alpha != 0)
+		if (bottomLeftColour.alpha != 0)
 		{
-			GuiRect bottomRect{ rect.left, rect.bottom, rect.right, rect.bottom + width.y };
-			DrawRectangle(grc, bottomRect, backdiag, backdiag);
+			GuiRect bottomRect{ rect.left, rect.bottom - width.y, rect.right, rect.bottom };
+			DrawRectangle(grc, bottomRect, bottomLeftColour, bottomLeftColour);
 
-			GuiRect leftRect{ rect.left - width.x, rect.top, rect.left, rect.bottom };
-			DrawRectangle(grc, leftRect, backdiag, backdiag);
+			GuiRect leftRect{ rect.left, rect.top, rect.left + width.x, rect.bottom };
+			DrawRectangle(grc, leftRect, bottomLeftColour, bottomLeftColour);
 		}
 	}
 

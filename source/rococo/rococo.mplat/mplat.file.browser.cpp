@@ -91,7 +91,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		Graphics::DrawBorderAround(gc, rect, { 1,1 }, edgeBL, edgeTR);
 	}
 
-	void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer) override
+	void DrawAsciiText(const GuiRect& rect, BrowserComponent component, cstr buffer, int /* row */) override
 	{
 		GuiMetrics metrics;
 		gc.Renderer().GetGuiMetrics(metrics);
@@ -124,11 +124,11 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		Graphics::DrawTextWithCaret(gc, ToF(rect), Graphics::Alignment_Left, to_fstring(buffer), 1, textColour, clip, pos);
 	}
 
-	void DrawU16Text(const GuiRect& rect, BrowserComponent component, crwstr buffer)
+	void DrawU16Text(const GuiRect& rect, BrowserComponent component, crwstr buffer, int /* row */)
 	{
 		char asciitext[1024];
 		SafeFormat(asciitext, 1024, "%ls", buffer);
-		DrawAsciiText(rect, component, asciitext);
+		DrawAsciiText(rect, component, asciitext, 0);
 	}
 
 	GuiRect GetContainerRect() const
@@ -136,7 +136,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		return bounds;
 	}
 
-	void DrawBackground(const GuiRect& rect, BrowserComponent component)
+	void DrawBackground(const GuiRect& rect, BrowserComponent component, int /* row */)
 	{
 		RGBAb fillCol1, fillCol2;
 		RGBAb edgeCol1, edgeCol2;
@@ -203,7 +203,7 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 		}
 	}
 
-	void DrawBorder(const GuiRect& rect, BrowserComponent)
+	void DrawBorder(const GuiRect& rect, BrowserComponent, int /* row */)
 	{
 		RGBAb br(192, 192, 192, 0);
 		RGBAb tl(224, 224, 224, 0);
@@ -278,9 +278,9 @@ struct StatusBar : IUIElement
 
 		if (status.length() > 0)
 		{
-			rc.DrawBackground(absRect, BrowserComponent::STATUS_ERROR);
+			rc.DrawBackground(absRect, BrowserComponent::STATUS_ERROR, 0);
 		}
-		rc.DrawAsciiText(textRect, BrowserComponent::STATUS_ERROR, status);
+		rc.DrawAsciiText(textRect, BrowserComponent::STATUS_ERROR, status, 0);
 
 		GuiRectf noScissor = { -1, -1, 1000000, 1000000 };
 		//	gc.SetScissorRect(noScissor);
@@ -381,12 +381,12 @@ struct FilenameEditor : IUIElement, public IKeyboardSink
 
 		if (editing)
 		{
-			rc.DrawBackground(absRect, BrowserComponent::LINE_EDITOR);
+			rc.DrawBackground(absRect, BrowserComponent::LINE_EDITOR, 0);
 			rc.DrawAsciiTextWithCaret(caretPos, textRect, asciiRep);
 		}
 		else
 		{
-			rc.DrawAsciiText(textRect, BrowserComponent::FILE_ENTRY, asciiRep);
+			rc.DrawAsciiText(textRect, BrowserComponent::FILE_ENTRY, asciiRep, 0);
 		}
 	}
 

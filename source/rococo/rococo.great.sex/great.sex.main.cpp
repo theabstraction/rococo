@@ -994,6 +994,13 @@ namespace Rococo::GreatSex
 
 				frame.ClearZoomsScenarios();
 
+				for (int i = 0; auto* child = frame.ClientArea().Panel().GetChild(i); i++)
+				{
+					child->MarkForDelete();
+				}
+
+				static_cast<IGRPanelSupervisor&>(frame.ClientArea().Panel()).GarbageCollectRecursive();
+
 				greatSex->AppendWidgetTreeFromSexML(s, frame.ClientArea().Widget());
 				frame.Panel().PrepPanelAndDescendants();
 				frame.Panel().ClearAssociatedExpressions();

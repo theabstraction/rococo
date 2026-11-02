@@ -170,11 +170,14 @@ namespace GRANON
 			if (image)
 			{
 				g.DrawImageStretched(*image, imageRect);
+				g.Flush();
 			}
 
 			RGBAb bandColour = clientArea->Panel().GetColour(EGRSchemeColourSurface::PORTRAIT_BAND_COLOUR, GRWRS());
 			g.DrawRect(band1Rect, bandColour);
+			g.Flush();
 			g.DrawRect(band2Rect, bandColour);
+			g.Flush();
 		}
 
 		IGRWidgetPortrait& SetImagePath(cstr imagePath) override

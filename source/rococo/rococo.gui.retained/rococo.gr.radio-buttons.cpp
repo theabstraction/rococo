@@ -223,6 +223,8 @@ namespace GRANON
 						if (Eq(meta, member))
 						{
 							MakeGroupExclusive(meta);
+							GRWidgetEvent radioSelect{ EGRWidgetEventType::RADIO_SELECT, panel.Id(), 0, meta, we.clickPosition, true };
+							panel.Parent()->NotifyAncestors(radioSelect, *this);
 							return EGREventRouting::Terminate;
 						}
 					}

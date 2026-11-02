@@ -470,6 +470,8 @@ namespace Rococo::Graphics
 		virtual void SetSpecialAmbientShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void SetSpecialSpotlightShader(ID_SYS_MESH id, cstr vs, cstr ps, bool alphaBlending) = 0;
 		virtual void ShowWindowVenue(IMathsVisitor& visitor) = 0;
+		virtual void ShowBorderlessFullscreenWindow() = 0;
+		virtual void ShowBorderedFullscreenWindow() = 0;
 		virtual void SwitchToWindowMode() = 0;
 		virtual IMathsVenue* TextureVenue() = 0;
 		virtual Windows::IWindow& CurrentWindow() = 0;
@@ -501,7 +503,7 @@ namespace Rococo::Graphics
 	ROCOCO_GRAPHICS_API void DrawRectangle(IGuiRenderContext& grc, const GuiRect& grect, RGBAb diag, RGBAb backdiag);
 	ROCOCO_GRAPHICS_API void DrawRoundedRectangle(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius);
 	ROCOCO_GRAPHICS_API void DrawRoundedEdge(IGuiRenderContext& grc, const GuiRect& rect, RGBAb colour, int cornerRadius);
-	ROCOCO_GRAPHICS_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb diag, RGBAb backdiag);
+	ROCOCO_GRAPHICS_API void DrawBorderAround(IGuiRenderContext& grc, const GuiRect& rect, const Vec2i& width, RGBAb bottomLeftColour, RGBAb topRightColour);
 	ROCOCO_GRAPHICS_API void DrawLine(IGuiRenderContext& grc, int pixelthickness, Vec2i start, Vec2i end, RGBAb colour);
 	ROCOCO_GRAPHICS_API void RenderCentred(IGuiRenderContext& grc, ID_FONT fontId, const GuiRect& rect, cstr text, RGBAb colour);
 

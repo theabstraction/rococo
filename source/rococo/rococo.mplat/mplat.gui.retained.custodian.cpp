@@ -82,6 +82,34 @@ namespace ANON
 		virtual const BitmapLocation & Sprite() const = 0;
 	};
 
+	struct AutoScissors
+	{
+		bool isClipped = true;
+		IGuiRenderContext& rc;
+
+		static bool IsTargetClipped(const GuiRect& clipRect, const GuiRect& targetRect)
+		{
+			return !(targetRect.left >= clipRect.left && targetRect.right <= clipRect.right && targetRect.top >= clipRect.top && targetRect.bottom <= clipRect.bottom);
+		}
+
+		AutoScissors(const GuiRect& clipRect, const GuiRect& targetRect, IGuiRenderContext& _rc): rc(_rc), isClipped(AutoScissors::IsTargetClipped(clipRect, targetRect))
+		{
+			if (isClipped)
+			{
+				rc.FlushLayer();
+				rc.SetScissorRect(clipRect);
+			}
+		}
+
+		~AutoScissors()
+		{
+			if (isClipped)
+			{
+				rc.FlushLayer();
+				rc.ClearScissorRect();
+			}
+		}
+	};
 
 	struct MPlatGR_Renderer : IGRRenderContext
 	{
@@ -124,8 +152,9 @@ namespace ANON
 			if (needsClipping)
 			{
 				rc->FlushLayer();
-				rc->SetScissorRect(lastScissorRect);
 			}
+
+			AutoScissors scissors(lastScissorRect, absRect, *rc);
 
 			if (heading.degrees == 0)
 			{
@@ -139,8 +168,7 @@ namespace ANON
 			if (needsClipping)
 			{
 				rc->FlushLayer();
-				rc->ClearScissorRect();
-			}
+			}			
 		}
 
 		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
@@ -194,15 +222,14 @@ namespace ANON
 			}
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-			rc->SetScissorRect(visibleRect);
 			switch (rectStyle)
 			{
 			case EGRRectStyle::SHARP:
-				Rococo::Graphics::DrawRectangle(*rc, absRect, colour, colour);
+				Rococo::Graphics::DrawRectangle(*rc, visibleRect, colour, colour);
 				break;
 			case EGRRectStyle::ROUNDED_WITH_BLUR:
 			case EGRRectStyle::ROUNDED:
-				Rococo::Graphics::DrawRoundedRectangle(*rc, absRect, colour, cornerRadius);
+				Rococo::Graphics::DrawRoundedRectangle(*rc, visibleRect, colour, cornerRadius);
 			}
 		}
 
@@ -211,33 +238,29 @@ namespace ANON
 			Rococo::Graphics::DrawLine(*rc, 1, start, end, colour);
 		}
 
-		void DrawRectEdge(const GuiRect& absRect, RGBAb colour1, RGBAb colour2, EGRRectStyle rectStyle, int cornerRadius) override
+		void DrawRectEdge(const GuiRect& absRect, RGBAb bottomLeftColour, RGBAb topRightColour, EGRRectStyle rectStyle, int cornerRadius) override
 		{
-			UNUSED(rectStyle);
-			UNUSED(cornerRadius);
-
 			if (!lastScissorRect.IsNormalized())
 			{
 				return;
 			}
 
 			GuiRect visibleRect = IntersectNormalizedRects(absRect, lastScissorRect);
-			rc->SetScissorRect(visibleRect);
+
+			AutoScissors scissors(lastScissorRect, absRect, *rc);
 
 			switch (rectStyle)
 			{
 			case EGRRectStyle::SHARP:
 			{
-				Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, colour1, colour2);
+				Rococo::Graphics::DrawBorderAround(*rc, absRect, Vec2i{ 1,1 }, bottomLeftColour, topRightColour);
 				break;
 			}
 			case EGRRectStyle::ROUNDED:
 			case EGRRectStyle::ROUNDED_WITH_BLUR:
-				Rococo::Graphics::DrawRoundedEdge(*rc, absRect, colour1, cornerRadius);
+				Rococo::Graphics::DrawRoundedEdge(*rc, absRect, bottomLeftColour, cornerRadius);
 				break;
 			}
-
-			rc->ClearScissorRect();
 		}
 
 		void DrawRectEdgeLast(const GuiRect& absRect, RGBAb colour1, RGBAb colour2) override
@@ -260,7 +283,7 @@ namespace ANON
 			}
 
 			rc->FlushLayer();
-			rc->SetScissorRect(lastScissorRect);
+			AutoScissors scissors(lastScissorRect, clipRect, *rc);
 
 			// If there is nothing to display, then render a space character, which will give the caret a rectangle to work with
 			fstring editText = text.length > 0 ? text : " "_fstring;
@@ -333,7 +356,6 @@ namespace ANON
 			Rococo::Graphics::DrawLine(*rc, 1, glyphCallback.caretStart, glyphCallback.caretEnd, blinkColour);
 
 			rc->FlushLayer();
-			rc->ClearScissorRect();
 		}
 
 		void DrawTriangles(const GRTriangle* triangles, size_t nTriangles) override
@@ -384,7 +406,8 @@ namespace ANON
 			}
 
 			rc->FlushLayer();
-			rc->SetScissorRect(lastScissorRect);
+
+			AutoScissors scissors(lastScissorRect, targetRect, *rc);
 
 			int32 iAlignment = GRAlignment_To_RococoAlignment(alignment);
 
@@ -425,8 +448,7 @@ namespace ANON
 				Rococo::Graphics::RenderHQText(targetRect, iAlignment, *rc, To_ID_FONT(fontId), text, colour, spacing);
 			}
 
-			rc->FlushLayer();
-			rc->ClearScissorRect();				
+			rc->FlushLayer();			
 		}
 
 		bool TryFindFontJustSmallerThanHeight(Rococo::Gui::FontSpec&, int) const
@@ -680,14 +702,19 @@ namespace ANON
 			history.push_back(&widget);
 		}
 
-		void RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) override
+		EGREventRouting RouteKeyboardEvent(const KeyboardEvent& key, IGRSystem& gr) override
 		{
 			GRKeyEvent keyEvent{ *this, eventCount, key };
 			lastRoutingStatus = gr.RouteKeyEvent(keyEvent);
 			if (lastRoutingStatus == EGREventRouting::NextHandler)
 			{
-				gr.ApplyKeyGlobally(keyEvent);
+				if (EGREventRouting::NextHandler == gr.ApplyKeyGlobally(keyEvent))
+				{
+					return EGREventRouting::NextHandler;
+				}
 			}
+
+			return EGREventRouting::Terminate;
 		}
 
 		EGRCursorIcon currentIcon = EGRCursorIcon::Arrow;

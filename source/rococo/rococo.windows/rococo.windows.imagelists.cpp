@@ -156,6 +156,12 @@ public:
 
     ~TextureArray_ImageList()
     {
+        Clear();
+    }
+
+
+    void Clear() override
+    {
         ResetWidth(0);
     }
 
@@ -166,8 +172,10 @@ public:
         for (auto& i : imageTextures)
         {
             DeleteObject(i.hBitmap);
-            i.hBitmap = nullptr;
+            i.hBitmap = nullptr;           
         }
+
+        imageTextures.clear();
     }
 
     HIMAGELIST CreateImageList()

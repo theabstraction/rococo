@@ -572,6 +572,9 @@
 	(spriteBuilder.Clear)
 	(spriteBuilder.AddEachSpriteInDirectory "!textures/mhost/harrier")
 	(spriteBuilder.LoadAllSprites)
+	(spriteBuilder.AddEachSpriteInDirectory "!textures/mhost/harrier")
+	(spriteBuilder.AddSprite "!textures/mhost/galaxians/explosion.tiff")
+	(spriteBuilder.LoadAllSprites)
 	
 	(IEngine engine (Engine))
 	

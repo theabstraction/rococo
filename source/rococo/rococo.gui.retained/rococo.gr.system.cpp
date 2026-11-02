@@ -777,24 +777,29 @@ namespace ANON
 			}
 		}
 
-		void FocusDefaultTab() override
+		EGREventRouting FocusDefaultTab() override
 		{
 			if (focusId > 0)
 			{
 				OnNavigate(EGRNavigationDirective::Tab);
+				return EGREventRouting::Terminate;
 			}
+
+			return EGREventRouting::NextHandler;
 		}
 
-		void ApplyKeyGlobally(GRKeyEvent& keyEvent) override
+		EGREventRouting ApplyKeyGlobally(GRKeyEvent& keyEvent) override
 		{
 			switch (keyEvent.osKeyEvent.VKey)
 			{
 			case IO::VirtualKeys::VKCode_TAB:
 				if (keyEvent.osKeyEvent.IsUp())
 				{
-					FocusDefaultTab();
+					return FocusDefaultTab();
 				}
 			}
+
+			return EGREventRouting::NextHandler;
 		}
 
 		void NotifySelectionChanged(IGRPanel& panel, EGRSelectionChangeOrigin origin) override

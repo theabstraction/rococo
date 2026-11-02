@@ -68,6 +68,7 @@ namespace Rococo::Graphics
         ROCOCO_INTERFACE IBitmapArray
         {
             virtual void AddTexture() = 0;
+            virtual void Clear() = 0;
             virtual void ResetWidth(int32 width) = 0;
             virtual void ResetWidth(int32 width, int32 height) = 0;
             virtual void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocatio) = 0;

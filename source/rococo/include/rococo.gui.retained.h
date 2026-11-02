@@ -301,10 +301,10 @@ namespace Rococo::Gui
 		virtual void DrawImageUnstretched(IGRImage& image, const GuiRect& absRect, GRAlignmentFlags alignment) = 0;
 
 		virtual void DrawRect(const GuiRect& absRect, RGBAb colour, EGRRectStyle rectStyle = EGRRectStyle::SHARP, int cornerRadius = 4) = 0;
-		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour, EGRRectStyle rectStyle = EGRRectStyle::SHARP, int cornerRadius = 4) = 0;
+		virtual void DrawRectEdge(const GuiRect& absRect, RGBAb bottomLeftColour, RGBAb topRightColour, EGRRectStyle rectStyle = EGRRectStyle::SHARP, int cornerRadius = 4) = 0;
 
 		// Queues an edge rect for rendering after everything else of lower priority has been rendered. Used for highlighting
-		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb topLeftColour, RGBAb bottomRightColour) = 0;
+		virtual void DrawRectEdgeLast(const GuiRect& absRect, RGBAb bottomLeftColour, RGBAb topRightColour) = 0;
 
 		virtual void DrawEditableText(GRFontId fontId, const GuiRect& targetRect, GRAlignmentFlags alignment, Vec2i spacing, const fstring& text, RGBAb colour, const CaretSpec& caret) = 0;
 
@@ -499,6 +499,7 @@ namespace Rococo::Gui
 	enum class EGRWidgetEventType
 	{
 		BUTTON_CLICK,
+		RADIO_SELECT, // A radio button has been selected
 		BUTTON_KEYPRESS_DOWN, // // A key was pressed while the button had focus, and the meta data contains the vkey code
 		BUTTON_KEYPRESS_UP, // A key was released while the button had focus, and the meta data contains the vkey code
 		BOOL_CHANGED, // A boolean valued control was changed. The meta data int is 0 for false and not zero for true
@@ -1388,6 +1389,14 @@ namespace Rococo::Gui
 		[[nodiscard]] virtual IGRWidgetButton& CollapseButton() = 0;
 	};
 
+	DECLARE_ROCOCO_INTERFACE IGRWidgetMainFrame;
+
+	ROCOCO_INTERFACE IGRMainFrameEventHandler
+	{
+		virtual void OnChoiceMade(IGRWidgetMainFrame& frame, cstr meta, IGRWidget& widget) = 0;
+		virtual void OnRadioSelect(IGRWidgetMainFrame& frame, cstr meta, IGRWidgetRadioButtons& sender) = 0;
+	};
+
 	// The main frame with menu, toolbar and client area beneath the title bar
 	ROCOCO_INTERFACE IGRWidgetMainFrame : IGRBase
 	{
@@ -1398,7 +1407,10 @@ namespace Rococo::Gui
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual IGRWidget& Widget() = 0;
 
-		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created		
+		virtual void SetFrameEventHandler(IGRMainFrameEventHandler* eventHandler) = 0;
+
+		// Retrieves a reference to the frame's top menu bar. If one does not exist, it is created. The menu bar is a child of the titlebar.
+		// If you want to hide the title bar, use the parent panel of this menu bar
 		[[nodiscard]] virtual IGRWidgetMenuBar& MenuBar() = 0;
 
 		// Retrieves a reference to the frame's top right tool bar. Typically used for minimize, maximize/restore and close window buttons.
@@ -1462,7 +1474,7 @@ namespace Rococo::Gui
 	ROCOCO_INTERFACE IGRSystem
 	{
 		// Apply a key to the system as a whole, this will occur if nothing consumed the key
-		virtual void ApplyKeyGlobally(GRKeyEvent& keyEvent) = 0;
+		virtual EGREventRouting ApplyKeyGlobally(GRKeyEvent& keyEvent) = 0;
 
 		// Associates a frame with an id and returns it. If it already exists, gets the existant one.
 		[[nodiscard]] virtual IGRWidgetMainFrame& BindFrame(GRIdWidget id) = 0;

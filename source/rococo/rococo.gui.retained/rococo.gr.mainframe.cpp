@@ -22,14 +22,22 @@ namespace GRANON
 		IGRWidgetMenuBar* menuBar = nullptr;
 		IGRWidgetToolbar* rhsTools = nullptr;
 		IGRWidgetDivision* clientArea = nullptr;
+		IGRMainFrameEventHandler* eventHandler = nullptr;
 
 		GRMainFrame(cstr _name, IGRPanel& _panel) : name(_name), panel(_panel)
-		{
+		{			
 			_panel.SetLayoutDirection(ELayoutDirection::None);
+			_panel.Set(EGRSchemeColourSurface::CONTAINER_BOTTOM_RIGHT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
+			_panel.Set(EGRSchemeColourSurface::CONTAINER_TOP_LEFT, RGBAb(0, 0, 0, 0), EGRColourSpec::ForAllRenderStates);
 		}
 
 		virtual ~GRMainFrame()
 		{
+		}
+
+		void SetFrameEventHandler(IGRMainFrameEventHandler* eventHandler) override
+		{
+			this->eventHandler = eventHandler;
 		}
 
 		void OnTick(float dt) override
@@ -288,7 +296,7 @@ namespace GRANON
 			return EFlowLogic::CONTINUE;
 		}
 
-		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget&) override
+		EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sender) override
 		{
 			switch (widgetEvent.eventType)
 			{
@@ -297,6 +305,22 @@ namespace GRANON
 				return EGREventRouting::Terminate;
 			case EGRWidgetEventType::GET_HINT_HOVER:
 				widgetEvent.sMetaData = hoverHint;
+				return EGREventRouting::Terminate;
+			case EGRWidgetEventType::RADIO_SELECT:
+				if (eventHandler)
+				{
+					IGRWidgetRadioButtons* radioButtons = Cast<IGRWidgetRadioButtons>(sender);
+					if (radioButtons)
+					{
+						eventHandler->OnRadioSelect(*this, widgetEvent.sMetaData, *radioButtons);
+					}
+				}
+				return EGREventRouting::Terminate;
+			case EGRWidgetEventType::CHOICE_MADE:
+				if (eventHandler)
+				{
+					eventHandler->OnChoiceMade(*this, widgetEvent.sMetaData, sender);
+				}
 				return EGREventRouting::Terminate;
 			}
 
