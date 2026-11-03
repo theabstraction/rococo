@@ -21,7 +21,7 @@ namespace GRANON
 		GRFontId fontId;
 		GRAlignmentFlags alignment;
 		Vec2i spacing{ 0,0 };
-		int32 caretPos = 0;
+		int32 caretPos = 1;
 		int32 updateLock = 0;
 		IGREditFilter* filter;
 		bool skipTab = false;
@@ -44,6 +44,7 @@ namespace GRANON
 		GREditBox(IGRPanel& owningPanel, IGREditFilter* _filter, int32 capacity, GRFontId _fontId) : panel(owningPanel), fontId(_fontId), filter(_filter)
 		{
 			text.reserve(capacity);
+			text.push_back(0);
 			owningPanel.Add(EGRPanelFlags::AcceptsFocus);
 		}
 
@@ -151,15 +152,7 @@ namespace GRANON
 
 		void AppendCharAtCaret(char c) override
 		{
-			if (text.empty())
-			{
-				text.push_back(c);
-				text.push_back(0);
-				caretPos = 1;
-				OnUpdate(EGREditorEventType::CharAppended);
-				return;
-			}
-			else if (text.size() < text.capacity())
+			if (text.size() < text.capacity())
 			{
 				if (caretPos >= text.size() - 1)
 				{
@@ -432,9 +425,9 @@ namespace GRANON
 			size_t newSize = min(len + 1, text.capacity());
 			text.resize(newSize);
 
-			SafeFormat(text.data(), text.capacity(), "%s", argText);
+			SafeFormat(text.data(), newSize, "%s", argText);
 
-			caretPos = (int32) len;
+			caretPos = (int32) (newSize - 1);
 
 			OnUpdate(EGREditorEventType::SetText);
 		}
@@ -453,7 +446,7 @@ namespace GRANON
 				SafeFormat(buffer, capacity, "%s", text.data());
 			}
 
-			return (int32) text.size();
+			return (int32) text.size() - 1;
 		}
 
 		bool IsEditing() const
