@@ -1,0 +1,27 @@
+(namespace Rococo.ECS)
+
+(interface Rococo.ECS.IECS
+	(Deprecate (Sys.Type.ROID roid) -> (Bool success))
+
+	(DeprecateAll  -> )
+
+	(IsActive (Sys.Type.ROID roid) -> (Bool isActive))
+
+	(MaxTableEntries  -> (Int64 numberOfEntries))
+
+	(NewROID  -> (Sys.Type.ROID roid))
+)
+
+(class ProxyIECS (implements Rococo.ECS.IECS) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIECS.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIECS.Deprecate (Sys.Type.ROID roid) -> (Bool success) : (Rococo.ECS.Native.IECSDeprecate this.hObject roid -> success))
+	(method ProxyIECS.DeprecateAll  ->  : (Rococo.ECS.Native.IECSDeprecateAll this.hObject ))
+	(method ProxyIECS.IsActive (Sys.Type.ROID roid) -> (Bool isActive) : (Rococo.ECS.Native.IECSIsActive this.hObject roid -> isActive))
+	(method ProxyIECS.MaxTableEntries  -> (Int64 numberOfEntries) : (Rococo.ECS.Native.IECSMaxTableEntries this.hObject  -> numberOfEntries))
+	(method ProxyIECS.NewROID  -> (Sys.Type.ROID roid) : (Rococo.ECS.Native.IECSNewROID this.hObject  -> roid))
+
+(factory Rococo.ECS.GetECS Rococo.ECS.IECS  :
+	(Pointer pObject = (Rococo.ECS.Native.GetHandleForIECS0 ))
+	(construct ProxyIECS pObject)
+)
+

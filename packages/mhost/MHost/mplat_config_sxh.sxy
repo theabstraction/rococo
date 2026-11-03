@@ -1,0 +1,36 @@
+(namespace Rococo.Configuration)
+
+(interface Rococo.Configuration.IConfig
+	(Int (Sys.Type.IString name)(Int32 value) -> )
+
+	(Float (Sys.Type.IString name)(Float32 value) -> )
+
+	(Bool (Sys.Type.IString name)(Bool value) -> )
+
+	(Text (Sys.Type.IString name)(Sys.Type.IString value) -> )
+
+	(GetInt (Sys.Type.IString name) -> (Int32 value))
+
+	(GetFloat (Sys.Type.IString name) -> (Float32 value))
+
+	(GetBool (Sys.Type.IString name) -> (Bool value))
+
+	(GetText (Sys.Type.IString name)(Sys.Type.IStringBuilder text) -> )
+)
+
+(class ProxyIConfig (implements Rococo.Configuration.IConfig) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIConfig.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIConfig.Int (Sys.Type.IString name)(Int32 value) ->  : (Rococo.Configuration.Native.IConfigInt this.hObject name value))
+	(method ProxyIConfig.Float (Sys.Type.IString name)(Float32 value) ->  : (Rococo.Configuration.Native.IConfigFloat this.hObject name value))
+	(method ProxyIConfig.Bool (Sys.Type.IString name)(Bool value) ->  : (Rococo.Configuration.Native.IConfigBool this.hObject name value))
+	(method ProxyIConfig.Text (Sys.Type.IString name)(Sys.Type.IString value) ->  : (Rococo.Configuration.Native.IConfigText this.hObject name value))
+	(method ProxyIConfig.GetInt (Sys.Type.IString name) -> (Int32 value) : (Rococo.Configuration.Native.IConfigGetInt this.hObject name -> value))
+	(method ProxyIConfig.GetFloat (Sys.Type.IString name) -> (Float32 value) : (Rococo.Configuration.Native.IConfigGetFloat this.hObject name -> value))
+	(method ProxyIConfig.GetBool (Sys.Type.IString name) -> (Bool value) : (Rococo.Configuration.Native.IConfigGetBool this.hObject name -> value))
+	(method ProxyIConfig.GetText (Sys.Type.IString name)(Sys.Type.IStringBuilder text) ->  : (Rococo.Configuration.Native.IConfigGetText this.hObject name text))
+
+(factory Rococo.Configuration.Config Rococo.Configuration.IConfig  :
+	(Pointer pObject = (Rococo.Configuration.Native.GetHandleForIConfig0 ))
+	(construct ProxyIConfig pObject)
+)
+

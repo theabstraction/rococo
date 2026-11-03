@@ -1,0 +1,65 @@
+(namespace Rococo.Components.Body)
+
+(interface Rococo.Components.Body.IBody
+	(GetModel (out Sys.Maths.Matrix4x4 model) -> )
+
+	(GetScale (out Sys.Maths.Vec3 scale) -> )
+
+	(Parent  -> (Sys.Type.ROID parent))
+
+	(SetModelMatrix (const Sys.Maths.Matrix4x4 model) -> )
+
+	(SetParent (Sys.Type.ROID parent) -> )
+
+	(SetScale (const Sys.Maths.Vec3 scale) -> )
+
+	(SetMeshByName (const Sys.Type.IString mesh) -> )
+)
+
+(class ProxyIBody
+	(implements Rococo.Components.Body.IBody)
+	(attribute not-serialized)
+	(Sys.Type.ComponentRef ref)
+	(ROID roid)
+)
+
+(method ProxyIBody.Construct(ROID id)(Sys.Type.ComponentRef ref) :
+	(this.roid = id)
+	(this.ref.hComponent = ref.hComponent)
+	(this.ref.hLife = ref.hLife)
+)
+
+(method ProxyIBody.Destruct -> :
+	(Rococo.Components.Body.Native.DestructBody)
+)
+
+(factory Rococo.Components.Body.AddBody Rococo.Components.Body.IBody (ROID id):
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Body.Native.AddBody ref id)
+
+	(if (ref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIBody id ref)
+)
+
+(factory Rococo.Components.Body.GetBody Rococo.Components.Body.IBody (ROID id) :
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Body.Native.GetBody ref id)
+
+	(if (ref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIBody id ref)
+)
+
+(method ProxyIBody.GetModel (out Sys.Maths.Matrix4x4 model) ->  : (Rococo.Components.Body.Native.IBodyGetModel this.ref.hComponent model))
+(method ProxyIBody.GetScale (out Sys.Maths.Vec3 scale) ->  : (Rococo.Components.Body.Native.IBodyGetScale this.ref.hComponent scale))
+(method ProxyIBody.Parent  -> (Sys.Type.ROID parent) : (Rococo.Components.Body.Native.IBodyParent this.ref.hComponent  -> parent))
+(method ProxyIBody.SetModelMatrix (const Sys.Maths.Matrix4x4 model) ->  : (Rococo.Components.Body.Native.IBodySetModelMatrix this.ref.hComponent model))
+(method ProxyIBody.SetParent (Sys.Type.ROID parent) ->  : (Rococo.Components.Body.Native.IBodySetParent this.ref.hComponent parent))
+(method ProxyIBody.SetScale (const Sys.Maths.Vec3 scale) ->  : (Rococo.Components.Body.Native.IBodySetScale this.ref.hComponent scale))
+(method ProxyIBody.SetMeshByName (const Sys.Type.IString mesh) ->  : (Rococo.Components.Body.Native.IBodySetMeshByName this.ref.hComponent mesh))
+

@@ -1,0 +1,47 @@
+(namespace Rococo.Components.Animation)
+
+(interface Rococo.Components.Animation.IAnimation
+	(AddKeyFrame (const Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loopAnimation) -> )
+)
+
+(class ProxyIAnimation
+	(implements Rococo.Components.Animation.IAnimation)
+	(attribute not-serialized)
+	(Sys.Type.ComponentRef ref)
+	(ROID roid)
+)
+
+(method ProxyIAnimation.Construct(ROID id)(Sys.Type.ComponentRef ref) :
+	(this.roid = id)
+	(this.ref.hComponent = ref.hComponent)
+	(this.ref.hLife = ref.hLife)
+)
+
+(method ProxyIAnimation.Destruct -> :
+	(Rococo.Components.Animation.Native.DestructAnimation)
+)
+
+(factory Rococo.Components.Animation.AddAnimation Rococo.Components.Animation.IAnimation (ROID id):
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Animation.Native.AddAnimation ref id)
+
+	(if (ref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIAnimation id ref)
+)
+
+(factory Rococo.Components.Animation.GetAnimation Rococo.Components.Animation.IAnimation (ROID id) :
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Animation.Native.GetAnimation ref id)
+
+	(if (ref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyIAnimation id ref)
+)
+
+(method ProxyIAnimation.AddKeyFrame (const Sys.Type.IString frameName)(Sys.SI.Seconds duration)(Bool loopAnimation) ->  : (Rococo.Components.Animation.Native.IAnimationAddKeyFrame this.ref.hComponent frameName duration loopAnimation))
+

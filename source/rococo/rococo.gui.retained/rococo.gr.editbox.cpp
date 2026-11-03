@@ -151,7 +151,15 @@ namespace GRANON
 
 		void AppendCharAtCaret(char c) override
 		{
-			if (text.size() < text.capacity())
+			if (text.empty())
+			{
+				text.push_back(c);
+				text.push_back(0);
+				caretPos = 1;
+				OnUpdate(EGREditorEventType::CharAppended);
+				return;
+			}
+			else if (text.size() < text.capacity())
 			{
 				if (caretPos >= text.size() - 1)
 				{
@@ -238,7 +246,7 @@ namespace GRANON
 					g.DrawText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(surface, rs));
 				}
 			}
-			else
+			else if (text.size() > 0)
 			{
 				RGBAb textColour = panel.GetColour(EGRSchemeColourSurface::EDIT_TEXT, rs);
 
@@ -255,7 +263,7 @@ namespace GRANON
 					caret.LineThickness = 3;
 				}
 
-				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, textColour, caret);
+				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() }, textColour, caret);
 			}
 		}
 

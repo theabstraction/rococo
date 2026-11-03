@@ -1,0 +1,50 @@
+(namespace Rococo.Components.Skeleton)
+
+(interface Rococo.Components.Skeleton.ISkeleton
+	(SetSkeletonByName (Sys.Type.IString name) -> )
+
+	(GetSkeletonName (Sys.Type.IStringBuilder sb) -> )
+)
+
+(class ProxyISkeleton
+	(implements Rococo.Components.Skeleton.ISkeleton)
+	(attribute not-serialized)
+	(Sys.Type.ComponentRef ref)
+	(ROID roid)
+)
+
+(method ProxyISkeleton.Construct(ROID id)(Sys.Type.ComponentRef ref) :
+	(this.roid = id)
+	(this.ref.hComponent = ref.hComponent)
+	(this.ref.hLife = ref.hLife)
+)
+
+(method ProxyISkeleton.Destruct -> :
+	(Rococo.Components.Skeleton.Native.DestructSkeleton)
+)
+
+(factory Rococo.Components.Skeleton.AddSkeleton Rococo.Components.Skeleton.ISkeleton (ROID id):
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Skeleton.Native.AddSkeleton ref id)
+
+	(if (ref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyISkeleton id ref)
+)
+
+(factory Rococo.Components.Skeleton.GetSkeleton Rococo.Components.Skeleton.ISkeleton (ROID id) :
+	(Sys.Type.ComponentRef ref)
+	(Rococo.Components.Skeleton.Native.GetSkeleton ref id)
+
+	(if (ref.hComponent == 0)
+		(return)
+	)
+
+	(construct ProxyISkeleton id ref)
+)
+
+(method ProxyISkeleton.SetSkeletonByName (Sys.Type.IString name) ->  : (Rococo.Components.Skeleton.Native.ISkeletonSetSkeletonByName this.ref.hComponent name))
+(method ProxyISkeleton.GetSkeletonName (Sys.Type.IStringBuilder sb) ->  : (Rococo.Components.Skeleton.Native.ISkeletonGetSkeletonName this.ref.hComponent sb))
+

@@ -1,0 +1,239 @@
+(namespace Rococo)
+(macro Rococo.AlignmentFlagsNone in out (out.AddAtomic "0x0"))
+(macro Rococo.AlignmentFlagsLeft in out (out.AddAtomic "0x1"))
+(macro Rococo.AlignmentFlagsRight in out (out.AddAtomic "0x2"))
+(macro Rococo.AlignmentFlagsBottom in out (out.AddAtomic "0x4"))
+(macro Rococo.AlignmentFlagsTop in out (out.AddAtomic "0x8"))
+(macro Rococo.AlignmentFlagsMirror in out (out.AddAtomic "0x10"))
+(macro Rococo.AlignmentFlagsFlip in out (out.AddAtomic "0x20"))
+(macro Rococo.AlignmentFlagsClipped in out (out.AddAtomic "0x40"))
+
+(namespace MHost.GuiTypes)
+(macro MHost.GuiTypes.EvIdNone in out (out.AddAtomic "0x0"))
+(macro MHost.GuiTypes.EvIdGRisMadeVisible in out (out.AddAtomic "0x1"))
+(macro MHost.GuiTypes.EvIdGRisHidden in out (out.AddAtomic "0x2"))
+(macro MHost.GuiTypes.EvIdOverlayButtonClick in out (out.AddAtomic "0x3"))
+(macro MHost.GuiTypes.EvIdLogMessage in out (out.AddAtomic "0x4"))
+
+(namespace MHost)
+
+(interface MHost.IGui
+	(DrawTriangle (const MPlat.GuiTriangle t) -> )
+
+	(DrawQuad (const MPlat.GuiQuad q) -> )
+
+	(DrawBorder (const Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) -> )
+
+	(FillRect (const Sys.Maths.Rectf rect)(Int32 colour) -> )
+
+	(DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) -> )
+
+	(DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) -> )
+
+	(DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> )
+
+	(DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc) -> )
+
+	(StretchSprite (const Sys.Maths.Rectf rect)(const MPlat.BitmapLocation loc) -> )
+
+	(DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect) -> )
+
+	(DrawTextWithCaret (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect)(Int32 caretPos) -> )
+
+	(DrawText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> )
+
+	(EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(out Sys.Maths.Vec2 pixelSpan) -> )
+
+	(GetFontDescription (Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(out MHost.Graphics.FontDesc fd) -> )
+
+	(GetNumberOfFonts  -> (Int32 numberOfFonts))
+
+	(GetScreenSpan (out Sys.Maths.Vec2 span) -> )
+
+	(GetCursorPos (out Sys.Maths.Vec2 pos) -> )
+
+	(SetGuiShaders (Sys.Type.IString pixelShaderFilename) -> )
+
+	(SetScissorRect (const Sys.Maths.Recti rect) -> )
+
+	(ClearScissorRect  -> )
+)
+
+(class ProxyIGui (implements MHost.IGui) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIGui.DrawTriangle (const MPlat.GuiTriangle t) ->  : (MHost.Native.IGuiDrawTriangle this.hObject t))
+	(method ProxyIGui.DrawQuad (const MPlat.GuiQuad q) ->  : (MHost.Native.IGuiDrawQuad this.hObject q))
+	(method ProxyIGui.DrawBorder (const Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (MHost.Native.IGuiDrawBorder this.hObject rect pxThickness tl tr bl br))
+	(method ProxyIGui.FillRect (const Sys.Maths.Rectf rect)(Int32 colour) ->  : (MHost.Native.IGuiFillRect this.hObject rect colour))
+	(method ProxyIGui.DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) ->  : (MHost.Native.IGuiDrawColouredSprite this.hObject pixelPos alignmentFlags loc blendFactor colour))
+	(method ProxyIGui.DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (MHost.Native.IGuiDrawLeftAligned this.hObject rect text fontIndex fontHeight colour rightHardEdge rightSoftEdge))
+	(method ProxyIGui.DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (MHost.Native.IGuiDrawScaledColouredSprite this.hObject pixelPos alignmentFlags loc blendFactor colour scaleFactor))
+	(method ProxyIGui.DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc) ->  : (MHost.Native.IGuiDrawSprite this.hObject pixelPos alignmentFlags loc))
+	(method ProxyIGui.StretchSprite (const Sys.Maths.Rectf rect)(const MPlat.BitmapLocation loc) ->  : (MHost.Native.IGuiStretchSprite this.hObject rect loc))
+	(method ProxyIGui.DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect) ->  : (MHost.Native.IGuiDrawClippedText this.hObject rect alignmentFlags text fontIndex colour clipRect))
+	(method ProxyIGui.DrawTextWithCaret (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect)(Int32 caretPos) ->  : (MHost.Native.IGuiDrawTextWithCaret this.hObject rect alignmentFlags text fontIndex colour clipRect caretPos))
+	(method ProxyIGui.DrawText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) ->  : (MHost.Native.IGuiDrawText this.hObject rect alignmentFlags text fontIndex colour))
+	(method ProxyIGui.EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(out Sys.Maths.Vec2 pixelSpan) ->  : (MHost.Native.IGuiEvalTextSpan this.hObject text fontIndex pixelSpan))
+	(method ProxyIGui.GetFontDescription (Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(out MHost.Graphics.FontDesc fd) ->  : (MHost.Native.IGuiGetFontDescription this.hObject fontIndex familyName fd))
+	(method ProxyIGui.GetNumberOfFonts  -> (Int32 numberOfFonts) : (MHost.Native.IGuiGetNumberOfFonts this.hObject  -> numberOfFonts))
+	(method ProxyIGui.GetScreenSpan (out Sys.Maths.Vec2 span) ->  : (MHost.Native.IGuiGetScreenSpan this.hObject span))
+	(method ProxyIGui.GetCursorPos (out Sys.Maths.Vec2 pos) ->  : (MHost.Native.IGuiGetCursorPos this.hObject pos))
+	(method ProxyIGui.SetGuiShaders (Sys.Type.IString pixelShaderFilename) ->  : (MHost.Native.IGuiSetGuiShaders this.hObject pixelShaderFilename))
+	(method ProxyIGui.SetScissorRect (const Sys.Maths.Recti rect) ->  : (MHost.Native.IGuiSetScissorRect this.hObject rect))
+	(method ProxyIGui.ClearScissorRect  ->  : (MHost.Native.IGuiClearScissorRect this.hObject ))
+
+
+(interface MHost.IGuiOverlay
+	(AddMenu (const Sys.Type.IString id)(Int64 metaId)(const Sys.Type.IString menuPath) -> )
+
+	(AddProfileMenu  -> )
+
+	(AppendEventString (Sys.Type.IStringBuilder sb)(out MHost.GuiTypes.GuiEvent ev) -> )
+
+	(ClearMenus  -> )
+
+	(GetNextGuiEvent (out MHost.GuiTypes.GuiEvent ev) -> (Bool wasExtracted))
+)
+
+(class ProxyIGuiOverlay (implements MHost.IGuiOverlay) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIGuiOverlay.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIGuiOverlay.AddMenu (const Sys.Type.IString id)(Int64 metaId)(const Sys.Type.IString menuPath) ->  : (MHost.Native.IGuiOverlayAddMenu this.hObject id metaId menuPath))
+	(method ProxyIGuiOverlay.AddProfileMenu  ->  : (MHost.Native.IGuiOverlayAddProfileMenu this.hObject ))
+	(method ProxyIGuiOverlay.AppendEventString (Sys.Type.IStringBuilder sb)(out MHost.GuiTypes.GuiEvent ev) ->  : (MHost.Native.IGuiOverlayAppendEventString this.hObject sb ev))
+	(method ProxyIGuiOverlay.ClearMenus  ->  : (MHost.Native.IGuiOverlayClearMenus this.hObject ))
+	(method ProxyIGuiOverlay.GetNextGuiEvent (out MHost.GuiTypes.GuiEvent ev) -> (Bool wasExtracted) : (MHost.Native.IGuiOverlayGetNextGuiEvent this.hObject ev -> wasExtracted))
+
+(factory MHost.GuiOverlay MHost.IGuiOverlay  :
+	(Pointer pObject = (MHost.Native.GetHandleForIGuiOverlay0 ))
+	(construct ProxyIGuiOverlay pObject)
+)
+
+
+(interface MHost.IEngine
+	(PollKeyState (out MHost.OS.KeyState keys) -> )
+
+	(GetNextMouseDelta (out Sys.Maths.Vec2 delta) -> )
+
+	(GetNextMouseEvent (out MHost.OS.MouseEvent me) -> (Bool wasPopped))
+
+	(GetNextKeyboardEvent (out MHost.OS.KeyboardEvent ke) -> (Bool wasPopped))
+
+	(Render (MHost.GuiPopulator populator) -> )
+
+	(AddSexmlSheet (Sys.Reflection.IExpression sexml) -> )
+
+	(SetGreatSexOverlay (const Sys.Type.IString pingPathToSexml) -> )
+
+	(IsAppModal  -> (Bool isModal))
+
+	(IsRunning  -> (Bool isRunning))
+
+	(Shutdown  -> )
+
+	(YieldForSystemMessages (Int32 sleepMS) -> (Sys.SI.Seconds frameDT))
+
+	(TryGetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) -> (Bool isSuccessful))
+
+	(GetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) -> )
+
+	(RunMPlatScript (Sys.Type.IString scriptName) -> )
+
+	(SetNextScript (Sys.Type.IString scriptName) -> )
+
+	(CaptureMouse  -> )
+
+	(ReleaseMouse  -> )
+
+	(CursorPosition (out Sys.Maths.Vec2 cursorPosition) -> )
+
+	(SetGUIToggleKey (Int32 vkeyCode) -> )
+
+	(SetEditorVisibility (Bool isVisible) -> )
+)
+
+(class ProxyIEngine (implements MHost.IEngine) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIEngine.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIEngine.PollKeyState (out MHost.OS.KeyState keys) ->  : (MHost.Native.IEnginePollKeyState this.hObject keys))
+	(method ProxyIEngine.GetNextMouseDelta (out Sys.Maths.Vec2 delta) ->  : (MHost.Native.IEngineGetNextMouseDelta this.hObject delta))
+	(method ProxyIEngine.GetNextMouseEvent (out MHost.OS.MouseEvent me) -> (Bool wasPopped) : (MHost.Native.IEngineGetNextMouseEvent this.hObject me -> wasPopped))
+	(method ProxyIEngine.GetNextKeyboardEvent (out MHost.OS.KeyboardEvent ke) -> (Bool wasPopped) : (MHost.Native.IEngineGetNextKeyboardEvent this.hObject ke -> wasPopped))
+	(method ProxyIEngine.Render (MHost.GuiPopulator populator) ->  : (MHost.Native.IEngineRender this.hObject populator))
+	(method ProxyIEngine.AddSexmlSheet (Sys.Reflection.IExpression sexml) ->  : (MHost.Native.IEngineAddSexmlSheet this.hObject sexml))
+	(method ProxyIEngine.SetGreatSexOverlay (const Sys.Type.IString pingPathToSexml) ->  : (MHost.Native.IEngineSetGreatSexOverlay this.hObject pingPathToSexml))
+	(method ProxyIEngine.IsAppModal  -> (Bool isModal) : (MHost.Native.IEngineIsAppModal this.hObject  -> isModal))
+	(method ProxyIEngine.IsRunning  -> (Bool isRunning) : (MHost.Native.IEngineIsRunning this.hObject  -> isRunning))
+	(method ProxyIEngine.Shutdown  ->  : (MHost.Native.IEngineShutdown this.hObject ))
+	(method ProxyIEngine.YieldForSystemMessages (Int32 sleepMS) -> (Sys.SI.Seconds frameDT) : (MHost.Native.IEngineYieldForSystemMessages this.hObject sleepMS -> frameDT))
+	(method ProxyIEngine.TryGetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) -> (Bool isSuccessful) : (MHost.Native.IEngineTryGetSpriteSpec this.hObject resourceName loc -> isSuccessful))
+	(method ProxyIEngine.GetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) ->  : (MHost.Native.IEngineGetSpriteSpec this.hObject resourceName loc))
+	(method ProxyIEngine.RunMPlatScript (Sys.Type.IString scriptName) ->  : (MHost.Native.IEngineRunMPlatScript this.hObject scriptName))
+	(method ProxyIEngine.SetNextScript (Sys.Type.IString scriptName) ->  : (MHost.Native.IEngineSetNextScript this.hObject scriptName))
+	(method ProxyIEngine.CaptureMouse  ->  : (MHost.Native.IEngineCaptureMouse this.hObject ))
+	(method ProxyIEngine.ReleaseMouse  ->  : (MHost.Native.IEngineReleaseMouse this.hObject ))
+	(method ProxyIEngine.CursorPosition (out Sys.Maths.Vec2 cursorPosition) ->  : (MHost.Native.IEngineCursorPosition this.hObject cursorPosition))
+	(method ProxyIEngine.SetGUIToggleKey (Int32 vkeyCode) ->  : (MHost.Native.IEngineSetGUIToggleKey this.hObject vkeyCode))
+	(method ProxyIEngine.SetEditorVisibility (Bool isVisible) ->  : (MHost.Native.IEngineSetEditorVisibility this.hObject isVisible))
+
+(factory MHost.Engine MHost.IEngine  :
+	(Pointer pObject = (MHost.Native.GetHandleForIEngine0 ))
+	(construct ProxyIEngine pObject)
+)
+
+
+(interface MHost.IDictionaryStream
+	(AddBool (Sys.Type.IString name)(Bool value) -> )
+
+	(AddI32 (Sys.Type.IString name)(Int32 value) -> )
+
+	(AddI64 (Sys.Type.IString name)(Int64 value) -> )
+
+	(AddF32 (Sys.Type.IString name)(Float32 value) -> )
+
+	(AddF64 (Sys.Type.IString name)(Float64 value) -> )
+
+	(AddString (Sys.Type.IString name)(Sys.Type.IString value) -> )
+
+	(GetBool (Sys.Type.IString name)(Bool defaultValue) -> (Bool value))
+
+	(GetInt32 (Sys.Type.IString name)(Int32 defaultValue) -> (Int32 value))
+
+	(GetInt64 (Sys.Type.IString name)(Int64 defaultValue) -> (Int64 value))
+
+	(GetFloat32 (Sys.Type.IString name)(Float32 defaultValue) -> (Float32 value))
+
+	(GetFloat64 (Sys.Type.IString name)(Float64 defaultValue) -> (Float64 value))
+
+	(AppendString (Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) -> )
+
+	(Clear  -> )
+
+	(ProhibitOverwrite  -> )
+
+	(LoadFrom (Sys.Type.IString pingPath) -> )
+
+	(SaveTo (Sys.Type.IString pingPath) -> )
+)
+
+(class ProxyIDictionaryStream (implements MHost.IDictionaryStream) (Pointer hObject) (attribute not-serialized))
+	(method ProxyIDictionaryStream.Construct (Pointer hObject): (this.hObject = hObject))
+	(method ProxyIDictionaryStream.AddBool (Sys.Type.IString name)(Bool value) ->  : (MHost.Native.IDictionaryStreamAddBool this.hObject name value))
+	(method ProxyIDictionaryStream.AddI32 (Sys.Type.IString name)(Int32 value) ->  : (MHost.Native.IDictionaryStreamAddI32 this.hObject name value))
+	(method ProxyIDictionaryStream.AddI64 (Sys.Type.IString name)(Int64 value) ->  : (MHost.Native.IDictionaryStreamAddI64 this.hObject name value))
+	(method ProxyIDictionaryStream.AddF32 (Sys.Type.IString name)(Float32 value) ->  : (MHost.Native.IDictionaryStreamAddF32 this.hObject name value))
+	(method ProxyIDictionaryStream.AddF64 (Sys.Type.IString name)(Float64 value) ->  : (MHost.Native.IDictionaryStreamAddF64 this.hObject name value))
+	(method ProxyIDictionaryStream.AddString (Sys.Type.IString name)(Sys.Type.IString value) ->  : (MHost.Native.IDictionaryStreamAddString this.hObject name value))
+	(method ProxyIDictionaryStream.GetBool (Sys.Type.IString name)(Bool defaultValue) -> (Bool value) : (MHost.Native.IDictionaryStreamGetBool this.hObject name defaultValue -> value))
+	(method ProxyIDictionaryStream.GetInt32 (Sys.Type.IString name)(Int32 defaultValue) -> (Int32 value) : (MHost.Native.IDictionaryStreamGetInt32 this.hObject name defaultValue -> value))
+	(method ProxyIDictionaryStream.GetInt64 (Sys.Type.IString name)(Int64 defaultValue) -> (Int64 value) : (MHost.Native.IDictionaryStreamGetInt64 this.hObject name defaultValue -> value))
+	(method ProxyIDictionaryStream.GetFloat32 (Sys.Type.IString name)(Float32 defaultValue) -> (Float32 value) : (MHost.Native.IDictionaryStreamGetFloat32 this.hObject name defaultValue -> value))
+	(method ProxyIDictionaryStream.GetFloat64 (Sys.Type.IString name)(Float64 defaultValue) -> (Float64 value) : (MHost.Native.IDictionaryStreamGetFloat64 this.hObject name defaultValue -> value))
+	(method ProxyIDictionaryStream.AppendString (Sys.Type.IString name)(Sys.Type.IString defaultString)(Sys.Type.IStringBuilder sb) ->  : (MHost.Native.IDictionaryStreamAppendString this.hObject name defaultString sb))
+	(method ProxyIDictionaryStream.Clear  ->  : (MHost.Native.IDictionaryStreamClear this.hObject ))
+	(method ProxyIDictionaryStream.ProhibitOverwrite  ->  : (MHost.Native.IDictionaryStreamProhibitOverwrite this.hObject ))
+	(method ProxyIDictionaryStream.LoadFrom (Sys.Type.IString pingPath) ->  : (MHost.Native.IDictionaryStreamLoadFrom this.hObject pingPath))
+	(method ProxyIDictionaryStream.SaveTo (Sys.Type.IString pingPath) ->  : (MHost.Native.IDictionaryStreamSaveTo this.hObject pingPath))
+
+(factory MHost.DictionaryStream MHost.IDictionaryStream  :
+	(Pointer pObject = (MHost.Native.GetHandleForIDictionaryStream0 ))
+	(construct ProxyIDictionaryStream pObject)
+)
+
