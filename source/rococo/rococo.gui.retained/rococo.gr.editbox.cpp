@@ -246,7 +246,7 @@ namespace GRANON
 					g.DrawText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, panel.GetColour(surface, rs));
 				}
 			}
-			else if (text.size() > 0)
+			else
 			{
 				RGBAb textColour = panel.GetColour(EGRSchemeColourSurface::EDIT_TEXT, rs);
 
@@ -263,7 +263,14 @@ namespace GRANON
 					caret.LineThickness = 3;
 				}
 
-				g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() }, textColour, caret);
+				if (text.size() > 0)
+				{
+					g.DrawEditableText(fontId, rect, alignment, spacing, { text.data(), (int32)text.size() - 1 }, textColour, caret);
+				}
+				else
+				{
+					g.DrawEditableText(fontId, rect, alignment, spacing, ""_fstring, textColour, caret);
+				}
 			}
 		}
 
