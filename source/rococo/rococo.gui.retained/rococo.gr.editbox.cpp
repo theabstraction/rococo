@@ -21,7 +21,7 @@ namespace GRANON
 		GRFontId fontId;
 		GRAlignmentFlags alignment;
 		Vec2i spacing{ 0,0 };
-		int32 caretPos = 1;
+		int32 caretPos = 0;
 		int32 updateLock = 0;
 		IGREditFilter* filter;
 		bool skipTab = false;
@@ -446,7 +446,7 @@ namespace GRANON
 				SafeFormat(buffer, capacity, "%s", text.data());
 			}
 
-			return (int32) text.size() - 1;
+			return (int32) text.size();
 		}
 
 		bool IsEditing() const
@@ -506,9 +506,6 @@ namespace Rococo::Gui
 		if (capacity <= 2)
 		{
 			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Capacity should be >= 2");
-		}
-		else
-		{
 			capacity = (int32) EGRPaths::MAX_FULL_PATH_LENGTH;
 		}
 
