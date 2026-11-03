@@ -505,7 +505,7 @@ namespace Rococo::Gui
 	{
 		if (capacity <= 2)
 		{
-			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Capacity should be >= 2");
+			RaiseError(parent.Panel(), EGRErrorCode::InvalidArg, __ROCOCO_FUNCTION__, "Capacity should be > 2");
 			capacity = (int32) EGRPaths::MAX_FULL_PATH_LENGTH;
 		}
 
