@@ -232,6 +232,16 @@ namespace Rococo::Gui
 		);
 	}
 
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForALlFocusedStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour)
+	{
+		scheme.SetColour(surface, colour, EGRColourSpec::ForAllFocusedStates);
+	}
+
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForALlHoveredStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour)
+	{
+		scheme.SetColour(surface, colour, EGRColourSpec::ForAllHoveredStates);
+	}
+
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, EGRSchemeColourSurface surface, RGBAb colour)
 	{
 		GRWidgetRenderState::ForEachPermutation([&panel, surface, colour](GRWidgetRenderState rs)

@@ -337,7 +337,7 @@ namespace GRANON
 			}
 			else
 			{
-				DrawButton(panel, false, isRaised, g, backSurface);
+				DrawButton(panel, panel.HasFocus(), isRaised, g, backSurface);
 			}
 
 			bool isHovered = g.IsHovered(panel);
@@ -346,7 +346,7 @@ namespace GRANON
 
 			IGRImage* image = isRaised ? raisedImage : pressedImage;
 
-			GRWidgetRenderState rs(!isRaised, isHovered, false);
+			GRWidgetRenderState rs(!isRaised, isHovered, panel.HasFocus());
 
 			if (image)
 			{

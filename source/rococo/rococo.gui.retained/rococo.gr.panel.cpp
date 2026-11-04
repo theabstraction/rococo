@@ -1114,6 +1114,14 @@ namespace GRANON
 			case EGRColourSpec::ForAllRenderStates:
 				SetUniformColourForAllRenderStates(*scheme, surface, colour);
 				break;
+			case EGRColourSpec::ForAllFocusedStates:
+				SetUniformColourForALlFocusedStates(*scheme, surface, colour);
+				break;
+			case EGRColourSpec::ForAllHoveredStates:
+				SetUniformColourForALlHoveredStates(*scheme, surface, colour);
+				break;
+			default:
+				Throw(0, __FUNCTION__ ": Not implemented for spec %d", spec);
 			}
 
 			return *this;

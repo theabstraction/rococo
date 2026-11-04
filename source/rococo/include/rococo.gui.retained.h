@@ -487,6 +487,8 @@ namespace Rococo::Gui
 	};
 
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour);
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForALlFocusedStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour);
+	ROCOCO_GUI_RETAINED_API void SetUniformColourForALlHoveredStates(IGRScheme& scheme, EGRSchemeColourSurface surface, RGBAb colour);
 	ROCOCO_GUI_RETAINED_API void SetUniformColourForAllRenderStates(IGRPanel& panel, EGRSchemeColourSurface surface, RGBAb colour);
 
 	ROCOCO_INTERFACE IGRSchemeSupervisor : IGRScheme
