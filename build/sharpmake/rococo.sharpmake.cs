@@ -265,7 +265,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 platform,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,
@@ -359,7 +359,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 Platform.win64,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,
@@ -450,7 +450,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 Platform.anycpu,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,
@@ -495,7 +495,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 platform,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,
@@ -964,7 +964,7 @@ namespace Rococo
         {
             AddTargets(new Target(
                Platform.win64,
-               DevEnv.vs2022,
+               DevEnv.vs2026,
                Optimization.Debug | Optimization.Release,
                OutputType.Dll,
                Blob.NoBlob,
@@ -995,7 +995,7 @@ namespace Rococo
         {
             AddTargets(new Target(
                Platform.win64,
-               DevEnv.vs2022,
+               DevEnv.vs2026,
                Optimization.Debug | Optimization.Release,
                OutputType.Dll,
                Blob.NoBlob,
@@ -1060,7 +1060,7 @@ namespace Rococo
         {
             AddTargets(new Target(
                Platform.win64,
-               DevEnv.vs2022,
+               DevEnv.vs2026,
                Optimization.Debug | Optimization.Release,
                OutputType.Dll,
                Blob.NoBlob,
@@ -1725,7 +1725,7 @@ namespace Rococo
         {
             AddTargets(new Target(
                Platform.win64,
-               DevEnv.vs2022,
+               DevEnv.vs2026,
                Optimization.Debug | Optimization.Release,
                OutputType.Dll,
                Blob.NoBlob,
@@ -1764,7 +1764,7 @@ namespace Rococo
         {
             AddTargets(new Target(
                Platform.win64,
-               DevEnv.vs2022,
+               DevEnv.vs2026,
                Optimization.Debug | Optimization.Release,
                OutputType.Dll,
                Blob.NoBlob,
@@ -2230,7 +2230,7 @@ namespace Rococo
         public static void AddUE5ibs(Solution.Configuration conf, Target target)
         {
             conf.AddProject<RococoSexyGen4UnrealProject>(target);
-            conf.AddProject<SexyUE5APILib>(target);
+            conf.AddProject<SexyUE5APILib>(target, inactiveProject: true);
         }
 
         public static void AddSexyStudio(Solution.Configuration conf, Target target)
@@ -2262,7 +2262,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 Platform.win64,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,
@@ -2304,7 +2304,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 Platform.win64,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,
@@ -2341,7 +2341,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 Platform.win64,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,
@@ -2371,7 +2371,7 @@ namespace Rococo
 
             AddTargets(new Target(
                 Platform.win64,
-                DevEnv.vs2022,
+                DevEnv.vs2026,
                 Optimization.Debug | Optimization.Release,
                 OutputType.Dll,
                 Blob.NoBlob,

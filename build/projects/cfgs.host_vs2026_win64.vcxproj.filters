@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.controller.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.serialization.cpp" />
+    <ClCompile Include="..\..\source\rococo\cfgs\cfgs.host\cfgs.win32.cpp" />
+  </ItemGroup>
+</Project>

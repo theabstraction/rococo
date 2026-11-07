@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{245B4DB3-78A1-09E0-559F-BDA85127E87D}</ProjectGuid>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <RootNamespace>rococo.mplat</RootNamespace>
+    <ProjectName>rococo.mplat</ProjectName>
+  </PropertyGroup>
+  <PropertyGroup Label="Globals">
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v145</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v145</PlatformToolset>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>rococo.mplat</TargetName>
+    <OutDir>..\..\gen\lib\win64\debug\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mplat\</IntDir>
+    <TargetExt>.lib</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <LinkIncremental>false</LinkIncremental>
+    <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>rococo.mplat</TargetName>
+    <OutDir>..\..\gen\lib\win64\release\</OutDir>
+    <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mplat\</IntDir>
+    <TargetExt>.lib</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <LinkIncremental>false</LinkIncremental>
+    <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYIDE_API=;SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_LIB;_ROCOCO_WIDECHAR_=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\libtiff\libtiff;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.mplat\rococo.mplat_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+    </Link>
+    <Lib>
+      <TargetMachine>MachineX64</TargetMachine>
+      <SubSystem/>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
+      <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYIDE_API=;SEXYUTIL_API=__declspec(dllimport);WIN64;_LIB;_ROCOCO_WIDECHAR_=wchar_t;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\libtiff\libtiff;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <BrowseInformation>false</BrowseInformation>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4201;4250;4324;4458</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <ProgramDatabaseFileName>..\..\gen\temp\win64\$(configuration)\rococo.mplat\rococo.mplat_compiler.pdb</ProgramDatabaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <TargetMachine>MachineX64</TargetMachine>
+      <SubSystem/>
+      <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
+      <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.ELayoutAlgorithm.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IMobiles.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IParticleSystem.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IRigBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.EvMouseFlags.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ESoftBoxVertexPurpose.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.HQFont.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ICamera.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IFieldTesselator.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IHQFonts.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ILandscapeTesselator.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMaterialBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMeshBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMessaging.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IQuadStackTesselator.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRendererConfig.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRimTesselator.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IRodTesselator.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISceneBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IShaderOptionsConfig.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISoftBoxBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISpriteBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ISprites.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.ITextTesselator.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.MaterialCategory.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.OrientationFlags.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.SampleFilter.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.SampleIndex.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.SampleMethod.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IArrayBox.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IContextMenuPane.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IEnumListPane.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IFramePane.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ILabelPane.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IPane.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IPaneBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IPaneContainer.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IRadioButton.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.IScroller.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ISlider.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ITabContainer.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.GUI.ITextOutputPane.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IArchive.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IContextMenu.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IInstallationManager.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IKeyboard.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IWorldBuilder.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.inl" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo_declarations.sxh.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.component.template.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.components.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.archive.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.bloody.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.component.template.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.components.factories.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.config.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.animation.debug.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.mobiles.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.particles.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.entities.rigs.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.file.browser.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.geometry.octree.loose.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.geometry.quadtree.loose.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.camera.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.fieldtesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.landscapes.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.materials.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.meshes.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.messaging.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.qs.tesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.rod.tesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.scene.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.softbox.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprites.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprite_builder.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.tess.rim.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.text.tesselator.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.gui.retained.custodian.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.guistack.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.hqfonts.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.keyboard.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.main.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.maths.visitor.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.monitors.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.os.win32.venue.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.overlay.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.array-box.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.base.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.context-menu.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.enumlist.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.label.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.radiobutton.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.scrollbar.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.slider.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.tab.container.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.pane.textoutput.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.renderer.config.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.scripts.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.sexml.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.subsystems.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.test.app.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.tests.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.utilities.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.builder.cpp" />
+    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ItemGroup>
+    <ProjectReference Include="rococo.dependency_vs2026_win64.vcxproj">
+      <Project>{778B062E-F43C-6060-BF94-C5D8DAFB071F}</Project>
+      <Name>rococo.dependency</Name>
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="sexy.bennyhill_vs2026_win64.vcxproj">
+      <Project>{75762865-C7CA-CAD2-1111-23EC9D94EB3F}</Project>
+      <Name>sexy.bennyhill</Name>
+      <Private>true</Private>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
