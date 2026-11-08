@@ -20,6 +20,7 @@
 #include "rococo.renderer.h"
 #include "rococo.fonts.h"
 #include "rococo.functional.h"
+#include "rococo.dds.h"
 #include <RAL/RAL.h>
 
 namespace Rococo::RAL
@@ -161,11 +162,13 @@ namespace Rococo::DX11
 		ID3D11Device& device;
 		ID3D11DeviceContext& dc;
 		IExpandingBuffer& scratchBuffer;
+		AutoFree<IDDSLoaderSupervisor> ddsLoader;
 
 	public:
 		TextureLoader(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& _dc, IExpandingBuffer& _scratchBuffer);
 		TextureBind LoadAlphaBitmap(cstr resourceName);
 		TextureBind LoadColourBitmap(cstr resourceName);
+		TextureBind LoadDDSColourBitmap(cstr resourceName);
 		ID3D11Texture2D* LoadColourBitmapDirect(cstr resourceName);
 		void LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad);
 	};

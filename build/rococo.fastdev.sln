@@ -77,6 +77,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.component.configurat
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.component.skeleton", "projects\rococo.component.skeleton_vs2026_win64.vcxproj", "{6CD62851-8118-AED8-DB25-94232DF14A09}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.dds", "projects\rococo.dds_vs2026_win64.vcxproj", "{2C8C2011-D446-8C53-65B4-661F812E4DB9}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.dependency", "projects\rococo.dependency_vs2026_win64.vcxproj", "{778B062E-F43C-6060-BF94-C5D8DAFB071F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rococo.ecs", "projects\rococo.ecs_vs2026_win64.vcxproj", "{85245857-8C3D-6B0E-1561-9A4E47F2FAE1}"
@@ -241,6 +243,10 @@ Global
 		{6CD62851-8118-AED8-DB25-94232DF14A09}.Debug|x64.Build.0 = Debug|x64
 		{6CD62851-8118-AED8-DB25-94232DF14A09}.Release|x64.ActiveCfg = Release|x64
 		{6CD62851-8118-AED8-DB25-94232DF14A09}.Release|x64.Build.0 = Release|x64
+		{2C8C2011-D446-8C53-65B4-661F812E4DB9}.Debug|x64.ActiveCfg = Debug|x64
+		{2C8C2011-D446-8C53-65B4-661F812E4DB9}.Debug|x64.Build.0 = Debug|x64
+		{2C8C2011-D446-8C53-65B4-661F812E4DB9}.Release|x64.ActiveCfg = Release|x64
+		{2C8C2011-D446-8C53-65B4-661F812E4DB9}.Release|x64.Build.0 = Release|x64
 		{778B062E-F43C-6060-BF94-C5D8DAFB071F}.Debug|x64.ActiveCfg = Debug|x64
 		{778B062E-F43C-6060-BF94-C5D8DAFB071F}.Debug|x64.Build.0 = Debug|x64
 		{778B062E-F43C-6060-BF94-C5D8DAFB071F}.Release|x64.ActiveCfg = Release|x64

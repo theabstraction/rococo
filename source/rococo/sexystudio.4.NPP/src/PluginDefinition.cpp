@@ -456,7 +456,7 @@ public:
                         {
                             if constexpr (sizeof TCHAR == sizeof(char))
                             {
-                                strncpy(currentFile.buf, (const char*) currentPath, MAX_PATH);
+                                strncpy_s(currentFile.buf, MAX_PATH, (const char*) currentPath, MAX_PATH);
                             }
                             else
                             {

@@ -80,7 +80,7 @@ struct DX11Materials : IDX11Materials
 					}
 					else
 					{
-						Throw(0, "Error loading material texture: %s: Only extensions allowed are tif, tiff, jpg and jpeg", name);
+						Throw(0, "Error loading material texture: %s: Only extensions allowed are dds, tif, tiff, jpg and jpeg", name);
 					}
 
 					This->nameToMaterialId[args.name] = MaterialId((int32)i);

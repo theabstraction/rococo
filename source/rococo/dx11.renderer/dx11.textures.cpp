@@ -4,7 +4,7 @@
 #include <rococo.imaging.h>
 #include <rococo.io.h>
 #include <rococo.renderer.formats.h>
-
+#include <rococo.dds.win32.h>
 #include <string>
 
 using namespace Rococo::Strings;
@@ -145,7 +145,7 @@ namespace Rococo
          dc(_dc),
          scratchBuffer(_scratchBuffer)
       {
-
+          ddsLoader = CreateDDSSystem(_installation, 2048);
       }
 
       ID3D11Texture2D* TextureLoader::LoadColourBitmapDirect(cstr resourceName)
@@ -164,9 +164,40 @@ namespace Rococo
           return tx;
       }
 
+      TextureBind TextureLoader::LoadDDSColourBitmap(cstr resourceName)
+      {
+          D3D11_USAGE usage = D3D11_USAGE_DEFAULT; // D3D11_USAGE_IMMUTABLE;
+          uint32 bindFlags = D3D11_BIND_SHADER_RESOURCE;
+          uint32 cpuAccessFlags = 0;
+          uint32 miscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+          DDSContext context{ device, dc, usage, bindFlags, cpuAccessFlags, miscFlags };
+          AutoFree<IDDSTextureSupervisor> texture = ddsLoader->Load(resourceName, context);
+          
+          ID3D11Texture2D* texture2D = nullptr;
+          HRESULT hr = texture->SysTexture().Resource().QueryInterface(IID_ID3D11Texture2D, (void**) & texture2D);
+          if FAILED(hr)
+          {
+              Throw(hr, "Failed to get a ID3D11Texture2D interface for %s", resourceName);
+          }
+
+          texture2D->AddRef();
+          texture->SysTexture().TextureView().AddRef();
+
+          TextureBind bind { texture2D, &texture->SysTexture().TextureView(), nullptr, nullptr };
+          return bind;
+
+      }
+
       TextureBind TextureLoader::LoadColourBitmap(cstr resourceName)
       {
          auto* ext = GetFileExtension(resourceName);
+
+         if (EqI(ext, ".DDS"))
+         {
+             return LoadDDSColourBitmap(resourceName);
+         }
+
          if (!Eq(ext, ".tiff") && !Eq(ext, ".tif") && !Eq(ext, ".jpg") && !Eq(ext, ".jpg"))
          {
             Throw(0, "%s\nOnly Tiff and Jpeg files can be used for colour bitmaps", resourceName);

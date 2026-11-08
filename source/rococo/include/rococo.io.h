@@ -18,8 +18,8 @@ namespace Rococo
 	};
 
 
-	// TODO, add a rerence to an allocator
-	ROCOCO_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacity);
+	// TODO, add a reference to an allocator
+	ROCOCO_API IExpandingBuffer* CreateExpandingBuffer(size_t initialCapacityInBytes);
 
 	struct SysUnstableArgs {};
 	struct FileModifiedArgs

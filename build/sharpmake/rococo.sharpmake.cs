@@ -1019,39 +1019,6 @@ namespace Rococo
             conf.AddPublicDependency<OggProject>(target);
         }
     }
-    /* 
-     [Sharpmake.Compile]
-     public class VorbisFileProject : Project
-     {
-         public VorbisFileProject()
-         {
-             AddTargets(new Target(
-                Platform.win64,
-                DevEnv.vs2022,
-                Optimization.Debug | Optimization.Release,
-                OutputType.Dll,
-                Blob.NoBlob,
-                BuildSystem.MSBuild,
-                DotNetFramework.v4_8)
-            );
-
-             Name = "lib-vorbis-file";
-         }
-
-         [Configure()]
-         public void ConfigureAll(Configuration conf, Target target)
-         {
-             conf.ProjectPath = @"..\..\source\3rd-Party\libvorbis\win32\VS2022\libvorbisfile";
-             conf.ProjectFileName = "lib-vorbis-file";
-             conf.TargetPath = Path.Combine(Roots.RococoRootPath, @"..\..\build\projects\");
-             conf.TargetFileName = "lib-vorbis-file.vcxproj";
-             conf.Output = Configuration.OutputType.Dll; // Required to create dependencies in a compiled/not-generated object
-             conf.SolutionFolder = " - Third-Party Projects";
-             conf.AddPublicDependency<OggProject>(target);
-             conf.AddPublicDependency<VorbisProject>(target);
-         }
-     }
-     */
 
     [Sharpmake.Generate]
     public class VorbisFileProject : RococoProject
@@ -1199,6 +1166,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoFontsProject>(target);
             conf.AddPublicDependency<RococoRALPipelineProject>(target);
+            conf.AddPublicDependency<RococoDDSProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }
@@ -1718,6 +1686,22 @@ namespace Rococo
         }
     }
 
+    [Sharpmake.Generate]
+    public class RococoDDSProject : RococoProject
+    {
+        public RococoDDSProject() : base("rococo.dds")
+        {
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.Defines.Add("ROCOCO_DDS_API=__declspec(dllexport)");
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+        }
+    }
+
     [Sharpmake.Compile]
     public class RococoBuildFinalProject : Project
     {
@@ -2189,6 +2173,7 @@ namespace Rococo
 
         public static void AddRococoMajorLibs(Solution.Configuration conf, Target target)
         {
+            conf.AddProject<RococoDDSProject>(target);
             conf.AddProject<RococoECSProject>(target);
             conf.AddProject<RococoComponentsConfigurationProject>(target);
             conf.AddProject<RococoComponentsAnimationProject>(target);
@@ -2420,6 +2405,8 @@ namespace Rococo
             arguments.Generate<LibJPegProject>();
             arguments.Generate<LibTiffProject>();
             arguments.Generate<LibZipProject>();
+
+            arguments.Generate<RococoDDSProject>();
 
             arguments.Generate<RococoECSProject>();
             arguments.Generate<RococoComponentsAnimationProject>();
