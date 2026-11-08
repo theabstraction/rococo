@@ -103,6 +103,9 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMeshBuilder.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMeshMaterialBuilder.sxh.h">
+      <Filter>code-gen</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Graphics.IMessaging.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>

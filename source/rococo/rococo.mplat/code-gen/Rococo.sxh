@@ -413,7 +413,7 @@
 	(context factory Rococo.Graphics.IMaterialBuilder)
 	(methods
 		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
-		(LoadMaterialArray (IString folder)(Int32 txWidth))
+		(LoadMaterialArray (IString folder))
 		(GetMaterialCateogry (MaterialId id)->(MaterialCategory category))
 		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))
 		(GetMaterialId  (MaterialCategory category)(Int32 index)->(MaterialId id))

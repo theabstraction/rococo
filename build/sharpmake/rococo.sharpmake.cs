@@ -1167,6 +1167,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoFontsProject>(target);
             conf.AddPublicDependency<RococoRALPipelineProject>(target);
             conf.AddPublicDependency<RococoDDSProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target);
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
         }

@@ -360,7 +360,7 @@
 (interface Rococo.Graphics.IMaterialBuilder
 	(CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId))
 
-	(LoadMaterialArray (Sys.Type.IString folder)(Int32 txWidth) -> )
+	(LoadMaterialArray (Sys.Type.IString folder) -> )
 
 	(GetMaterialCateogry (Float32 id) -> (Int32 category))
 
@@ -378,7 +378,7 @@
 (class ProxyIMaterialBuilder (implements Rococo.Graphics.IMaterialBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIMaterialBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIMaterialBuilder.CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId) : (Rococo.Graphics.Native.IMaterialBuilderCreateCubeTexture this.hObject folder extension -> cubeId))
-	(method ProxyIMaterialBuilder.LoadMaterialArray (Sys.Type.IString folder)(Int32 txWidth) ->  : (Rococo.Graphics.Native.IMaterialBuilderLoadMaterialArray this.hObject folder txWidth))
+	(method ProxyIMaterialBuilder.LoadMaterialArray (Sys.Type.IString folder) ->  : (Rococo.Graphics.Native.IMaterialBuilderLoadMaterialArray this.hObject folder))
 	(method ProxyIMaterialBuilder.GetMaterialCateogry (Float32 id) -> (Int32 category) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialCateogry this.hObject id -> category))
 	(method ProxyIMaterialBuilder.CountMaterialsInCategory (Int32 category) -> (Int32 count) : (Rococo.Graphics.Native.IMaterialBuilderCountMaterialsInCategory this.hObject category -> count))
 	(method ProxyIMaterialBuilder.GetMaterialId (Int32 category)(Int32 index) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialId this.hObject category index -> id))

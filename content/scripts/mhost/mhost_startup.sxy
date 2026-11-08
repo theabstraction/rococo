@@ -56,7 +56,7 @@
 	
 	(IMaterialBuilder mb (Rococo.Graphics.MaterialBuilder))
 	(mb.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg")
-	(mb.LoadMaterialArray "!textures/hv/materials/hi-rez/" 1024) 
+	(mb.LoadMaterialArray "!textures/hv/materials/hi-rez/") 
 	
 	(IEngine engine (Engine))
 //	(engine.SetNextScript "!scripts/mhost/great.sex.test.sxy")

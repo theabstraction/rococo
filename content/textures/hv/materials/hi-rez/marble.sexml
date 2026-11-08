@@ -1,0 +1,16 @@
+(Material
+	(Name marble.blue)
+	(ColourMap "!textures/hv/materials/hi-rez/marble/blue.jpg")
+	(NormalMap "")
+	(RoughnessMap "")
+	(Diffuse  0xFFFFFF00)
+	(Emission 0x00000000)
+)
+(Material
+	(Name marble.brown)
+	(ColourMap "!textures/hv/materials/hi-rez/marble/brown.1.jpg")
+	(NormalMap "")
+	(RoughnessMap "")
+	(Diffuse  0xFFFFFF00)
+	(Emission 0x00000000)
+)

@@ -86,89 +86,81 @@ namespace Rococo::Graphics
 			return renderer.Textures().CubeTextures().CreateCubeTexture(folder, extension);
 		}
 
-		void LoadMaterialArray(const fstring& folder, int32 txWidth) override
+		void BuildPaths(const wchar_t* ext, std::vector<HString>& paths, const fstring& folder)
 		{
-			struct : public IEventCallback<IO::FileItemData>, IMaterialTextureArrayBuilder
+			auto& installation = renderer.Installation();
+			
+			struct PathBuilder : public IEventCallback<IO::FileItemData>
 			{
-				int32 txWidth;
-				std::vector<HString> filenames;
-				IO::IInstallation* installation;
-				AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(4_megabytes);
-				Events::IPublisher* publisher;
-				MaterialBuilder* This;
-
-				char pingPath[IO::MAX_PATHLEN];
-				wchar_t sysSearchPath[IO::MAX_PATHLEN];
+				std::vector<HString>& filenames;
+				IO::IInstallation& installation;
+				const wchar_t* legalExt;
 
 				void OnEvent(IO::FileItemData& item) override
 				{
 					if (item.isDirectory) return;
 
-					auto ext = GetFileExtension(item.itemRelContainer);
-					if (Eq(ext, L".jpeg") || Eq(ext, L".jpg") || Eq(ext, L"tif") || Eq(ext, L"tiff"))
+					const wchar_t* ext = GetFileExtension(item.itemRelContainer);
+					if (Eq(ext, legalExt))
 					{
 						U8FilePath pingName;
-						installation->ConvertSysPathToPingPath(item.fullPath, pingName);
+						installation.ConvertSysPathToPingPath(item.fullPath, pingName);
 						filenames.push_back((cstr)pingName);
 					}
 				}
 
-				size_t Count() const override
+				PathBuilder(std::vector<HString>& _paths, IO::IInstallation& _installation): filenames(_paths), installation(_installation)
 				{
-					return filenames.size();
+
 				}
+			} addPathToBuilder (paths, installation);
 
-				int32 TexelWidth() const override
-				{
-					return txWidth;
-				}
-
-				void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) override
-				{
-					auto path = filenames[index].c_str();
-
-					Events::BusyEvent be;
-					be.isNowBusy = true;
-					be.message = "Loading textures";
-					Format(be.pingPath, "%s", path);
-					publisher->Publish(be, Rococo::Events::evBusy);
-
-					installation->LoadResource(path, *buffer, 64_megabytes);
-					MaterialTextureArrayBuilderArgs args{ *buffer, path };
-					onLoad.OnEvent(args);
-				}
-			} materialIndex;
-
-			// First thing we do is build up a list of filenames for each material
-			materialIndex.txWidth = txWidth;
-			materialIndex.installation = &renderer.Installation();
-			materialIndex.publisher = &publisher;
-			materialIndex.This = this;
-
-			SafeFormat(materialIndex.pingPath, IO::MAX_PATHLEN, "%s", folder.buffer);
+			addPathToBuilder.legalExt = ext;
 
 			WideFilePath sysPath;
-			materialIndex.installation->ConvertPingPathToSysPath(materialIndex.pingPath, sysPath);
+			installation.ConvertPingPathToSysPath(folder, sysPath);
+			IO::ForEachFileInDirectory(sysPath, addPathToBuilder, true);
+		}
 
-			swprintf_s(materialIndex.sysSearchPath, IO::MAX_PATHLEN, L"%s", sysPath.buf);
+		void LoadMaterialArray(const fstring& folder) override
+		{
+			Events::BusyEvent beStart;
+			beStart.isNowBusy = true;
+			beStart.message = "Loading textures";
+			Format(beStart.pingPath, "%s", folder.buffer);
+			publisher.Publish(beStart, Rococo::Events::evBusy);
 
-			IO::ForEachFileInDirectory(sysPath, materialIndex, true);
+			struct matBuilder: IMaterialTextureArrayBuilder
+			{
+				std::vector<HString> materialPingPaths;
 
-			if (materialIndex.filenames.empty()) return;
+				size_t Count() const override
+				{
+					return materialPingPaths.size();
+				}
 
-			Events::BusyEvent be;
-			be.isNowBusy = true;
-			be.message = "Loading textures";
-			be.pingPath.buf[0] = 0;
-			publisher.Publish(be, Rococo::Events::evBusy);
+				// Return the syspath of the material def file
+				cstr GetMaterialDef(size_t index) const override
+				{
+					if (index >= materialPingPaths.size())
+					{
+						Throw(0, "Bad index");
+					}
+
+					return materialPingPaths[index];
+				}
+			} builder;
+
+			BuildPaths(L".sexml", builder.materialPingPaths, folder);
 
 			// Then we tell the renderer to open the files by index
-			renderer.Materials().LoadMaterialTextureArray(materialIndex);
+			renderer.Materials().LoadMaterialTextureArray(builder);
 
-			be.isNowBusy = false;
-			be.message = "";
-			be.pingPath.buf[0] = 0;
-			publisher.Publish(be, Rococo::Events::evBusy);
+			Events::BusyEvent beEnd;
+			beEnd.isNowBusy = false;
+			beEnd.message = "";
+			beEnd.pingPath.buf[0] = 0;
+			publisher.Publish(beEnd, Rococo::Events::evBusy);
 
 			RefreshCategories();
 		}

@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.dds.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.dds.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -225,7 +225,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.dds.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.assets.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.dds.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -265,6 +265,11 @@
     </ProjectReference>
     <ProjectReference Include="lib-zip_vs2026_win64.vcxproj">
       <Project>{36A599B0-D2FE-F308-DE8A-B43E584F9928}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.sexml_vs2026_win64.vcxproj">
+      <Project>{48E7450E-FF4C-BDE0-57F0-23A8BF6B99F8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

@@ -4,7 +4,7 @@
 
 namespace Rococo::Sex
 {
-	struct ISExpression;
+	DECLARE_ROCOCO_INTERFACE ISExpression;
 	typedef const ISExpression& cr_sex;
 }
 
@@ -91,6 +91,10 @@ namespace Rococo::Sex::SEXML
 
 	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringValue& AsAtomic(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] int32 AsAtomicInt32(const ISEXMLAttributeValue& value);
+
+	// Converts 0xRGBA into an RGBAb
+	ROCOCO_SEXML_API [[nodiscard]] RGBAb AsAtomicRGBA(const ISEXMLAttributeValue& value);
+
 	ROCOCO_SEXML_API [[nodiscard]] double AsAtomicDouble(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value);
 	ROCOCO_SEXML_API [[nodiscard]] uint64 AsFlags(const ISEXMLAttributeValue& value, Function<uint64(const fstring& token)> mapNameToFlag);

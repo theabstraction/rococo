@@ -1257,6 +1257,15 @@ namespace Rococo::Sex::SEXML
 		return atoi(text);
 	}
 
+	ROCOCO_SEXML_API [[nodiscard]] RGBAb AsAtomicRGBA(const ISEXMLAttributeValue& value)
+	{
+		int32 i = AsAtomicInt32(value);
+		RGBAb c(i);
+
+		// Swizzle on x64
+		return RGBAb(c.alpha, c.blue, c.green, c.red);
+	}
+
 	ROCOCO_SEXML_API bool AsBool(const ISEXMLAttributeValue& value)
 	{
 		cstr text = AsString(value).c_str();

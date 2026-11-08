@@ -207,9 +207,11 @@ namespace Rococo::Graphics
 
 	ROCOCO_INTERFACE IMaterialTextureArrayBuilder
 	{
+		// return the number of material def files in the builder
 		virtual size_t Count() const = 0;
-		virtual int32 TexelWidth() const = 0;
-		virtual void LoadTextureForIndex(size_t index, IEventCallback<MaterialTextureArrayBuilderArgs>& onLoad) = 0;
+
+		// Return the syspath of the material def file
+		virtual cstr GetMaterialDef(size_t index) const = 0;
 	};
 
 	ROCOCO_INTERFACE IMaterials

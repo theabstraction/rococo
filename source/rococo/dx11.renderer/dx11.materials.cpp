@@ -5,10 +5,13 @@
 #include "rococo.hashtable.h"
 #include "rococo.imaging.h"
 #include "rococo.io.h"
+#include "rococo.sexml.h"
+#include "sexy.types.h"
 
 using namespace Rococo::DX11;
 using namespace Rococo::Graphics;
 using namespace Rococo::Strings;
+using namespace Rococo::Sex::SEXML;
 
 struct DX11Materials : IDX11Materials
 {
@@ -46,19 +49,123 @@ struct DX11Materials : IDX11Materials
 		metrics.Width = materialArray->MaxWidth();
 	}
 
+	struct MaterialDef
+	{
+		// Ping path where material is defined
+		HString srcPath;
+
+		// Line number where material is defined
+		int srcIndex;
+
+		HString name;
+		HString colourMap;
+		HString normalMap;
+		HString roughnessMap;
+		RGBAb diffuse;
+		RGBAb emission;
+	};
+
+	std::vector<MaterialDef> materialDefs;
+	stringmap<int> mapMaterialNameToIndex;
+
+	HString currentSrcPath;
+
+	void AddMaterialFromMaterialDirective(const Rococo::Sex::SEXML::ISEXMLDirective& mat)
+	{
+		/*
+		(Material
+			(Name <unique-id>)
+			(ColourMap <pingpath>)
+			(NormalMap <pingpath>)
+			(RoughnessMap <pingpath>)
+			(Diffuse 0xRGBA)
+			(Emission 0xRGBA)
+		)
+		*/
+
+		auto& aMatName = mat["Name"];
+		cstr name = AsString(aMatName).c_str();
+		
+		auto& aColourMap = mat["ColourMap"];
+		cstr colourMap = AsString(aColourMap).c_str();
+
+		auto& aNormalMap = mat["NormalMap"];
+		cstr normalMap = AsString(aNormalMap).c_str();
+
+		auto& aRoughness = mat["RoughnessMap"];
+		cstr roughnessMap = AsString(aRoughness).c_str();
+
+		auto& aDiffuse = mat["Diffuse"];
+		RGBAb diffuse = AsAtomicRGBA(aDiffuse);
+
+		auto& aEmission = mat["Emission"];
+		RGBAb emission = AsAtomicRGBA(aEmission);
+
+		auto i = mapMaterialNameToIndex.insert(name, 0);
+		if (!i.second)
+		{
+			int index = i.first->second - 1;
+			if (index <= 0 || index >= (int)materialDefs.size())
+			{
+				Throw(mat.S(), "Duplicate material name '%s'", name);
+			}
+
+			const auto& original = materialDefs[index];
+			
+			// Already exists
+			Throw(mat.S(), "Duplicate material name '%s'. Original defined in %s line %d", original.srcPath.c_str(), original.srcIndex);
+		}
+
+		materialDefs.emplace_back(MaterialDef{ currentSrcPath, mat.S().Start().y + 1, name, colourMap, normalMap, roughnessMap, diffuse, emission});
+
+		i.first->second = (int) materialDefs.size();
+	}
+
 	void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder)  override
 	{
-		int32 txWidth = builder.TexelWidth();
-		materialArray->ResetWidth(builder.TexelWidth());
-		materialArray->Resize(builder.Count());
 		nameToMaterialId.clear();
 		idToMaterialName.clear();
+
+		AutoFree<IExpandingBuffer> buffer = CreateExpandingBuffer(32_kilobytes);
+
+		for (size_t i = 0; i < builder.Count(); ++i)
+		{
+			cstr pingPath = builder.GetMaterialDef(i);
+
+			buffer->Resize(0);
+			installation.LoadResource(pingPath, *buffer, 1_megabytes);
+
+			if (buffer->Length() == 0)
+			{
+				Throw(0, "Empty file: %s", pingPath);
+			}
+
+			cstr s = (cstr) buffer->GetData();
+
+			currentSrcPath = pingPath;
+
+			OS::ParseSXMLFromString(pingPath, s, [this](const Rococo::Sex::SEXML::ISEXMLDirectiveList& topLevelDirectives) 
+				{
+					for (size_t index = 0; index < topLevelDirectives.NumberOfDirectives(); ++index)
+					{
+						auto& dir = topLevelDirectives[index];
+						if (Eq(dir.FQName(), "Material"))
+						{
+							this->AddMaterialFromMaterialDirective(dir);
+						}
+					}
+				}
+			);
+		}
+
+
+		/*
 
 		idToMaterialName.resize(builder.Count());
 
 		for (size_t i = 0; i < builder.Count(); ++i)
 		{
-			struct ANON : IEventCallback<MaterialTextureArrayBuilderArgs>, Imaging::IImageLoadEvents
+			struct ANON : IEventCallback<MaterialTextureArrayBuilderArgs>
 			{
 				DX11Materials* This;
 				size_t i;
@@ -70,51 +177,23 @@ struct DX11Materials : IDX11Materials
 					name = args.name;
 
 					auto ext = GetFileExtension(args.name);
-					if (EqI(ext, ".tif") || EqI(ext, ".tiff"))
+					if (EqI(ext, ".sxymat"))
 					{
-						Rococo::Imaging::DecompressTiff(*this, args.buffer.GetData(), args.buffer.Length());
-					}
-					else if (EqI(ext, ".jpg") || EqI(ext, ".jpeg"))
-					{
-						Rococo::Imaging::DecompressJPeg(*this, args.buffer.GetData(), args.buffer.Length());
-					}
-					else
-					{
-						Throw(0, "Error loading material texture: %s: Only extensions allowed are dds, tif, tiff, jpg and jpeg", name);
+						Throw(0, "Error loading material texture: %s: Only extension allowed is .sxymat", name);
 					}
 
 					This->nameToMaterialId[args.name] = MaterialId((int32)i);
 					auto t = This->nameToMaterialId.find(args.name);
 					This->idToMaterialName[i] = t->first;
 				}
+			} onMaterial;
+			onMaterial.This = this;
+			onMaterial.i = i;
 
-				void OnError(const char* message) override
-				{
-					Throw(0, "Error loading material texture: %s: %s", name, message);
-				}
-
-				void OnRGBAImage(const Vec2i& span, const RGBAb* pixels) override
-				{
-					if (span.x != txWidth || span.y != txWidth)
-					{
-						Throw(0, "Error loading texture %s. Only %d x %d dimensions supported", name, txWidth, txWidth);
-					}
-
-					This->materialArray->WriteSubImage(i, pixels, GuiRect{ 0, 0, txWidth, txWidth });
-				}
-
-				void OnAlphaImage(const Vec2i&, const uint8*) override
-				{
-					Throw(0, "Error loading texture %s. Only RGB and ARGB formats supported", name);
-				}
-
-			} onTexture;
-			onTexture.This = this;
-			onTexture.i = i;
-			onTexture.txWidth = txWidth;
-
-			builder.LoadTextureForIndex(i, onTexture);
+			builder.LoadMaterialForIndex(i, onMaterial);
 		}
+
+		*/
 	}
 
 	MaterialId GetMaterialId(cstr name) const
