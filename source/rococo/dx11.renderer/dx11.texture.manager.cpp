@@ -539,7 +539,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 	std::vector<TextureItem> orderedTextureList;
 	AutoFree<IDX11CubeTextures> cubeTextures;
 	std::unordered_map<ID_TEXTURE, IDX11BitmapArray*, ID_TEXTURE> genericTextureArray;
-	AutoFree<IDX11Materials> materials;
+	AutoFree<IDX11MaterialsSupervisor> materials;
 	TextureBind backBuffer;
 
 	DX11TextureManager(IO::IInstallation& installation, ID3D11Device& _device, ID3D11DeviceContext& _dc, IDX11SpecialResources& _specialResources):
@@ -613,7 +613,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 	ID_CUBE_TEXTURE CreateSkyboxCubeIdFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
 	{
-		return cubeTextures->CreateCubeTextureFromMaterialArray(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->Textures());
+		return cubeTextures->CreateCubeTextureFromMaterialArray(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->GetTextureArrayForMaterial( MaterialId { 1 }));
 	}
 
 	void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const override
@@ -706,9 +706,9 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		}
 	}
 
-	void AssignMaterialsToPS() override
+	void AssignMaterialsToPS(MaterialId id) override
 	{
-		auto* view = materials->Textures().View();
+		auto* view = materials->GetTextureArrayForMaterial(id).View();
 		dc.PSGetShaderResources(TXUNIT_MATERIALS, 1, &view);
 	}
 

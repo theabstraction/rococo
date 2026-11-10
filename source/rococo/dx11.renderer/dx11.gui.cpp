@@ -587,12 +587,15 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         return shaders.UseShaders(idVertexShader, idGuiOverrideShader);
     }
 
-    void AssignShaderResourcesToDC()
+    void AssignShaderResourcesToDC(MaterialId matId) override
     {
         dc.PSSetShaderResources(TXUNIT_FONT, 1, &fontBinding);
 
-        ID3D11ShaderResourceView* materialViews[1] = { textures.Materials().Textures().View() };
-        dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
+        if (matId.ToInt() >= 0)
+        {
+            ID3D11ShaderResourceView* materialViews[1] = { textures.Materials().GetTextureArrayForMaterial(matId).View() };
+            dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
+        }
 
         ID3D11ShaderResourceView* spriteviews[1] = { SpriteView() };
         dc.PSSetShaderResources(TXUNIT_SPRITES, 1, spriteviews);

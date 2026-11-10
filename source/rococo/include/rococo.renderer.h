@@ -137,7 +137,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE ITextureManager
 	{
 		virtual void AssignToPS(uint32 unitId, ID_TEXTURE texture) = 0;
-		virtual void AssignMaterialsToPS() = 0;
+		virtual void AssignMaterialsToPS(MaterialId id) = 0;
 		virtual void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) = 0;
 		virtual void SetRenderTarget(RAL::IGBuffers& g, ID_TEXTURE depthTarget) = 0;
 
@@ -219,7 +219,9 @@ namespace Rococo::Graphics
 		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics & metrics) const = 0;
 		virtual MaterialId GetMaterialId(cstr name) const = 0;
 		virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
-		virtual void LoadMaterialTextureArray(IMaterialTextureArrayBuilder& builder) = 0;
+		virtual void LoadMaterialTextureFile(cstr pingPath) = 0;
+		virtual void ClearMaterials() = 0;
+		virtual void CommitMaterials() = 0;
 	};
 
 	ROCOCO_INTERFACE IGuiRenderContext // Provides draw calls - do not cache

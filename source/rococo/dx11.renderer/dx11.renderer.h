@@ -21,6 +21,7 @@
 #include "rococo.fonts.h"
 #include "rococo.functional.h"
 #include "rococo.dds.h"
+#include "rococo.graphics.types.h"
 #include <RAL/RAL.h>
 
 namespace Rococo::RAL
@@ -105,7 +106,7 @@ namespace Rococo::DX11
 		virtual bool ApplyGuiShader() = 0;
 		virtual bool ApplyHQFontsShader() = 0;
 		virtual bool ApplyGuiShader(ID_PIXEL_SHADER idGuiOverrideShader) = 0;
-		virtual void AssignShaderResourcesToDC() = 0;
+		virtual void AssignShaderResourcesToDC(Graphics::MaterialId id) = 0;
 		virtual void DrawCursor(const Rococo::Graphics::GuiMetrics& metrics) = 0;
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShaderPingPath, const Rococo::Graphics::GuiVertex* vertices, size_t nCount) = 0;
 		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Rococo::Graphics::Fonts::FontColour fcolour) = 0;
@@ -137,12 +138,16 @@ namespace Rococo::DX11
 
 	ROCOCO_INTERFACE IDX11Materials: Rococo::Graphics::IMaterials
 	{
-		virtual void Free() = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
-		virtual IDX11BitmapArray& Textures() = 0;
+		virtual IDX11BitmapArray& GetTextureArrayForMaterial(Graphics::MaterialId id) = 0;
 	};
 
-	IDX11Materials* CreateMaterials(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
+	ROCOCO_INTERFACE IDX11MaterialsSupervisor : IDX11Materials
+	{
+		virtual void Free() = 0;
+	};
+
+	IDX11MaterialsSupervisor* CreateMaterials(IO::IInstallation& installation, ID3D11Device& device, ID3D11DeviceContext& dc);
 
 	struct TextureDescState
 	{

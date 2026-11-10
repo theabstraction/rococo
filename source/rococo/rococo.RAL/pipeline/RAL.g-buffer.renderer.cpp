@@ -249,7 +249,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		renderStates.DisableBlend();
 
 		ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
-		ral.RALTextures().AssignMaterialsToPS();
+		ral.RALTextures().AssignMaterialsToPS(MaterialId { 1 });
 
 		AssignLightStateBufferToShaders();
 

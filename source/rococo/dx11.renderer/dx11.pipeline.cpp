@@ -266,7 +266,7 @@ namespace Rococo::DX11
 
 		void AssignGuiShaderResources() override
 		{
-			gui->AssignShaderResourcesToDC();
+			gui->AssignShaderResourcesToDC(MaterialId(-1));
 		}
 
 		void AssignGBufferToPS(IGBuffers& g, int startSlot) override

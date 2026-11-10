@@ -130,31 +130,17 @@ namespace Rococo::Graphics
 			Format(beStart.pingPath, "%s", folder.buffer);
 			publisher.Publish(beStart, Rococo::Events::evBusy);
 
-			struct matBuilder: IMaterialTextureArrayBuilder
+			std::vector<HString> materialPingPaths;
+			BuildPaths(L".sexml", materialPingPaths, folder);
+
+			renderer.Materials().ClearMaterials();
+				
+			for (auto& pingPath : materialPingPaths)
 			{
-				std::vector<HString> materialPingPaths;
+				renderer.Materials().LoadMaterialTextureFile(pingPath);
+			}
 
-				size_t Count() const override
-				{
-					return materialPingPaths.size();
-				}
-
-				// Return the syspath of the material def file
-				cstr GetMaterialDef(size_t index) const override
-				{
-					if (index >= materialPingPaths.size())
-					{
-						Throw(0, "Bad index");
-					}
-
-					return materialPingPaths[index];
-				}
-			} builder;
-
-			BuildPaths(L".sexml", builder.materialPingPaths, folder);
-
-			// Then we tell the renderer to open the files by index
-			renderer.Materials().LoadMaterialTextureArray(builder);
+			renderer.Materials().CommitMaterials();
 
 			Events::BusyEvent beEnd;
 			beEnd.isNowBusy = false;
