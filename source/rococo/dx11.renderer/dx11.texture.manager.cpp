@@ -708,8 +708,11 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 	void AssignMaterialsToPS(MaterialId id) override
 	{
-		auto* view = materials->GetTextureArrayForMaterial(id).View();
-		dc.PSGetShaderResources(TXUNIT_MATERIALS, 1, &view);
+		if (materials->IsDefined(id))
+		{
+			auto* view = materials->GetTextureArrayForMaterial(id).View();
+			dc.PSGetShaderResources(TXUNIT_MATERIALS, 1, &view);
+		}
 	}
 
 	void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) override

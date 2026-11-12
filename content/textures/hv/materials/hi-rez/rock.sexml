@@ -1,0 +1,8 @@
+(Material
+	(Name rock.granite.1)
+	(ColourMap "!textures/hv/materials/hi-rez/rock/granite1.jpg")
+	(NormalMap "")
+	(RoughnessMap "")
+	(Diffuse  0xFFFFFF00)
+	(Emission 0x00000000)
+)

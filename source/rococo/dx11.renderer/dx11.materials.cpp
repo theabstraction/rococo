@@ -102,6 +102,12 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		return materialDefs[index].name.c_str();
 	}
 
+	bool IsDefined(MaterialId id) const override
+	{
+		size_t index = (size_t)(id - 1.0f);
+		return index < materialDefs.size();
+	}
+
 	void GetMaterialArrayMetrics(MaterialArrayMetrics& metrics) const override
 	{
 		int sum = 0;
@@ -133,6 +139,12 @@ struct DX11Materials : IDX11MaterialsSupervisor
 
 		auto& aMatName = mat["Name"];
 		cstr name = AsString(aMatName).c_str();
+
+		cstr firstDot = ForwardFind('.', Substring::ToSubstring(name));
+		if (!firstDot)
+		{
+			Throw(mat.S(), "Material %s: name must have a period character as in marble.rough", name);
+		}
 		
 		auto& aColourMap = mat["ColourMap"];
 		cstr colourMap = AsString(aColourMap).c_str();
@@ -231,6 +243,14 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		else
 		{
 			Throw(0, "Bad file extension %s for %s from %s line %d", ext, pingPath);
+		}
+	}
+
+	void ForEachMaterial(Rococo::Function<void(MaterialId id)> lambda) override
+	{
+		for (size_t i = 0; i < materialDefs.size(); ++i)
+		{
+			lambda(MaterialId{ (int) i + 1 });
 		}
 	}
 

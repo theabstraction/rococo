@@ -6,6 +6,7 @@
 #include <rococo.strings.h>
 #include <vector>
 #include <rococo.hashtable.h>
+#include <rococo.functional.h>
 #include "..\rococo.mplat\code-gen\Rococo.Graphics.IShaderOptionsConfig.sxh.h"
 
 using namespace Rococo;
@@ -153,19 +154,19 @@ namespace Rococo::Graphics
 
 		std::unordered_map<MaterialCategory, std::vector<MaterialId>> categories;
 
-		stringmap<MaterialCategory> subdirToCatEnum =
+		stringmap<MaterialCategory> catEnum =
 		{
-			{ "/wood/", MaterialCategory::Wood },
-			{ "/stone/", MaterialCategory::Stone },
-			{ "/rock/", MaterialCategory::Rock },
-			{ "/metal/", MaterialCategory::Metal },
-			{ "/marble/", MaterialCategory::Marble }
+			{ "wood", MaterialCategory::Wood },
+			{ "stone", MaterialCategory::Stone },
+			{ "rock", MaterialCategory::Rock },
+			{ "metal", MaterialCategory::Metal },
+			{ "marble", MaterialCategory::Marble }
 		};
 
 		MaterialCategory GetMaterialCateogry(MaterialId id)
 		{
 			cstr name = renderer.Materials().GetMaterialTextureName(id);
-			for (auto& j : subdirToCatEnum)
+			for (auto& j : catEnum)
 			{
 				if (strstr(name, j.first))
 				{
@@ -174,6 +175,35 @@ namespace Rococo::Graphics
 			}
 
 			return MaterialCategory::Marble; // all that is not anythng is marble
+		}
+
+		void AddMaterialToCategory(MaterialId id)
+		{
+			cstr name = renderer.Materials().GetMaterialTextureName(id);
+			if (!name)
+			{
+				return;
+			}
+
+			cstr firstDot = ForwardFind('.', Substring::ToSubstring(name));
+			Substring scategory = { name, firstDot };
+
+			char category[64];
+			scategory.CopyWithTruncate(category, sizeof category);
+			
+			auto i = catEnum.find(category);
+			if (i == catEnum.end())
+			{
+				return;
+			}
+				
+			auto c = categories.find(i->second);
+			if (c == categories.end())
+			{
+				c = categories.insert(std::make_pair(i->second, std::vector<MaterialId>())).first;
+			}
+
+			c->second.push_back(id);			
 		}
 
 		void RefreshCategories()
@@ -186,33 +216,12 @@ namespace Rococo::Graphics
 			auto content = renderer.Installation().Content();
 			UNUSED(content);
 
-			for (size_t i = 0; i < metrics.NumberOfElements; ++i)
-			{
-				auto id = MaterialId((int32)i);
-				cstr name = renderer.Materials().GetMaterialTextureName(id);
-				if (name)
+			renderer.Materials().ForEachMaterial(
+				[this](MaterialId id)
 				{
-					char fullname[IO::MAX_PATHLEN];
-					SafeFormat(fullname, IO::MAX_PATHLEN, "%s", name);
-					IO::ToUnixPath(fullname);
-					cstr subpath = fullname;
-
-					for (auto& j : subdirToCatEnum)
-					{
-						if (strstr(subpath, j.first))
-						{
-							auto c = categories.find(j.second);
-							if (c == categories.end())
-							{
-								c = categories.insert(std::make_pair(j.second, std::vector<MaterialId>())).first;
-							}
-
-							c->second.push_back(id);
-							break;
-						}
-					}
+					AddMaterialToCategory(id);
 				}
-			}
+			);
 		}
 
 		int32 CountMaterialsInCategory(Rococo::Graphics::MaterialCategory category) override

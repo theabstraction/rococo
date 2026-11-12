@@ -219,7 +219,9 @@ namespace Rococo::Graphics
 		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics & metrics) const = 0;
 		virtual MaterialId GetMaterialId(cstr name) const = 0;
 		virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
+		virtual bool IsDefined(MaterialId id) const = 0;
 		virtual void LoadMaterialTextureFile(cstr pingPath) = 0;
+		virtual void ForEachMaterial(Rococo::Function<void(MaterialId id)> lambda) = 0;
 		virtual void ClearMaterials() = 0;
 		virtual void CommitMaterials() = 0;
 	};

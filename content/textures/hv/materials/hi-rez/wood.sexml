@@ -1,0 +1,16 @@
+(Material
+	(Name wood.planks.1)
+	(ColourMap "!textures/hv/materials/hi-rez/wood/wood1.jpg")
+	(NormalMap "")
+	(RoughnessMap "")
+	(Diffuse  0xFFFFFF00)
+	(Emission 0x00000000)
+)
+(Material
+	(Name wood.planks.2)
+	(ColourMap "!textures/hv/materials/hi-rez/wood/wood2.jpg")
+	(NormalMap "")
+	(RoughnessMap "")
+	(Diffuse  0xFFFFFF00)
+	(Emission 0x00000000)
+)
