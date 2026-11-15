@@ -57,7 +57,7 @@ namespace AudioAnon
 			return nElementsLeft;
 		}
 
-		NOT_INLINE	int Seek(ogg_int64_t offset, int whence)
+		FORCE_NOT_INLINE int Seek(ogg_int64_t offset, int whence)
 		{
 			switch (whence)
 			{
@@ -81,7 +81,7 @@ namespace AudioAnon
 			return 0;
 		}
 
-		NOT_INLINE long Tell()
+		FORCE_NOT_INLINE long Tell()
 		{
 			return (long) readIndex;
 		}

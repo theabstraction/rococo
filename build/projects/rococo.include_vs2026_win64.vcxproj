@@ -275,6 +275,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.release.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.formats.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.textures.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />

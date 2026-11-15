@@ -2,6 +2,7 @@
 #include <rococo.graphics.types.h>
 #include <rococo.renderer.h>
 #include <rococo.renderer.formats.h>
+#include <rococo.renderer.textures.h>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;

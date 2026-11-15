@@ -2248,7 +2248,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		}
 	}
 
-	NOT_INLINE  cstr FindFirstNonBlankPrecedingPoint(cr_substring doc, cstr p)
+	cstr FindFirstNonBlankPrecedingPoint(cr_substring doc, cstr p)
 	{
 		for (cstr s = p - 1; s > doc.start; s--)
 		{
@@ -2592,7 +2592,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		sb << suffix;
 	}
 
-	NOT_INLINE bool TryShowCallTipForFactories(cr_substring type, cr_substring variableName, ISexyEditor& editor, ICalltip& calltip)
+	bool TryShowCallTipForFactories(cr_substring type, cr_substring variableName, ISexyEditor& editor, ICalltip& calltip)
 	{
 		UNUSED(variableName);
 
@@ -3604,7 +3604,7 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		}
 	}
 
-	NOT_INLINE void ExpandSearchTokenToRight(REF Substring& searchToken, cr_substring doc)
+	void ExpandSearchTokenToRight(REF Substring& searchToken, cr_substring doc)
 	{
 		cstr p = searchToken.end();
 		for (;p < doc.end(); p++)

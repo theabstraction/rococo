@@ -1464,7 +1464,7 @@ namespace
    private:
 	   IListViewEvents& eventHandler;
 
-	   NOT_INLINE void OnDrawItem(DRAWITEMSTRUCT& ds) override
+	   void OnDrawItem(DRAWITEMSTRUCT& ds) override
 	   {
            UNUSED(ds);
 	   }

@@ -21,7 +21,7 @@
 #include "rococo.fonts.h"
 #include "rococo.functional.h"
 #include "rococo.dds.h"
-#include "rococo.graphics.types.h"
+#include <rococo.renderer.textures.h>
 #include <RAL/RAL.h>
 
 namespace Rococo::RAL

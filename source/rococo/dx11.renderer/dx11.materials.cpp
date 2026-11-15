@@ -305,12 +305,13 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		{
 			// Fresh insert
 			i.first->second = CreateDX11BitmapArray(device, dc);
+			i.first->second->ResetWidth(span.x, span.y);
 		}
 
 		return i.first->second;
 	}
 
-	void ReserveTexture(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format)
+	FORCE_NOT_INLINE void ReserveTexture(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format)
 	{
 		TxTableId id;
 		IDX11BitmapArray* textures = GetTextureTable(span, type, format, OUT id);
@@ -321,7 +322,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		def.colourTextureArray = textures;
 	}
 
-	void CommitTexture(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format, const void* data)
+	FORCE_NOT_INLINE void CommitTexture(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format, const void* data)
 	{
 		TxTableId id;
 		IDX11BitmapArray* textures = GetTextureTable(span, type, format, OUT id);

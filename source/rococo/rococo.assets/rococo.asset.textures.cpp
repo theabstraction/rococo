@@ -10,6 +10,7 @@
 #include <list>
 #include <vector>
 #include <rococo.renderer.h>
+#include <rococo.renderer.textures.h>
 #include <rococo.imaging.h>
 #include <rococo.textures.h>
 

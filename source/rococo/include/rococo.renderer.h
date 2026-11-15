@@ -128,51 +128,8 @@ namespace Rococo::Graphics
 		virtual ID_CUBE_TEXTURE CreateSkyboxCubeIdFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) = 0;
 	};
 
-	struct TextureArrayCreationFlags
-	{
-		boolean32 allowMipMapGeneration : 1;
-		boolean32 allowCPUread : 1;
-	};
-
-	ROCOCO_INTERFACE ITextureManager
-	{
-		virtual void AssignToPS(uint32 unitId, ID_TEXTURE texture) = 0;
-		virtual void AssignMaterialsToPS(MaterialId id) = 0;
-		virtual void SetRenderTarget(ID_TEXTURE depthTarget, ID_TEXTURE renderTarget) = 0;
-		virtual void SetRenderTarget(RAL::IGBuffers& g, ID_TEXTURE depthTarget) = 0;
-
-		virtual ID_TEXTURE CreateDepthTarget(cstr targetName, int32 width, int32 height) = 0;
-		virtual ID_TEXTURE CreateRenderTarget(cstr renderTargetName, int32 width, int32 height, TextureFormat format) = 0;
-
-		virtual RAL::IRenderTargetSupervisor* CreateDynamicRenderTarget(cstr name) = 0;
-		virtual RAL::IRenderTargetSupervisor* CreateDynamicDepthTarget(cstr name) = 0;
-		virtual RAL::IRenderTargetSupervisor* CreateDynamicNormalTarget(cstr name) = 0;
-		virtual RAL::IRenderTargetSupervisor* CreateDynamicVec4Target(cstr name) = 0;
-
-		virtual ID_VOLATILE_BITMAP CreateVolatileBitmap(cstr pingPath) = 0;
-		virtual void Free() = 0;
-		virtual ID_TEXTURE LoadAlphaTextureArray(cstr uniqueName, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator) = 0;
-		virtual ID_TEXTURE FindTexture(cstr name) const = 0;
-		virtual ICubeTextures& CubeTextures() = 0;
-		virtual void SetGenericTextureArray(ID_TEXTURE id) = 0;
-		virtual void ShowTextureVenue(IMathsVisitor& visitor) = 0;
-		virtual int64 Size() const = 0;
-		virtual bool TryGetTextureDesc(TextureDesc& desc, ID_TEXTURE id) const = 0;
-		virtual Vec2i GetRenderTargetSpan(ID_TEXTURE id) const = 0;
-		virtual Vec2i GetTextureSpan(ID_TEXTURE id) const = 0;
-
-		virtual void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const = 0;
-		virtual void CompressTiff(const RGBAb* data, Vec2i span, cstr filename) const = 0;
-
-		// Forward on the jpeg decompression function from the lib-jpeg lib
-		virtual bool DecompressJPeg(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
-
-		// Forward on the tiff decompression function from the lib-tiff lib
-		virtual bool DecompressTiff(Imaging::IImageLoadEvents& loadEvents, const unsigned char* sourceBuffer, size_t dataLengthBytes) const = 0;
-
-		virtual Textures::IMipMappedTextureArraySupervisor* DefineRGBATextureArray(uint32 numberOfElements, uint32 span, TextureArrayCreationFlags flags) = 0;
-	};
-
+	DECLARE_ROCOCO_INTERFACE ITextureManager;
+	
 	ROCOCO_INTERFACE IRendererMetrics
 	{
 		virtual void GetGuiMetrics(GuiMetrics & metrics) const = 0;
@@ -424,13 +381,6 @@ namespace Rococo::Graphics
 
 	ROCOCO_GRAPHICS_API Vec2i GetTopLeftPos(const GuiRect& rect, Vec2i span, int32 alignmentFlags);
 	ROCOCO_GRAPHICS_API Vec2 GetTopLeftPos(Vec2 pos, Vec2 span, int32 alignmentFlags);
-
-	struct TextureDesc
-	{
-		uint32 width;
-		uint32 height;
-		TextureFormat format;
-	};
 
 	struct TextureLoadData
 	{

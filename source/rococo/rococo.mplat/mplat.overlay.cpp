@@ -3,7 +3,7 @@
 #include <rococo.strings.h>
 #include <rococo.ui.h>
 #include <rococo.io.h>
-#include <rococo.renderer.formats.h>
+#include <rococo.renderer.textures.h>
 
 using namespace Rococo;
 using namespace Rococo::Events;

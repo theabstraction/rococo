@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <rococo.win32.rendering.h>
 #include <rococo.renderer.h>
+#include <rococo.renderer.textures.h>
 #include <rococo.bakes.h>
 
 namespace Rococo::Assets

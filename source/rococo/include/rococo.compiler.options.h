@@ -33,7 +33,7 @@
 
 #ifdef _WIN32
 # define FORCE_INLINE __forceinline
-# define NOT_INLINE __declspec(noinline)
+# define FORCE_NOT_INLINE __declspec(noinline)
 #else
 # define FORCE_INLINE __attribute__((always_inline)) inline
 # define NOT_INLINE __attribute__((noinline))

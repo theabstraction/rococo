@@ -4,6 +4,7 @@
 
 #include <rococo.renderer.types.h>
 #include <rococo.renderer.h>
+#include <rococo.renderer.textures.h>
 #include <rococo.time.h>
 #include <rococo.visitors.h>
 #include <RAL\RAL.h>

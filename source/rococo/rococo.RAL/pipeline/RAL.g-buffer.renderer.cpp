@@ -8,7 +8,7 @@
 #include <rococo.visitors.h>
 #include <RAL\RAL.h>
 #include <RAL\RAL.pipeline.h>
-#include <rococo.renderer.formats.h>
+#include <rococo.renderer.textures.h>
 
 using namespace Rococo;
 using namespace Rococo::Graphics;
@@ -249,7 +249,7 @@ struct RAL_G_Buffer_3D_Object_Renderer : IRAL_3D_Object_RendererSupervisor
 		renderStates.DisableBlend();
 
 		ral.RALTextures().AssignToPS(TXUNIT_SHADOW, shadowBufferId);
-		ral.RALTextures().AssignMaterialsToPS(MaterialId { 1 });
+		ral.RALTextures().AssignMaterialsToPS();
 
 		AssignLightStateBufferToShaders();
 

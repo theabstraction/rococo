@@ -2488,7 +2488,7 @@ namespace ANON
 			}
 		}
 
-		NOT_INLINE static bool IsPrefixFor(cr_substring prefix, const ISxyNamespace& ns, cstr token, bool requiresNamespaceInPrefix)
+		static bool IsPrefixFor(cr_substring prefix, const ISxyNamespace& ns, cstr token, bool requiresNamespaceInPrefix)
 		{
 			char fqToken[256];
 			StackStringBuilder fqTokenBuilder(fqToken, sizeof fqToken);
@@ -4087,7 +4087,7 @@ namespace ANON
 			}
 		}
 
-		NOT_INLINE bool CanInsertCppRef(cr_sex sCppDeclaration)
+		bool CanInsertCppRef(cr_sex sCppDeclaration)
 		{
 			if (sCppDeclaration.NumberOfElements() < 3)
 			{

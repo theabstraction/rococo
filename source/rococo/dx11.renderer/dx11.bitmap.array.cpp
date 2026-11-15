@@ -90,6 +90,11 @@ struct DX11BitmapArray : public IDX11BitmapArray
             Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
         }
 
+        if (width <= 0)
+        {
+            Throw(0, "Cannot WriteSubImage into texture, the texture width was zero.");
+        }
+
         if (width > 0 && tb.texture == nullptr)
         {
             arrayCapacity = count;

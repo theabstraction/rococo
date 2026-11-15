@@ -1,6 +1,7 @@
 #include <3D\rococo.material-builder.h>
 #include <mplat/mplat.events.h>
 #include <rococo.renderer.h>
+#include <rococo.renderer.textures.h>
 #include <rococo.io.h>
 #include <rococo.os.h>
 #include <rococo.strings.h>

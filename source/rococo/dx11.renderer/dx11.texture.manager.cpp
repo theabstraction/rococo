@@ -706,8 +706,9 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		}
 	}
 
-	void AssignMaterialsToPS(MaterialId id) override
+	void AssignMaterialsToPS() override
 	{
+		MaterialId id{ 1 };
 		if (materials->IsDefined(id))
 		{
 			auto* view = materials->GetTextureArrayForMaterial(id).View();

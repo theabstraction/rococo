@@ -109,7 +109,7 @@ namespace
 		return (BOOL) SendMessageA(hwnd, LVM_GETCOLUMNA, (WPARAM)iCol, (LPARAM)pcol);
 	}
 
-	NOT_INLINE void LV_DrawItem(const ColourScheme& scheme, DRAWITEMSTRUCT& d)
+	void LV_DrawItem(const ColourScheme& scheme, DRAWITEMSTRUCT& d)
 	{
 		if (!HasFlag(ODA_DRAWENTIRE, d.itemAction))
 		{
@@ -199,7 +199,7 @@ namespace
 		SetTextColor(d.hDC, originalColour);
 	}
 
-	NOT_INLINE void LV_MeasureItem(HWND hWnd, MEASUREITEMSTRUCT& ms)
+	void LV_MeasureItem(HWND hWnd, MEASUREITEMSTRUCT& ms)
 	{
 		HFONT hFont = (HFONT) SendMessage(hWnd, WM_GETFONT, 0, 0);
 		if (hFont)
