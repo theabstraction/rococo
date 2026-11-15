@@ -712,7 +712,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		if (materials->IsDefined(id))
 		{
 			auto* view = materials->GetTextureArrayForMaterial(id).View();
-			dc.PSGetShaderResources(TXUNIT_MATERIALS, 1, &view);
+			dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, &view);
 		}
 	}
 
