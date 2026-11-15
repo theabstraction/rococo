@@ -122,6 +122,18 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		metrics.Width = maxWidth;
 	}
 
+	TextureSliceId GetMaterialColourTextureIndex(MaterialId id) const
+	{
+		if (!IsDefined(id))
+		{
+			Throw(0, "GetMaterialColourTextureIndex: Undefined material id %d", id.ToInt());
+		}
+
+		size_t index = (size_t)(id - 1.0f);
+		auto& def = materialDefs[index];
+		return TextureSliceId{ (int) def.colourIndex };
+	}
+
 	HString currentSrcPath;
 
 	void AddMaterialFromMaterialDirective(const Rococo::Sex::SEXML::ISEXMLDirective& mat)

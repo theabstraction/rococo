@@ -21,7 +21,7 @@ AmbientVertex main(ObjectVertex v, BoneWeight_2Bones weights)
 	sv.cameraSpacePosition = Transform_World_To_Camera(worldPos);
 	sv.worldPosition = worldPos;
 	sv.uv_material_gloss.xy = v.uv.xy;
-	sv.uv_material_gloss.zw = v.materialIndexAndGloss.xy;
+	sv.uv_material_gloss.zw = v.textureIndexAndGloss.xy;
 	sv.colour = v.colour;
 	return sv;
 }

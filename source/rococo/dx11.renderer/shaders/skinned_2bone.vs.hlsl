@@ -11,9 +11,9 @@ ObjectPixelVertex main(ObjectVertex v, BoneWeight_2Bones weights)
 	sv.worldPosition = worldPos.xyz;
 	sv.shadowPos = Transform_World_To_ShadowBuffer(worldPos);
 	sv.cameraSpacePosition = Transform_World_To_Camera(worldPos);
-	sv.uv_material_and_gloss.xy = v.uv.xy;
-	sv.uv_material_and_gloss.z = v.materialIndexAndGloss.x;
-	sv.uv_material_and_gloss.w = v.materialIndexAndGloss.y;
+	sv.uv_textureIndex_and_gloss.xy = v.uv.xy;
+	sv.uv_textureIndex_and_gloss.z = v.textureIndexAndGloss.x;
+	sv.uv_textureIndex_and_gloss.w = v.textureIndexAndGloss.y;
 	sv.colour = v.colour;
 	return sv;
 }

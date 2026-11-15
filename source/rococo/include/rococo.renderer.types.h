@@ -80,7 +80,7 @@ namespace Rococo::Graphics
 	struct MaterialVertexData
 	{
 		RGBAb colour;
-		MaterialId materialId;
+		TextureSliceId txSliceId;
 		float gloss = 0;
 	};
 

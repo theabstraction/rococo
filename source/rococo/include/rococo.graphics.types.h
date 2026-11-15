@@ -16,32 +16,33 @@ namespace Rococo
 
 namespace Rococo::Graphics
 {
-	class MaterialId
+	template<class T>
+	class GPU_ENTITY_ID
 	{		
 	private:
 		// The value is a float, because it is passed to GPU shaders that generally do not have raw int values
 		float value = 0.0f; 
 
 	public:
-		MaterialId()
+		GPU_ENTITY_ID<T>()
 		{
 
 		}
 
-		MaterialId(const MaterialId& id)
+		GPU_ENTITY_ID<T>(const GPU_ENTITY_ID<T>& id)
 		{
 			this->value = id.value;
 		}
 
-		MaterialId operator = (MaterialId id)
+		GPU_ENTITY_ID<T> operator = (GPU_ENTITY_ID<T> id)
 		{
 			this->value = id.value;
 			return id;
 		}
 
-		explicit MaterialId(int materialIndex)
+		explicit GPU_ENTITY_ID<T>(int index)
 		{
-			value = float(materialIndex);
+			value = float(index);
 		}
 
 		float ToFloat() const
@@ -59,4 +60,10 @@ namespace Rococo::Graphics
 			return value;
 		}
 	};
+
+	struct MaterialIdProxy;
+	using MaterialId = GPU_ENTITY_ID<MaterialIdProxy>;
+
+	struct TextureSliceProxy;
+	using TextureSliceId = GPU_ENTITY_ID<TextureSliceProxy>;
 }

@@ -174,6 +174,7 @@ namespace Rococo::Graphics
 	ROCOCO_INTERFACE IMaterials
 	{
 		virtual void GetMaterialArrayMetrics(MaterialArrayMetrics & metrics) const = 0;
+		virtual TextureSliceId GetMaterialColourTextureIndex(MaterialId id) const = 0;
 		virtual MaterialId GetMaterialId(cstr name) const = 0;
 		virtual cstr GetMaterialTextureName(MaterialId id) const = 0;
 		virtual bool IsDefined(MaterialId id) const = 0;

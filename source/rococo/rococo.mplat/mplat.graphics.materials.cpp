@@ -164,7 +164,7 @@ namespace Rococo::Graphics
 			{ "marble", MaterialCategory::Marble }
 		};
 
-		MaterialCategory GetMaterialCateogry(MaterialId id)
+		MaterialCategory GetMaterialCateogry(MaterialId id) override
 		{
 			cstr name = renderer.Materials().GetMaterialTextureName(id);
 			for (auto& j : catEnum)
@@ -178,7 +178,13 @@ namespace Rococo::Graphics
 			return MaterialCategory::Marble; // all that is not anythng is marble
 		}
 
-		void AddMaterialToCategory(MaterialId id)
+		float/* arraySliceIndex */ GetTextureSliceIndex(Rococo::Graphics::MaterialId id) override
+		{
+			TextureSliceId index = renderer.Materials().GetMaterialColourTextureIndex(id);
+			return index.ToFloat();
+		}
+
+		void AddMaterialToCategory(MaterialId id) 
 		{
 			cstr name = renderer.Materials().GetMaterialTextureName(id);
 			if (!name)

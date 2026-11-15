@@ -416,7 +416,7 @@ namespace
 				  sb << v.uv.x << "," << v.uv.y << "," << v.normal.x << "," << v.normal.y << "," << v.normal.z << ",";
 				  sb.AppendFormat("0x%8.8X", *(int*)(&v.material.colour));
 				  sb << ",";
-				  sb << v.material.materialId << "," << v.material.gloss << "\n";
+				  sb << v.material.txSliceId << "," << v.material.gloss << "\n";
 			  }
 
 			  if (i->second->pWeightArray)

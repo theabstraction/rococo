@@ -58,7 +58,7 @@ struct ObjectVertex
 	float3 modelNormal : NORMAL;
 	float2 uv: TEXCOORD0;
 	float4 colour: COLOR0;
-	float2 materialIndexAndGloss  : TEXCOORD1;
+	float2 textureIndexAndGloss  : TEXCOORD1;
 };
 
 struct BaseVertexData
@@ -115,7 +115,7 @@ struct GuiPixelVertexOpaque
 struct ObjectPixelVertex
 {
 	float4 position : SV_POSITION0;
-	float4 uv_material_and_gloss: TEXCOORD;
+	float4 uv_textureIndex_and_gloss: TEXCOORD;
 	float3 worldPosition: TEXCOORD1;
 	float3 worldNormal : NORMAL;
 	float4 shadowPos: TEXCOORD3;
@@ -132,14 +132,14 @@ struct GPixelSpec
 struct LandPixelVertex
 {
 	float4 position : SV_POSITION0;
-	float4 uv_material_and_gloss: TEXCOORD;
+	float4 uv_textureIndex_and_gloss: TEXCOORD;
 	float4 normal : TEXCOORD1;
 };
 
 struct LandVertex
 {
 	float4 position : SV_POSITION0;
-	float4 uv_material_and_gloss: TEXCOORD;
+	float4 uv_textureIndex_and_gloss: TEXCOORD;
 	float4 normal : TEXCOORD1;
 };
 

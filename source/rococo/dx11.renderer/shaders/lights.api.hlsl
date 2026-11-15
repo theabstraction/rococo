@@ -15,7 +15,7 @@ float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
 	float shine = 240.0f;
 	float3 r = reflect(lightDirection, p.worldNormal.xyz);
 	float dotProduct = dot(r, incident);
-	float specular = p.uv_material_and_gloss.w * max(pow(abs(dotProduct), shine), 0);
+	float specular = p.uv_textureIndex_and_gloss.w * max(pow(abs(dotProduct), shine), 0);
 	return clamp(specular, 0, 1);
 }
 
