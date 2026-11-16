@@ -30,6 +30,16 @@ namespace MHost
 	void AddMHostNativeCallSecurity(ScriptCompileArgs& args);
 }
 
+HString g_assetPath;
+
+namespace MHost
+{
+	cstr GetAssetOverridePath()
+	{
+		return g_assetPath;
+	}
+}
+
 int WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine,_In_ int nShowCmd)
 {
 	UNUSED(hPrevInstance);
@@ -39,6 +49,11 @@ int WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPS
 
 	char titleBuffer[128];
 	Rococo::Strings::CLI::GetCommandLineArgument("-title:"_fstring, lpCmdLine, titleBuffer, sizeof titleBuffer, "Rococo MHost");
+
+	char assetPath[260];
+	Rococo::Strings::CLI::GetCommandLineArgument("-assets:"_fstring, lpCmdLine, assetPath, sizeof assetPath, "");
+
+	g_assetPath = assetPath;
 
 	using namespace Rococo::Memory;
 	

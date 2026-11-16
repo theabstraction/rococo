@@ -76,6 +76,13 @@ struct CmdInstallation : Rococo::IO::IInstallationSupervisor
 
 	}
 
+#ifdef _DEBUG
+	void AddAssetDirectoryOverride(crwstr sysAssetPath, cstr requiredPrefix) override
+	{
+		Throw(0, "Not implemented: AddAssetDirectoryOverride(%ws, %s)", sysAssetPath, requiredPrefix);
+	}
+#endif
+
 	void Free() override
 	{
 		delete this;

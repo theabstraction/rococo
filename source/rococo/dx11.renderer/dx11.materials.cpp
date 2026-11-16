@@ -248,7 +248,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 				Throw(0, "Bad file %s for %s from %s line %d", loader.err.c_str(), pingPath);
 			}
 		}
-		else if (EqI(ext, "*.tif") || EqI(ext, ".tiff"))
+		else if (EqI(ext, ".tif") || EqI(ext, ".tiff"))
 		{
 			Imaging::DecompressTiff(loader, buffer.GetData(), buffer.Length());
 			if (loader.err.length() > 0)

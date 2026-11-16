@@ -401,6 +401,9 @@ namespace Rococo::IO
 		virtual bool DoPingsMatch(cstr a, cstr b) const = 0;
 		virtual void Macro(cstr name, cstr pingFolder) = 0;
 		virtual void CompressPingPath(cstr pingPath, U8FilePath& resultPath) const = 0;
+#ifdef _DEBUG
+		virtual void AddAssetDirectoryOverride(crwstr sysAssetPath, cstr requiredPrefix) = 0;
+#endif
 		virtual IOS& OS() = 0;
 	};
 

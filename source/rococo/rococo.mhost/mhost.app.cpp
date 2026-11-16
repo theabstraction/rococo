@@ -10,6 +10,7 @@
 #include <rococo.os.h>
 #include <rococo.great.sex.h>
 #include <rococo.reflector.h>
+#include <rococo.io.h>
 
 #include "..\rococo.mplat\mplat.editor.h"
 
@@ -43,6 +44,7 @@ using namespace Rococo::Strings;
 
 namespace MHost
 {
+	cstr GetAssetOverridePath();
 	void AddMHostNativeCallSecurity(Rococo::ScriptCompileArgs& args);
 	IScriptCompilationEventHandler& GetBaseCompileOptions();
 	Rococo::Reflection::IReflectionTarget& GetTestTarget();
@@ -367,7 +369,18 @@ namespace MHost
 			platform.scripts.sourceCache.AddPackage(packageMHost);
 			panelCompileOptions.package = packageMHost;
 
-			platform.scripts.panelCompilationDesignator.Designate(&panelCompileOptions);;
+			platform.scripts.panelCompilationDesignator.Designate(&panelCompileOptions);
+
+			if (*GetAssetOverridePath())
+			{
+#ifdef _DEBUG
+				WideFilePath wPath;
+				Format(wPath, L"%hs", GetAssetOverridePath());
+				platform.os.installation.AddAssetDirectoryOverride(wPath, "!textures/hv/materials/");
+#else
+				Throw(0, "Command line -assets:%s is valid only in debug builds", GetAssetOverridePath());
+#endif
+			}
 		}
 
 		~App()

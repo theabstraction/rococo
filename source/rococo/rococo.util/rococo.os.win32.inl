@@ -1329,6 +1329,15 @@ namespace WIN32_ANON
 	{
 		IOS& os;
 		WideFilePath contentDirectory;
+
+		struct AssetDirBinding
+		{
+			WideFilePath assetDirectory;
+			HString requiredPrefix;
+		};
+
+		std::vector<AssetDirBinding> assetDirectories;
+
 		int32 len;
 		std::unordered_map<std::string, std::string> macroToSubdir;
 	public:
@@ -1360,6 +1369,19 @@ namespace WIN32_ANON
 
 			len = Format(contentDirectory, L"%ls", contentPath);
 		}
+
+#ifdef _DEBUG
+		void AddAssetDirectoryOverride(crwstr assetDirectory, cstr pingPathPrefix) override
+		{
+			AssetDirBinding newAssetDir;
+			Format(newAssetDir.assetDirectory, L"%ls", assetDirectory);
+
+			NormalizePath(newAssetDir.assetDirectory);
+
+			newAssetDir.requiredPrefix = pingPathPrefix;
+			assetDirectories.push_back(newAssetDir);
+		}
+#endif
 
 		void Free()  override
 		{
@@ -1499,6 +1521,22 @@ namespace WIN32_ANON
 				return;
 			}
 
+			WideFilePath contentDirectory;
+
+			for (auto& d : assetDirectories)
+			{
+				if (StartsWith(pingPath, d.requiredPrefix))
+				{
+					contentDirectory = d.assetDirectory;
+					break;
+				}
+			}
+
+			if (contentDirectory.buf[0] == 0)
+			{
+				Format(contentDirectory, L"%ws", this->contentDirectory.buf);
+			}
+
 			auto macroDir = "";
 			const char* subdir = nullptr;
 
@@ -1569,11 +1607,27 @@ namespace WIN32_ANON
 		{
 			if (pingPath == nullptr || sysPath == nullptr) Throw(0, "ConvertSysPathToPingPath: Null argument");
 
-			size_t contentDirLength = wcslen(contentDirectory);
+			crwstr requiredContent = nullptr;
 
-			if (0 != _wcsnicmp(sysPath, contentDirectory, wcslen(contentDirectory)))
+			if (StartsWith(sysPath, contentDirectory))
 			{
-				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with the content folder %ls", sysPath, contentDirectory.buf);
+				requiredContent = contentDirectory;
+			}
+			else
+			{
+				for (auto& d : assetDirectories)
+				{
+					if (StartsWith(sysPath, d.assetDirectory))
+					{
+						requiredContent = d.assetDirectory;
+						break;
+					}
+				}
+			}
+
+			if (!requiredContent)
+			{
+				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with a content folder %ls", sysPath);
 			}
 
 			if (wcsstr(sysPath, L"..") != nullptr)
@@ -1581,7 +1635,7 @@ namespace WIN32_ANON
 				Throw(0, "ConvertSysPathToPingPath: '%ls' - Illegal sequence in ping path: '..'", sysPath);
 			}
 
-			Format(pingPath, "!%ls", sysPath + contentDirLength);
+			Format(pingPath, "!%ls", sysPath + StringLength(requiredContent));
 
 			IO::ToUnixPath(pingPath.buf);
 		}
