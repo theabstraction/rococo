@@ -1527,7 +1527,7 @@ namespace WIN32_ANON
 
 			for (auto& d : assetDirectories)
 			{
-				if (StartsWith(pingPath, d.requiredPrefix))
+				if (StartsWithI(pingPath, d.requiredPrefix))
 				{
 					contentDirectory = d.assetDirectory;
 					break;
