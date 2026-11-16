@@ -107,7 +107,7 @@
 	(bottle.AddTube neckLength topWidth (scale * 0.08) divs)
 	
 	(MaterialVertexData stopper)
-	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> marbleId)
+	(matBuilder.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
 	(matBuilder.GetTextureSliceIndex marbleId -> stopper.txSliceId)
 	(stopper.gloss = 0.2)
 	(stopper.colour = (Sys.Type.ToRGBAb 0 1 0 1))

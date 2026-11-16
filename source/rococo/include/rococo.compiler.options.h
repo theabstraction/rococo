@@ -36,7 +36,7 @@
 # define FORCE_NOT_INLINE __declspec(noinline)
 #else
 # define FORCE_INLINE __attribute__((always_inline)) inline
-# define NOT_INLINE __attribute__((noinline))
+# define FORCE_NOT_INLINE __attribute__((noinline))
 #endif
 
 #endif // ROCOCO

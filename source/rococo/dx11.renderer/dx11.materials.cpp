@@ -131,6 +131,10 @@ struct DX11Materials : IDX11MaterialsSupervisor
 
 		size_t index = (size_t)(id - 1.0f);
 		auto& def = materialDefs[index];
+		if (def.colourTextureArray == nullptr)
+		{
+			Throw(0, "No colour texture array for material id %d", id.ToInt());
+		}
 		return TextureSliceId{ (int) def.colourIndex };
 	}
 
