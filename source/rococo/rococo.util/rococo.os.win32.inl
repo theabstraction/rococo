@@ -1378,6 +1378,8 @@ namespace WIN32_ANON
 
 			NormalizePath(newAssetDir.assetDirectory);
 
+			EndDirectoryWithSlash(newAssetDir.assetDirectory.buf, WideFilePath::CAPACITY);
+
 			newAssetDir.requiredPrefix = pingPathPrefix;
 			assetDirectories.push_back(newAssetDir);
 		}
@@ -1609,7 +1611,7 @@ namespace WIN32_ANON
 
 			crwstr requiredContent = nullptr;
 
-			if (StartsWith(sysPath, contentDirectory))
+			if (StartsWithI(sysPath, contentDirectory))
 			{
 				requiredContent = contentDirectory;
 			}
@@ -1617,7 +1619,7 @@ namespace WIN32_ANON
 			{
 				for (auto& d : assetDirectories)
 				{
-					if (StartsWith(sysPath, d.assetDirectory))
+					if (StartsWithI(sysPath, d.assetDirectory))
 					{
 						requiredContent = d.assetDirectory;
 						break;
@@ -1627,7 +1629,7 @@ namespace WIN32_ANON
 
 			if (!requiredContent)
 			{
-				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with a content folder %ls", sysPath);
+				Throw(0, "ConvertSysPathToPingPath: '%ls' did not begin with a known content or asset folder", sysPath);
 			}
 
 			if (wcsstr(sysPath, L"..") != nullptr)

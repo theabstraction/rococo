@@ -65,6 +65,16 @@ namespace Rococo::Strings
 		return wcsncmp(bigString, prefix, wcslen(prefix)) == 0;
 	}
 
+	ROCOCO_API bool StartsWithI(cstr bigString, cstr prefix)
+	{
+		return _strnicmp(bigString, prefix, strlen(prefix)) == 0;
+	}
+
+	ROCOCO_API bool StartsWithI(crwstr bigString, crwstr prefix)
+	{
+		return _wcsnicmp(bigString, prefix, wcslen(prefix)) == 0;
+	}
+
 	ROCOCO_API bool EqI(const char* a, const char* b)
 	{
 		return _strcmpi(a, b) == 0;

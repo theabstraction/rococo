@@ -7,7 +7,7 @@
 
 (struct MaterialVertexData
 	(Int32 colour)
-	(Float32 id)
+	(Float32 txSliceId)
 	(Float32 gloss)
 )
 (alias MaterialVertexData Rococo.MaterialVertexData)

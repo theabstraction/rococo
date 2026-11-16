@@ -134,6 +134,9 @@ namespace Rococo::Strings
 	ROCOCO_API bool EndsWithI(cstr bigString, cstr suffix);
 
 	ROCOCO_API bool StartsWith(crwstr bigString, crwstr prefix);
+
+	ROCOCO_API bool StartsWithI(cstr bigString, cstr prefix);
+	ROCOCO_API bool StartsWithI(crwstr bigString, crwstr prefix);
 	ROCOCO_API bool EndsWith(crwstr bigString, crwstr suffix);
 
 	ROCOCO_API void SetStringAllocator(IAllocator* a);

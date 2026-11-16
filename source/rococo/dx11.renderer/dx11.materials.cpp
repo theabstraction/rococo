@@ -181,7 +181,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		if (!i.second)
 		{
 			int index = i.first->second - 1;
-			if (index <= 0 || index >= (int)materialDefs.size())
+			if (index < 0 || index >= (int)materialDefs.size())
 			{
 				Throw(mat.S(), "Duplicate material name '%s'", name);
 			}
@@ -189,7 +189,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			const auto& original = materialDefs[index];
 			
 			// Already exists
-			Throw(mat.S(), "Duplicate material name '%s'. Original defined in %s line %d", original.srcPath.c_str(), original.srcIndex);
+			Throw(mat.S(), "Duplicate material name '%s'. Original defined in %s line %d", name, original.srcPath.c_str(), original.srcIndex);
 		}
 
 		materialDefs.emplace_back(MaterialDef{ currentSrcPath, mat.S().Start().y + 1, name, colourMap, normalMap, roughnessMap, diffuse, emission});
@@ -245,7 +245,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			Imaging::DecompressJPeg(loader, buffer.GetData(), buffer.Length());
 			if (loader.err.length() > 0)
 			{
-				Throw(0, "Bad file %s for %s from %s line %d", loader.err.c_str(), pingPath);
+				Throw(0, "Bad file %s for %s", loader.err.c_str(), pingPath);
 			}
 		}
 		else if (EqI(ext, ".tif") || EqI(ext, ".tiff"))
@@ -253,12 +253,12 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			Imaging::DecompressTiff(loader, buffer.GetData(), buffer.Length());
 			if (loader.err.length() > 0)
 			{
-				Throw(0, "Bad file %s for %s from %s line %d", loader.err.c_str(), pingPath);
+				Throw(0, "Bad file %s for %s", loader.err.c_str(), pingPath);
 			}
 		}
 		else
 		{
-			Throw(0, "Bad file extension %s for %s from %s line %d", ext, pingPath);
+			Throw(0, "Bad file extension %s for %s", ext, pingPath);
 		}
 	}
 
@@ -310,7 +310,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 
 		if (span.x > MAX_TEXTURE_SPAN)
 		{
-			Throw(0, "Span.x > %d", span.x, MAX_TEXTURE_SPAN);
+			Throw(0, "Span.x (%d) > %d", span.x, MAX_TEXTURE_SPAN);
 		}
 
 		id.type = type;
