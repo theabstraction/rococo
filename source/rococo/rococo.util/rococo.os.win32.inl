@@ -1517,7 +1517,7 @@ namespace WIN32_ANON
 				Throw(0, "Installation::ConvertPingPathToSysPath(...) Ping path was blank");
 			}
 
-			if (strncmp(pingPath, packageprefix, packageprefix.length) == 0)
+			if (Strings::StartsWithI(pingPath, packageprefix))
 			{
 				ConvertPackagePathToSysPath(pingPath, sysPath);
 				return;

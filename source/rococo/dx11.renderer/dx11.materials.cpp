@@ -327,7 +327,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		return i.first->second;
 	}
 
-	FORCE_NOT_INLINE void ReserveTexture(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format)
+	FORCE_NOT_INLINE void ReserveTextureBuffer(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format)
 	{
 		TxTableId id;
 		IDX11BitmapArray* textures = GetTextureTable(span, type, format, OUT id);
@@ -338,7 +338,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		def.colourTextureArray = textures;
 	}
 
-	FORCE_NOT_INLINE void CommitTexture(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format, const void* data)
+	FORCE_NOT_INLINE void CommitTextureBuffer(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format, const void* data)
 	{
 		TxTableId id;
 		IDX11BitmapArray* textures = GetTextureTable(span, type, format, OUT id);
@@ -357,34 +357,60 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		}
 	}
 
-	void ReserveMaterial(MaterialDef& def)
+	void ReserveTexture(MaterialDef& def, cstr pingPath, TxTableId::Type type)
+	{
+		if (!*pingPath)
+		{
+			return;
+		}
+
+		installation.LoadResource(pingPath, *matBufferFile, 32_megabytes);
+
+		DecompressImageFile(*matBufferFile, pingPath,
+			[this, &def, type](const Vec2i& span, const RGBAb* data)
+			{
+				UNUSED(data);
+				this->ReserveTextureBuffer(def, type, span, DXGI_FORMAT_R8G8B8A8_UNORM);
+			},
+
+			[this, &def, type](const Vec2i& span, const uint8* data)
+			{
+				UNUSED(data);
+				this->ReserveTextureBuffer(def, type, span, DXGI_FORMAT_A8_UNORM);
+			}
+		);
+	}
+
+	FORCE_NOT_INLINE void ReserveMaterial(MaterialDef& def)
 	{
 		cstr colourPingPath = def.colourMap.c_str();
 		cstr normalPingPath = def.normalMap.c_str();
 		cstr roughnessPath = def.roughnessMap.c_str();
 		UNUSED(roughnessPath);
-		UNUSED(normalPingPath);
 
-		if (*colourPingPath)
+		ReserveTexture(def, colourPingPath, TxTableId::Type::Colour);
+		ReserveTexture(def, normalPingPath, TxTableId::Type::Normal);
+	}
+
+	void CommitTexture(MaterialDef& def, cstr pingPath, TxTableId::Type type)
+	{
+		if (!*pingPath)
 		{
-			installation.LoadResource(colourPingPath, *matBufferFile, 32_megabytes);
-
-			// TODO -> have our material def file record spans of each texture, so we don't have to read image data twice
-
-			DecompressImageFile(*matBufferFile, colourPingPath,
-				[this, &def](const Vec2i& span, const RGBAb* data)
-				{
-					UNUSED(data);
-					this->ReserveTexture(def, TxTableId::Type::Colour, span, DXGI_FORMAT_R8G8B8A8_UNORM);
-				},
-
-				[this, &def](const Vec2i& span, const uint8* data)
-				{
-					UNUSED(data);
-					this->ReserveTexture(def, TxTableId::Type::Colour, span, DXGI_FORMAT_A8_UNORM);
-				}
-			);
+			return;
 		}
+
+		installation.LoadResource(pingPath, *matBufferFile, 32_megabytes);
+		DecompressImageFile(*matBufferFile, pingPath,
+			[this, &def, type](const Vec2i& span, const RGBAb* data)
+			{
+				this->CommitTextureBuffer(def, type, span, DXGI_FORMAT_R8G8B8A8_UNORM, data);
+			},
+
+			[this, &def, type](const Vec2i& span, const uint8* data)
+			{
+				this->CommitTextureBuffer(def, type, span, DXGI_FORMAT_A8_UNORM, data);
+			}
+		);
 	}
 
 	void CommitMaterial(MaterialDef& def)
@@ -393,23 +419,9 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		cstr normalPingPath = def.normalMap.c_str();
 		cstr roughnessPath = def.roughnessMap.c_str();
 		UNUSED(roughnessPath);
-		UNUSED(normalPingPath);
 
-		if (*colourPingPath)
-		{
-			installation.LoadResource(colourPingPath, *matBufferFile, 32_megabytes);
-			DecompressImageFile(*matBufferFile, colourPingPath,
-				[this, &def](const Vec2i& span, const RGBAb* data)
-				{
-					this->CommitTexture(def, TxTableId::Type::Colour, span, DXGI_FORMAT_R8G8B8A8_UNORM, data);
-				},
-
-				[this, &def](const Vec2i& span, const uint8* data)
-				{
-					this->CommitTexture(def, TxTableId::Type::Colour, span, DXGI_FORMAT_A8_UNORM, data);
-				}
-			);
-		}
+		CommitTexture(def, colourPingPath, TxTableId::Type::Colour);
+		CommitTexture(def, normalPingPath, TxTableId::Type::Normal);
 	}
 
 	void CommitMaterials() override
