@@ -139,7 +139,8 @@ namespace Rococo::DX11
 	ROCOCO_INTERFACE IDX11Materials: Rococo::Graphics::IMaterials
 	{
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
-		virtual IDX11BitmapArray& GetTextureArrayForMaterial(Graphics::MaterialId id) = 0;
+		virtual IDX11BitmapArray& GetTextureColourArrayForMaterial(Graphics::MaterialId id) = 0;
+		virtual IDX11BitmapArray& GetTextureNormalArrayForMaterial(Graphics::MaterialId id) = 0;
 	};
 
 	ROCOCO_INTERFACE IDX11MaterialsSupervisor : IDX11Materials

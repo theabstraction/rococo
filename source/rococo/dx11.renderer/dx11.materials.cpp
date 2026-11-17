@@ -492,7 +492,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		return i != mapMaterialNameToIndex.end() ? MaterialId(i->second) : MaterialId(-1);
 	}
 
-	IDX11BitmapArray& GetTextureArrayForMaterial(MaterialId id) override
+	IDX11BitmapArray& GetTextureColourArrayForMaterial(MaterialId id) override
 	{
 		size_t index = (size_t)(id - 1.0f);
 		if (index >= materialDefs.size())
@@ -501,6 +501,17 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		}
 
 		return *materialDefs[index].colourSlot.textures;
+	}
+
+	IDX11BitmapArray& GetTextureNormalArrayForMaterial(MaterialId id) override
+	{
+		size_t index = (size_t)(id - 1.0f);
+		if (index >= materialDefs.size())
+		{
+			Throw(0, "Bad material index");
+		}
+
+		return *materialDefs[index].normalSlot.textures;
 	}
 
 	void ShowVenue(IMathsVisitor& visitor)

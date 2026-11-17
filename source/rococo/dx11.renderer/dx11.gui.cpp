@@ -593,8 +593,11 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
         if (matId.ToInt() >= 0)
         {
-            ID3D11ShaderResourceView* materialViews[1] = { textures.Materials().GetTextureArrayForMaterial(matId).View() };
-            dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, materialViews);
+            ID3D11ShaderResourceView* colourViews[1] = { textures.Materials().GetTextureColourArrayForMaterial(matId).View() };
+            dc.PSSetShaderResources(TXUNIT_MATERIALS_COLOUR, 1, colourViews);
+
+            ID3D11ShaderResourceView* normalViews[1] = { textures.Materials().GetTextureNormalArrayForMaterial(matId).View() };
+            dc.PSSetShaderResources(TXUNIT_MATERIALS_NORMAL, 1, normalViews);
         }
 
         ID3D11ShaderResourceView* spriteviews[1] = { SpriteView() };

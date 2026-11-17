@@ -110,11 +110,12 @@ namespace Rococo::RAL::Anon
 			renderStates.SetSamplerDefaults(TXUNIT_SHADOW, Filter::Linear, AddressMode::Border, AddressMode::Border, AddressMode::Border, red);
 			renderStates.SetSamplerDefaults(TXUNIT_ENV_MAP, Filter::Anisotropic, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
 			renderStates.SetSamplerDefaults(TXUNIT_SELECT, Filter::Linear, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
-			renderStates.SetSamplerDefaults(TXUNIT_MATERIALS, Filter::Linear, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
+			renderStates.SetSamplerDefaults(TXUNIT_MATERIALS_COLOUR, Filter::Linear, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
 			renderStates.SetSamplerDefaults(TXUNIT_SPRITES, Filter::Point, AddressMode::Border, AddressMode::Border, AddressMode::Border, red);
 			renderStates.SetSamplerDefaults(TXUNIT_GENERIC_TXARRAY, Filter::Point, AddressMode::Border, AddressMode::Border, AddressMode::Border, transparent);
 			renderStates.SetSamplerDefaults(TXUNIT_NOISE_PERMUTATION, Filter::Point, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
 			renderStates.SetSamplerDefaults(TXUNIT_NOISE_GRADIENT_LOOKUP, Filter::Point, AddressMode::Wrap, AddressMode::Clamp, AddressMode::Clamp, RGBA(0, 0, 0, 1.0f));
+			renderStates.SetSamplerDefaults(TXUNIT_MATERIALS_NORMAL, Filter::Linear, AddressMode::Wrap, AddressMode::Wrap, AddressMode::Wrap, red);
 		}
 
 		void AssignGlobalStateBufferToShaders()

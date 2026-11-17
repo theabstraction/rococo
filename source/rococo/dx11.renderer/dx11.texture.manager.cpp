@@ -613,7 +613,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 
 	ID_CUBE_TEXTURE CreateSkyboxCubeIdFromMaterialArrayIndices(int32 XMaxFace, int32 XMinFace, int32 YMaxFace, int32 YMinFace, int32 ZMaxFace, int32 ZMinFace) override
 	{
-		return cubeTextures->CreateCubeTextureFromMaterialArray(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->GetTextureArrayForMaterial( MaterialId { 1 }));
+		return cubeTextures->CreateCubeTextureFromMaterialArray(XMaxFace, XMinFace, YMaxFace, YMinFace, ZMaxFace, ZMinFace, materials->GetTextureColourArrayForMaterial( MaterialId { 1 }));
 	}
 
 	void CompressJPeg(const RGBAb* data, Vec2i span, cstr filename, int quality) const override
@@ -711,8 +711,11 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		MaterialId id{ 1 };
 		if (materials->IsDefined(id))
 		{
-			auto* view = materials->GetTextureArrayForMaterial(id).View();
-			dc.PSSetShaderResources(TXUNIT_MATERIALS, 1, &view);
+			auto* cview = materials->GetTextureColourArrayForMaterial(id).View();
+			dc.PSSetShaderResources(TXUNIT_MATERIALS_COLOUR, 1, &cview);
+
+			auto* nview = materials->GetTextureNormalArrayForMaterial(id).View();
+			dc.PSSetShaderResources(TXUNIT_MATERIALS_COLOUR, 1, &nview);
 		}
 	}
 
