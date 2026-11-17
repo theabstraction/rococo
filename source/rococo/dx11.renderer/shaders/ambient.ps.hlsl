@@ -11,9 +11,9 @@ float4 main(ObjectPixelVertex p): SV_TARGET
 	// -> to do, develop the HLSL console log in mhost.app, hyperverse iteration is too slow
 	texel.xyz *= clarity;
 		
-	float2 uv = p.uv_textureIndex_and_gloss.xy;
+	float2 uv = p.uv_and_gloss.xy;
 	
-	texel = ModulateWithEnvMap(texel, incident.xyz, normal, p.uv_textureIndex_and_gloss.w);
+	texel = ModulateWithEnvMap(texel, incident.xyz, normal, p.uv_and_gloss.z);
 	
 //	texel = float4(noiseX, noiseX, noiseX, 1.0f);
 	

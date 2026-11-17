@@ -122,8 +122,9 @@ float3 ComputeWorldNormal(ObjectVertex v)
     return Transform_Instance_To_World(float4(v.modelNormal.xyz, 0.0f)).xyz;
 }
 
-float4 SampleMaterialByVectors(float3 uvw, float4 colour)
+float4 SampleMaterialByVectors(float2 uv, float index, float4 colour)
 {
+    float3 uvw = float3(uv.xy, index);
 	float4 texel = tx_materials.Sample(matSampler, uvw);
 	float colourToTexelBlendFactor = colour.w;
 	return float4(lerp(colour.xyz, texel.xyz, colourToTexelBlendFactor), 1.0f);
@@ -261,12 +262,12 @@ float inoise(float3 p)
 
 float4 SampleMaterialWithoutNoise(ObjectPixelVertex v)
 {
-    return SampleMaterialByVectors(v.uv_textureIndex_and_gloss.xyz, v.colour);
+    return SampleMaterialByVectors(v.uv_and_gloss.xy, v.textureIndices.x, v.colour);
 }
 
 float4 SampleMaterialWithNoise(ObjectPixelVertex v)
 {
-	return lerp(lerp(inoise(float3 (v.uv_textureIndex_and_gloss.x * 32.0f, v.uv_textureIndex_and_gloss.y * 512.0f, 0.0f)), inoise(float3 (v.uv_textureIndex_and_gloss.xy * 4096.0f, 0.0f)), 0.75f), SampleMaterialByVectors(v.uv_textureIndex_and_gloss.xyz, v.colour), 0.85f);
+	return lerp(lerp(inoise(float3 (v.uv_and_gloss.x * 32.0f, v.uv_and_gloss.y * 512.0f, 0.0f)), inoise(float3 (v.uv_and_gloss.xy * 4096.0f, 0.0f)), 0.75f), SampleMaterialByVectors(v.uv_and_gloss.xy, v.textureIndices.x, v.colour), 0.85f);
 }
 
 float4 SampleMaterial(ObjectPixelVertex v)
