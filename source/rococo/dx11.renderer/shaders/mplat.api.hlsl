@@ -274,3 +274,31 @@ float4 SampleMaterial(ObjectPixelVertex v)
 {
 	return SampleMaterialWithoutNoise(v);
 }
+
+float3x3 CotangentFrame(float3 N, float3 worldPos, float2 uv)
+{
+    float3 dp1 = ddx(worldPos);
+    float3 dp2 = ddy(worldPos);
+    float2 duv1 = ddx(uv);
+    float2 duv2 = ddy(uv);
+
+    float3 dp2perp = cross(dp2, N);
+    float3 dp1perp = cross(N, dp1);
+    float3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+    float3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+
+    float invmax = rsqrt(max(max(dot(T, T), dot(B, B)), 1e-20f));
+    return float3x3(T * invmax, B * invmax, N);
+}
+
+float3 GetBumpedWorldNormal(ObjectPixelVertex p)
+{
+    float3 N = normalize(p.worldNormal.xyz);
+    float2 uv = p.uv_and_gloss.xy;
+
+    float3 tn = tx_normals.Sample(normalSampler, float3(uv, p.textureIndices.y)).xyz * 2.0f - 1.0f;
+	// tn.y = -tn.y; // uncomment if the bumps look lit from the wrong side (OpenGL-convention map)
+
+    float3x3 TBN = CotangentFrame(N, p.worldPosition, uv);
+    return normalize(mul(tn, TBN)); // tn.x * T + tn.y * B + tn.z * N
+}

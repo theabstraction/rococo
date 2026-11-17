@@ -4,6 +4,7 @@
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {
+    p.worldNormal = GetBumpedWorldNormal(p);
     float shadowDensity = GetShadowDensity(p);
     float4 texel = SampleMaterial(p);
 

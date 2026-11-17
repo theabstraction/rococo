@@ -260,6 +260,7 @@ SamplerState spriteSampler: register(s5);
 SamplerState glyphSampler: register(s6);
 SamplerState noisePermutationSampler : register(s7);
 SamplerState noiseGradientSampler : register(s8);
+SamplerState normalSampler : register(s13);
 
 Texture2D tx_FontSprite: register(t0);
 Texture2D tx_ShadowMap: register(t1);
@@ -277,6 +278,7 @@ Texture2D tx_GBuffer_Colour : register(t9);
 Texture2D tx_GBuffer_Depth : register(t10);
 Texture2D tx_GBuffer_Normal : register(t11);
 Texture2D tx_GBuffer_Position : register(t12);
+Texture2DArray tx_normals : register(t13);
 
 float3 ComputeEyeToWorldDirection(ObjectPixelVertex p)
 {
