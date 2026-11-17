@@ -133,8 +133,9 @@ struct GPixelSpec
 struct LandPixelVertex
 {
 	float4 position : SV_POSITION0;
-	float4 uv_textureIndex_and_gloss: TEXCOORD;
+	float3 uv_and_gloss: TEXCOORD;
 	float4 normal : TEXCOORD1;
+    float2 textureIndices : TEXCOORD5;
 };
 
 struct LandVertex

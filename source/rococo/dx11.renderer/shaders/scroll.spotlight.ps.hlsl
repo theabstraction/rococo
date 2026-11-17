@@ -4,7 +4,8 @@
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {
-	float4 texel = GetFontPixel(p.uv_textureIndex_and_gloss.xyw, p.colour);
+    float3 uvw = float3(p.uv_and_gloss.xy, p.textureIndices.x);
+    float4 texel = GetFontPixel(uvw, p.colour);
     float shadowDensity = GetShadowDensity(p);
     float I = GetDiffuseSpecularAndFoggedLighting(p);
     return BlendColourWithLightAndShadow(texel, shadowDensity, I);

@@ -4,15 +4,17 @@ struct PixelVertex
 {
 	float4 position : SV_POSITION0;
 	float4 normal: NORMAL;
-	float4 uv_textureIndex_and_gloss: TEXCOORD; // In scroll rendering, gloss controls solid colour to font lerp
+	float3 uv_and_gloss: TEXCOORD; // In scroll rendering, gloss controls solid colour to font lerp
 	float4 cameraSpacePosition: TEXCOORD1;
 	float4 worldPosition: TEXCOORD2;
+    float2 textureIndices : TEXCOORD5;
 	float4 colour: COLOR0;	// w component gives lerpColourToTexture
 };
 
 float4 per_pixel_lighting(PixelVertex p)
 {
-	float4 texel = GetFontPixel(p.uv_textureIndex_and_gloss.xyw, p.colour);
+    float3 uvw = float3(p.uv_and_gloss.xy, p.textureIndices.x);
+	float4 texel = GetFontPixel(uvw, p.colour);
 	float clarity = GetClarityAcrossSpan(p.cameraSpacePosition.xyz);
 
 	texel.xyz *= clarity;
