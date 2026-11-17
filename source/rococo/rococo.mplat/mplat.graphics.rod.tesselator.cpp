@@ -1272,6 +1272,9 @@ namespace ANON
 				q.a.material.gloss = q.b.material.gloss = top.gloss;
 				q.c.material.gloss = bottom.gloss;
 
+				q.a.material.txColourId = q.b.material.txColourId = middle.txColourId;
+				q.c.material.txColourId = middle.txColourId;
+
 				q.a.material.txNormalId = q.b.material.txNormalId = middle.txNormalId;
 				q.c.material.txNormalId = middle.txNormalId;
 
