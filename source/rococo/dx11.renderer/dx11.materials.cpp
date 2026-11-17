@@ -47,6 +47,13 @@ template<> struct std::hash<TxTableId>
 	}
 };
 
+struct MaterialTextureSlot
+{
+	size_t index;
+	TxTableId tableId;
+	IDX11BitmapArray* textures;
+};
+
 struct MaterialDef
 {
 	// Ping path where material is defined
@@ -62,10 +69,21 @@ struct MaterialDef
 	RGBAb diffuse;
 	RGBAb emission;
 
-	size_t colourIndex;
-	TxTableId colourTableId;
+	MaterialTextureSlot colourSlot;
+	MaterialTextureSlot normalSlot;
 
-	IDX11BitmapArray* colourTextureArray;
+	MaterialTextureSlot& GetSlot(TxTableId::Type type)
+	{
+		switch (type)
+		{
+		case TxTableId::Type::Colour:
+			return colourSlot;
+		case TxTableId::Type::Normal:
+			return normalSlot;
+		default:
+			Throw(0, "Bad slot: %d", (int)type);
+		}
+	}
 };
 
 
@@ -131,11 +149,11 @@ struct DX11Materials : IDX11MaterialsSupervisor
 
 		size_t index = (size_t)(id - 1.0f);
 		auto& def = materialDefs[index];
-		if (def.colourTextureArray == nullptr)
+		if (def.colourSlot.textures == nullptr)
 		{
 			Throw(0, "No colour texture array for material id %d", id.ToInt());
 		}
-		return TextureSliceId{ (int) def.colourIndex };
+		return TextureSliceId{ (int) def.colourSlot.index };
 	}
 
 	HString currentSrcPath;
@@ -333,9 +351,10 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		IDX11BitmapArray* textures = GetTextureTable(span, type, format, OUT id);
 		textures->AddTexture();
 
-		def.colourTableId = id;
-		def.colourIndex = textures->TextureCount() - 1;
-		def.colourTextureArray = textures;
+		MaterialTextureSlot& mts = def.GetSlot(type);
+		mts.tableId = id;
+		mts.index = textures->TextureCount() - 1;
+		mts.textures = textures;
 	}
 
 	FORCE_NOT_INLINE void CommitTextureBuffer(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format, const void* data)
@@ -343,14 +362,16 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		TxTableId id;
 		IDX11BitmapArray* textures = GetTextureTable(span, type, format, OUT id);
 
+		MaterialTextureSlot& mts = def.GetSlot(type);
+
 		// Commit
 		switch (format)
 		{
 		case DXGI_FORMAT_R8G8B8A8_UNORM:
-			textures->WriteSubImage(def.colourIndex, (const RGBAb*)data, GuiRect{ 0,0,span.x, span.y });
+			textures->WriteSubImage(mts.index, (const RGBAb*)data, GuiRect{ 0,0,span.x, span.y });
 			break;
 		case DXGI_FORMAT_A8_UNORM:
-			textures->WriteSubImage(def.colourIndex, (const uint8*)data, span);
+			textures->WriteSubImage(mts.index, (const uint8*)data, span);
 			break;
 		default:
 			Throw(0, "Bad DXGI format: %d", format);
@@ -479,7 +500,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			Throw(0, "Bad material index");
 		}
 
-		return *materialDefs[index].colourTextureArray;
+		return *materialDefs[index].colourSlot.textures;
 	}
 
 	void ShowVenue(IMathsVisitor& visitor)
