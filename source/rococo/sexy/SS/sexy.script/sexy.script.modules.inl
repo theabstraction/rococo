@@ -3612,7 +3612,7 @@ namespace Rococo::Script
 		AssertValidInterfaceName(nameExpr, tail);
 
 		IInterfaceBuilder* current_interf = ns.FindInterface(tail);
-		if (current_interf != NULL)	Throw(nameExpr, "Duplicate interface definition. Original was defined in %s", current_interf->NullObjectType().Module().Name());
+		if (current_interf != NULL)	Throw(nameExpr, "Duplicate interface definition. Original was defined in %s.\nTarget is %s", current_interf->NullObjectType().Module().Name(), s.Tree().Source().Name());
 
 		TokenBuffer flatName;
 		SubstituteChars(name, flatName.Text, 256, char('.'), char('_'));

@@ -178,9 +178,15 @@ namespace Rococo::Graphics
 			return MaterialCategory::Marble; // all that is not anythng is marble
 		}
 
-		float/* arraySliceIndex */ GetTextureSliceIndex(Rococo::Graphics::MaterialId id) override
+		float GetColourTextureSliceIndex(Rococo::Graphics::MaterialId id) override
 		{
 			TextureSliceId index = renderer.Materials().GetMaterialColourTextureIndex(id);
+			return index.ToFloat();
+		}
+
+		float GetNormalTextureSliceIndex(Rococo::Graphics::MaterialId id) override
+		{
+			TextureSliceId index = renderer.Materials().GetMaterialNormalTextureIndex(id);
 			return index.ToFloat();
 		}
 

@@ -362,7 +362,9 @@
 
 	(LoadMaterialArray (Sys.Type.IString folder) -> )
 
-	(GetTextureSliceIndex (Float32 id) -> (Float32 arraySliceIndex))
+	(GetColourTextureSliceIndex (Float32 id) -> (Float32 colourSliceIndex))
+
+	(GetNormalTextureSliceIndex (Float32 id) -> (Float32 normalSliceIndex))
 
 	(GetMaterialCateogry (Float32 id) -> (Int32 category))
 
@@ -381,7 +383,8 @@
 	(method ProxyIMaterialBuilder.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyIMaterialBuilder.CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId) : (Rococo.Graphics.Native.IMaterialBuilderCreateCubeTexture this.hObject folder extension -> cubeId))
 	(method ProxyIMaterialBuilder.LoadMaterialArray (Sys.Type.IString folder) ->  : (Rococo.Graphics.Native.IMaterialBuilderLoadMaterialArray this.hObject folder))
-	(method ProxyIMaterialBuilder.GetTextureSliceIndex (Float32 id) -> (Float32 arraySliceIndex) : (Rococo.Graphics.Native.IMaterialBuilderGetTextureSliceIndex this.hObject id -> arraySliceIndex))
+	(method ProxyIMaterialBuilder.GetColourTextureSliceIndex (Float32 id) -> (Float32 colourSliceIndex) : (Rococo.Graphics.Native.IMaterialBuilderGetColourTextureSliceIndex this.hObject id -> colourSliceIndex))
+	(method ProxyIMaterialBuilder.GetNormalTextureSliceIndex (Float32 id) -> (Float32 normalSliceIndex) : (Rococo.Graphics.Native.IMaterialBuilderGetNormalTextureSliceIndex this.hObject id -> normalSliceIndex))
 	(method ProxyIMaterialBuilder.GetMaterialCateogry (Float32 id) -> (Int32 category) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialCateogry this.hObject id -> category))
 	(method ProxyIMaterialBuilder.CountMaterialsInCategory (Int32 category) -> (Int32 count) : (Rococo.Graphics.Native.IMaterialBuilderCountMaterialsInCategory this.hObject category -> count))
 	(method ProxyIMaterialBuilder.GetMaterialId (Int32 category)(Int32 index) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialId this.hObject category index -> id))

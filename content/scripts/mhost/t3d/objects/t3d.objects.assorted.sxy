@@ -86,7 +86,8 @@
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
 	(MaterialId marbleId)
 	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> marbleId)
-	(matBuilder.GetTextureSliceIndex marbleId -> glass.txSliceId)
+	(matBuilder.GetColourTextureSliceIndex marbleId -> glass.txColourId)
+	(matBuilder.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
 	
 	(bottle.SetMaterialTop glass)
@@ -108,7 +109,8 @@
 	
 	(MaterialVertexData stopper)
 	(matBuilder.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
-	(matBuilder.GetTextureSliceIndex marbleId -> stopper.txSliceId)
+	(matBuilder.GetColourTextureSliceIndex marbleId -> stopper.txColourId)
+	(matBuilder.GetNormalTextureSliceIndex marbleId -> stopper.txNormalId)
 	(stopper.gloss = 0.2)
 	(stopper.colour = (Sys.Type.ToRGBAb 0 1 0 1))
 	(bottle.SetMaterialTop stopper)
@@ -136,7 +138,8 @@
 	
 	(MaterialId marbleId)
 	(mb.GetMaterialId (#MaterialCategoryWood) 1 -> marbleId)
-	(mb.GetTextureSliceIndex marbleId -> marble.txSliceId)
+	(mb.GetColourTextureSliceIndex marbleId -> marble.txColourId)
+	(mb.GetNormalTextureSliceIndex marbleId -> marble.txNormalId)
 	
 	(marble.gloss = 0.1)
 	
@@ -166,7 +169,8 @@
 	
 	(MaterialId marbleId)
 	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marbleId)
-	(mb.GetTextureSliceIndex marbleId -> marble.txSliceId)
+	(mb.GetColourTextureSliceIndex marbleId -> marble.txColourId)
+	(mb.GetNormalTextureSliceIndex marbleId -> marble.txNormalId)
 	(marble.gloss = 0.1)
 	
 	(rod.SetMaterialTop marble)
@@ -221,7 +225,8 @@
 	
 	(MaterialId marbleId)
 	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
-	(mats.GetTextureSliceIndex marbleId -> glass.txSliceId)
+	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
+	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
 	
 	(IMeshBuilder mb (MeshBuilder))
@@ -289,7 +294,8 @@
 	
 	(MaterialId marbleId)
 	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
-	(mats.GetTextureSliceIndex marbleId -> glass.txSliceId)
+	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
+	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
 	
 	(IMeshBuilder mb (MeshBuilder))
@@ -357,7 +363,8 @@
 	
 	(MaterialId marbleId)
 	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
-	(mats.GetTextureSliceIndex marbleId -> glass.txSliceId)
+	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
+	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
 	
 	(IMeshBuilder mb (MeshBuilder))
@@ -425,7 +432,8 @@
 	
 	(MaterialId marbleId)
 	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
-	(mats.GetTextureSliceIndex marbleId -> glass.txSliceId)
+	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
+	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.1)
 	
 	(IMeshBuilder mb (MeshBuilder))

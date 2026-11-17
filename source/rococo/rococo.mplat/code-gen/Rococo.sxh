@@ -414,7 +414,8 @@
 	(methods
 		(CreateCubeTexture (IString folder)(IString extension)->(IdCubeTexture cubeId))
 		(LoadMaterialArray (IString folder))
-		(GetTextureSliceIndex (MaterialId id)->(Float32 arraySliceIndex))
+		(GetColourTextureSliceIndex (MaterialId id)->(Float32 colourSliceIndex))
+		(GetNormalTextureSliceIndex (MaterialId id)->(Float32 normalSliceIndex))
 		(GetMaterialCateogry (MaterialId id)->(MaterialCategory category))
 		(CountMaterialsInCategory (MaterialCategory category)->(Int32 count))
 		(GetMaterialId  (MaterialCategory category)(Int32 index)->(MaterialId id))

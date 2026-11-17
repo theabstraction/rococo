@@ -715,7 +715,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 			dc.PSSetShaderResources(TXUNIT_MATERIALS_COLOUR, 1, &cview);
 
 			auto* nview = materials->GetTextureNormalArrayForMaterial(id).View();
-			dc.PSSetShaderResources(TXUNIT_MATERIALS_COLOUR, 1, &nview);
+			dc.PSSetShaderResources(TXUNIT_MATERIALS_NORMAL, 1, &nview);
 		}
 	}
 

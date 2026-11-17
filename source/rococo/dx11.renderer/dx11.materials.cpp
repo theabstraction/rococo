@@ -140,7 +140,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		metrics.Width = maxWidth;
 	}
 
-	TextureSliceId GetMaterialColourTextureIndex(MaterialId id) const
+	TextureSliceId GetMaterialColourTextureIndex(MaterialId id) const override
 	{
 		if (!IsDefined(id))
 		{
@@ -154,6 +154,22 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			Throw(0, "No colour texture array for material id %d", id.ToInt());
 		}
 		return TextureSliceId{ (int) def.colourSlot.index };
+	}
+
+	TextureSliceId GetMaterialNormalTextureIndex(MaterialId id) const override
+	{
+		if (!IsDefined(id))
+		{
+			Throw(0, "GetMaterialNormalTextureIndex: Undefined material id %d", id.ToInt());
+		}
+
+		size_t index = (size_t)(id - 1.0f);
+		auto& def = materialDefs[index];
+		if (def.normalSlot.textures == nullptr)
+		{
+			Throw(0, "No normal texture array for material id %d", id.ToInt());
+		}
+		return TextureSliceId{ (int)def.normalSlot.index };
 	}
 
 	HString currentSrcPath;
