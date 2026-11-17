@@ -10,8 +10,10 @@ ObjectPixelVertex main(ObjectVertex v)
     sv.cameraSpacePosition = Transform_World_To_Camera(worldPosition);
 	sv.shadowPos = float4(0.0f, 0.0f, 0.0f, 0.0f);
     sv.worldPosition = worldPosition.xyz;
-	sv.uv_textureIndex_and_gloss.xy = v.uv.xy;
-	sv.uv_textureIndex_and_gloss.zw = v.textureIndexAndGloss.xy;
+	sv.uv_and_gloss.xy = v.uv.xy;
+	sv.uv_and_gloss.z = v.colourNormalAndGloss.z;
+	sv.textureIndices.x = v.colourNormalAndGloss.x;
+	sv.textureIndices.y = v.colourNormalAndGloss.y;
 	sv.colour = v.colour;
 	return sv;
 }

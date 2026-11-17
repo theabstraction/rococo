@@ -5,8 +5,9 @@ LandVertex main(ObjectVertex v)
 	LandVertex sv;
 	sv.position = Project_World_To_Screen(float4(v.modelPosition.xyz, 1.0f));
 	sv.normal = Transform_Instance_To_World(float4(v.modelNormal.xyz, 0.0f));
-	sv.uv_textureIndex_and_gloss.xy = v.uv.xy;
-	sv.uv_textureIndex_and_gloss.z = v.textureIndexAndGloss.x;
-	sv.uv_textureIndex_and_gloss.w = v.textureIndexAndGloss.y;
+	sv.uv_and_gloss.xy = v.uv.xy;
+	sv.uv_and_gloss.z = v.colourNormalAndGloss.z;
+	sv.textureIndices.x = v.colourNormalAndGloss.x;
+	sv.textureIndices.y = v.colourNormalAndGloss.y;
 	return sv;
 }

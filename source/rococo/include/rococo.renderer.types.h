@@ -81,9 +81,11 @@ namespace Rococo::Graphics
 	struct MaterialVertexData
 	{
 		RGBAb colour;
-		TextureSliceId txSliceId;
+		TextureSliceId txColourId;
+		TextureSliceId txNormalId;
 		float gloss = 0;
 	};
+	static_assert(sizeof(MaterialVertexData) == 16);
 
 	struct ObjectVertex
 	{

@@ -97,7 +97,8 @@ namespace
 			MaterialVertexData mvd;
 			mvd.colour = RGBAb(255, 255, 255, 255);
 			mvd.gloss = 0;
-			mvd.txSliceId = TextureSliceId(2);
+			mvd.txColourId = TextureSliceId(2);
+			mvd.txNormalId = TextureSliceId(0);
 
 			rng.Seed((uint32) seedNumber);
 

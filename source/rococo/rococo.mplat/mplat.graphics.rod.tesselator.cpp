@@ -24,9 +24,9 @@ namespace ANON
 		std::vector<ObjectVertex> tempBuffer2;
 
 		bool smoothNormals = true;
-		MaterialVertexData top { RGBAb(255, 255, 255), TextureSliceId(0), 0 };
-		MaterialVertexData middle { RGBAb(128, 128, 128), TextureSliceId(0), 0.1f };
-		MaterialVertexData bottom{ RGBAb(0, 0, 0), TextureSliceId(0), 0.2f };
+		MaterialVertexData top { RGBAb(255, 255, 255), TextureSliceId(0), TextureSliceId(0), 0 };
+		MaterialVertexData middle { RGBAb(128, 128, 128), TextureSliceId(0), TextureSliceId(0), 0.1f };
+		MaterialVertexData bottom{ RGBAb(0, 0, 0), TextureSliceId(0), TextureSliceId(0), 0.2f };
 		float uvScale = 1.0f;
 
 		std::vector<VertexTriangle>  triangles;
@@ -137,8 +137,8 @@ namespace ANON
 			float uSW = 0;
 			float uSE = Length(lse - lsw) * uvScale;
 
-			MaterialVertexData topMat = { top.colour, middle.txSliceId, top.gloss };
-			MaterialVertexData botMat = { bottom.colour, middle.txSliceId, bottom.gloss };
+			MaterialVertexData topMat = { top.colour, middle.txColourId, middle.txNormalId, top.gloss };
+			MaterialVertexData botMat = { bottom.colour, middle.txColourId, middle.txNormalId, bottom.gloss };
 
 			Vec3 Ns{ 0,-1, 0 };
 
@@ -240,8 +240,8 @@ namespace ANON
 			float uSW = 0;
 			float uSE = Length(se - sw) * uvScale;
 
-			MaterialVertexData topMat = { top.colour, middle.txSliceId, top.gloss };
-			MaterialVertexData botMat = { bottom.colour, middle.txSliceId, bottom.gloss };
+			MaterialVertexData topMat = { top.colour, middle.txColourId, middle.txNormalId, top.gloss };
+			MaterialVertexData botMat = { bottom.colour, middle.txColourId, middle.txNormalId, bottom.gloss };
 
 			Vec3 Ns = Normalize ( Cross(apx - se, sw - se) );
 
@@ -326,8 +326,8 @@ namespace ANON
 			float uAtB = Length(ub - ua) * uvScale;
 			float uAtC = Length(ub - uc) * uvScale + uAtB;
 
-			MaterialVertexData topMat = { top.colour, middle.txSliceId, top.gloss };
-			MaterialVertexData botMat = { bottom.colour, middle.txSliceId, bottom.gloss };
+			MaterialVertexData topMat = { top.colour, middle.txColourId, middle.txNormalId, top.gloss };
+			MaterialVertexData botMat = { bottom.colour, middle.txColourId, middle.txNormalId, bottom.gloss };
 
 			Vec3 Nab = Normalize(Cross(ub - ua, lb - ub));
 
@@ -1219,8 +1219,11 @@ namespace ANON
 				q.a.material.gloss = q.b.material.gloss = top.gloss;
 				q.d.material.gloss = q.c.material.gloss = bottom.gloss;
 
-				q.a.material.txSliceId = q.b.material.txSliceId = middle.txSliceId;
-				q.d.material.txSliceId = q.c.material.txSliceId = middle.txSliceId;
+				q.a.material.txColourId = q.b.material.txColourId = middle.txColourId;
+				q.d.material.txColourId = q.c.material.txColourId = middle.txColourId;
+
+				q.a.material.txNormalId = q.b.material.txNormalId = middle.txNormalId;
+				q.d.material.txNormalId = q.c.material.txNormalId = middle.txNormalId;
 
 				AddQuad(q);
 
@@ -1269,8 +1272,8 @@ namespace ANON
 				q.a.material.gloss = q.b.material.gloss = top.gloss;
 				q.c.material.gloss = bottom.gloss;
 
-				q.a.material.txSliceId = q.b.material.txSliceId = middle.txSliceId;
-				q.c.material.txSliceId = middle.txSliceId;
+				q.a.material.txNormalId = q.b.material.txNormalId = middle.txNormalId;
+				q.c.material.txNormalId = middle.txNormalId;
 
 				triangles.push_back(q);
 

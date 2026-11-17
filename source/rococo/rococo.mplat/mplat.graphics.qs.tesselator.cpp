@@ -13,7 +13,7 @@ namespace Rococo
 
 	bool operator == (const MaterialVertexData& a, const MaterialVertexData& b)
 	{
-		return a.colour == b.colour && a.gloss == b.gloss && a.txSliceId == b.txSliceId;
+		return memcmp(&a, &b, sizeof(MaterialVertexData)) == 0;
 	}
 }
 
