@@ -520,7 +520,7 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         spriteRasterizering = DX11::CreateSpriteRasterizer(device);
         guiDepthState = DX11::CreateGuiDepthStencilState(device);
 
-        spriteArray = CreateDX11BitmapArray(device, dc);
+        spriteArray = CreateDX11BitmapArray(device, dc, false);
         spriteArrayBuilder = CreateBitmapArrayBuilder(loader, *spriteArray);
 
         cstr csvName = "!font1.csv";

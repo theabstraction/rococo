@@ -25,8 +25,10 @@ struct DX11BitmapArray : public IDX11BitmapArray
     size_t arrayCapacity{ 0 };
     size_t count{ 0 };
 
-    DX11BitmapArray(ID3D11Device& _device, ID3D11DeviceContext& dc) :
-        device(_device), activeDC(&dc)
+    bool genMipMaps;
+
+    DX11BitmapArray(ID3D11Device& _device, ID3D11DeviceContext& dc, bool _genMipMaps) :
+        device(_device), activeDC(&dc), genMipMaps(_genMipMaps)
     {
     }
 
@@ -47,6 +49,11 @@ struct DX11BitmapArray : public IDX11BitmapArray
 
     void GenMipMaps() override
     {
+        if (!genMipMaps)
+        {
+            return;
+        }
+
         if (!tb.texture)
         {
             return;
@@ -130,7 +137,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
             D3D11_TEXTURE2D_DESC colourSpriteArray;
             colourSpriteArray.Width = width;
             colourSpriteArray.Height = height;
-            colourSpriteArray.MipLevels = 0;
+            colourSpriteArray.MipLevels = genMipMaps ? 0 : 1;
             colourSpriteArray.ArraySize = (UINT)arrayCapacity;
             colourSpriteArray.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             colourSpriteArray.SampleDesc.Count = 1;
@@ -138,7 +145,8 @@ struct DX11BitmapArray : public IDX11BitmapArray
             colourSpriteArray.Usage = D3D11_USAGE_DEFAULT;
             colourSpriteArray.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
             colourSpriteArray.CPUAccessFlags = 0;
-            colourSpriteArray.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+            colourSpriteArray.MiscFlags = 0;
+            if (genMipMaps) colourSpriteArray.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
             VALIDATEDX11(device.CreateTexture2D(&colourSpriteArray, nullptr, &tb.texture));
             tb.texture->GetDesc(&tb.desc);
         }
@@ -180,7 +188,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
             D3D11_TEXTURE2D_DESC alphArray;
             alphArray.Width = width;
             alphArray.Height = height;
-            alphArray.MipLevels = 0;
+            alphArray.MipLevels = genMipMaps ? 1 : 0;
             alphArray.ArraySize = (UINT)arrayCapacity;
             alphArray.Format = DXGI_FORMAT_R8_UNORM;
             alphArray.SampleDesc.Count = 1;
@@ -188,7 +196,8 @@ struct DX11BitmapArray : public IDX11BitmapArray
             alphArray.Usage = D3D11_USAGE_DEFAULT;
             alphArray.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
             alphArray.CPUAccessFlags = 0;
-            alphArray.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+            alphArray.MiscFlags = 0;
+            if (genMipMaps) alphArray.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
             VALIDATEDX11(device.CreateTexture2D(&alphArray, nullptr, &tb.texture));
             tb.texture->GetDesc(&tb.desc);
         }
@@ -282,14 +291,14 @@ struct DX11BitmapArray : public IDX11BitmapArray
 
 namespace Rococo::DX11
 {
-    IDX11BitmapArray* CreateDX11BitmapArray(ID3D11Device& device, ID3D11DeviceContext& dc)
+    IDX11BitmapArray* CreateDX11BitmapArray(ID3D11Device& device, ID3D11DeviceContext& dc, bool genMipMaps)
     {
-        return new DX11BitmapArray(device, dc);
+        return new DX11BitmapArray(device, dc, genMipMaps);
     }
 
-    IDX11BitmapArray* LoadAlphaBitmapArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& dc)
+    IDX11BitmapArray* LoadAlphaBitmapArray(ID3D11Device& device, Vec2i span, int32 nElements, ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& dc, bool genMipMaps)
     {
-        IDX11BitmapArray* array = CreateDX11BitmapArray(device, dc);
+        IDX11BitmapArray* array = CreateDX11BitmapArray(device, dc, genMipMaps);
 
         try
         {

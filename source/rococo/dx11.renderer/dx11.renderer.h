@@ -73,8 +73,8 @@ namespace Rococo::DX11
 		virtual void SetActiveDC(ID3D11DeviceContext* dc) = 0;
 	};
 
-	IDX11BitmapArray* CreateDX11BitmapArray(ID3D11Device& device, ID3D11DeviceContext& activeDC);
-	IDX11BitmapArray* LoadAlphaBitmapArray(ID3D11Device& device, Vec2i span, int32 nElements, Rococo::Graphics::ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& activeDC);
+	IDX11BitmapArray* CreateDX11BitmapArray(ID3D11Device& device, ID3D11DeviceContext& activeDC, bool genMipMaps);
+	IDX11BitmapArray* LoadAlphaBitmapArray(ID3D11Device& device, Vec2i span, int32 nElements, Rococo::Graphics::ITextureLoadEnumerator& enumerator, ID3D11DeviceContext& activeDC, bool genMipMaps);
 
 	ROCOCO_INTERFACE IDX11FontRenderer
 	{

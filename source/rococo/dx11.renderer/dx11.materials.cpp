@@ -354,7 +354,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		if (i.second)
 		{
 			// Fresh insert
-			i.first->second = CreateDX11BitmapArray(device, dc);
+			i.first->second = CreateDX11BitmapArray(device, dc, true);
 			i.first->second->ResetWidth(span.x, span.y);
 		}
 

@@ -119,6 +119,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		try
 		{
 			VALIDATEDX11(device.CreateTexture2D(&textureArrayDesc, nullptr, &tb.texture));
+			tb.texture->GetDesc(&tb.desc);
 		}
 		catch (IException& ex)
 		{
@@ -149,6 +150,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		try
 		{
 			VALIDATEDX11(device.CreateTexture2D(&textureForExport, nullptr, &tbExportTexture.texture));
+			tbExportTexture.texture->GetDesc(&tbExportTexture.desc);
 		}
 		catch (IException& ex)
 		{
@@ -681,7 +683,7 @@ struct DX11TextureManager : IDX11TextureManager, ICubeTextures
 		auto i = nameToGenericTextureId.find(uniqueName);
 		if (i != nameToGenericTextureId.end()) return i->second;
 
-		IDX11BitmapArray* array = DX11::LoadAlphaBitmapArray(device, span, nElements, enumerator, dc);
+		IDX11BitmapArray* array = DX11::LoadAlphaBitmapArray(device, span, nElements, enumerator, dc, false);
 
 		auto id = ID_TEXTURE{ (size_t)array | 0x8000000000000000LL };
 		nameToGenericTextureId[uniqueName] = id;

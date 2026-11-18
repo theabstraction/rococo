@@ -199,7 +199,7 @@ namespace Rococo::DX11
 		newSpec.height = (int)(font.spec.height * zoomLevel);
 		AutoFree<IArrayFontSupervisor> newFont = CreateOSFont(glyphBuilder, newSpec);
 
-		AutoFree<IDX11BitmapArray> new_array2D = CreateDX11BitmapArray(device, activeDC);
+		AutoFree<IDX11BitmapArray> new_array2D = CreateDX11BitmapArray(device, activeDC, false);
 		OSFont osFont{ newFont, font.spec, font.spec.fontName, new_array2D };
 		
 		struct : IEventCallback<const Fonts::GlyphDesc>
@@ -316,7 +316,7 @@ namespace Rococo::DX11
 			}
 
 			Fonts::IArrayFontSupervisor* new_Font = Fonts::CreateOSFont(glyphs, spec);
-			IDX11BitmapArray* new_array2D = CreateDX11BitmapArray(device, *activeDC);
+			IDX11BitmapArray* new_array2D = CreateDX11BitmapArray(device, *activeDC, false);
 			OSFont osFont{ new_Font, spec, spec.fontName, new_array2D };
 			osFont.spec.fontName = osFont.fontFamily;
 			osFonts.push_back(osFont); // osFonts manages lifetime, so we can release our references
