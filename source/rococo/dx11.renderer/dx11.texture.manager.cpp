@@ -160,6 +160,8 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 	~MipMappedTextureArray()
 	{
 		if (tb.texture) tb.texture->Release();
+		if (tb.shaderView) tb.shaderView->Release();
+		if (tb.renderView) tb.renderView->Release();
 		if (tbExportTexture.texture) tbExportTexture.texture->Release();
 	}
 
@@ -286,6 +288,11 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 
 	void WriteSubImage(uint32 index, uint32 mipMapLevel, const RGBAb* pixels, const GuiRect& targetLocation) override
 	{
+		if (!tb.texture)
+		{
+			Throw(0, "%s: no tb.texture", __ROCOCO_FUNCTION__);
+		}
+
 		if (!activeDC)
 		{
 			Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
@@ -308,7 +315,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 
 		UINT mipSlice = numberOfMipLevels - mipMapLevel - 1;
 
-		UINT subresourceIndex = D3D11CalcSubresource(mipSlice, (UINT)index, 1);
+		UINT subresourceIndex = D3D11CalcSubresource(mipSlice, (UINT)index, tb.desc.MipLevels);
 		Vec2i targetSpan = Span(targetLocation);
 		D3D11_BOX box;
 		box.left = targetLocation.left;
@@ -331,7 +338,7 @@ struct MipMappedTextureArray : Textures::IMipMappedTextureArraySupervisor
 		}
 
 		UINT srcDepth = Sq(levelSpan) * sizeof(RGBAb);
-		if (tb.texture) activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, levelSpan * sizeof(RGBAb), srcDepth);
+		activeDC->UpdateSubresource(tb.texture, subresourceIndex, &box, pixels, levelSpan * sizeof(RGBAb), srcDepth);
 	}
 
 	void WriteSubImage(uint32 index, uint32 mipMapLevel, const uint8* alphaTexels, const GuiRect& targetLocation) override

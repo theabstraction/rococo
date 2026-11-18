@@ -214,7 +214,9 @@ namespace Rococo::DX11
 					srcbox.bottom = materialArray.Width();
 					srcbox.back = 1;
 
-					dc.CopySubresourceRegion(pTexCube, i, 0, 0, 0, materialArray.Binding().texture, cubeMaterialId[i], &srcbox);
+					pTexCube->GetDesc(&desc);
+					UINT subresourceIndex = D3D11CalcSubresource(0, cubeMaterialId[i], desc.MipLevels);
+					dc.CopySubresourceRegion(pTexCube, i, 0, 0, 0, materialArray.Binding().texture, subresourceIndex, &srcbox);
 				}
 			}
 
