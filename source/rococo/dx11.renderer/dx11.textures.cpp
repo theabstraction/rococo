@@ -184,7 +184,10 @@ namespace Rococo
           texture2D->AddRef();
           texture->SysTexture().TextureView().AddRef();
 
-          TextureBind bind { texture2D, &texture->SysTexture().TextureView(), nullptr, nullptr };
+          D3D11_TEXTURE2D_DESC desc;
+          texture2D->GetDesc(&desc);
+
+          TextureBind bind { desc, texture2D, &texture->SysTexture().TextureView(), nullptr, nullptr };
           return bind;
 
       }
@@ -229,7 +232,10 @@ namespace Rococo
 
          dc.GenerateMips(view);
 
-         return{ tx, view };
+         D3D11_TEXTURE2D_DESC tdesc;
+         tx->GetDesc(&tdesc);
+
+         return { tdesc, tx, view };
       }
 
 	  void TextureLoader::LoadColourBitmapIntoAddress(cstr resourceName, IColourBitmapLoadEvent& onLoad)
@@ -308,7 +314,10 @@ namespace Rococo
             Throw(hr, "Failed to CreateShaderResourceVie for %s", resourceName);
          }
 
-         return{ alpha, view };
+         D3D11_TEXTURE2D_DESC tdesc;
+         alpha->GetDesc(&tdesc);
+
+         return{ tdesc, alpha, view };
       }
 
       void GetTextureDesc(TextureDesc& desc, ID3D11Texture2D& texture)

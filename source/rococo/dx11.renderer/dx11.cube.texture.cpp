@@ -218,7 +218,9 @@ namespace Rococo::DX11
 				}
 			}
 
-			cubeTextureArray.push_back(TextureBind{ pTexCube.Detach(), view });
+			pTexCube->GetDesc(&desc);
+
+			cubeTextureArray.push_back(TextureBind{ desc, pTexCube.Detach(), view });
 			size_t index = CUBE_ID_BASE + cubeTextureArray.size();
 			return ID_CUBE_TEXTURE(index);
 		}

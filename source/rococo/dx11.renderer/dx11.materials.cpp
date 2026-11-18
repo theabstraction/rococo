@@ -486,6 +486,12 @@ struct DX11Materials : IDX11MaterialsSupervisor
 				Throw(ex.ErrorCode(), "Error with material %s defined in %s line %d: %s", def.name.c_str(), def.srcPath.c_str(), def.srcIndex, ex.Message());
 			}
 		}
+
+		for (auto& i : mapTextureTableIdToTextureArray)
+		{
+			IDX11BitmapArray* textures = i.second;
+			textures->GenMipMaps();
+		}
 	}
 
 	MaterialId GetMaterialId(cstr name) const

@@ -18,6 +18,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
     int32 width{ 0 };
     int32 height{ 0 };
     ID3D11Device& device;
+    bool isMipMapped = false;
 
     ID3D11DeviceContext* activeDC = nullptr;
 
@@ -44,6 +45,40 @@ struct DX11BitmapArray : public IDX11BitmapArray
         delete this;
     }
 
+    void GenMipMaps() override
+    {
+        if (!tb.texture)
+        {
+            return;
+        }
+
+        if (isMipMapped)
+        {
+            return;
+        }
+
+        if (!activeDC)
+        {
+            Throw(0, "No active DC for GenMipMaps");
+        }
+
+        D3D11_TEXTURE2D_DESC desc;
+        tb.texture->GetDesc(&desc);
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC sv = {};
+        sv.Format = desc.Format;
+        sv.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        sv.Texture2DArray.MostDetailedMip = 0;
+        sv.Texture2DArray.MipLevels = (UINT)-1;   // all
+        sv.Texture2DArray.FirstArraySlice = 0;
+        sv.Texture2DArray.ArraySize = desc.ArraySize;
+        device.CreateShaderResourceView(tb.texture, &sv, &tb.shaderView);
+
+        ID3D11ShaderResourceView* srv = CreateSRV();
+        activeDC->GenerateMips(srv);
+        srv->Release();
+    }
+
     void Clear()
     {
         if (tb.texture) tb.texture->Release();
@@ -52,6 +87,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
         tb.shaderView = nullptr;
         count = 0;
         arrayCapacity = 0;
+        isMipMapped = false;
     }
 
     void AddTexture() override
@@ -103,16 +139,17 @@ struct DX11BitmapArray : public IDX11BitmapArray
             D3D11_TEXTURE2D_DESC colourSpriteArray;
             colourSpriteArray.Width = width;
             colourSpriteArray.Height = height;
-            colourSpriteArray.MipLevels = 1;
+            colourSpriteArray.MipLevels = 0;
             colourSpriteArray.ArraySize = (UINT)arrayCapacity;
             colourSpriteArray.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             colourSpriteArray.SampleDesc.Count = 1;
             colourSpriteArray.SampleDesc.Quality = 0;
             colourSpriteArray.Usage = D3D11_USAGE_DEFAULT;
-            colourSpriteArray.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+            colourSpriteArray.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
             colourSpriteArray.CPUAccessFlags = 0;
-            colourSpriteArray.MiscFlags = 0;
+            colourSpriteArray.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
             VALIDATEDX11(device.CreateTexture2D(&colourSpriteArray, nullptr, &tb.texture));
+            tb.texture->GetDesc(&tb.desc);
         }
 
         if (width > 0)
@@ -122,7 +159,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
                 Throw(0, "DX11TextureArray::format is not RGBA but image passed was RGBA");
             }
 
-            UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
+            UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, tb.desc.MipLevels);
             Vec2i span = Span(targetLocation);
             D3D11_BOX box;
             box.left = targetLocation.left;
@@ -210,26 +247,41 @@ struct DX11BitmapArray : public IDX11BitmapArray
         activeDC = dc;
     }
 
+    ID3D11ShaderResourceView* CreateSRV()
+    {
+        if (tb.texture == nullptr)
+        {
+            Throw(0, "No texture for CreateSRV");
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+
+        desc.Texture2DArray.MipLevels = (UINT)-1;
+        desc.Texture2DArray.FirstArraySlice = 0;
+        desc.Texture2DArray.ArraySize = (UINT)count;
+        desc.Texture2DArray.MostDetailedMip = 0;
+
+        desc.Format = DXGI_FORMAT_UNKNOWN;
+        desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+
+        ID3D11ShaderResourceView* view = nullptr;
+        VALIDATEDX11(device.CreateShaderResourceView(tb.texture, &desc, &view));
+
+        if (view == nullptr)
+        {
+            Throw(0, "CreateSRV - CreateShaderResourceView yielded nullptr");
+        }
+        return view;
+    }
+
     ID3D11ShaderResourceView* View() override
     {
         if (tb.shaderView == nullptr)
         {
             if (tb.texture != nullptr)
             {
-                D3D11_SHADER_RESOURCE_VIEW_DESC desc;
-                ZeroMemory(&desc, sizeof(desc));
-
-                desc.Texture2DArray.MipLevels = (UINT) -1;
-                desc.Texture2DArray.FirstArraySlice = 0;
-                desc.Texture2DArray.ArraySize = (UINT)count;
-                desc.Texture2DArray.MostDetailedMip = 0;
-
-                desc.Format = DXGI_FORMAT_UNKNOWN;
-                desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-
-                ID3D11ShaderResourceView* view = nullptr;
-                VALIDATEDX11(device.CreateShaderResourceView(tb.texture, &desc, &view));
-                tb.shaderView = view;
+                tb.shaderView = CreateSRV();
             }
         }
 

@@ -64,6 +64,7 @@ namespace Rococo::DX11
 	ROCOCO_INTERFACE IDX11BitmapArray : public Rococo::Graphics::Textures::IBitmapArray
 	{
 		virtual void Free() = 0;
+		virtual void GenMipMaps() = 0;
 		virtual void Resize(size_t nElements) = 0;
 		virtual int32 Height() const = 0;
 		virtual int32 Width() const = 0;

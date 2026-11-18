@@ -53,6 +53,7 @@ namespace Rococo
 
       struct TextureBind
       {
+         D3D11_TEXTURE2D_DESC desc = { 0 };
          ID3D11Texture2D* texture = nullptr;
          ID3D11ShaderResourceView* shaderView = nullptr;
 		 ID3D11RenderTargetView* renderView = nullptr;

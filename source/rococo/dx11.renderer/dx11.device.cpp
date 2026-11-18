@@ -62,9 +62,10 @@ namespace Rococo::DX11
 		ID3D11DepthStencilView* depthView = nullptr;
 		ID3D11ShaderResourceView* srv = nullptr;
 
+		D3D11_TEXTURE2D_DESC desc;
+
 		try
 		{
-			D3D11_TEXTURE2D_DESC desc;
 			desc.ArraySize = 1;
 			desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 			desc.CPUAccessFlags = 0;
@@ -100,7 +101,8 @@ namespace Rococo::DX11
 			throw;
 		}
 
-		return { tex2D, srv, nullptr, depthView };
+		tex2D->GetDesc(&desc);
+		return { desc, tex2D, srv, nullptr, depthView };
 	}
 
 	TextureBind CreateRenderTarget(ID3D11Device& device, int32 width, int32 height, TextureFormat format)
@@ -109,9 +111,10 @@ namespace Rococo::DX11
 		ID3D11ShaderResourceView* srv = nullptr;
 		ID3D11RenderTargetView* rtv = nullptr;
 
+		D3D11_TEXTURE2D_DESC desc;
+
 		try
 		{
-			D3D11_TEXTURE2D_DESC desc;
 			desc.ArraySize = 1;
 			desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 			desc.CPUAccessFlags = 0;
@@ -198,6 +201,7 @@ namespace Rococo::DX11
 			throw;
 		}
 
-		return TextureBind{ tex, srv, rtv };
+		tex->GetDesc(&desc);
+		return TextureBind{ desc, tex, srv, rtv };
 	}
 }
