@@ -2405,6 +2405,60 @@ R"(
 		validate(x == 120.0f);
 	}
 
+	void TestStructureAssignToAtomicCallReturn(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function SetTo123 (out Vec2i result) -> : (result = 12 3))"
+			"(function Main -> (Int32 result):\n"
+			"	(Vec2i v = SetTo123)\n"
+			"	(result = (v.x / v.y))\n"
+			")\n"
+			"(struct Vec2i\n"
+			"	(Int32 x y)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
+	void TestStructureAssignToAtomicMethodCallReturn(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(class Robot (defines Sys.Type.IRobot))"
+			"(method Robot.Construct : )"
+			"(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))"
+			"(method Robot.SetTo123 (out Vec2i result) -> : (result = 12 3))"
+			"(function Main -> (Int32 result):\n"
+			"	(Sys.Type.IRobot robot (Sys.Type.NewRobot))"
+			"	(Vec2i v = robot.SetTo123)\n"
+			"	(result = (v.x / v.y))\n"
+			")\n"
+			"(struct Vec2i\n"
+			"	(Int32 x y)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
 	void TestStructure2(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -19054,6 +19108,10 @@ R"(
 		TEST(TestEnumByCPP);
 
 		TEST(TestFactoryReturnEmpty);
+
+		TEST(TestStructureAssignToAtomicCallReturn);
+		TEST(TestStructureAssignToAtomicMethodCallReturn);
+
 	}
 
 	void RunPositiveFailures()
@@ -19129,8 +19187,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
