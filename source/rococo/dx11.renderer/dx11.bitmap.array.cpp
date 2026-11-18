@@ -65,12 +65,15 @@ struct DX11BitmapArray : public IDX11BitmapArray
         ID3D11ShaderResourceView* srv = CreateSRV();
         activeDC->GenerateMips(srv);
         srv->Release();
+
+        isMipMapped = true;
     }
 
     void Clear()
     {
         if (tb.texture) tb.texture->Release();
         if (tb.shaderView) tb.shaderView->Release();
+        tb.desc = { 0 };
         tb.texture = nullptr;
         tb.shaderView = nullptr;
         count = 0;
