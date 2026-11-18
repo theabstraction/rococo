@@ -405,12 +405,12 @@ namespace Rococo
 			cr_sex sArgStructByRef = fDef[2];
 			if (sArgStructByRef.NumberOfElements() != 3)
 			{
-				Throw(directive, "needs a method with argument (out %s result)", GetFriendlyName(instanceType));
+				Throw(directive, "needs a method with argument (out %s result)", GetFriendlyName(argStructByRef));
 			}
 
 			if (!IsAtomic(sArgStructByRef[0]) || !(Eq("out", sArgStructByRef[0].c_str())))
 			{
-				Throw(directive, "needs a method with argument (out %s result)", GetFriendlyName(instanceType));
+				Throw(directive, "needs a method with argument (out %s result)", GetFriendlyName(argStructByRef));
 			}
 
 			char localName[128] = "";
@@ -457,18 +457,18 @@ namespace Rococo
 		{
 			if (f.NumberOfInputs() != 1)
 			{
-				Throw(0, "For an assignment to a struct, the method requires one, and only one input, and it should be marked 'out'");
+				Throw(directive, "For an assignment to a struct, the method requires one, and only one input, and it should be marked 'out'");
 			}
 
 			if (f.NumberOfOutputs() != 0)
 			{
-				Throw(0, "For an assignment to a struct, the method requires that there are no outputs");
+				Throw(directive, "For an assignment to a struct, the method requires that there are no outputs");
 			}
 
 			auto& arg0 = f.GetArgument(0);
 			if (arg0 != varStruct)
 			{
-				Throw(0, "The function %s returns a %s, but the assigned variable is of type %s", f.Name(), arg0.Name(), varStruct.Name());
+				Throw(directive, "The function %s returns a %s, but the assigned variable is of type %s", f.Name(), arg0.Name(), varStruct.Name());
 			}
 
 			if (!f.Definition())
