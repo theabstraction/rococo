@@ -361,7 +361,7 @@ namespace Rococo
 			}
 		}
 
-		void CompileAssignStructFromAtomicMethodCall(CCompileEnvironment& ce, cr_sex directive, cstr instance, cstr methodName)
+		bool TryCompileAssignStructFromAtomicMethodCall(CCompileEnvironment& ce, cr_sex directive, cstr instance, cstr methodName)
 		{
 			// (Vec2i v = instance.Method) or (v = instance.Method)
 
@@ -374,7 +374,7 @@ namespace Rococo
 			auto& instanceType = *def.ResolvedType;
 			if (instanceType.InterfaceCount() != 1)
 			{
-				Throw(directive, "Expecting an interface method call, but the instance '%s' was not an interface. It is a %s", instance, GetFriendlyName(instanceType));
+				return false;
 			}
 
 			OUT int interfaceIndex, OUT methodIndex;
@@ -386,15 +386,20 @@ namespace Rococo
 			const IObjectInterface& interf = instanceType.GetInterface(interfaceIndex);
 			const IArchetype& method = interf.GetMethod(methodIndex);
 
-			auto& argStructByRef = method.GetArgument(0);
-			auto& argThisPointer = method.GetArgument(1);
-
 			if (method.NumberOfInputs() != 2 || method.NumberOfOutputs() != 0)
 			{
 				Throw(directive, "For an assignment of a struct from a method call with no argument, expecting a method with one argument and no outputs");
 			}
 
+			auto& argStructByRef = method.GetArgument(0);
+			auto& argThisPointer = method.GetArgument(1);
+
 			// (method class.GetPosition (out Vec2i position) -> : ... )
+
+			if (!method.Definition())
+			{
+				Throw(directive, "Unexpected: cannot apply syntatic sugar for method %s. The method had no sexy representation", methodName);
+			}
 
 			cr_sex fDef = *reinterpret_cast<const ISExpression*>(method.Definition());
 			cr_sex sArgStructByRef = fDef[2];
@@ -444,6 +449,8 @@ namespace Rococo
 			ce.Builder.MarkExpression(&directive);
 
 			RepairStack(ce, directive, method);
+
+			return true;
 		}
 
 		void CompileStructAssignFromFunctionAtomicDirect(CCompileEnvironment& ce, IFunction& f, cr_sex sourceValue, cr_sex directive, const IStructure& varStruct)
@@ -462,6 +469,11 @@ namespace Rococo
 			if (arg0 != varStruct)
 			{
 				Throw(0, "The function %s returns a %s, but the assigned variable is of type %s", f.Name(), arg0.Name(), varStruct.Name());
+			}
+
+			if (!f.Definition())
+			{
+				Throw(directive, "Cannot apply syntatic sugar for function %s. The method had no sexy representation", f.Name());
 			}
 
 			// fdef: (function f (out Vec2i position) -> :)
@@ -1479,8 +1491,10 @@ namespace Rococo
 							   if (isupper(*method))
 							   {
 								   // Method call
-								   CompileAssignStructFromAtomicMethodCall(ce, directive, instance, method);
-								   return;
+								   if (TryCompileAssignStructFromAtomicMethodCall(ce, directive, instance, method))
+								   {
+									   return;
+								   }
 							   }
 						   }
 						   ce.Builder.AssignVariableToVariable(srctext->Buffer, dsttext->Buffer);
