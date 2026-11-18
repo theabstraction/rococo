@@ -177,16 +177,17 @@ struct DX11BitmapArray : public IDX11BitmapArray
             D3D11_TEXTURE2D_DESC alphArray;
             alphArray.Width = width;
             alphArray.Height = height;
-            alphArray.MipLevels = 1;
+            alphArray.MipLevels = 0;
             alphArray.ArraySize = (UINT)arrayCapacity;
             alphArray.Format = DXGI_FORMAT_R8_UNORM;
             alphArray.SampleDesc.Count = 1;
             alphArray.SampleDesc.Quality = 0;
             alphArray.Usage = D3D11_USAGE_DEFAULT;
-            alphArray.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+            alphArray.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
             alphArray.CPUAccessFlags = 0;
-            alphArray.MiscFlags = 0;
+            alphArray.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
             VALIDATEDX11(device.CreateTexture2D(&alphArray, nullptr, &tb.texture));
+            tb.texture->GetDesc(&tb.desc);
         }
 
         if (width > 0)
@@ -196,7 +197,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
                 Throw(0, "DX11TextureArray::format is not A8 but image passed was A8");
             }
 
-            UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, 1);
+            UINT subresourceIndex = D3D11CalcSubresource(0, (UINT)index, tb.desc.MipLevels);
             D3D11_BOX box;
             box.left = 0;
             box.right = span.x;
