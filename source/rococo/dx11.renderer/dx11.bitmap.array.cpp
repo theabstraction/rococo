@@ -188,7 +188,7 @@ struct DX11BitmapArray : public IDX11BitmapArray
             D3D11_TEXTURE2D_DESC alphArray;
             alphArray.Width = width;
             alphArray.Height = height;
-            alphArray.MipLevels = genMipMaps ? 1 : 0;
+            alphArray.MipLevels = genMipMaps ? 0 : 1;
             alphArray.ArraySize = (UINT)arrayCapacity;
             alphArray.Format = DXGI_FORMAT_R8_UNORM;
             alphArray.SampleDesc.Count = 1;
