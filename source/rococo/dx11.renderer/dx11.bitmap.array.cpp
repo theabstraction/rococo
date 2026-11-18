@@ -62,18 +62,6 @@ struct DX11BitmapArray : public IDX11BitmapArray
             Throw(0, "No active DC for GenMipMaps");
         }
 
-        D3D11_TEXTURE2D_DESC desc;
-        tb.texture->GetDesc(&desc);
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC sv = {};
-        sv.Format = desc.Format;
-        sv.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-        sv.Texture2DArray.MostDetailedMip = 0;
-        sv.Texture2DArray.MipLevels = (UINT)-1;   // all
-        sv.Texture2DArray.FirstArraySlice = 0;
-        sv.Texture2DArray.ArraySize = desc.ArraySize;
-        device.CreateShaderResourceView(tb.texture, &sv, &tb.shaderView);
-
         ID3D11ShaderResourceView* srv = CreateSRV();
         activeDC->GenerateMips(srv);
         srv->Release();
@@ -257,14 +245,13 @@ struct DX11BitmapArray : public IDX11BitmapArray
         D3D11_SHADER_RESOURCE_VIEW_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
 
-        desc.Texture2DArray.MipLevels = (UINT)-1;
-        desc.Texture2DArray.FirstArraySlice = 0;
-        desc.Texture2DArray.ArraySize = (UINT)count;
-        desc.Texture2DArray.MostDetailedMip = 0;
-
-        desc.Format = DXGI_FORMAT_UNKNOWN;
+        desc.Format = tb.desc.Format;
         desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-
+        desc.Texture2DArray.MostDetailedMip = 0;
+        desc.Texture2DArray.MipLevels = (UINT)-1;   // all
+        desc.Texture2DArray.FirstArraySlice = 0;
+        desc.Texture2DArray.ArraySize = tb.desc.ArraySize;
+      
         ID3D11ShaderResourceView* view = nullptr;
         VALIDATEDX11(device.CreateShaderResourceView(tb.texture, &desc, &view));
 
