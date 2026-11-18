@@ -188,91 +188,10 @@ float3 fade(float3 t)
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-/*
-// Convert an x into a 0 to 256 value, the permSampler contains a pseudorandom vector
-float perm(float x)
-{
-    return tx_noisePermutationArray.Sample(noisePermutationSampler, x / 256.0f).x * 256.0f;
-}
-
-float3 sampleGrad(float x)
-{
-	return tx_noiseGradientArray.Sample(noiseGradientSampler, x).xyz;
-}
-
-// The gradient array consists of unit length components, so the dot product effectively flips, preserves or nullifies components from p
-float grad(float x, float3 p)
-{
-    return dot(sampleGrad(x), p);
-}
-
-*/
-
-/*
-float inoise_slow(float3 p)
-{
-    float3 P = fmod(floor(p), 256.0); // P is 0 to 255
-    p -= floor(p); // p is 0 to 1, the remainder of removing the integer component of the co-ordinate argument to the function
-    float3 f = fade(p); // f is 0 to 1, using p as the parameter on the p
-	// HASH COORDINATES FOR 6 OF THE 8 CUBE CORNERS 
-    float A = perm(P.x) + P.y;
-    float AA = perm(A) + P.z;
-    float AB = perm(A + 1) + P.z;
-    float B = perm(P.x + 1) + P.y;
-    float BA = perm(B) + P.z;
-    float BB = perm(B + 1) + P.z;
-	// AND ADD BLENDED RESULTS FROM 8 CORNERS OF CUBE
-    return lerp(lerp(lerp(grad(perm(AA), p), grad(perm(BA), p + float3(-1, 0, 0)), f.x), lerp(grad(perm(AB), p + float3(0, -1, 0)), grad(perm(BB), p + float3(-1, -1, 0)), f.x), f.y), lerp(lerp(grad(perm(AA + 1), p + float3(0, 0, -1)), grad(perm(BA + 1), p + float3(-1, 0, -1)), f.x), lerp(grad(perm(AB + 1), p + float3(0, -1, -1)), grad(perm(BB + 1), p + float3(-1, -1, -1)), f.x), f.y), f.z);
-}
-*/
-
-float4 perm2d(float2 p)
-{
-    return tx_noisePermutationArray2D.Sample(noisePermutationSampler, p);
-}
-
-float gradperm(float x, float3 p)
-{
-    return dot(tx_noisePermGradSampler.Sample(noiseGradientSampler, x).xyz, p);
-}
-
-float inoise(float3 p)
-{
-    float3 P = fmod(floor(p), 256.0); // FIND UNIT CUBE THAT CONTAINS POINT
-    p -= floor(p); // FIND RELATIVE X,Y,Z OF POINT IN CUBE.
-    float3 f = fade(p); // COMPUTE FADE CURVES FOR EACH OF X,Y,Z.
-
-    P = P / 256.0;
-    const float one = 1.0 / 256.0;
-	
-    // HASH COORDINATES OF THE 8 CUBE CORNERS
-    float4 AA = perm2d(P.xy) + P.z;
- 
-	// AND ADD BLENDED RESULTS FROM 8 CORNERS OF CUBE
-    return lerp(lerp(lerp(gradperm(AA.x, p),
-                             gradperm(AA.z, p + float3(-1, 0, 0)), f.x),
-                       lerp(gradperm(AA.y, p + float3(0, -1, 0)),
-                             gradperm(AA.w, p + float3(-1, -1, 0)), f.x), f.y),
-                             
-                 lerp(lerp(gradperm(AA.x + one, p + float3(0, 0, -1)),
-                             gradperm(AA.z + one, p + float3(-1, 0, -1)), f.x),
-                       lerp(gradperm(AA.y + one, p + float3(0, -1, -1)),
-                             gradperm(AA.w + one, p + float3(-1, -1, -1)), f.x), f.y), f.z);
-}
-
-float4 SampleMaterialWithoutNoise(ObjectPixelVertex v)
-{
-    return SampleMaterialByVectors(v.uv_and_gloss.xy, v.textureIndices.x, v.colour);
-}
-
-float4 SampleMaterialWithNoise(ObjectPixelVertex v)
-{
-	return lerp(lerp(inoise(float3 (v.uv_and_gloss.x * 32.0f, v.uv_and_gloss.y * 512.0f, 0.0f)), inoise(float3 (v.uv_and_gloss.xy * 4096.0f, 0.0f)), 0.75f), SampleMaterialByVectors(v.uv_and_gloss.xy, v.textureIndices.x, v.colour), 0.85f);
-}
 
 float4 SampleMaterial(ObjectPixelVertex v)
 {
-	return SampleMaterialWithoutNoise(v);
+    return SampleMaterialByVectors(v.uv_and_gloss.xy, v.textureIndices.x, v.colour);
 }
 
 float3x3 CotangentFrame(float3 N, float3 worldPos, float2 uv)

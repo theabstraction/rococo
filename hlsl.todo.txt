@@ -1,0 +1,31 @@
+Glad it works! I'll go through the current shaders on 1.6-dev and tell you where refactoring would actually pay off.
+
+I'm still reading through the shaders. When I'm done you'll get a ranked list of what's worth refactoring: duplicated code, performance, correctness risks and structure, each with file and line references. You'll also get a straight answer on whether it's already close to optimal.
+
+It doesn't need a big rewrite. The object shaders are already thin wrappers around shared helpers. It isn't near optimal either, though, mostly because of a few correctness bugs. I reviewed the pushed 1.6-dev (93da315a), and the bump helpers aren't in it yet, so push those when you're ready.
+
+Correctness, which I'd fix first:
+
+landscape.ps.hlsl:6 still samples slice 2.0f. Use p.textureIndices.x, which landscape.vs already writes.
+In fog.ambient.ps.hlsl:18, the line texel.xyz * ambience.localLight.xyz; is missing its *=, so fog particles never get the ambient light.
+Specular sign (lights.api.hlsl:16–18, 33–35). incident points from the eye to the surface, but the reflected light vector points back toward the eye. The abs(dot(r, incident)) hides that mismatch and also lights the back of surfaces. Use saturate(dot(r, -incident)). The shininess is also hard-coded at 240.
+Deferred lighting (lights.api.hlsl:77–94). The G-buffer version hard-codes camera position as zero, so fog is always 1, and gloss as 0.5. It ignores the gloss that g.object.ps stores.
+fog.spotlight.gs's outputs don't match what the pixel shader expects. Shadow is at TEXCOORD2 instead of 3 and camera space at 3 instead of 4. There's also a comma where a semicolon should be at gs:22.
+skinned_2bone.ambient.vs defines its own AmbientVertex, which doesn't match ObjectPixelVertex. If it gets paired with ambient.ps, world position and fog will be wrong.
+ComputeWorldNormal (mplat.api.hlsl:120) isn't normalized and doesn't use an inverse-transpose matrix, so meshes scaled unevenly will light wrongly.
+Smaller items: shadow bias is a constant -0.00001 rather than scaling with slope, so expect shadow acne in places. Also, lighting happens in gamma space because the textures are UNORM rather than sRGB. That's fine if it's deliberate.
+Duplication, which is worth doing but only a modest win:
+
+Merge the shader variants: object.ps, object.no-texture.ps and obj.spotlight.no_env.ps run the same lighting steps, and ambient.ps and obj.ambient.no_env.ps differ only in the environment-map path. Fold them into one shared body with #define USE_ENV_MAP / USE_TEXTURE switches. This also fixes obj.spotlight.no_env.ps, which sets alpha to 0 where everything else uses 1.
+Duplicated functions: in lights.api.hlsl, GetSpecular/GetSpecularG and GetDiffuse/GetDiffuseG are copies of each other, and the vertex packing is copy-pasted across the object, ambient and skinned vertex shaders.
+Dead code:
+object.gbuffer.ps.hlsl
+SampleMaterialWithNoise/inoise (mplat.api.hlsl:176–271)
+GetShadowDensityFromPos
+Naming: colourNormalAndGloss is misleading, since it holds the colour slice, the normal slice and gloss.
+Performance: only touch this if a frame profile points here.
+
+Shadow sampling: SampleShadowWithDelta does the perspective divide on each of the 16 samples, and you could do it once before the loop.
+Expensive maths: the costly parts are pow for attenuation and the 240 shininess, plus exp for fog. If attenuation is always a fixed exponent like −1 or −0.5, cheaper reciprocal or reciprocal-square-root calls can replace pow.
+Interpolators: fog could compute distance in the pixel shader, which would free up one value passed from the vertex shader.
+In short, fix the correctness list, merge the object and ambient variants, and leave micro-optimisations until profiling says they matter.
