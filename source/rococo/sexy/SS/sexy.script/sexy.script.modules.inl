@@ -3702,7 +3702,7 @@ namespace Rococo::Script
 		const IArchetype** archetypes = (const IArchetype**) alloca(nArgs * sizeof(IArchetype*));
 		const IStructure** genericArg1s = (const IStructure**) alloca(nArgs * sizeof(IArchetype*));
 		bool* isOut = (bool*) alloca(nArgs * sizeof(bool));
-		ArgFlags* argFlags = (ArgFlags*)alloca(nArgs * sizeof ArgFlags);
+		ArgFlags* argFlags = (ArgFlags*)alloca(nArgs * sizeof(ArgFlags));
 
 		for(int i = 0; i < archetype.NumberOfOutputs(); ++i)
 		{
@@ -3725,8 +3725,8 @@ namespace Rococo::Script
 			archetypes[count] = type.Archetype();
 			genericArg1s[count] = archetype.GetGenericArg1(count);
 			isOut[count] = false;
-			count++;;
 			argFlags[count] = archetype.HasArgFlag(count, ArgFlags::OUT_PARAMETER) ? ArgFlags::OUT_PARAMETER : ArgFlags::NONE;
+			count++;
 		}
 
 		names[count] = ("_vTable");

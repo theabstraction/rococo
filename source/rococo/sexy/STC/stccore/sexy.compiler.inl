@@ -243,7 +243,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			FreeSexyPointers(archetypeArray);
 			FreeSexyPointers(argNameArray);
 			FreeSexyPointers(genericArg1Array);
-			FreeSexyPointers(argFlagsArray);
+			FreeSexyUnknownMemory(argFlagsArray);
 
 			this->numberOfOutputs = numberOfOutputs;
 			this->numberOfInputs = numberOfInputs;
