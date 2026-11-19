@@ -1,0 +1,117 @@
+Here's what I'd change, based on `shadows.api.hlsl`, `CreateShadowRasterizer` in `dx11.objects.cpp`, and `TargetShadowBuffer`.
+
+**Problems in the current code:**
+1. **The bias points the wrong way.** `shadowDepth = stored + (-0.00001)`, followed by `shadowDepth <= z` meaning shadowed, pushes surfaces into shadow when it should push them out. The bias is also a constant, so it doesn't grow with slope. Front-face culling hides most of this, but it also means single-sided or open geometry facing the light (planes, foliage cards) casts no shadow.
+2. **The filter offsets are half the size you intended.** `scaledOffset` is added before the `* 0.5f`, so with `shadowFudge = 1` the taps land at ±0.25 and ±0.75 texels instead of ±0.5 and ±1.5.
+3. **The shadow test is done by hand, with no hardware help.** Every tap is a plain `Sample` plus a manual compare, so each tap is a hard 0 or 1. A comparison sampler gives you 2×2 bilinear filtering of the compare result for free on every tap. Nine of those give a smoother result than your current 16.
+4. **Points outside the light's shadow map get shadowed.** A point outside the map is shadowed or not depending on the address mode. It should count as lit.
+5. **The divide is repeated.** The `pos / w` divide runs inside every tap.
+
+**Drop-in HLSL**, keeping your convention that 1 means shadowed. It replaces `shadowSampler` at `s1` with a comparison sampler:
+
+```hlsl
+#include "mplat.types.hlsl"
+
+// Replaces 'SamplerState shadowSampler : register(s1)' in mplat.types.hlsl
+SamplerComparisonState shadowCmpSampler : register(s1);
+
+struct ShadowCoord
+{
+    float2 uv;
+    float  z;
+    bool   inside;
+};
+
+ShadowCoord ToShadowCoord(float4 shadowPos)
+{
+    ShadowCoord c;
+    float3 ndc = shadowPos.xyz / shadowPos.w;          // one divide
+    c.uv = float2(0.5f + 0.5f * ndc.x, 0.5f - 0.5f * ndc.y);
+    c.z = ndc.z;
+    c.inside = shadowPos.w > 0.0f && c.z <= 1.0f && all(c.uv == saturate(c.uv));
+    return c;
+}
+
+// Fraction lit at one tap, with hardware 2x2 bilinear PCF
+float LitTap(ShadowCoord c, float2 offsetTexels)
+{
+    float2 uv = c.uv + offsetTexels * light.OOShadowTxWidth;
+    return tx_ShadowMap.SampleCmpLevelZero(shadowCmpSampler, uv, c.z);
+}
+
+// 3x3 taps x 2x2 bilinear = smooth 4x4 footprint. shadowFudge scales the radius.
+float GetShadowDensity_PCF9(float4 shadowPos)
+{
+    ShadowCoord c = ToShadowCoord(shadowPos);
+    if (!c.inside) return 0.0f;
+
+    float r = max(light.shadowFudge, 0.0f);
+    float lit = 0.0f;
+
+    [unroll] for (int y = -1; y <= 1; ++y)
+    [unroll] for (int x = -1; x <= 1; ++x)
+        lit += LitTap(c, float2(x, y) * r);
+
+    return 1.0f - lit * (1.0f / 9.0f);
+}
+
+// Softer penumbra for shadowFudge >> 1: rotated Poisson disc, no banding
+static const float2 kPoisson12[12] =
+{
+    float2(-0.326f,-0.406f), float2(-0.840f,-0.074f), float2(-0.696f, 0.457f),
+    float2(-0.203f, 0.621f), float2( 0.962f,-0.195f), float2( 0.473f,-0.480f),
+    float2( 0.519f, 0.767f), float2( 0.185f,-0.893f), float2( 0.507f, 0.064f),
+    float2( 0.896f, 0.412f), float2(-0.322f,-0.933f), float2(-0.792f,-0.598f)
+};
+
+float InterleavedGradientNoise(float2 pixel)   // Jimenez 2014
+{
+    return frac(52.9829189f * frac(dot(pixel, float2(0.06711056f, 0.00583715f))));
+}
+
+float GetShadowDensity_Poisson12(float4 shadowPos, float2 screenPixel)
+{
+    ShadowCoord c = ToShadowCoord(shadowPos);
+    if (!c.inside) return 0.0f;
+
+    float a = InterleavedGradientNoise(screenPixel) * 6.2831853f;
+    float s, co; sincos(a, s, co);
+    float2x2 rot = float2x2(co, -s, s, co);
+
+    float r = max(light.shadowFudge, 1.0f) * 1.5f;
+    float lit = 0.0f;
+
+    [unroll] for (int i = 0; i < 12; ++i)
+        lit += LitTap(c, mul(rot, kPoisson12[i]) * r);
+
+    return 1.0f - lit * (1.0f / 12.0f);
+}
+
+// Normal-offset receiver: removes acne on grazing surfaces without peter-panning.
+// Use in the PS (or VS) instead of the interpolated shadowPos when you have the world normal.
+float4 GetShadowPosNormalOffset(float3 worldPos, float3 worldNormal)
+{
+    float3 toP = worldPos - light.position.xyz;
+    float d = max(dot(toP, light.direction.xyz), light.nearPlane);
+    float texelWorld = 2.0f * d * tan(0.5f * light.fov) * light.OOShadowTxWidth;
+
+    float NdotL = saturate(dot(worldNormal, -normalize(toP)));
+    float k = 1.5f * (1.0f - NdotL);                    // more push at grazing angles
+
+    return mul(light.worldToShadowBufferMatrix, float4(worldPos + worldNormal * texelWorld * k, 1.0f));
+}
+
+class ShadowModelPCF9 : IShadowModel
+{
+    float GetShadowDensityFromPos(float4 shadowPos) { return GetShadowDensity_PCF9(shadowPos); }
+};
+```
+
+Your existing `IShadowModel` and class linkage stay as they are. Add `ShadowModelPCF9` to the classes the linkage code in `dx11.shaders.cpp` creates, and point `GetShadowDensityFromPos` and `g.final_pass` at `GetShadowDensity_PCF9`. The Poisson version needs `SV_Position.xy` passed in for the noise, which is why it isn't an interface class. The normal-offset function assumes `light.fov` is the full cone angle in radians, so check that against the C++ side.
+
+**C++ changes:**
+- **Sampler for slot 1:** `Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT`, `ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL`, all address modes `BORDER` with `BorderColor = {1,1,1,1}` (so outside the map reads as lit), and `MaxLOD = 0`. Your `GetSampler` filter enum has no comparison option, so it needs one, or a dedicated sampler for that slot.
+- **Rasterizer in `CreateShadowRasterizer`:** switch to `CullMode = D3D11_CULL_BACK` so open geometry casts shadows. Then set `SlopeScaledDepthBias` to about `1.5f`, `DepthBias` to a small value (tune it, because with `D32_FLOAT` it's scaled by the exponent of the depth), and `DepthBiasClamp` to around `0.01f`. Slope bias plus the normal offset is what replaces the front-face culling trick.
+- **Bias in the shader:** delete the shader-side `bias`. The rasterizer bias and the normal offset now do that job.
+
+Start with PCF9 and slope bias alone. Those fix the half-sized offsets and give smoother edges at about half the cost of the current 16 taps. Add the normal offset if acne remains on grazing surfaces, and the Poisson version only if you want wide, soft penumbrae.

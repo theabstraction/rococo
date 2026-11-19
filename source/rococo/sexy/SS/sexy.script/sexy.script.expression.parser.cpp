@@ -455,7 +455,44 @@ namespace Rococo
 				return false;
 			}
 
-			return false;
+			// At this point we figure the program wants a function to assign via the final output parameter. Failures are now exceptions
+
+			int finalInputIndex = f.NumberOfInputs() + f.NumberOfOutputs() - 1;
+
+			if (!f.HasArgFlag(finalInputIndex, ArgFlags::OUT_PARAMETER))
+			{
+				// The final parameter was not out
+				Throw(directive, "The function %s does noto have an out parameter as its final input argument. Such is required in order to assign to a struct", f.Name());
+			}
+
+			// We have 1 more input than there are arguments, we need the final input to be the one and only out parameter
+			int firstInputPos = f.NumberOfOutputs();
+			for (int i = firstInputPos; i < finalInputIndex; i++)
+			{
+				if (f.HasArgFlag(i, ArgFlags::OUT_PARAMETER))
+				{
+					// Too many out parameters, or the out parameter is not last
+					Throw(directive, "The function %s has more than one out parameter. Only one is permitted in an assignment to a struct", f.Name());
+				}
+			}
+
+			auto& outType = f.GetArgumentType(finalInputIndex);
+			if (outType != varStruct)
+			{
+				Throw(directive, "The function %s returns a %s, but the assigned variable is of type %s", f.Name(), GetFriendlyName(outType), GetFriendlyName(varStruct));
+			}
+
+			cr_sex s = isExplicit ? directive[1] : directive[0];
+			cstr inputName = s.c_str();
+
+			PushInputs(ce, directive, f, isExplicit ? 4 : 3, f.NumberOfInputs() - 1);
+
+			PushInput(ce, directive, isExplicit ? 1 : 0, varStruct, nullptr, inputName, nullptr, f.GetDefaultValue(0));
+
+			AppendFunctionCallAssembly(ce, f);
+			RepairStack(ce, directive, f);
+
+			return true;
 		}
 
 		bool TryCompileAssignToStructFromCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool isExplicit)
@@ -465,7 +502,7 @@ namespace Rococo
 
 			// Note we have to disambiguate from memberwise construction
 
-			cr_sex sSource = directive[3 + isExplicit ? 1 : 0];
+			cr_sex sSource = directive[2 + (isExplicit ? 1 : 0)];
 			if (!IsAtomic(sSource))
 			{
 				return false;
@@ -504,17 +541,9 @@ namespace Rococo
 				Throw(directive, "The function %s returns a %s, but the assigned variable is of type %s", f.Name(), GetFriendlyName(arg0Type), GetFriendlyName(varStruct));
 			}
 
-			if (!f.Definition())
+			if (!f.HasArgFlag(0, ArgFlags::OUT_PARAMETER))
 			{
-				Throw(directive, "Cannot apply syntatic sugar for function %s. The method had no sexy representation", f.Name());
-			}
-
-			// fdef: (function f (out Vec2i position) -> :)
-			cr_sex fDef = *reinterpret_cast<const ISExpression*>(f.Definition());
-			cr_sex arg0Def = fDef[2];
-			if (!IsAtomic(arg0Def[0]) || !Eq(arg0Def[0].c_str(), "out"))
-			{
-				Throw(directive, "Expecting function argument of %s to be (out %s result). Check %s line %d", f.Name(), GetFriendlyName(varStruct), arg0Def.Tree().Source().Name(), arg0Def.Start().y);
+				Throw(directive, "Expecting function argument of %s to be (out %s result)", f.Name(), GetFriendlyName(varStruct));
 			}
 
 			cr_sex s = directive.NumberOfElements() == 4 ? directive[1] : directive[0];

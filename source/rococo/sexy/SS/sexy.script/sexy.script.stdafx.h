@@ -623,6 +623,7 @@ namespace Rococo
         void AddArgVariable(cstr desc, CCompileEnvironment& ce, const Compiler::IStructure& type);
         void AddVariable(CCompileEnvironment& ce, const Compiler::NameString& ns, const Compiler::TypeString& ts);
         int PushInputs(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IArchetype& callee, bool isImplicitInput, int firstArgIndex);
+        int PushInputs(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IArchetype& callee, int firstIndex, int numberOfInputs);
         int CompileInstancePointerArg(CCompileEnvironment& ce, cstr classInstance);
         void AppendFunctionCallAssembly(CCompileEnvironment& ce, const Compiler::IFunction& callee);
         void RepairStack(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IArchetype& callee, int extraArgs = 0);

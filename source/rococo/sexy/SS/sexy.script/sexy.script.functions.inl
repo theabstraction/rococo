@@ -90,23 +90,19 @@ namespace Rococo
 			}
 		}
 
-		int PushInputs(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, bool isImplicitInput, int firstArgIndex)
+		int PushInputs(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, int firstArgIndex, int numberOfInputs)
 		{
 			int inputStackAllocCount = 0;
 
-			int virtualIndex = isImplicitInput ? 1 : 0;
-
-			int inputCount = callee.NumberOfInputs() - virtualIndex;
-
-			if (inputCount > 0)
+			if (numberOfInputs > 0)
 			{
-				if (inputCount + firstArgIndex - 1 >= s.NumberOfElements())
+				if (numberOfInputs + firstArgIndex - 1 >= s.NumberOfElements())
 				{
 					Throw(s, "Insufficient inputs");
 				}
 			}
 
-			for (int i = 0; i < inputCount; ++i)
+			for (int i = 0; i < numberOfInputs; ++i)
 			{
 				cr_sex inputExpression = s.GetElement(i + firstArgIndex);
 
@@ -134,6 +130,17 @@ namespace Rococo
 				inputStackAllocCount += inputStackCost;
 			}
 			return inputStackAllocCount;
+		}
+
+		int PushInputs(CCompileEnvironment& ce, cr_sex s, const IArchetype& callee, bool isImplicitInput, int firstArgIndex)
+		{
+			int inputStackAllocCount = 0;
+
+			int virtualIndex = isImplicitInput ? 1 : 0;
+
+			int inputCount = callee.NumberOfInputs() - virtualIndex;
+
+			return PushInputs(ce, s, callee, firstArgIndex, inputCount);
 		}
 
 		int GetMapIndex(cr_sex s, int firstIndex, int outputCount, int inputExpressionCount)
