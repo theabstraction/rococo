@@ -495,7 +495,7 @@ namespace Rococo::Sex
 		for (int i = 0; i < nInputs; i++)
 		{
 			cstr name = callee.GetArgName(i + callee.NumberOfOutputs());
-			const IStructure& st = callee.GetArgument(i + callee.NumberOfOutputs());
+			const IStructure& st = callee.GetArgumentType(i + callee.NumberOfOutputs());
 			StreamArg(streamer, name, st);
 		}
 
@@ -504,7 +504,7 @@ namespace Rococo::Sex
 		for (int i = 0; i < callee.NumberOfOutputs(); i++)
 		{
 			cstr name = callee.GetArgName(i);
-			const IStructure& st = callee.GetArgument(i);
+			const IStructure& st = callee.GetArgumentType(i);
 			StreamArg(streamer, name, st);
 		}
 	}

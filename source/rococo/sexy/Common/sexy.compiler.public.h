@@ -327,14 +327,24 @@ namespace Rococo {
 			return (uint8*)&stub.pVTables[0];
 		}
 
+		DECLARE_ROCOCO_INTERFACE IArgument;
+
+		enum class ArgFlags: int
+		{
+			NONE = 0,
+			OUT_PARAMETER = 1,
+			CONST_PARAMETER = 2
+		};
+
 		ROCOCO_INTERFACE IArchetype
 		{
 			virtual cstr Name() const = 0;
 			virtual const int NumberOfOutputs() const = 0;
 			virtual const int NumberOfInputs() const = 0;
-			virtual const IStructure& GetArgument(int index) const = 0;
+			virtual const IStructure& GetArgumentType(int index) const = 0;
 			virtual cstr GetArgName(int index) const = 0;
 			virtual cstr GetDefaultValue(int index) const = 0;
+			virtual bool HasArgFlag (int index, ArgFlags flag) const = 0;
 			virtual const bool IsVirtualMethod() const = 0;
 			virtual const IStructure* GetGenericArg1(int index) const = 0;
 			virtual const void* Definition() const = 0;
@@ -354,6 +364,7 @@ namespace Rococo {
 			virtual const IFunction& Parent() const = 0;
 			virtual void* Userdata() const = 0;
 			virtual cstr GetDefaultValue() const = 0;
+			virtual bool IsInputForOutParameter() const = 0;
 		};
 
 		ROCOCO_INTERFACE IFunction : public IArchetype

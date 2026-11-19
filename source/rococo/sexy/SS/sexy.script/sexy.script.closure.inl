@@ -90,7 +90,7 @@ namespace Rococo
             cstr name = outputName.c_str();
             cstr type = outputType.c_str();
 
-            const IStructure& neededType = closureArchetype.GetArgument(outputIndex);
+            const IStructure& neededType = closureArchetype.GetArgumentType(outputIndex);
             if (!AreEqual(neededType.Name(), type))
             {
                Throw(outputType, "The output type did not match that of the archetype: %s", neededType.Name());
@@ -113,7 +113,7 @@ namespace Rococo
             cstr name = imputName.c_str();
             cstr type = inputType.c_str();
 
-            const IStructure& neededType = closureArchetype.GetArgument(inputIndex);
+            const IStructure& neededType = closureArchetype.GetArgumentType(inputIndex);
             if (!AreEqual(type, GetFriendlyName(neededType)))
             {
                Throw(inputType, "The input type did not match that of the archetype: %s", GetFriendlyName(neededType));

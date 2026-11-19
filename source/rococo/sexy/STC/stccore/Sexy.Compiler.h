@@ -81,6 +81,7 @@ namespace Rococo::Compiler
 
 	ROCOCO_INTERFACE IArgumentBuilder : public IArgument
 	{
+		virtual void MarkInputAsOutParameter() = 0;
 		virtual bool TryResolveArgument() = 0;
 		virtual IFunctionBuilder& Parent() = 0;
 	};
@@ -199,7 +200,7 @@ namespace Rococo::Compiler
 	{
 		virtual IAttributes & Attributes() = 0;
 		virtual IStructureBuilder& NullObjectType() = 0;
-		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const Sex::ISExpression*) = 0;
+		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], ArgFlags argFlags[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const Sex::ISExpression*) = 0;
 		virtual void PostCompile() = 0;
 		virtual void ExpandNullObjectAllocSize(int minimumByteCount) = 0;
 	};
@@ -223,7 +224,7 @@ namespace Rococo::Compiler
 		virtual INamespaceBuilder* FindSubspace(cstr childName) = 0;
 		virtual INamespaceBuilder& AddNamespace(cstr childName, ADDNAMESPACEFLAGS flags) = 0;
 		virtual IMacroBuilder* AddMacro(cstr name, void* expression, IFunctionBuilder& f) = 0;
-		virtual const IArchetype& AddArchetype(cstr name, cstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition) = 0;
+		virtual const IArchetype& AddArchetype(cstr name, cstr argNames[], ArgFlags argFlags[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition) = 0;
 		virtual void Alias(IFunctionBuilder& f) = 0;
 		virtual void Alias(cstr publicName, IStructureBuilder& s) = 0;
 		virtual void Alias(cstr publicName, IFunctionBuilder& f) = 0;

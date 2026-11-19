@@ -329,7 +329,7 @@ namespace
 		cstr argName = m.GetArgName(inputIndex + m.NumberOfOutputs());
 		sbNameObject->AppendAndTruncate(to_fstring(argName));
 
-		cstr argTypeName = m.GetArgument(inputIndex + m.NumberOfOutputs()).Name();
+		cstr argTypeName = m.GetArgumentType(inputIndex + m.NumberOfOutputs()).Name();
 		sbTypeObject->AppendAndTruncate(to_fstring(argTypeName));
 	}
 
@@ -359,7 +359,7 @@ namespace
 		cstr argName = m.GetArgName(outputIndex);
 		sbNameObject->AppendAndTruncate(to_fstring(argName));
 
-		cstr argTypeName =m.GetArgument(outputIndex).Name();
+		cstr argTypeName =m.GetArgumentType(outputIndex).Name();
 		sbTypeObject->AppendAndTruncate(to_fstring(argTypeName));
 	}
 
@@ -409,7 +409,7 @@ namespace
 		}
 
 		auto& SS = (IScriptSystem&)e.ss;
-		auto& argType = m.GetArgument(inputIndex + m.NumberOfOutputs());
+		auto& argType = m.GetArgumentType(inputIndex + m.NumberOfOutputs());
 		CReflectedClass* pArgStruct = SS.GetReflectedClass((void*) &argType);
 		if (pArgStruct == NULL)
 		{
@@ -439,7 +439,7 @@ namespace
 		}
 
 		auto& SS = (IScriptSystem&)e.ss;
-		auto& argType = m.GetArgument(outputIndex);
+		auto& argType = m.GetArgumentType(outputIndex);
 		CReflectedClass* pArgStruct = SS.GetReflectedClass((void*)&argType);
 		if (pArgStruct == NULL)
 		{
@@ -474,7 +474,7 @@ namespace
 			Throw(0, "IsMethodInputOfType: InputIndex %d was out of bounds for method %s.%s of %s", inputIndex, GetFriendlyName(*pStruct), m.Name(), pStruct->Module().Name());
 		}
 
-		auto& argType = m.GetArgument(inputIndex + m.NumberOfOutputs());
+		auto& argType = m.GetArgumentType(inputIndex + m.NumberOfOutputs());
 
 		boolean32 match = (argType == *pCandidateStruct);
 
@@ -506,7 +506,7 @@ namespace
 			Throw(0, "IsMethodOutputOfType: OutputIndex %d was out of bounds for method %s.%s of %s", outputIndex, GetFriendlyName(*pStruct), m.Name(), pStruct->Module().Name());
 		}
 
-		auto& argType = m.GetArgument(outputIndex);
+		auto& argType = m.GetArgumentType(outputIndex);
 
 		boolean32 match = (argType == *pCandidateStruct);
 

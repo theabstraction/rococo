@@ -36,6 +36,16 @@ namespace Anon
 	// This is one of the most intense classes for the compiler to allocate. Improving this will speed things up
 	class FunctionArgument: public IArgumentBuilder
 	{
+	public:
+		bool IsInputForOutParameter() const override
+		{
+			return isInputOutParameter;
+		}
+
+		void MarkInputAsOutParameter() override
+		{
+			isInputOutParameter = true;
+		}
 	private:
 		stdstring name;
 		stdstring type;
@@ -50,6 +60,7 @@ namespace Anon
 		IFunctionBuilder& parentFunction;
 		void* userdata;
 		bool isClosureInput;
+		bool isInputOutParameter = false;
 
 		bool _TryResolveArgument()
 		{
@@ -334,37 +345,48 @@ namespace Anon
 			return args[index]->GetDefaultValue();
 		}
 
-		virtual cstr Name() const									{ return name.c_str(); }
-		const IStructure& GetArgument(int index) const				{ return *args[index]->ResolvedType(); }
-		virtual const IStructure* GetGenericArg1(int index) const	{ return args[index]->GenericTypeArg1(); }
-		cstr GetArgName(int index)	const							{ return args[index]->Name(); }
-		virtual const int NumberOfInputs() const					{ return inputCount; }
-		virtual const int NumberOfOutputs() const					{ return outputCount; }
-		virtual const bool IsVirtualMethod() const					{ return isMethod; }
-		virtual const void* Definition() const						{ return definition; }
-		virtual const IStructure* GetType() const					{ return type; }
-		virtual void SetType(const IStructure* _type)				{ type = _type; }
+		cstr Name() const override										{ return name.c_str(); }
+		bool HasArgFlag(int index, ArgFlags flag) const override		
+		{ 
+			switch (flag)
+			{
+			case ArgFlags::OUT_PARAMETER:
+				return args[index]->IsInputForOutParameter();
+				break;
+			default:
+				return false; // Nothing else implemented just yet
+			}
+		}
+		const IStructure& GetArgumentType(int index) const override		{ return *args[index]->ResolvedType(); }
+		const IStructure* GetGenericArg1(int index) const override		{ return args[index]->GenericTypeArg1(); }
+		cstr GetArgName(int index)	const override						{ return args[index]->Name(); }
+		const int NumberOfInputs() const override						{ return inputCount; }
+		const int NumberOfOutputs() const override						{ return outputCount; }
+		const bool IsVirtualMethod() const override						{ return isMethod; }
+		const void* Definition() const override							{ return definition; }
+		const IStructure* GetType() const override						{ return type; }
+		void SetType(const IStructure* _type) override					{ type = _type; }
 
-		virtual const IModule& Module()  const			{ return module; }
-		virtual IProgramObject& Object()				{ return module.Object(); }
-		virtual IModuleBuilder& Module()  				{ return module; }
-		virtual IPublicProgramObject& Object()	const	{ return module.Object(); }
-		virtual const IFunctionCode& Code() const		{ return *builder; }
-		virtual const IFunction* Parent() const			{ return parent; }
-		virtual IFunctionBuilder* Parent()				{ return parent; }
-		virtual ICodeBuilder& Builder()					{ return *builder; }
+		const IModule& Module()  const override							{ return module; }
+		IProgramObject& Object() override								{ return module.Object(); }
+		IModuleBuilder& Module() override								{ return module; }
+		IPublicProgramObject& Object()	const override					{ return module.Object(); }
+		const IFunctionCode& Code() const override						{ return *builder; }
+		const IFunction* Parent() const override						{ return parent; }
+		IFunctionBuilder* Parent() override								{ return parent; }
+		ICodeBuilder& Builder()	override								{ return *builder; }
 
-		virtual const IArgument& Arg(int32 index) const	{ return *args[index]; }
+		const IArgument& Arg(int32 index) const override				{ return *args[index]; }
 
-		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& type, void* userdata)
+		IArgumentBuilder& AddInput(const NameString& name, const TypeString& type, void* userdata) override
 		{
-			FunctionArgument* a = new FunctionArgument(name, type, ARGDIRECTION_INPUT, *this, userdata);
+ 			FunctionArgument* a = new FunctionArgument(name, type, ARGDIRECTION_INPUT, *this, userdata);
 			args.push_back(a);			
 			inputCount++;
 			return *a;
 		}
 
-		virtual IArgumentBuilder& AddClosureInput(const NameString& name, const TypeString& type, void* userdata)
+		IArgumentBuilder& AddClosureInput(const NameString& name, const TypeString& type, void* userdata) override
 		{
 			FunctionArgument* a = new FunctionArgument(name, type, ARGDIRECTION_INPUT, *this, userdata);
 			a->MakeClosureInput();
@@ -373,7 +395,7 @@ namespace Anon
 			return *a;
 		}
 
-		virtual IArgumentBuilder& AddInput(const NameString& name, const IStructure& type, void* userdata)
+		IArgumentBuilder& AddInput(const NameString& name, const IStructure& type, void* userdata) override
 		{
 			FunctionArgument* a = new FunctionArgument(name, type, ARGDIRECTION_INPUT, *this, userdata);
 			args.push_back(a);			
@@ -381,7 +403,7 @@ namespace Anon
 			return *a;
 		}
 
-		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& genericType, const TypeString& genericArgType1, void* userdata)
+		IArgumentBuilder& AddInput(const NameString& name, const TypeString& genericType, const TypeString& genericArgType1, void* userdata) override
 		{
 			FunctionArgument* a = new FunctionArgument(name, genericType, genericArgType1, ARGDIRECTION_INPUT, *this, userdata);
 			args.push_back(a);			
@@ -389,7 +411,7 @@ namespace Anon
 			return *a;
 		}
 
-		virtual IArgumentBuilder& AddInput(const NameString& name, const TypeString& genericType, const TypeString& genericArgType1,  const TypeString& genericArgType2, void* userdata)
+		IArgumentBuilder& AddInput(const NameString& name, const TypeString& genericType, const TypeString& genericArgType1,  const TypeString& genericArgType2, void* userdata) override
 		{
 			FunctionArgument* a = new FunctionArgument(name, genericType, genericArgType1, genericArgType2, ARGDIRECTION_INPUT, *this, userdata);
 			args.push_back(a);			
@@ -397,7 +419,7 @@ namespace Anon
 			return *a;
 		}
 
-		virtual IArgumentBuilder& AddOutput(const NameString& name, const IStructure& type, void* userdata)
+		IArgumentBuilder& AddOutput(const NameString& name, const IStructure& type, void* userdata) override
 		{
 			FunctionArgument* a = new FunctionArgument(name, type, ARGDIRECTION_OUTPUT, *this, userdata);
 			args.push_back(a);
@@ -405,7 +427,7 @@ namespace Anon
 			return *a;
 		}
 
-		virtual IArgumentBuilder& AddOutput(const NameString& name, const TypeString& type, void* userdata)
+		IArgumentBuilder& AddOutput(const NameString& name, const TypeString& type, void* userdata) override
 		{
 			FunctionArgument* a = new FunctionArgument(name, type, ARGDIRECTION_OUTPUT, *this, userdata);
 			args.push_back(a);
@@ -413,7 +435,7 @@ namespace Anon
 			return *a;
 		}
 
-		IArgumentBuilder& AddArrayOutput(const NameString& name, const TypeString& genericType, void* userdata)
+		IArgumentBuilder& AddArrayOutput(const NameString& name, const TypeString& genericType, void* userdata) override
 		{
 			FunctionArgument* a = new FunctionArgument(name, TypeString::From("_Array"), genericType, ARGDIRECTION_OUTPUT, *this, userdata);
 			args.push_back(a);
@@ -421,7 +443,7 @@ namespace Anon
 			return *a;
 		}
 
-		virtual const IArgument* GetArgumentByName(cstr name) const
+		const IArgument* GetArgumentByName(cstr name) const override
 		{
 			for(auto i = args.begin(); i != args.end(); ++i)
 			{
@@ -435,7 +457,7 @@ namespace Anon
 			return NULL;
 		}
 
-		void ValidateArguments()
+		void ValidateArguments() override
 		{
 			for (auto i = args.begin(); i != args.end(); i++)
 			{
@@ -447,7 +469,7 @@ namespace Anon
 			}
 		}
 
-		bool TryResolveArguments()
+		bool TryResolveArguments() override
 		{
 			for(auto i = args.begin(); i != args.end(); i++)
 			{

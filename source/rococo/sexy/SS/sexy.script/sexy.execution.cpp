@@ -47,7 +47,7 @@ namespace Rococo
 				}
 				else
 				{
-					auto& arg = f.GetArgument(i + f.NumberOfOutputs());
+					auto& arg = f.GetArgumentType(i + f.NumberOfOutputs());
 					auto argName = f.GetArgName(i + f.NumberOfOutputs());
 
 					if (&arg != nullptr)
@@ -67,7 +67,7 @@ namespace Rococo
 
 			if (f.NumberOfOutputs() == 1 && (f.NumberOfInputs() == 0 || (f.NumberOfInputs() == 1 && f.IsVirtualMethod())))
 			{
-				auto& arg = f.GetArgument(0);
+				auto& arg = f.GetArgumentType(0);
 				auto argName = f.GetArgName(0);
 
 				SafeFormat(desc, sizeof(desc), "%s %s - Get Accessor", SanitizeStringNames(arg.Name()), argName);
@@ -77,7 +77,7 @@ namespace Rococo
 			{
 				for (int i = 0; i < f.NumberOfOutputs(); ++i)
 				{
-					auto& arg = f.GetArgument(i);
+					auto& arg = f.GetArgumentType(i);
 					auto argName = f.GetArgName(i);
 
 					SafeFormat(desc, sizeof(desc), "%s %s", SanitizeStringNames(arg.Name()), argName);

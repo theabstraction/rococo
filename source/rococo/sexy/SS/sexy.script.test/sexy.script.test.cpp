@@ -2405,6 +2405,33 @@ R"(
 		validate(x == 120.0f);
 	}
 
+	void TestStructureAssignToSingleArgumentCompoundCallReturn(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function SetTo123x (Int32 multiplier) (out Vec2i result) -> :\n"
+			"	(result = (multiplier * 12) (multiplier * 3))\n"
+			")\n"
+			"(function Main -> (Int32 result):\n"
+			"	(Vec2i v = SetTo123x 7)\n"
+			"	(result = (v.x / v.y))\n"
+			")\n"
+			"(struct Vec2i\n"
+			"	(Int32 x y)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
 	void TestStructureAssignToAtomicCallReturn(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -3075,7 +3102,7 @@ R"(
 		validate(decl != NULL);
 		validate(decl->NumberOfInputs() == 1);
 		validate(decl->NumberOfOutputs() == 1);
-		validate(&decl->GetArgument(0) == &decl->GetArgument(1) && decl->GetArgument(0).VarType() == SexyVarType_Float32);
+		validate(&decl->GetArgumentType(0) == &decl->GetArgumentType(1) && decl->GetArgumentType(0).VarType() == SexyVarType_Float32);
 	}
 
 	void TestNullArchetype(IPublicScriptSystem& ss)
@@ -4152,8 +4179,8 @@ R"((namespace EntryPoint)
 		validate(a2.NumberOfOutputs() == 0);
 		validate(AreEqual(a1.GetArgName(0),"value"));
 		validate(AreEqual(a2.GetArgName(0),"value"));
-		validate(a1.GetArgument(0).VarType() == SexyVarType_Int32);
-		validate(a2.GetArgument(0).VarType() == SexyVarType_Int32);
+		validate(a1.GetArgumentType(0).VarType() == SexyVarType_Int32);
+		validate(a2.GetArgumentType(0).VarType() == SexyVarType_Int32);
 	} 
 
 	void TestClassDefinition(IPublicScriptSystem& ss)
@@ -19154,6 +19181,8 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
+		//TEST(TestStructureAssignToSingleArgumentCompoundCallReturn);
+
 		RunPositiveSuccesses();	
 		RunGotoTests();
 		RunPositiveFailures();
@@ -19187,8 +19216,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

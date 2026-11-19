@@ -2295,7 +2295,7 @@ namespace Rococo::Script
 						for (int i = 0; i < nInputs; i++)
 						{
 							cstr argName = f.GetArgName(i + nOutputs);
-							auto& argType = f.GetArgument(i + nOutputs);
+							auto& argType = f.GetArgumentType(i + nOutputs);
 
 							sb->AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
 						}
@@ -2308,7 +2308,7 @@ namespace Rococo::Script
 						for (int i = 0; i < nOutputs; i++)
 						{
 							cstr argName = f.GetArgName(i);
-							auto& argType = f.GetArgument(i);
+							auto& argType = f.GetArgumentType(i);
 							sb->AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
 						}
 
@@ -2346,7 +2346,7 @@ namespace Rococo::Script
 					for (int k = 0; k < nInputs - 1; k++)
 					{
 						cstr argName = m.GetArgName(k + nOutputs);
-						auto& argType = m.GetArgument(k + nOutputs);
+						auto& argType = m.GetArgumentType(k + nOutputs);
 
 						sb.AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
 					}
@@ -2359,7 +2359,7 @@ namespace Rococo::Script
 					for (int k = 0; k < nOutputs; k++)
 					{
 						cstr argName = m.GetArgName(k);
-						auto& argType = m.GetArgument(k);
+						auto& argType = m.GetArgumentType(k);
 						sb.AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
 					}
 					
@@ -2380,7 +2380,7 @@ namespace Rococo::Script
 					for (int i = 0; i < f.NumberOfInputs() - 1; ++i)
 					{
 						cstr argName = f.GetArgName(i);
-						auto& argType = f.GetArgument(i);
+						auto& argType = f.GetArgumentType(i);
 						sb->AppendFormat(" (<span class=\"struct\">%s</span> %s)", GetFriendlyName(argType), argName);
 					}
 

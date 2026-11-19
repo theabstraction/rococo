@@ -61,7 +61,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		delete universalNullInstance;
 	}
 
-	void Interface::SetMethod(size_t index, cstr name, size_t argCount, cstr _argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArgs1[], const bool isOut[], const Sex::ISExpression* definition)
+	void Interface::SetMethod(size_t index, cstr name, size_t argCount, cstr _argNames[], ArgFlags _argFlags[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArgs1[], const bool isOut[], const Sex::ISExpression* definition)
 	{
 		int nOutputs = 0;
 
@@ -71,7 +71,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 
 		delete this->archetypes[index];
-		this->archetypes[index] = new Archetype(name, _argNames, types, archetypes, genericArgs1, nOutputs, (int32)(argCount) - nOutputs, true, definition);
+		this->archetypes[index] = new Archetype(name, _argNames, _argFlags, types, archetypes, genericArgs1, nOutputs, (int32)(argCount) - nOutputs, true, definition);
 	}
 
 	void Interface::PostCompile()
@@ -220,9 +220,9 @@ namespace Rococo { namespace Compiler { namespace Impl
 		structures.Register(publicName, s);
 	}
 
-	const IArchetype& Namespace::AddArchetype(cstr name, cstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition)
+	const IArchetype& Namespace::AddArchetype(cstr name, cstr argNames[], ArgFlags argFlags[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition)
 	{
-		return archetypes.Register(name, argNames, stArray, archArray, genericArg1s, numberOfOutputs, numberOfInputs, definition);
+		return archetypes.Register(name, argNames, argFlags, stArray, archArray, genericArg1s, numberOfOutputs, numberOfInputs, definition);
 	}
 
 	IInterfaceBuilder* Namespace::DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base)

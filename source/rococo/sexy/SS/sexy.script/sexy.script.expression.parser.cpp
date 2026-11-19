@@ -298,8 +298,8 @@ namespace Rococo
 
 			for(int32 i = 0; i < argCount; ++i)
 			{
-				const IStructure& st = requiredArchetype.GetArgument(i);
-				const IStructure& stf = f.GetArgument(i);
+				const IStructure& st = requiredArchetype.GetArgumentType(i);
+				const IStructure& stf = f.GetArgumentType(i);
 				cstr argname = f.GetArgName(i);
 
 				if (requiredArchetype.IsVirtualMethod())
@@ -380,7 +380,7 @@ namespace Rococo
 			OUT int interfaceIndex, OUT methodIndex;
 			if (!Rococo::Compiler::GetMethodIndices(OUT interfaceIndex, OUT methodIndex, instanceType, methodName))
 			{
-				Throw(directive, "Cannot find method '%s' for interface '%s", methodName, GetFriendlyName(instanceType));
+				Throw(directive, "Cannot find method '%s' for interface '%s'", methodName, GetFriendlyName(instanceType));
 			}
 				
 			const IObjectInterface& interf = instanceType.GetInterface(interfaceIndex);
@@ -391,8 +391,8 @@ namespace Rococo
 				Throw(directive, "For an assignment of a struct from a method call with no argument, expecting a method with one argument and no outputs");
 			}
 
-			auto& argStructByRef = method.GetArgument(0);
-			auto& argThisPointer = method.GetArgument(1);
+			auto& argStructByRef = method.GetArgumentType(0);
+			auto& argThisPointer = method.GetArgumentType(1);
 
 			// (method class.GetPosition (out Vec2i position) -> : ... )
 
@@ -401,14 +401,7 @@ namespace Rococo
 				Throw(directive, "Unexpected: cannot apply syntatic sugar for method %s. The method had no sexy representation", methodName);
 			}
 
-			cr_sex fDef = *reinterpret_cast<const ISExpression*>(method.Definition());
-			cr_sex sArgStructByRef = fDef[2];
-			if (sArgStructByRef.NumberOfElements() != 3)
-			{
-				Throw(directive, "needs a method with argument (out %s result)", GetFriendlyName(argStructByRef));
-			}
-
-			if (!IsAtomic(sArgStructByRef[0]) || !(Eq("out", sArgStructByRef[0].c_str())))
+			if (!method.HasArgFlag(0, ArgFlags::OUT_PARAMETER))
 			{
 				Throw(directive, "needs a method with argument (out %s result)", GetFriendlyName(argStructByRef));
 			}
@@ -437,7 +430,7 @@ namespace Rococo
 				Throw(directive, "Unknown variable: %s", inputName);
 			}
 
-			if (*targetDef.ResolvedType != argStructByRef)
+			if (targetDef.ResolvedType != &argStructByRef)
 			{
 				Throw(directive, "%s is of type %s but %s emits %s", inputName, GetFriendlyName(*targetDef.ResolvedType), GetFriendlyName(instanceType), GetFriendlyName(argStructByRef));
 			}
@@ -453,6 +446,46 @@ namespace Rococo
 			return true;
 		}
 
+		bool TryCompileAssignToStructFromFunctionCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool isExplicit, const IFunction& f)
+		{
+			int32 nSuppliedInputArguments = directive.NumberOfElements() - (isExplicit ? 1 : 0) - 3;
+			if (nSuppliedInputArguments != f.NumberOfInputs() - 1 || f.NumberOfOutputs() != 0)
+			{
+				// No function argument match
+				return false;
+			}
+
+			return false;
+		}
+
+		bool TryCompileAssignToStructFromCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool isExplicit)
+		{
+			// isExplicit => (Vec2i f = GetPosition scaleFactor)
+			// !isExplicit => (f = GetPosition scaleFactor)
+
+			// Note we have to disambiguate from memberwise construction
+
+			cr_sex sSource = directive[3 + isExplicit ? 1 : 0];
+			if (!IsAtomic(sSource))
+			{
+				return false;
+			}
+
+			cstr source = sSource.c_str();
+
+			if (isupper(*source))
+			{
+				// Potential function call
+				auto* f = MatchFunction(sSource, ce.Builder.Module());
+				if (f)
+				{
+					return TryCompileAssignToStructFromFunctionCompound(ce, directive, varStruct, isExplicit, *f);
+				}
+			}
+
+			return false;
+		}
+
 		void CompileStructAssignFromFunctionAtomicDirect(CCompileEnvironment& ce, IFunction& f, cr_sex sourceValue, cr_sex directive, const IStructure& varStruct)
 		{
 			if (f.NumberOfInputs() != 1)
@@ -465,10 +498,10 @@ namespace Rococo
 				Throw(directive, "For an assignment to a struct, the method requires that there are no outputs");
 			}
 
-			auto& arg0 = f.GetArgument(0);
-			if (arg0 != varStruct)
+			auto& arg0Type = f.GetArgumentType(0);
+			if (arg0Type != varStruct)
 			{
-				Throw(directive, "The function %s returns a %s, but the assigned variable is of type %s", f.Name(), arg0.Name(), varStruct.Name());
+				Throw(directive, "The function %s returns a %s, but the assigned variable is of type %s", f.Name(), GetFriendlyName(arg0Type), GetFriendlyName(varStruct));
 			}
 
 			if (!f.Definition())
@@ -481,7 +514,7 @@ namespace Rococo
 			cr_sex arg0Def = fDef[2];
 			if (!IsAtomic(arg0Def[0]) || !Eq(arg0Def[0].c_str(), "out"))
 			{
-				Throw(directive, "Expecting function argument of %s to be (out %s result). Check %s line %d", f.Name(), varStruct.Name(), arg0Def.Tree().Source().Name(), arg0Def.Start().y);
+				Throw(directive, "Expecting function argument of %s to be (out %s result). Check %s line %d", f.Name(), GetFriendlyName(varStruct), arg0Def.Tree().Source().Name(), arg0Def.Start().y);
 			}
 
 			cr_sex s = directive.NumberOfElements() == 4 ? directive[1] : directive[0];
@@ -495,7 +528,7 @@ namespace Rococo
 
 		void CompileStructAssignFromFunctionAtomic(CCompileEnvironment& ce, cr_sex sourceValue, cr_sex directive, const IStructure& varStruct)
 		{
-			auto* f = ce.Builder.Module().FindFunction(sourceValue.c_str());
+			auto* f = MatchFunction(sourceValue, ce.Builder.Module());
 			if (f)
 			{
 				CompileStructAssignFromFunctionAtomicDirect(ce, *f, sourceValue, directive, varStruct);
@@ -1175,14 +1208,14 @@ namespace Rococo
 				Throw(s, ("Binary operator %s must not return output"), callee.Name());
 			}
 
-			if (&callee.GetArgument(0) != &atype)
+			if (&callee.GetArgumentType(0) != &atype)
 			{
-				Throw(s, ("First input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(0).Name());
+				Throw(s, ("First input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgumentType(0).Name());
 			}
 
-			if (&callee.GetArgument(1) != &btype)
+			if (&callee.GetArgumentType(1) != &btype)
 			{
-				Throw(s, ("Second input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgument(1).Name());
+				Throw(s, ("Second input argument was not of type %s. It was of type %s"), atype.Name(), callee.GetArgumentType(1).Name());
 			}
      
 			int indices[] { 2 + firstArgIndex, 4 + firstArgIndex, 0 + firstArgIndex };
@@ -1190,7 +1223,7 @@ namespace Rococo
 			for(int i = 0; i < 3; i++)
 			{
 				cstr inputName = callee.GetArgName(i);
-				const IStructure& argType = callee.GetArgument(i);
+				const IStructure& argType = callee.GetArgumentType(i);
          
 				int inputStackCost = PushInput(ce, s, indices[i], argType, nullptr, inputName, callee.GetGenericArg1(i), callee.GetDefaultValue(i));
 				inputStackAllocCount += inputStackCost;
@@ -1472,6 +1505,10 @@ namespace Rococo
 
 		   if (varStruct.VarType() == SexyVarType_Derivative && !varStruct.Prototype().IsClass)
 		   {
+			   if (TryCompileAssignToStructFromCompound(ce, directive, varStruct, explicitKeyword))
+			   {
+				   return;
+			   }
 			   if (directive.NumberOfElements() == 4 + offset)
 			   {
 				   cr_sex secondarg = directive[3 + offset];
@@ -2101,7 +2138,7 @@ namespace Rococo
 
 				for (int i = 0; i < constructor.NumberOfInputs() - 1; ++i)
 				{
-					auto& arg = constructor.GetArgument(i);
+					auto& arg = constructor.GetArgumentType(i);
 					cstr argName = constructor.GetArgName(i);
 					ssb.AppendFormat("(%s %s) ", GetFriendlyName(arg), argName);
 				}

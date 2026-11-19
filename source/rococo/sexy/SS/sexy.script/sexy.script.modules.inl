@@ -441,7 +441,7 @@ namespace Rococo::Script
 		}
 	}
 
-	void AddInput(IFunctionBuilder& f, cr_sex type, cr_sex id, cr_sex src)
+	IArgumentBuilder& AddInput(IFunctionBuilder& f, cr_sex type, cr_sex id, cr_sex src)
 	{
 		AssertQualifiedIdentifier(type);
 		AssertLocalIdentifier(id);
@@ -451,6 +451,7 @@ namespace Rococo::Script
 
 		IArgumentBuilder& arg = f.AddInput(NameString::From(idString), TypeString::From(typeString), (void*) &src);			
 		Resolve(arg, typeString->Buffer, idString->Buffer, f.Name(), type);
+		return arg;
 	}
 
 	void AddArrayOutput(IFunctionBuilder& f, cr_sex genericArg, cr_sex id, cr_sex src, CScript& script)
@@ -604,7 +605,9 @@ namespace Rococo::Script
 				cr_sex sexStructType = GetAtomicArg(inputItem, 1);
 				cr_sex sexIdentifier = GetAtomicArg(inputItem, 2);
 
-				AddInput(f, sexStructType, sexIdentifier, inputItem);
+				auto& arg = AddInput(f, sexStructType, sexIdentifier, inputItem);
+				arg.MarkInputAsOutParameter();
+				
 			}
 			else if (inputItem.NumberOfElements() == 2)
 			{
@@ -1124,7 +1127,7 @@ namespace Rococo::Script
 
 		if (f.NumberOfInputs() <= 0) Throw(fdef, ("No inputs found in method!"));
 
-		const IStructure& s = f.GetArgument(ArgCount(f)-1);
+		const IStructure& s = f.GetArgumentType(ArgCount(f)-1);
 
 		if (!IsPointerValid(&s))
 			Throw(fdef, "Expecting class to be defined in the same module in which the class-method is defined");
@@ -1880,7 +1883,7 @@ namespace Rococo::Script
 			Throw(0, "InvokeMethodByName failed. Method %s on object %s incompatible with invocation. Only methods without output are legal candidates.", methodObject->pointer, GetFriendlyName(*targetObject->Desc->TypeInfo));
 		}
 
-		auto& functionsArgType = m.f->GetArgument(0);
+		auto& functionsArgType = m.f->GetArgumentType(0);
 		if (&functionsArgType != invokeArgs->argType)
 		{
 			Throw(0, "InvokeMethodByName failed. Method %s on object %s incompatible with invocation. Type mismatch: arg0 type is %s. Type supplied to invocation is %s.",
@@ -1943,7 +1946,7 @@ namespace Rococo::Script
 				Throw(*ddArgs->sourceCode, "Method must have 1 input and no output.\nDispatch mismatch in %s.%s of %s", type.Name(), ddArgs->methodName, type.Module().Name());
 			}
 
-			auto& arg = f->GetArgument(0);
+			auto& arg = f->GetArgumentType(0);
 			if (&arg != ddArgs->pArgType)
 			{
 				Throw(*ddArgs->sourceCode, "Method must have 1 input and no output.\nDispatch mismatch in %s.%s of %s", type.Name(), ddArgs->methodName, type.Module().Name());
@@ -2035,7 +2038,7 @@ namespace Rococo::Script
 
 		for (int i = 0; i < nullMethod.NumberOfOutputs(); ++i)
 		{
-			const IStructure& argStruct = nullMethod.GetArgument(i);
+			const IStructure& argStruct = nullMethod.GetArgumentType(i);
 			cstr argType = GetFriendlyName(argStruct);
 
 			UNUSED(argType);
@@ -2051,7 +2054,7 @@ namespace Rococo::Script
 		for (int i = 0; i < nullMethod.NumberOfInputs() - 1; ++i)
 		{
 			int index = nullMethod.NumberOfOutputs() + i;
-			const IStructure& argStruct = nullMethod.GetArgument(index);
+			const IStructure& argStruct = nullMethod.GetArgumentType(index);
 			f.AddInput(NameString::From(nullMethod.GetArgName(index)), argStruct, (void*)&source);
 		}
 
@@ -2812,7 +2815,7 @@ namespace Rococo::Script
 
 		for (int i = 0; i < archetype.NumberOfOutputs(); ++i)
 		{
-			const IStructure& argStruct = archetype.GetArgument(i);
+			const IStructure& argStruct = archetype.GetArgumentType(i);
 			cstr argType = GetFriendlyName(argStruct);
 			UNUSED(argType);
 			cstr argName = archetype.GetArgName(i);
@@ -2822,7 +2825,7 @@ namespace Rococo::Script
 		for (int i = 0; i < archetype.NumberOfInputs(); ++i)
 		{
 			int index = archetype.NumberOfOutputs() + i;
-			const IStructure& argStruct = archetype.GetArgument(index);
+			const IStructure& argStruct = archetype.GetArgumentType(index);
 			f.AddInput(NameString::From(archetype.GetArgName(index)), argStruct, (void*) archetype.Definition());
 		}
 
@@ -3351,20 +3354,21 @@ namespace Rococo::Script
 		int mapIndex = GetIndexOf(2, s, ("->"));
 		if (mapIndex < 0)
 		{
-			Throw(s, ("Could not find mapping token '->' in the archetype definition"));
+			Throw(s, "Could not find mapping token '->' in the archetype definition");
 		}
 
 		int totalArgs = s.NumberOfElements() - 3;
 			
 		if (totalArgs > MAX_ARGS_PER_CLOSURE)
 		{
-			Throw(s, ("Too many arguments supplied to the archetype"));
+			Throw(s, "Too many arguments supplied to the archetype");
 		}
 
 		const IStructure** st = (const IStructure**) alloca(sizeof(IStructure*) * totalArgs);
 		const IArchetype** ar = (const IArchetype**) alloca(sizeof(IArchetype*) * totalArgs);
 		const IStructure** genericArg1s = (const IStructure**) alloca(sizeof(IStructure*) * totalArgs);
 		cstr* names = (cstr*) alloca(sizeof(cstr) * totalArgs);
+		ArgFlags* argFlags = (ArgFlags*)alloca(sizeof ArgFlags * totalArgs);
 
 		for(int i = mapIndex+1; i < s.NumberOfElements(); ++i)
 		{
@@ -3373,6 +3377,11 @@ namespace Rococo::Script
 			st[inputIndex] = LookupArg(child, script.ProgramModule(), names[inputIndex]);
 			ar[inputIndex] = LookupArchetype(child, script.ProgramModule());
 			genericArg1s[inputIndex] = NULL;
+
+			cr_sex child0 = child[0];
+			AssertAtomic(child0);
+			argFlags[inputIndex] = Eq(child[0].c_str(), "out") ? ArgFlags::OUT_PARAMETER : ArgFlags::NONE;
+			(int&) (argFlags[inputIndex]) |= (int) (Eq(child[0].c_str(), "const") ? ArgFlags::CONST_PARAMETER : ArgFlags::NONE);
 		}
 
 		int nOutputs = s.NumberOfElements() - mapIndex - 1;
@@ -3384,6 +3393,7 @@ namespace Rococo::Script
 			st[outputIndex] = LookupArg(child, script.ProgramModule(), names[outputIndex]);
 			ar[outputIndex] = LookupArchetype(child, script.ProgramModule());
 			genericArg1s[outputIndex] = NULL;
+			argFlags[outputIndex] = ArgFlags::NONE;
 		}
 
 		if (!ns.FindArchetype(archetypeName))
@@ -3391,7 +3401,7 @@ namespace Rococo::Script
 			Throw(s, "Could not find archetype: '%s'", archetypeName);
 		}
 
-		ns.AddArchetype(archetypeName, names, st, ar, genericArg1s, nOutputs, s.NumberOfElements() - nOutputs - 3, &s);
+		ns.AddArchetype(archetypeName, names, argFlags, st, ar, genericArg1s, nOutputs, s.NumberOfElements() - nOutputs - 3, &s);
 	}
 
 	const IArchetype& AddArchetypeNameToNamespace(INamespaceBuilder& ns, cstr archetypeName, cr_sex s)
@@ -3401,7 +3411,7 @@ namespace Rococo::Script
 			Throw(s, "Archetype declaration conflict. Multiple declarations using the same name: '%s'", archetypeName);
 		}
 
-		return ns.AddArchetype(archetypeName, NULL, NULL, NULL, NULL, 0, 0, &s);
+		return ns.AddArchetype(archetypeName, NULL, NULL, NULL, NULL, NULL, 0, 0, &s);
 	}
 
 	void CScript::AddArchetype(cr_sex s)
@@ -3692,28 +3702,31 @@ namespace Rococo::Script
 		const IArchetype** archetypes = (const IArchetype**) alloca(nArgs * sizeof(IArchetype*));
 		const IStructure** genericArg1s = (const IStructure**) alloca(nArgs * sizeof(IArchetype*));
 		bool* isOut = (bool*) alloca(nArgs * sizeof(bool));
+		ArgFlags* argFlags = (ArgFlags*)alloca(nArgs * sizeof ArgFlags);
 
 		for(int i = 0; i < archetype.NumberOfOutputs(); ++i)
 		{
-			const IStructure& type = archetype.GetArgument(i);
+			const IStructure& type = archetype.GetArgumentType(i);
 			names[i] = archetype.GetArgName(i);
 			resolvedTypes[i] = &type;
 			archetypes[i] = type.Archetype();
 			genericArg1s[i] = NULL;
 			isOut[i] = true;
+			argFlags[i] = ArgFlags::NONE;
 		}
 
 		int count = archetype.NumberOfOutputs();
 
 		for(int i = 0; i < archetype.NumberOfInputs()-1; ++i)
 		{
-			const IStructure& type = archetype.GetArgument(count);
+			const IStructure& type = archetype.GetArgumentType(count);
 			names[count] = archetype.GetArgName(count);
 			resolvedTypes[count] = &type;
 			archetypes[count] = type.Archetype();
 			genericArg1s[count] = archetype.GetGenericArg1(count);
 			isOut[count] = false;
 			count++;;
+			argFlags[count] = archetype.HasArgFlag(count, ArgFlags::OUT_PARAMETER) ? ArgFlags::OUT_PARAMETER : ArgFlags::NONE;
 		}
 
 		names[count] = ("_vTable");
@@ -3722,7 +3735,7 @@ namespace Rococo::Script
 		isOut[count] = false;
 		genericArg1s[count] = NULL;
 
-		inter.SetMethod(vmIndex, archetype.Name(), nArgs, names, resolvedTypes, archetypes, genericArg1s, isOut, &def);
+		inter.SetMethod(vmIndex, archetype.Name(), nArgs, names, argFlags, resolvedTypes, archetypes, genericArg1s, isOut, &def);
 	}
 
 	void CScript::AddEnumeratedVirtualMethod(IN cr_sex methodExpr, IN cstr methodName, REF IInterfaceBuilder& inter, IN size_t vmIndex)
@@ -3755,7 +3768,7 @@ namespace Rococo::Script
 		const IArchetype** archetypes = (const IArchetype**)alloca(nArgs * sizeof(IArchetype*));
 		const IStructure** genericArg1s = (const IStructure**)alloca(nArgs * sizeof(const IStructure*));
 		bool* isOut = (bool*)alloca(nArgs * sizeof(bool));
-
+		ArgFlags* argFlags = (ArgFlags*)alloca(nArgs * sizeof(ArgFlags));
 		int count = 0;
 
 		for (int i = mapIndex + 1; i < bodyIndex; ++i)
@@ -3773,6 +3786,7 @@ namespace Rococo::Script
 			archetypes[count] = MatchArchetype(type, module);
 			genericArg1s[count] = NULL;
 			isOut[count] = true;
+			argFlags[count] = ArgFlags::NONE;
 			if (resolvedTypes[count] == NULL) Throw(typeNameExptr, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");
 			count++;
 		}
@@ -3818,6 +3832,8 @@ namespace Rococo::Script
 				genericArg1s[count] = NULL;
 			}
 
+			argFlags[count] = Eq(sType.c_str(), "out") ? ArgFlags::OUT_PARAMETER : ArgFlags::NONE;
+
 			isOut[count] = false;
 			count++;;
 		}
@@ -3826,11 +3842,12 @@ namespace Rococo::Script
 		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure("Pointer");
 		archetypes[count] = NULL;
 		genericArg1s[count] = NULL;
+		argFlags[count] = ArgFlags::NONE;
 		isOut[count] = false;
 
 		count++;
 
-		inter.SetMethod(vmIndex, methodName, nArgs, names, resolvedTypes, archetypes, genericArg1s, isOut, &methodExpr);
+		inter.SetMethod(vmIndex, methodName, nArgs, names, argFlags, resolvedTypes, archetypes, genericArg1s, isOut, &methodExpr);
 	}
 
 	void CScript::AddVirtualMethod(IN cr_sex virtualMethodExpr, REF IInterfaceBuilder& inter, IN size_t vmIndex)
@@ -3856,6 +3873,7 @@ namespace Rococo::Script
 		const IArchetype** archetypes = (const IArchetype**) alloca(nArgs * sizeof(IArchetype*));
 		const IStructure** genericArg1s = (const IStructure**) alloca(nArgs * sizeof(const IStructure*));
 		bool* isOut = (bool*) alloca(nArgs * sizeof(bool));
+		ArgFlags* argFlags = (ArgFlags*)alloca(nArgs * sizeof(ArgFlags));
 
 		int count = 0;
 
@@ -3874,6 +3892,7 @@ namespace Rococo::Script
  			archetypes[count] = MatchArchetype(type, module);
 			genericArg1s[count] = NULL;
 			isOut[count] = true;
+			argFlags[count] = ArgFlags::NONE;
 			if (resolvedTypes[count] == NULL) Throw(typeNameExptr, ("Cannot resolve type. Check the spelling and/or use a fully qualified name."));		
 			count++;
 		}
@@ -3918,7 +3937,9 @@ namespace Rococo::Script
 				if (resolvedTypes[count] == NULL) Throw(typeNameExptr, "Cannot resolve type. Check the spelling and/or use a fully qualified name.");	
 				archetypes[count] = MatchArchetype(sArgType, module);
 				genericArg1s[count] = NULL;
-			}					
+			}		
+
+			argFlags[count] = AreEqual(type, "out") ? ArgFlags::OUT_PARAMETER : ArgFlags::NONE;
 			
 			isOut[count] = false;
 			count++;;
@@ -3928,11 +3949,12 @@ namespace Rococo::Script
 		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure("Pointer");
 		archetypes[count] = NULL;
 		genericArg1s[count] = NULL;
-		isOut[count] = false;
+		isOut[count] = false; 
+		argFlags[count] = ArgFlags::NONE;
 
 		count++;
 
-		inter.SetMethod(vmIndex, methodName, nArgs, names, resolvedTypes, archetypes, genericArg1s, isOut, &virtualMethodExpr);
+		inter.SetMethod(vmIndex, methodName, nArgs, names, argFlags,  resolvedTypes, archetypes, genericArg1s, isOut, &virtualMethodExpr);
 	}
 
 	void ValidateDefineAttribute(IAttributes& a, cr_sex attributeExpr)

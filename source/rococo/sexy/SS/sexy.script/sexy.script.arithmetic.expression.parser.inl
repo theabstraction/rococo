@@ -369,7 +369,7 @@ namespace Rococo
 			if (IsCapital(id[0]))
 			{
 				IFunctionBuilder& f = MustMatchFunction(ce.Builder.Module(), parent, id);
-				if (!IsGetAccessor(f) && f.GetArgument(0).VarType() != type)
+				if (!IsGetAccessor(f) && f.GetArgumentType(0).VarType() != type)
 				{
 					Throw(parent, "Expecting variable or single valued function with no inputs of return type %s", Parse::VarTypeName(type));
 				}

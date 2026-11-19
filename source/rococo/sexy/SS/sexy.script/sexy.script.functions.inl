@@ -51,7 +51,7 @@ namespace Rococo
 					int argIndex = i + callee.NumberOfOutputs();
 
 					cstr inputName = callee.GetArgName(argIndex);
-					const IStructure& argType = callee.GetArgument(argIndex);
+					const IStructure& argType = callee.GetArgumentType(argIndex);
 					const IArchetype* archetype;
 
 					if (argType.VarType() != SexyVarType_Closure)
@@ -73,7 +73,7 @@ namespace Rococo
 					int argIndex = i + callee.NumberOfOutputs();
 
 					cstr inputName = callee.GetArgName(argIndex);
-					const IStructure& argType = callee.GetArgument(argIndex);
+					const IStructure& argType = callee.GetArgumentType(argIndex);
 					const IArchetype* archetype;
 
 					if (argType.VarType() != SexyVarType_Closure)
@@ -115,7 +115,7 @@ namespace Rococo
 				int argIndex = i + callee.NumberOfOutputs();
 
 				cstr inputName = callee.GetArgName(argIndex);
-				const IStructure& argType = callee.GetArgument(argIndex);
+				const IStructure& argType = callee.GetArgumentType(argIndex);
 				const IArchetype* archetype;
 
 				if (argType.VarType() != SexyVarType_Closure)
@@ -205,7 +205,7 @@ namespace Rococo
 				for (int i = 0; i < archetype.NumberOfOutputs(); i++)
 				{
 					cr_sex outputExpr = lambdaDef.GetElement(i + mapIndex + 1);
-					const IStructure& neededType = archetype.GetArgument(i);
+					const IStructure& neededType = archetype.GetArgumentType(i);
 					cstr argName = archetype.GetArgName(i);
 
 					if (!IsAtomic(outputExpr))
@@ -228,7 +228,7 @@ namespace Rococo
 				cr_sex inputExpr = lambdaDef.GetElement(i);
 
 				int inputIndex = i + archetype.NumberOfOutputs();
-				const IStructure& neededType = archetype.GetArgument(inputIndex);
+				const IStructure& neededType = archetype.GetArgumentType(inputIndex);
 				cstr argName = archetype.GetArgName(inputIndex);
 
 				AssertLocalIdentifier(inputExpr);
@@ -1045,7 +1045,7 @@ namespace Rococo
 			int total = 0;
 			for (int i = 0; i < a.NumberOfOutputs(); i++)
 			{
-				const IStructure& s = a.GetArgument(i);
+				const IStructure& s = a.GetArgumentType(i);
 				switch (s.VarType())
 				{
 				case SexyVarType_Derivative:
@@ -1131,7 +1131,7 @@ namespace Rococo
 			{
 			case SexyVarType_Array:
 				argStruct = callee.GetGenericArg1(0);
-				if (argStruct == nullptr || callee.GetArgument(0).VarType() != SexyVarType_Array)
+				if (argStruct == nullptr || callee.GetArgumentType(0).VarType() != SexyVarType_Array)
 				{
 					Throw(s, "Expecting output to be an array");
 				}
@@ -1141,7 +1141,7 @@ namespace Rococo
 				}
 				break;
 			default:
-				argStruct = &callee.GetArgument(0);
+				argStruct = &callee.GetArgumentType(0);
 				if (returnTypeStruct != NULL && returnTypeStruct != argStruct)
 				{
 					Throw(s, "Function returns %s but expression expects %s", GetFriendlyName(*argStruct), GetFriendlyName(*returnTypeStruct));
@@ -1175,7 +1175,7 @@ namespace Rococo
 			{
 				for (int i = 0; i < callee.NumberOfOutputs(); i++)
 				{
-					const IStructure& s = callee.GetArgument(i);
+					const IStructure& s = callee.GetArgumentType(i);
 					AddArgVariable("output", ce, s);
 				}
 
@@ -1417,7 +1417,7 @@ namespace Rococo
 
 			ValidateSingleOutput(s, archetype.NumberOfOutputs());
 
-			const IStructure& outputStruct = archetype.GetArgument(0);
+			const IStructure& outputStruct = archetype.GetArgumentType(0);
 			ValidateCorrectOutput(s, outputStruct, returnType);
 
 			const IArchetype* argArchetype = outputStruct.Archetype();
@@ -2073,7 +2073,7 @@ namespace Rococo
 					return SexyVarType_Bad;
 				}
 
-				SexyVarType type = method.GetArgument(0).VarType();
+				SexyVarType type = method.GetArgumentType(0).VarType();
 
 				if (!IsNumericTypeOrBoolean(type)) return SexyVarType_Bad;
 
@@ -2105,7 +2105,7 @@ namespace Rococo
 			for (int i = 0; i < outputCount; i++)
 			{
 				int outputIndex = outputCount - 1 - i;
-				const IStructure& arg = callee.GetArgument(outputIndex);
+				const IStructure& arg = callee.GetArgumentType(outputIndex);
 				outputOffset -= GetOutputArgSize(arg);
 
 				if (arg.VarType() == SexyVarType_Array)
@@ -2211,7 +2211,7 @@ namespace Rococo
 
 			for (int i = 0; i < callee.NumberOfInputs() - 1; ++i)
 			{
-				auto& argType = callee.GetArgument(i);
+				auto& argType = callee.GetArgumentType(i);
 				sb << "(" << GetFriendlyName(argType) << " ";
 				sb << callee.GetArgName(i) << ")";
 			}
@@ -2221,7 +2221,7 @@ namespace Rococo
 			for (int i = 0; i < callee.NumberOfOutputs(); ++i)
 			{
 				int index = i + callee.NumberOfInputs();
-				auto& argType = callee.GetArgument(index);
+				auto& argType = callee.GetArgumentType(index);
 				sb << "(" << GetFriendlyName(argType) << " ";
 				sb << callee.GetArgName(index) << ")";
 			}
@@ -2481,7 +2481,7 @@ namespace Rococo
 				if (f->NumberOfOutputs() > 1) Throw(arg, ("The function has more than one output"));
 				if (f->NumberOfInputs() > 0) Throw(arg, ("The function requires an input"));
 
-				return &f->GetArgument(0);
+				return &f->GetArgumentType(0);
 			}
 			else
 			{
@@ -2511,7 +2511,7 @@ namespace Rococo
 				if (methodArch.NumberOfOutputs() > 1) Throw(arg, ("The method has more than one output"));
 				if (methodArch.NumberOfInputs() > 2) Throw(arg, ("The method requires an explicit input"));
 
-				return &methodArch.GetArgument(0);
+				return &methodArch.GetArgumentType(0);
 			}
 		}
 
@@ -2561,7 +2561,7 @@ namespace Rococo
 				if (f->NumberOfOutputs() == 0) Throw(tokenExpr, ("The function has no output"));
 				if (f->NumberOfOutputs() > 1) Throw(tokenExpr, ("The function has more than one output"));
 
-				return &f->GetArgument(0);
+				return &f->GetArgumentType(0);
 			}
 			else
 			{
@@ -2600,7 +2600,7 @@ namespace Rococo
 				if (methodArch.NumberOfOutputs() == 0) Throw(tokenExpr, ("The method has no output"));
 				if (methodArch.NumberOfOutputs() > 1) Throw(tokenExpr, ("The method has more than one output"));
 
-				return &methodArch.GetArgument(0);
+				return &methodArch.GetArgumentType(0);
 			}
 		}
 

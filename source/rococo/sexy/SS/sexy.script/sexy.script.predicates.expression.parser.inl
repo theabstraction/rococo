@@ -240,12 +240,12 @@ namespace Rococo
          if (IsCapital(id[0]))
          {
             IFunctionBuilder& f = MustMatchFunction(ce.Builder.Module(), s, id);
-            if (!IsGetAccessor(f) || !IsNumericTypeOrBoolean(f.GetArgument(0).VarType()))
+            if (!IsGetAccessor(f) || !IsNumericTypeOrBoolean(f.GetArgumentType(0).VarType()))
             {
                Throw(s, "Expecting variable or single valued function with no inputs, and return type '%s'", Parse::VarTypeName(type));
             }
 
-            type = f.GetArgument(0).VarType();
+            type = f.GetArgumentType(0).VarType();
             CompileFunctionCallAndReturnValue(ce, s, f, type, NULL, NULL);
 
             if (tempdepth > Rococo::ROOT_TEMPDEPTH)
@@ -601,23 +601,23 @@ namespace Rococo
 						  Throw(parent, "Operator overload function %s must have 2 inputs and 1 output", compareFunction);
 					  }
 
-					  if (callee.GetArgument(0).VarType() != SexyVarType_Bool)
+					  if (callee.GetArgumentType(0).VarType() != SexyVarType_Bool)
 					  {
 						  Throw(parent, "Operator overload function %s must have Bool as output", compareFunction);
 					  }
 
-					  if (&callee.GetArgument(1) != leftDef.ResolvedType)
+					  if (&callee.GetArgumentType(1) != leftDef.ResolvedType)
 					  {
 						  Throw(parent, "Operator overload function %s first argument must be of type %s of %s. Not %s of %s", compareFunction,
 							  leftDef.ResolvedType->Name(), leftDef.ResolvedType->Module().Name(),
-							  callee.GetArgument(1).Name(), callee.GetArgument(1).Module().Name());
+							  callee.GetArgumentType(1).Name(), callee.GetArgumentType(1).Module().Name());
 					  }
 
-					  if (&callee.GetArgument(2) != rightDef.ResolvedType)
+					  if (&callee.GetArgumentType(2) != rightDef.ResolvedType)
 					  {
 						  Throw(parent, "Operator overload function %s second argument must be of type %s of %s. Not %s of %s", compareFunction,
 							  rightDef.ResolvedType->Name(), rightDef.ResolvedType->Module().Name(),
-							  callee.GetArgument(2).Name(), callee.GetArgument(2).Module().Name());
+							  callee.GetArgumentType(2).Name(), callee.GetArgumentType(2).Module().Name());
 					  }
 					  
 					  const int outputStackAllocCount = AllocFunctionOutput(ce, callee, parent);

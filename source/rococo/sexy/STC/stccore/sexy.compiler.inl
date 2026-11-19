@@ -190,6 +190,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const IStructure** structureArray;
 		const IArchetype** archetypeArray;
 		const IStructure** genericArg1Array;
+		ArgFlags* argFlagsArray;
 		cstr* argNameArray;
 		int32 numberOfOutputs;
 		int32 numberOfInputs;
@@ -197,10 +198,10 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const void* definition;
 
 	public:
-		Archetype(cstr name, cstr* argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs, bool isVirtual, const void* _def):
-				publicName(name), structureArray(NULL), archetypeArray(NULL), argNameArray(NULL), isVirtualMethod(isVirtual), genericArg1Array(NULL), definition(_def)
+		Archetype(cstr name, cstr* argNameArray, ArgFlags* _argFlagsArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs, bool isVirtual, const void* _def):
+				publicName(name), argFlagsArray(NULL), structureArray(NULL), archetypeArray(NULL), argNameArray(NULL), isVirtualMethod(isVirtual), genericArg1Array(NULL), definition(_def)
 		{
-			SetStructs(argNameArray, stArray, archArray, _genericArg1Array, numberOfOutputs, numberOfInputs);
+			SetStructs(argNameArray, _argFlagsArray, stArray, archArray, _genericArg1Array, numberOfOutputs, numberOfInputs);
 		}
 
 		cstr GetDefaultValue(int index) const override
@@ -209,7 +210,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return nullptr;
 		}
 
-		const Rococo::Script::NativeSecurityHandler* Security() const
+		const Rococo::Script::NativeSecurityHandler* Security() const override
 		{
 			return nullptr;
 		}
@@ -224,19 +225,25 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
 		}
 
-		virtual const void* Definition() const { return definition; }
+		const void* Definition() const override { return definition; }
 
-		virtual const bool IsVirtualMethod() const
+		const bool IsVirtualMethod() const override
 		{
 			return isVirtualMethod;
 		}
 
-		void SetStructs(const cstr* _argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs)
+		bool HasArgFlag(int index, ArgFlags flag) const override
+		{
+			return 0 != ((int) argFlagsArray[index] & (int) flag);
+		}
+
+		void SetStructs(const cstr* _argNameArray, const ArgFlags* _argFlagsArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** _genericArg1Array, int32 numberOfOutputs, int32 numberOfInputs)
 		{
 			FreeSexyPointers(structureArray);
 			FreeSexyPointers(archetypeArray);
 			FreeSexyPointers(argNameArray);
 			FreeSexyPointers(genericArg1Array);
+			FreeSexyPointers(argFlagsArray);
 
 			this->numberOfOutputs = numberOfOutputs;
 			this->numberOfInputs = numberOfInputs;
@@ -247,6 +254,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				archArray = NULL;
 				argNameArray = NULL;
 				genericArg1Array = NULL;
+				argFlagsArray = NULL;
 			}
 			else
 			{
@@ -254,6 +262,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 				archetypeArray = AllocateSexyPointers<const IArchetype*>(numberOfOutputs + numberOfInputs);
 				argNameArray = AllocateSexyPointers<cstr>(numberOfOutputs+numberOfInputs);
 				genericArg1Array = AllocateSexyPointers<const IStructure*>(numberOfOutputs+numberOfInputs);
+				argFlagsArray = (ArgFlags*) AllocateSexyMemory(sizeof(ArgFlags) * (numberOfOutputs + numberOfInputs));
 
 				for(int32 i = 0; i < numberOfOutputs + numberOfInputs; ++i)
 				{
@@ -261,6 +270,7 @@ namespace Rococo { namespace Compiler { namespace Impl
 					archetypeArray[i] = archArray[i];
 					argNameArray[i] = _argNameArray[i];
 					genericArg1Array[i] = _genericArg1Array[i];
+					argFlagsArray[i] = _argFlagsArray[i];
 				}				
 			}
 		}
@@ -271,14 +281,15 @@ namespace Rococo { namespace Compiler { namespace Impl
 			FreeSexyPointers(archetypeArray);
 			FreeSexyPointers(argNameArray);
 			FreeSexyPointers(genericArg1Array);
+			FreeSexyUnknownMemory(argFlagsArray);
 		}
 
-		virtual cstr Name() const								{ return publicName.c_str(); }
-		virtual const int32 NumberOfOutputs() const					{ return numberOfOutputs; }
-		virtual const int32 NumberOfInputs() const					{ return numberOfInputs; }
-		virtual const IStructure& GetArgument(int32 index) const	{ return *structureArray[index]; }
-		virtual cstr GetArgName(int index) const					{ return argNameArray[index]; }
-		virtual const IStructure* GetGenericArg1(int32 index) const { return genericArg1Array[index]; }
+		cstr Name() const  override { return publicName.c_str(); }
+		const int32 NumberOfOutputs() const	 override { return numberOfOutputs; }
+		const int32 NumberOfInputs() const override { return numberOfInputs; }
+		const IStructure& GetArgumentType(int32 index) const override { return *structureArray[index]; }
+		cstr GetArgName(int index) const override { return argNameArray[index]; }
+		const IStructure* GetGenericArg1(int32 index) const override { return genericArg1Array[index]; }
 	};
 
 	class ArchetypeRegistry
@@ -289,16 +300,16 @@ namespace Rococo { namespace Compiler { namespace Impl
 
 	public:
 		// This rubbish needs thinking about
-		const IArchetype& Register(cstr name, cstr* argNameArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** genericArg1Array, uint32 numberOfOutputs, uint32 numberOfInputs, const void* definition)
+		const IArchetype& Register(cstr name, cstr* argNameArray, ArgFlags* argFlagsArray, const IStructure** stArray, const IArchetype** archArray, const IStructure** genericArg1Array, uint32 numberOfOutputs, uint32 numberOfInputs, const void* definition)
 		{
 			Archetype* a = Find(name);
 			if (a != NULL)
 			{
-				a->SetStructs(argNameArray, stArray, archArray, genericArg1Array, numberOfOutputs, numberOfInputs);
+				a->SetStructs(argNameArray, argFlagsArray, stArray, archArray, genericArg1Array, numberOfOutputs, numberOfInputs);
 			}
 			else
 			{
-				a = new Archetype(name, argNameArray, stArray, archArray, genericArg1Array, numberOfOutputs, numberOfInputs, false, definition);
+				a = new Archetype(name, argNameArray, argFlagsArray, stArray, archArray, genericArg1Array, numberOfOutputs, numberOfInputs, false, definition);
 				declarations.push_back(a);				
 			}			
 
@@ -772,18 +783,18 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
 		}
 		
-        virtual void Free()
+        virtual void Free() 
         {
             delete this;
         }
 		//IInterface
-		virtual const IObjectInterface* Base() const  { return base; }
-		virtual const IAttributes& Attributes() const { return attributes; }
-		virtual const IArchetype& GetMethod(int index) const {	return *archetypes[index];	}
-		virtual const int MethodCount() const 	{ return methodCount;	}
-		virtual cstr Name() const { return name.c_str(); }		
-		virtual const IStructure& NullObjectType() const { return nullObjectType; }
-		virtual ObjectStub* UniversalNullInstance() const 
+		const IObjectInterface* Base() const  override { return base; }
+		const IAttributes& Attributes() const  override { return attributes; }
+		const IArchetype& GetMethod(int index) const  override {	return *archetypes[index];	}
+		const int MethodCount() const  override { return methodCount;	}
+		cstr Name() const  override { return name.c_str(); }
+		const IStructure& NullObjectType() const  override { return nullObjectType; }
+		ObjectStub* UniversalNullInstance() const override
 		{
 			if (!universalNullInstance)
 			{
@@ -795,11 +806,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 		}
 		
 		// IInterfaceBuilder
-		virtual IAttributes& Attributes() { return attributes; }
-		virtual void ExpandNullObjectAllocSize(int minimumByteCount) { nullObjectType.ExpandAllocSize(minimumByteCount); }
-		virtual void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const Sex::ISExpression*);
-		virtual void PostCompile();
-		virtual IStructureBuilder& NullObjectType() { return nullObjectType; }
+		IAttributes& Attributes()  override  { return attributes; }
+		void ExpandNullObjectAllocSize(int minimumByteCount)  override { nullObjectType.ExpandAllocSize(minimumByteCount); }
+		void SetMethod(size_t index, cstr name, size_t argCount, cstr argNames[], ArgFlags _argFlags[], const IStructure* types[], const IArchetype* archetypes[], const IStructure* genericArg1s[], const bool isOut[], const Sex::ISExpression*) override;
+		void PostCompile() override;
+		IStructureBuilder& NullObjectType() override { return nullObjectType; }
 	};
 
 	class Factory: public IFactoryBuilder
@@ -917,55 +928,55 @@ namespace Rococo { namespace Compiler { namespace Impl
 		const FunctionRegistry& Functions() const;
 		const StructRegistry& Structures() const;
 
-		virtual IProgramObject& Object();
-		virtual IPublicProgramObject& Object() const;
+		IProgramObject& Object() override;
+		IPublicProgramObject& Object() const override;
 
-		virtual void Clear();
+		void Clear() override;
 
-		virtual void Alias(IFunctionBuilder& f);
-		virtual void Alias(cstr name, IFunctionBuilder& f);
-		virtual void Alias(cstr publicName, IStructureBuilder& s);
+		void Alias(IFunctionBuilder& f) override;
+		void Alias(cstr name, IFunctionBuilder& f) override;
+		void Alias(cstr publicName, IStructureBuilder& s) override;
 
-		virtual IFunctionBuilder* FindFunction(cstr name);
-		virtual IStructureBuilder* FindStructure(cstr name);
-		virtual const IFunction* FindFunction(cstr name) const;
-		virtual const IStructure* FindStructure(cstr name) const;
+		IFunctionBuilder* FindFunction(cstr name) override;
+		IStructureBuilder* FindStructure(cstr name) override;
+		const IFunction* FindFunction(cstr name) const override;
+		const IStructure* FindStructure(cstr name) const override;
 
-		virtual INamespaceBuilder& AddNamespace(cstr childName, ADDNAMESPACEFLAGS flags);
-		virtual size_t ChildCount() const;
-		virtual const INamespace& GetChild(size_t index) const;
-		virtual INamespaceBuilder& GetChild(size_t index);
-		virtual const INamespace* FindSubspace(cstr childName) const;
-		virtual INamespaceBuilder* FindSubspace(cstr childName);
-		virtual const sexstring FullName() const;
-		virtual const sexstring Name() const;
-		virtual const INamespace* Parent() const;
-		virtual INamespaceBuilder* Parent();
+		INamespaceBuilder& AddNamespace(cstr childName, ADDNAMESPACEFLAGS flags) override;
+		size_t ChildCount() const override;
+		const INamespace& GetChild(size_t index) const override;
+		INamespaceBuilder& GetChild(size_t index) override;
+		const INamespace* FindSubspace(cstr childName) const override;
+		INamespaceBuilder* FindSubspace(cstr childName) override;
+		const sexstring FullName() const override;
+		const sexstring Name() const override;
+		const INamespace* Parent() const;
+		INamespaceBuilder* Parent() override;
 
-		virtual const IArchetype& AddArchetype(cstr name, cstr argNames[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition);
-		virtual const IArchetype* FindArchetype(cstr name) const;
-		virtual IArchetype* FindArchetype(cstr name);
+		const IArchetype& AddArchetype(cstr name, cstr argNames[], ArgFlags argFlags[], const IStructure* stArray[], const IArchetype* archArray[], const IStructure* genericArg1s[], int numberOfOutputs, int numberOfInputs, const void* definition)  override;
+		const IArchetype* FindArchetype(cstr name) const override;
+		IArchetype* FindArchetype(cstr name) override;
 
-		virtual IInterfaceBuilder* DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base);
-		virtual IInterfaceBuilder* FindInterface(cstr name);
-		virtual const IObjectInterface* FindInterface(cstr name) const;
+		IInterfaceBuilder* DeclareInterface(cstr name, int methodCount, IStructureBuilder& nullObject, IInterfaceBuilder* base) override;
+		IInterfaceBuilder* FindInterface(cstr name) override;
+		const IObjectInterface* FindInterface(cstr name) const override;
 
-		virtual int InterfaceCount() const { return (int32) interfaceEnum.size(); }
-		virtual IInterfaceBuilder& GetInterface(int index) { return *interfaceEnum[index]; }
-		virtual const IObjectInterface& GetInterface(int index) const { return *interfaceEnum[index]; }
+		int InterfaceCount() const override { return (int32) interfaceEnum.size(); }
+		IInterfaceBuilder& GetInterface(int index) override { return *interfaceEnum[index]; }
+		const IObjectInterface& GetInterface(int index) const override { return *interfaceEnum[index]; }
 
-		virtual IMacroBuilder* FindMacro(cstr name);
-		virtual const IFactory* FindFactory(cstr name) const;
-		virtual IFactory& RegisterFactory(cstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType);
+		IMacroBuilder* FindMacro(cstr name) override;
+		const IFactory* FindFactory(cstr name) const override;
+		IFactory& RegisterFactory(cstr name, IFunctionBuilder& constructor, IInterfaceBuilder& interf, sexstring interfType) override;
 
-		virtual IMacroBuilder* AddMacro(cstr name, void* expression, IFunctionBuilder& f);
+		IMacroBuilder* AddMacro(cstr name, void* expression, IFunctionBuilder& f) override;
 
-		virtual IFactoryBuilder* FindFactory(cstr name);
-		virtual const IMacro* FindMacro(cstr name) const;
+		IFactoryBuilder* FindFactory(cstr name) override;
+		const IMacro* FindMacro(cstr name) const override;
 
-		virtual void EnumerateFactories(ICallback<const IFactory, cstr>& onFactory) const;
-		virtual void EnumerateStrutures(ICallback<const IStructure, cstr>& onStructure) const;
-		virtual void EnumerateFunctions(ICallback<const IFunction, cstr>& onFunction) const;
-		virtual void EnumerateArchetypes(ICallback<const IArchetype>& onArchetype) const;
+		void EnumerateFactories(ICallback<const IFactory, cstr>& onFactory) const override;
+		void EnumerateStrutures(ICallback<const IStructure, cstr>& onStructure) const override;
+		void EnumerateFunctions(ICallback<const IFunction, cstr>& onFunction) const override;
+		void EnumerateArchetypes(ICallback<const IArchetype>& onArchetype) const override;
 	};	
 }}} // Rococo::Compiler::Impl
