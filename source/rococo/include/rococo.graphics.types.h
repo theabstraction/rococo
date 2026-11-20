@@ -45,6 +45,11 @@ namespace Rococo::Graphics
 			value = float(index);
 		}
 
+		explicit GPU_ENTITY_ID<T>(float index)
+		{
+			value = index;
+		}
+
 		float ToFloat() const
 		{
 			return value;
@@ -66,4 +71,6 @@ namespace Rococo::Graphics
 
 	struct TextureSliceProxy;
 	using TextureSliceId = GPU_ENTITY_ID<TextureSliceProxy>;
+
+	struct MaterialVertexData;
 }

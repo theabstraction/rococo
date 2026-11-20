@@ -377,6 +377,10 @@
 	(GetRandomMaterialId (Int32 category) -> (Float32 id))
 
 	(SetMaterialMacro (Sys.Type.IString pingPath) -> )
+
+	(PopulateRandomMaterialTextures (Int32 category)(out Rococo.MaterialVertexData mvd) -> (Float32 id))
+
+	(PopulateMaterialTextures (Int32 category)(Int32 index)(out Rococo.MaterialVertexData mvd) -> (Float32 id))
 )
 
 (class ProxyIMaterialBuilder (implements Rococo.Graphics.IMaterialBuilder) (Pointer hObject) (attribute not-serialized))
@@ -391,6 +395,8 @@
 	(method ProxyIMaterialBuilder.GetMaterialDirect (Sys.Type.IString pingPath) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialDirect this.hObject pingPath -> id))
 	(method ProxyIMaterialBuilder.GetRandomMaterialId (Int32 category) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderGetRandomMaterialId this.hObject category -> id))
 	(method ProxyIMaterialBuilder.SetMaterialMacro (Sys.Type.IString pingPath) ->  : (Rococo.Graphics.Native.IMaterialBuilderSetMaterialMacro this.hObject pingPath))
+	(method ProxyIMaterialBuilder.PopulateRandomMaterialTextures (Int32 category)(out Rococo.MaterialVertexData mvd) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderPopulateRandomMaterialTextures this.hObject category mvd -> id))
+	(method ProxyIMaterialBuilder.PopulateMaterialTextures (Int32 category)(Int32 index)(out Rococo.MaterialVertexData mvd) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderPopulateMaterialTextures this.hObject category index mvd -> id))
 
 (factory Rococo.Graphics.MaterialBuilder Rococo.Graphics.IMaterialBuilder  :
 	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForIMaterialBuilder0 ))

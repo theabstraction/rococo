@@ -283,6 +283,22 @@ namespace Rococo::Graphics
 		{
 			delete this;
 		}
+
+		MaterialId PopulateRandomMaterialTextures(MaterialCategory category, MaterialVertexData& mvd) override
+		{
+			auto id = GetRandomMaterialId(category);
+			mvd.txColourId = TextureSliceId{ GetColourTextureSliceIndex(id) };
+			mvd.txNormalId = TextureSliceId{ GetNormalTextureSliceIndex(id) };
+			return id;
+		}
+
+		MaterialId PopulateMaterialTextures(MaterialCategory category, int32 index, MaterialVertexData& mvd) override
+		{
+			auto id = GetMaterialId(category, index);
+			mvd.txColourId = TextureSliceId{ GetColourTextureSliceIndex(id) };
+			mvd.txNormalId = TextureSliceId{ GetNormalTextureSliceIndex(id) };
+			return id;
+		}
 	};
 }
 

@@ -127,6 +127,7 @@ namespace Rococo
 	namespace Graphics
 	{
 		struct SampleStateDef;
+		struct MaterialVertexData;
 
 		struct FontMetrics
 		{

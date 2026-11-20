@@ -422,6 +422,9 @@
 		(GetMaterialDirect (IString pingPath)->(MaterialId id))
 		(GetRandomMaterialId (MaterialCategory category)->(MaterialId id))
 		(SetMaterialMacro (IString pingPath))
+
+		(PopulateRandomMaterialTextures (MaterialCategory category) (out MaterialVertexData mvd) -> (MaterialId id))
+		(PopulateMaterialTextures (MaterialCategory category) (Int32 index) (out MaterialVertexData mvd) -> (MaterialId id))
 	)
 	(factory Rococo.Graphics.MaterialBuilder)
 )
