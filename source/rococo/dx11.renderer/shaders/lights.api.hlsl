@@ -59,10 +59,19 @@ float GetSpotlightIntensity(float3 lightToPixelDir)
 // Fades light out as the geometric (unbumped) surface turns away from the light, so bumped normals cannot light the dark side
 float GetTerminatorFade(float3 geometricNormal, float3 lightToPixelDir)
 {
-    return saturate(-dot(geometricNormal, lightToPixelDir) * 4.0f);
+    return saturate(-dot(geometricNormal, lightToPixelDir) * 2.0f + 0.25f);
 }
 
-// x = diffuse, y = specular. Both include spotlight cone, fog clarity and terminator fade
+// Normal-aware ambient scale: sky/ground hemisphere plus cavity darkening where the bump bends away from the surface
+float GetAmbientScale(float3 bumpedNormal, float3 geometricNormal)
+{
+    float hemi = 0.5f + 0.5f * dot(bumpedNormal, WORLD_UP);
+    float cavity = saturate(dot(bumpedNormal, geometricNormal));
+    cavity *= cavity;
+    return lerp(0.6f, 1.0f, hemi) * cavity;
+}
+
+// Forward path. x = diffuse, y = specular. Both include spotlight cone, fog clarity and terminator fade
 // p.worldNormal must already hold the bumped normal; Ng is the geometric normal captured before bumping
 float2 GetDiffuseAndSpecular(ObjectPixelVertex p, float3 Ng)
 {
@@ -73,6 +82,19 @@ float2 GetDiffuseAndSpecular(ObjectPixelVertex p, float3 Ng)
     float k = GetSpotlightIntensity(Ldir) * GetClarity(p) * GetTerminatorFade(Ng, Ldir);
 
     return float2(GetDiffuse(p, L, Ldir), GetSpecular(p, incident, Ldir)) * k;
+}
+
+// Deferred path. x = diffuse, y = specular. Same terms as the forward path
+// Fog uses eye distance, which equals length(cameraSpacePosition) in the forward path
+float2 GetDiffuseAndSpecularG(GPixelSpec v, float3 normal, float3 Ng, float3 worldPosition, float3 incident, float gloss)
+{
+    float3 L = GetLightToWorldPositionG(v, worldPosition);
+    float3 Ldir = normalize(L);
+
+    float clarity = GetClarityAcrossSpan(worldPosition - global.eye.xyz);
+    float k = GetSpotlightIntensity(Ldir) * clarity * GetTerminatorFade(Ng, Ldir);
+
+    return float2(GetDiffuseG(v, normal, L, Ldir), GetSpecularG(v, gloss, normal, incident, Ldir)) * k;
 }
 
 // Legacy combined term, still used by fog, scroll and no-texture shaders
@@ -89,25 +111,6 @@ float GetDiffuseSpecularAndFoggedLighting(ObjectPixelVertex v)
     float diffuse = GetDiffuse(v, lightToPixelVec, lightToPixelDir);
     float clarity = GetClarity(v);
     float specular = GetSpecular(v, incident, lightToPixelDir);
-    float I = (diffuse + specular) * intensity * clarity;
-
-    return I;
-}
-
-float GetDiffuseSpecularAndFoggedLighting(GPixelSpec v, float3 normal, float3 worldPosition, float3 incident, float gloss)
-{
-    // We dont apply the environment here, because by definition the environment is lit by ambient light only
-
-    float3 lightToPixelVec = GetLightToWorldPositionG(v, worldPosition);
-    float3 lightToPixelDir = normalize(lightToPixelVec);
-
-    float intensity = GetSpotlightIntensity(lightToPixelDir);
-
-    float diffuse = GetDiffuseG(v, normal, lightToPixelVec, lightToPixelDir);
-
-    float3 cameraSpacePosition = { 0, 0, 0 };
-    float clarity = GetClarityAcrossSpan(cameraSpacePosition);
-    float specular = GetSpecularG(v, gloss, normal, incident, lightToPixelDir);
     float I = (diffuse + specular) * intensity * clarity;
 
     return I;
