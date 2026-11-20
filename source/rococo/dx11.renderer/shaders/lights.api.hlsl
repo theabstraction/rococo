@@ -12,11 +12,11 @@ float3 GetLightToWorldPositionG(GPixelSpec p, float3 worldPosition)
 
 float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
 {
-	float shine = 240.0f;
-	float3 r = reflect(lightDirection, p.worldNormal.xyz);
-	float dotProduct = dot(r, incident);
-	float specular = p.uv_and_gloss.z * max(pow(abs(dotProduct), shine), 0);
-	return clamp(specular, 0, 1);
+	float3 N = p.worldNormal.xyz;
+    float3 H = normalize(-lightDirection - incident);  // both vectors point into the surface
+    float shine = 48.0f;                               // or derive from gloss
+    float norm = (shine + 8.0f) / 25.13f;              // keeps energy roughly constant
+    return p.uv_and_gloss.z * norm * pow(saturate(dot(N, H)), shine) * saturate(-dot(N, lightDirection));
 }
 
 float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixelDir)
