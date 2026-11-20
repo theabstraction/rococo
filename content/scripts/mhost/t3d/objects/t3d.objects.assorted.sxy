@@ -134,7 +134,7 @@
 	(IMaterialBuilder mb (MaterialBuilder))
 	
 	(MaterialVertexData marble)
-	(marble.colour = (Sys.Type.ToRGBAb 0.25 0.25 0.25 0.5))
+	(marble.colour = (Sys.Type.ToRGBAb 0.25 0.25 0.25 1.0))
 	
 	(MaterialId marbleId)
 	(mb.GetMaterialId (#MaterialCategoryRock) 1 -> marbleId)
@@ -147,7 +147,7 @@
 	(rod.SetMaterialMiddle marble)
 	(rod.SetMaterialBottom marble)
 	
-	(rod.SetUVScale 0.30)
+	(rod.SetUVScale 0.25)
 	
 	(Vec2 b0 = -10  10)
 	(Vec2 b1 =  10  10)

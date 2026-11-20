@@ -31,7 +31,7 @@ float4 main(GPixelSpec spec) : SV_TARGET
         float shadowDensity = GetShadowDensity_16Sample(shadowPos);
    
         float3 incident = ComputeEyeToWorldDirectionG(spec, worldPosition);
-        float I = GetDiffuseSpecularAndFoggedLighting(spec, normal, worldPosition, incident);
+        float I = GetDiffuseSpecularAndFoggedLighting(spec, normal, worldPosition, incident, gloss);
 	
     // The following computation requires global value 'light' to have been assigned to the shader
         float4 txColour = BlendColourWithLightAndShadow(rawColour, shadowDensity, I);

@@ -13,10 +13,11 @@ float3 GetLightToWorldPositionG(GPixelSpec p, float3 worldPosition)
 float GetSpecular(ObjectPixelVertex p, float3 incident, float3 lightDirection)
 {
 	float3 N = p.worldNormal.xyz;
-    float3 H = normalize(-lightDirection - incident);  // both vectors point into the surface
-    float shine = 48.0f;                               // or derive from gloss
-    float norm = (shine + 8.0f) / 25.13f;              // keeps energy roughly constant
-    return p.uv_and_gloss.z * norm * pow(saturate(dot(N, H)), shine) * saturate(-dot(N, lightDirection));
+    float3 H = normalize(-lightDirection - incident);
+    float shine = 48.0f;
+    float NdotL = saturate(-dot(N, lightDirection));
+    float spec = p.uv_and_gloss.z * pow(saturate(dot(N, H)), shine) * NdotL;
+    return saturate(spec);   // remove the saturate and restore norm once you render to HDR and tonemap
 }
 
 float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixelDir)
@@ -29,19 +30,10 @@ float GetDiffuse(ObjectPixelVertex p, float3 lightToPixelVec, float3 lightToPixe
 
 float GetSpecularG(GPixelSpec p, float gloss, float3 normal, float3 incident, float3 lightDirection)
 {
-    float shine = 240.0f;
-    float3 r = reflect(lightDirection, normal);
-    float dotProduct = dot(r, incident);
-    float specular = gloss * max(pow(abs(dotProduct), shine), 0);
-    return clamp(specular, 0, 1);
-}
-
-float GetDiffuseG(GPixelSpec p, float3 normal, float3 lightToPixelVec, float3 lightToPixelDir)
-{
-    float R2 = dot(lightToPixelVec, lightToPixelVec);
-    float incidence = -dot(lightToPixelDir, normal);
-    float i2 = clamp(incidence, 0, 1);
-    return i2 * pow(R2, light.attenuationRate);
+    float3 H = normalize(-lightDirection - incident);
+    float shine = 48.0f;
+    float NdotL = saturate(-dot(normal, lightDirection));
+    return saturate(gloss * pow(saturate(dot(normal, H)), shine) * NdotL);
 }
 
 float GetSpotlightIntensity(float3 lightToPixelDir)
@@ -50,6 +42,23 @@ float GetSpotlightIntensity(float3 lightToPixelDir)
 	float radialAttenuation = clamp(light.cutoffCosAngle - incidence, 0, 1);	
 	float intensity = incidence * pow(1.0f - radialAttenuation, light.cutoffPower);
 	return intensity;
+}
+
+float2 GetDiffuseAndSpecular(ObjectPixelVertex v)   // x = diffuse, y = specular
+{
+    float3 incident = ComputeEyeToWorldDirection(v);
+    float3 L = GetLightToWorldPosition(v);
+    float3 Ldir = normalize(L);
+    float k = GetSpotlightIntensity(Ldir) * GetClarity(v);
+    return float2(GetDiffuse(v, L, Ldir), GetSpecular(v, incident, Ldir)) * k;
+}
+
+float GetDiffuseG(GPixelSpec p, float3 normal, float3 lightToPixelVec, float3 lightToPixelDir)
+{
+    float R2 = dot(lightToPixelVec, lightToPixelVec);
+    float incidence = -dot(lightToPixelDir, normal);
+    float i2 = clamp(incidence, 0, 1);
+    return i2 * pow(R2, light.attenuationRate);
 }
 
 float GetClarity(ObjectPixelVertex v);
@@ -74,7 +83,7 @@ float GetDiffuseSpecularAndFoggedLighting(ObjectPixelVertex v)
 
 float GetClarityAcrossSpan(float3 cameraSpacePosition);
 
-float GetDiffuseSpecularAndFoggedLighting(GPixelSpec v, float3 normal, float3 worldPosition, float3 incident)
+float GetDiffuseSpecularAndFoggedLighting(GPixelSpec v, float3 normal, float3 worldPosition, float3 incident, float gloss)
 {
 	// We dont apply the environment here, because by definition the environment is lit by ambient light only
 	
@@ -86,7 +95,6 @@ float GetDiffuseSpecularAndFoggedLighting(GPixelSpec v, float3 normal, float3 wo
     float diffuse = GetDiffuseG(v, normal, lightToPixelVec, lightToPixelDir);
     
     float3 cameraSpacePosition = { 0, 0, 0 };
-    float gloss = 0.5f;
     float clarity = GetClarityAcrossSpan(cameraSpacePosition);
     float specular = GetSpecularG(v, gloss, normal, incident, lightToPixelDir);
     float I = (diffuse + specular) * intensity * clarity;

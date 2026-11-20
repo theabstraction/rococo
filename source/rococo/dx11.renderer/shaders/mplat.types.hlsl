@@ -7,6 +7,8 @@
 # pragma enable_d3d11_debug_symbols
 #endif
 
+static const float3 WORLD_UP = float3(0, 0, 1);
+
 struct BoneWeight_2Bones
 {
 	float index0 : BLENDINDICES0;
