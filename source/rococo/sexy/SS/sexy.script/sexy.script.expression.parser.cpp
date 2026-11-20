@@ -361,91 +361,6 @@ namespace Rococo
 			}
 		}
 
-		bool TryCompileAssignStructFromAtomicMethodCall(CCompileEnvironment& ce, cr_sex directive, cstr instance, cstr methodName)
-		{
-			// (Vec2i v = instance.Method) or (v = instance.Method)
-
-			MemberDef def;
-			if (!ce.Builder.TryGetVariableByName(OUT def, instance))
-			{
-				Throw(directive, "Unknown variable: %s", instance);
-			}
-
-			auto& instanceType = *def.ResolvedType;
-			if (instanceType.InterfaceCount() != 1)
-			{
-				return false;
-			}
-
-			OUT int interfaceIndex, OUT methodIndex;
-			if (!Rococo::Compiler::GetMethodIndices(OUT interfaceIndex, OUT methodIndex, instanceType, methodName))
-			{
-				Throw(directive, "Cannot find method '%s' for interface '%s'", methodName, GetFriendlyName(instanceType));
-			}
-				
-			const IObjectInterface& interf = instanceType.GetInterface(interfaceIndex);
-			const IArchetype& method = interf.GetMethod(methodIndex);
-
-			if (method.NumberOfInputs() != 2 || method.NumberOfOutputs() != 0)
-			{
-				Throw(directive, "For an assignment of a struct from a method call with no argument, expecting a method with one argument and no outputs");
-			}
-
-			auto& argStructByRef = method.GetArgumentType(0);
-			auto& argThisPointer = method.GetArgumentType(1);
-
-			// (method class.GetPosition (out Vec2i position) -> : ... )
-
-			if (!method.Definition())
-			{
-				Throw(directive, "Unexpected: cannot apply syntatic sugar for method %s. The method had no sexy representation", methodName);
-			}
-
-			if (!method.HasArgFlag(0, ArgFlags::OUT_PARAMETER))
-			{
-				Throw(directive, "needs a method with argument (out %s result)", GetFriendlyName(argStructByRef));
-			}
-
-			char localName[128] = "";
-			SafeFormat(localName, "%s", instance);
-
-			if (def.IsParentValue)
-			{
-				static int64 index = 0;
-
-				SafeFormat(localName, 128, "parentSF_%s_%llu", GetFriendlyName(*def.ResolvedType), index++);
-				AddVariable(ce, NameString::From(localName), ce.Object.Common().TypePointer());
-				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4);
-				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4, localName);
-			}
-
-			int inputStackAllocCount = 2 * sizeof(size_t); // Allow bytes for the instance pointer and the mutable argument reference
-
-			cr_sex s = directive.NumberOfElements() == 4 ? directive[1] : directive[0];
-			cstr inputName = s.c_str();
-
-			MemberDef targetDef;
-			if (!ce.Builder.TryGetVariableByName(OUT targetDef, inputName))
-			{
-				Throw(directive, "Unknown variable: %s", inputName);
-			}
-
-			if (targetDef.ResolvedType != &argStructByRef)
-			{
-				Throw(directive, "%s is of type %s but %s emits %s", inputName, GetFriendlyName(*targetDef.ResolvedType), GetFriendlyName(instanceType), GetFriendlyName(argStructByRef));
-			}
-
-			int stackCost = PushInput(ce, directive, directive.NumberOfElements() == 4 ? 1 : 0, argStructByRef, nullptr, inputName, nullptr, method.GetDefaultValue(0));
-
-			AddArgVariable("input_interface", ce, ce.Object.Common().TypePointer());
-			AppendVirtualCallAssembly(instance, interfaceIndex, methodIndex, ce.Builder, interf, directive, localName);
-			ce.Builder.MarkExpression(&directive);
-
-			RepairStack(ce, directive, method);
-
-			return true;
-		}
-
 		bool TryCompileAssignToStructFromFunctionCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool isExplicit, const IFunction& f)
 		{
 			int32 nSuppliedInputArguments = directive.NumberOfElements() - (isExplicit ? 1 : 0) - 3;
@@ -653,7 +568,7 @@ namespace Rococo
 			cr_sex s = directive.NumberOfElements() == 4 ? directive[1] : directive[0];
 			cstr inputName = s.c_str();
 
-			int stackCost = PushInput(ce, directive, directive.NumberOfElements() == 4 ? 1 : 0, varStruct, nullptr, inputName, nullptr, f.GetDefaultValue(0));
+			int stackCost = PushInput(ce, directive, directive.NumberOfElements() == 4 ? 1 : 0, varStruct, nullptr, inputName, nullptr, nullptr);
 
 			AppendFunctionCallAssembly(ce, f);
 			RepairStack(ce, directive, f);
@@ -1653,20 +1568,6 @@ namespace Rococo
 
 					   if (IsLowerCase(srctext->Buffer[0]))
 					   {
-						   NamespaceSplitter splitter(srctext->Buffer);
-
-						   cstr instance, method;
-						   if (splitter.SplitTail(OUT instance, OUT method))
-						   {
-							   if (isupper(*method))
-							   {
-								   // Method call
-								   if (TryCompileAssignStructFromAtomicMethodCall(ce, directive, instance, method))
-								   {
-									   return;
-								   }
-							   }
-						   }
 						   ce.Builder.AssignVariableToVariable(srctext->Buffer, dsttext->Buffer);
 					   }
 					   else
