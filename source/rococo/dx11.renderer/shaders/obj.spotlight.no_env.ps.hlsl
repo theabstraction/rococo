@@ -4,14 +4,17 @@
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
 {
-	float3 Ng = normalize(p.worldNormal.xyz);  
+    float3 Ng = normalize(p.worldNormal.xyz);   // geometric normal, before bumping
     p.worldNormal = GetBumpedWorldNormal(p);
+
     float shadowDensity = GetShadowDensity(p);
     float4 texel = SampleMaterial(p);
 
-    float I = GetDiffuseSpecularAndFoggedLighting(p);
-	float3 Ldir = normalize(GetLightToWorldPosition(p));
-    I *= saturate(-dot(Ng, Ldir) * 4.0f); 
+    float2 ds = GetDiffuseAndSpecular(p, Ng);   // x = diffuse, y = specular
 
-    return BlendColourWithLightAndShadow(texel, shadowDensity, I);
+    // Diffuse is tinted by the surface colour, specular is not
+    float3 lit = (texel.xyz * ds.x + ds.y) * light.colour.xyz;
+    float alpha = texel.a * light.colour.a;     // keeps this shader's original alpha behaviour
+
+    return lerp(float4(lit, alpha), float4(0.0f, 0.0f, 0.0f, 0.0f), shadowDensity);
 }
