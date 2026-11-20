@@ -2487,6 +2487,35 @@ R"(
 		validate(x == 4);
 	}
 
+	void TestStructureAssignToCompoundMethodCallReturn(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(class Robot (defines Sys.Type.IRobot))\n"
+			"(method Robot.Construct : )\n"
+			"(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))\n"
+			"(method Robot.SetTo123x (Int32 z) (out Vec3i result) -> : (result = 12 3 z))\n"
+			"(function Main -> (Int32 result):\n"
+			"	(Sys.Type.IRobot robot (Sys.Type.NewRobot))\n"
+			"	(Vec3i v = robot.SetTo123x 7)\n"
+			"	(result = v.z + (v.x / v.y))\n"
+			")\n"
+			"(struct Vec3i\n"
+			"	(Int32 x y z)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)\n";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 11);
+	}
+
 	void TestStructure2(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -19139,6 +19168,7 @@ R"(
 
 		TEST(TestStructureAssignToAtomicCallReturn);
 		TEST(TestStructureAssignToAtomicMethodCallReturn);
+		TEST(TestStructureAssignToCompoundMethodCallReturn);
 		TEST(TestStructureAssignToSingleArgumentCompoundCallReturn);
 	}
 
@@ -19181,6 +19211,8 @@ R"(
 	{
 		int64 start, end, hz;
 		start = Time::TickCount();
+
+		TEST(TestStructureAssignToCompoundMethodCallReturn);
 
 		RunPositiveSuccesses();	
 		RunGotoTests();

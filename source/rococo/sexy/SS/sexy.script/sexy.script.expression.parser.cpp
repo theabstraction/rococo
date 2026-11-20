@@ -487,12 +487,101 @@ namespace Rococo
 
 			PushInputs(ce, directive, f, isExplicit ? 4 : 3, f.NumberOfInputs() - 1);
 
-			PushInput(ce, directive, isExplicit ? 1 : 0, varStruct, nullptr, inputName, nullptr, f.GetDefaultValue(0));
+			PushInput(ce, directive, isExplicit ? 1 : 0, varStruct, nullptr, inputName, nullptr, nullptr);
 
 			AppendFunctionCallAssembly(ce, f);
 			RepairStack(ce, directive, f);
 
 			return true;
+		}
+
+		void CompileAssignToStructFromMethodCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool isExplicit, cstr instance, cstr methodName)
+		{
+			MemberDef def;
+			if (!ce.Builder.TryGetVariableByName(OUT def, instance))
+			{
+				Throw(directive, "Expecting a method call, but did not recognize the variable: %s", instance);
+			}
+
+			auto& instanceType = *def.ResolvedType;
+			if (instanceType.InterfaceCount() != 1)
+			{
+				Throw(directive, "Expecting a method call for an assignment to a compount, but the type was: %s", GetFriendlyName(instanceType));
+			}
+
+			OUT int interfaceIndex, OUT methodIndex;
+			if (!Rococo::Compiler::GetMethodIndices(OUT interfaceIndex, OUT methodIndex, instanceType, methodName))
+			{
+				Throw(directive, "Cannot find method '%s' for interface '%s'", methodName, GetFriendlyName(instanceType));
+			}
+
+			const IObjectInterface& interf = instanceType.GetInterface(interfaceIndex);
+			const IArchetype& method = interf.GetMethod(methodIndex);
+
+			int32 nSuppliedInputArguments = directive.NumberOfElements() - (isExplicit ? 1 : 0) - 3;
+
+			if (method.NumberOfOutputs() != 0)
+			{
+				Throw(directive, "For an assignment of a struct from a method call, the method should not have outputs. The method was", methodName);
+			}
+
+			if (nSuppliedInputArguments != method.NumberOfInputs() - 2)
+			{
+				// No function argument match
+				Throw(directive, "For an assignment of a struct from a method call, the method must be supplied with one input for each input, sans the final out parameter", methodName);
+			}
+
+			// At this point we figure the program wants a function to assign via the final output parameter. Failures are now exceptions
+
+			int finalInputIndex = method.NumberOfInputs() - 2;
+
+			if (!method.HasArgFlag(finalInputIndex, ArgFlags::OUT_PARAMETER))
+			{
+				// The final parameter was not out
+				Throw(directive, "The method %s does noto have an out parameter as its final input argument. Such is required in order to assign to a struct", methodName);
+			}
+
+			// We have 1 more input than there are arguments, we need the final input to be the one and only out parameter
+			for (int i = 0; i < finalInputIndex; i++)
+			{
+				if (method.HasArgFlag(i, ArgFlags::OUT_PARAMETER))
+				{
+					// Too many out parameters, or the out parameter is not last
+					Throw(directive, "The method %s has more than one out parameter. Only one is permitted in an assignment to a struct", methodName);
+				}
+			}
+
+			auto& outType = method.GetArgumentType(finalInputIndex);
+			if (outType != varStruct)
+			{
+				Throw(directive, "The method %s returns a %s, but the assigned variable is of type %s", methodName, GetFriendlyName(outType), GetFriendlyName(varStruct));
+			}
+
+			cr_sex s = isExplicit ? directive[1] : directive[0];
+			cstr inputName = s.c_str();
+
+			PushInputs(ce, directive, method, isExplicit ? 4 : 3, method.NumberOfInputs() - 2);
+
+			int stackCost = PushInput(ce, directive, directive.NumberOfElements() == 4 ? 1 : 0, outType, nullptr, inputName, nullptr, method.GetDefaultValue(0));
+
+			char localName[128] = "";
+			SafeFormat(localName, "%s", instance);
+
+			if (def.IsParentValue)
+			{
+				static int64 index = 0;
+
+				SafeFormat(localName, 128, "parentSF_%s_%llu", GetFriendlyName(*def.ResolvedType), index++);
+				AddVariable(ce, NameString::From(localName), ce.Object.Common().TypePointer());
+				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4, localName);
+			}
+
+			AddArgVariable("input_interface", ce, ce.Object.Common().TypePointer());
+			AppendVirtualCallAssembly(instance, interfaceIndex, methodIndex, ce.Builder, interf, directive, localName);
+			ce.Builder.MarkExpression(&directive);
+
+			RepairStack(ce, directive, method);
 		}
 
 		bool TryCompileAssignToStructFromCompound(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool isExplicit)
@@ -517,6 +606,21 @@ namespace Rococo
 				if (f)
 				{
 					return TryCompileAssignToStructFromFunctionCompound(ce, directive, varStruct, isExplicit, *f);
+				}
+			}
+			else if (islower(*source))
+			{
+				NamespaceSplitter splitter(source);
+				cstr instance, method;
+				if (!splitter.SplitTail(OUT instance, OUT method))
+				{
+					return false;
+				}
+
+				if (isupper(*method))
+				{
+					CompileAssignToStructFromMethodCompound(ce, directive, varStruct, isExplicit, instance, method);
+					return true;
 				}
 			}
 

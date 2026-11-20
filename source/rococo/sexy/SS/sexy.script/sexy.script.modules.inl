@@ -3368,7 +3368,7 @@ namespace Rococo::Script
 		const IArchetype** ar = (const IArchetype**) alloca(sizeof(IArchetype*) * totalArgs);
 		const IStructure** genericArg1s = (const IStructure**) alloca(sizeof(IStructure*) * totalArgs);
 		cstr* names = (cstr*) alloca(sizeof(cstr) * totalArgs);
-		ArgFlags* argFlags = (ArgFlags*)alloca(sizeof ArgFlags * totalArgs);
+		ArgFlags* argFlags = (ArgFlags*)alloca(sizeof(ArgFlags) * totalArgs);
 
 		for(int i = mapIndex+1; i < s.NumberOfElements(); ++i)
 		{
@@ -3730,10 +3730,11 @@ namespace Rococo::Script
 		}
 
 		names[count] = ("_vTable");
-		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure(("Pointer"));
+		resolvedTypes[count] = module.Object().IntrinsicModule().FindStructure("Pointer");
 		archetypes[count] = NULL;
 		isOut[count] = false;
 		genericArg1s[count] = NULL;
+		argFlags[count] = ArgFlags::NONE;
 
 		inter.SetMethod(vmIndex, archetype.Name(), nArgs, names, argFlags, resolvedTypes, archetypes, genericArg1s, isOut, &def);
 	}
@@ -3746,20 +3747,20 @@ namespace Rococo::Script
 		int bodyIndex = GetIndexOf(2, methodExpr, (":"));
 		if (bodyIndex < 0)
 		{
-			Throw(methodExpr, ("Expecting body indicator token ':' inside method definition"));
+			Throw(methodExpr, "Expecting body indicator token ':' inside method definition");
 		}
 
 		enum { MAX_METHOD_ARGS = 40 };
 		
 		if (bodyIndex > MAX_METHOD_ARGS + 3)
 		{
-			Throw(methodExpr, ("Too many arguments in method"));
+			Throw(methodExpr, "Too many arguments in method");
 		}
 		
 		int mapIndex = GetIndexOf(2, methodExpr, ("->"));
 		if (mapIndex < 0)
 		{
-			Throw(methodExpr, ("Could not find the mapping token '->' in the method definition"));
+			Throw(methodExpr, "Could not find the mapping token '->' in the method definition");
 		}
 
 		int nArgs = bodyIndex - 2;
