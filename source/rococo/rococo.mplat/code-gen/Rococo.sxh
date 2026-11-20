@@ -423,7 +423,10 @@
 		(GetRandomMaterialId (MaterialCategory category)->(MaterialId id))
 		(SetMaterialMacro (IString pingPath))
 
+		// Populates the texture fields of the MVD, nothing else
 		(PopulateRandomMaterialTextures (MaterialCategory category) (out MaterialVertexData mvd) -> (MaterialId id))
+
+		// Populates the texture fields of the MVD, nothing else
 		(PopulateMaterialTextures (MaterialCategory category) (Int32 index) (out MaterialVertexData mvd) -> (MaterialId id))
 	)
 	(factory Rococo.Graphics.MaterialBuilder)

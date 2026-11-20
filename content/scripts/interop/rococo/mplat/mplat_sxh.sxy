@@ -378,8 +378,10 @@
 
 	(SetMaterialMacro (Sys.Type.IString pingPath) -> )
 
+	/*  Populates the texture fields of the MVD, nothing else */
 	(PopulateRandomMaterialTextures (Int32 category)(out Rococo.MaterialVertexData mvd) -> (Float32 id))
 
+	/*  Populates the texture fields of the MVD, nothing else */
 	(PopulateMaterialTextures (Int32 category)(Int32 index)(out Rococo.MaterialVertexData mvd) -> (Float32 id))
 )
 
