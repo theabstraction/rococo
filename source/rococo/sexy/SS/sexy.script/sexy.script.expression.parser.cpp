@@ -522,13 +522,13 @@ namespace Rococo
 
 			if (method.NumberOfOutputs() != 0)
 			{
-				Throw(directive, "For an assignment of a struct from a method call, the method should not have outputs. The method was", methodName);
+				Throw(directive, "For an assignment of a struct from a method call, the method should not have outputs. The method was %s", methodName);
 			}
 
 			if (nSuppliedInputArguments != method.NumberOfInputs() - 2)
 			{
 				// No function argument match
-				Throw(directive, "For an assignment of a struct from a method call, the method must be supplied with one input for each input, sans the final out parameter", methodName);
+				Throw(directive, "For an assignment of a struct from a method call, the method must be supplied with one input for each input, sans the final out parameter. The method was %s", methodName);
 			}
 
 			// At this point we figure the program wants a function to assign via the final output parameter. Failures are now exceptions
@@ -2668,7 +2668,7 @@ namespace Rococo
 			 case EXPRESSION_TYPE_COMPOUND:
 				return CompileAsStructureAssignmentFromCompound(ce, varStruct, varName, rhs);
 			 default:
-				Throw(directive, "Non-compound structure assignment is not yet implemented");
+				 return false;
 			 }
 		  }
 		  else if (directive.NumberOfElements() == 5)

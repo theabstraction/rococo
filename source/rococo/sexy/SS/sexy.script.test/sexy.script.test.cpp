@@ -2433,6 +2433,34 @@ R"(
 		validate(x == 4);
 	}
 
+	void TestStructureAssignToSingleArgumentCompoundCallReturn2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function SetTo123x (Int32 multiplier) (out Vec2i result) -> :\n"
+			"	(result.x = (multiplier * 12))\n"
+			"	(result.y = (multiplier * 3))\n"
+			")\n"
+			"(function Main -> (Int32 result):\n"
+			"	(Vec2i v)(v = SetTo123x 7)\n"
+			"	(result = (v.x / v.y))\n"
+			")\n"
+			"(struct Vec2i\n"
+			"	(Int32 x y)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
 	void TestStructureAssignToAtomicCallReturn(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -2440,6 +2468,31 @@ R"(
 			"(function SetTo123 (out Vec2i result) -> : (result = 12 3))"
 			"(function Main -> (Int32 result):\n"
 			"	(Vec2i v = SetTo123)\n"
+			"	(result = (v.x / v.y))\n"
+			")\n"
+			"(struct Vec2i\n"
+			"	(Int32 x y)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
+	void TestStructureAssignToAtomicCallReturn2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(function SetTo123 (out Vec2i result) -> : (result = 12 3))"
+			"(function Main -> (Int32 result):\n"
+			"	(Vec2i v)(v = SetTo123)\n"
 			"	(result = (v.x / v.y))\n"
 			")\n"
 			"(struct Vec2i\n"
@@ -2487,6 +2540,35 @@ R"(
 		validate(x == 4);
 	}
 
+	void TestStructureAssignToAtomicMethodCallReturn2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(class Robot (defines Sys.Type.IRobot))"
+			"(method Robot.Construct : )"
+			"(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))"
+			"(method Robot.SetTo123 (out Vec2i result) -> : (result = 12 3))"
+			"(function Main -> (Int32 result):\n"
+			"	(Sys.Type.IRobot robot (Sys.Type.NewRobot))"
+			"	(Vec2i v)(v = robot.SetTo123)\n"
+			"	(result = (v.x / v.y))\n"
+			")\n"
+			"(struct Vec2i\n"
+			"	(Int32 x y)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
 	void TestStructureAssignToCompoundMethodCallReturn(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -2498,6 +2580,35 @@ R"(
 			"(function Main -> (Int32 result):\n"
 			"	(Sys.Type.IRobot robot (Sys.Type.NewRobot))\n"
 			"	(Vec3i v = robot.SetTo123x 7)\n"
+			"	(result = v.z + (v.x / v.y))\n"
+			")\n"
+			"(struct Vec3i\n"
+			"	(Int32 x y z)\n"
+			")\n"
+			"(alias Main EntryPoint.Main)\n";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 11);
+	}
+
+	void TestStructureAssignToCompoundMethodCallReturn2(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)\n"
+			"(class Robot (defines Sys.Type.IRobot))\n"
+			"(method Robot.Construct : )\n"
+			"(factory Sys.Type.NewRobot Sys.Type.IRobot : (construct Robot))\n"
+			"(method Robot.SetTo123x (Int32 z) (out Vec3i result) -> : (result = 12 3 z))\n"
+			"(function Main -> (Int32 result):\n"
+			"	(Sys.Type.IRobot robot (Sys.Type.NewRobot))\n"
+			"	(Vec3i v)(v = robot.SetTo123x 7)\n"
 			"	(result = v.z + (v.x / v.y))\n"
 			")\n"
 			"(struct Vec3i\n"
@@ -19167,9 +19278,13 @@ R"(
 		TEST(TestFactoryReturnEmpty);
 
 		TEST(TestStructureAssignToAtomicCallReturn);
+		TEST(TestStructureAssignToAtomicCallReturn2);
 		TEST(TestStructureAssignToAtomicMethodCallReturn);
+		TEST(TestStructureAssignToAtomicMethodCallReturn2);
 		TEST(TestStructureAssignToCompoundMethodCallReturn);
+		TEST(TestStructureAssignToCompoundMethodCallReturn2);
 		TEST(TestStructureAssignToSingleArgumentCompoundCallReturn);
+		TEST(TestStructureAssignToSingleArgumentCompoundCallReturn2);
 	}
 
 	void RunPositiveFailures()
@@ -19212,7 +19327,8 @@ R"(
 		int64 start, end, hz;
 		start = Time::TickCount();
 
-		TEST(TestStructureAssignToCompoundMethodCallReturn);
+		TEST(TestStructureAssignToAtomicMethodCallReturn2);
+		TEST(TestStructureAssignToAtomicCallReturn2);
 
 		RunPositiveSuccesses();	
 		RunGotoTests();
