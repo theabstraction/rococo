@@ -377,7 +377,7 @@ namespace Rococo
 			if (!f.HasArgFlag(finalInputIndex, ArgFlags::OUT_PARAMETER))
 			{
 				// The final parameter was not out
-				Throw(directive, "The function %s does noto have an out parameter as its final input argument. Such is required in order to assign to a struct", f.Name());
+				Throw(directive, "The function %s does not have an out parameter as its final input argument. Such is required in order to assign to a struct", f.Name());
 			}
 
 			// We have 1 more input than there are arguments, we need the final input to be the one and only out parameter
@@ -421,7 +421,7 @@ namespace Rococo
 			auto& instanceType = *def.ResolvedType;
 			if (instanceType.InterfaceCount() != 1)
 			{
-				Throw(directive, "Expecting a method call for an assignment to a compount, but the type was: %s", GetFriendlyName(instanceType));
+				Throw(directive, "Expecting a method call for an assignment to a compound, but the type was: %s", GetFriendlyName(instanceType));
 			}
 
 			OUT int interfaceIndex, OUT methodIndex;
