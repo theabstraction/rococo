@@ -562,7 +562,7 @@ namespace Rococo
 
 			PushInputs(ce, directive, method, isExplicit ? 4 : 3, method.NumberOfInputs() - 2);
 
-			int stackCost = PushInput(ce, directive, directive.NumberOfElements() == 4 ? 1 : 0, outType, nullptr, inputName, nullptr, method.GetDefaultValue(0));
+			int stackCost = PushInput(ce, directive, isExplicit ? 1 : 0, outType, nullptr, inputName, nullptr, nullptr);
 
 			char localName[128] = "";
 			SafeFormat(localName, "%s", instance);
