@@ -52,11 +52,11 @@
 	(this.archive.SaveF32 "world.camera.bearing" this.cameraOrientation.bearing)
 )
 
-(method World.GetCameraOrientation (WorldOrientation cameraOrientation)-> :
+(method World.GetCameraOrientation (out WorldOrientation cameraOrientation)-> :
 	(cameraOrientation = this.cameraOrientation)
 )
 
-(method World.GetPlayerEyePos (Vec3 pos)-> : (pos = this.cameraPos))
+(method World.GetPlayerEyePos (out Vec3 pos)-> : (pos = this.cameraPos))
 (method World.SetPlayerEyePos (Vec3 pos)-> : (this.cameraPos = pos))
 
 (method World.SetPlayerMoveIntent (Float32 straffeSpeed)(Float32 forwardSpeed)-> :
@@ -84,8 +84,8 @@
 		(Vec4 forward = straffeDelta forwardDelta 0 0)
 		(Vec4 worldForward = rZ * forward)
 		
-		(this.cameraPos.x = this.cameraPos.x + worldForward.x)
-		(this.cameraPos.y = this.cameraPos.y + worldForward.y)
+		(this.cameraPos.x += worldForward.x)
+		(this.cameraPos.y += worldForward.y)
 		
 		(this.archive.SaveVec3 "world.cameraPos" this.cameraPos)
 	
@@ -146,8 +146,7 @@
 	(Rectf menuRect = 10 10 310 30)
 	(gui.FillRect menuRect 0xFF404020)
 	
-	(WorldOrientation camera)
-	(this.GetCameraOrientation camera)
+	(WorldOrientation camera = this.GetCameraOrientation)
 	
 	(this.tempBuilder.Clear)
 	(this.tempBuilder.SetFormat 0 0 false false)
@@ -164,8 +163,7 @@
 		(this.lastLogCheck = Sys.Time.TickCount)
 	)
 	
-	(Vec2 screenSpan)
-	(gui.GetScreenSpan screenSpan)
+	(Vec2 screenSpan = gui.GetScreenSpan)
 	(Float32 y0 = screenSpan.y - 60)
 	(Float32 y1 = y0 + 20)
 	

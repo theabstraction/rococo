@@ -49,8 +49,7 @@
 	
 	(MaterialVertexData glass)
 	(AnyColour 0 255 0 255 0 255 48 224 -> glass.colour)
-	(MaterialId marbleId)
-	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> marbleId)
+	(MaterialId marbleId = (matBuilder.GetRandomMaterialId (#MaterialCategoryMarble)))
 	(matBuilder.GetTextureSliceIndex marbleId -> glass.txSliceId)
 	(glass.gloss = 0.2)
 	
@@ -84,8 +83,7 @@
 	
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
-	(MaterialId marbleId)
-	(matBuilder.GetRandomMaterialId (#MaterialCategoryMarble) -> marbleId)
+	(MaterialId marbleId = (matBuilder.GetRandomMaterialId (#MaterialCategoryMarble)))
 	(matBuilder.GetColourTextureSliceIndex marbleId -> glass.txColourId)
 	(matBuilder.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
@@ -136,8 +134,7 @@
 	(MaterialVertexData marble)
 	(marble.colour = (Sys.Type.ToRGBAb 0.25 0.25 0.25 1.0))
 	
-	(MaterialId marbleId)
-	(mb.GetMaterialId (#MaterialCategoryRock) 1 -> marbleId)
+	(MaterialId marbleId = (mb.GetMaterialId (#MaterialCategoryRock) 1))
 	(mb.GetColourTextureSliceIndex marbleId -> marble.txColourId)
 	(mb.GetNormalTextureSliceIndex marbleId -> marble.txNormalId)
 	
@@ -167,8 +164,7 @@
 	(MaterialVertexData marble)
 	(AnyColour 200 255 0 0 0 0 192 192 -> marble.colour)
 	
-	(MaterialId marbleId)
-	(mb.GetRandomMaterialId (#MaterialCategoryMarble) -> marbleId)
+	(MaterialId marbleId = (mb.GetRandomMaterialId (#MaterialCategoryMarble)))
 	(mb.GetColourTextureSliceIndex marbleId -> marble.txColourId)
 	(mb.GetNormalTextureSliceIndex marbleId -> marble.txNormalId)
 	(marble.gloss = 0.1)
@@ -223,8 +219,7 @@
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
 	
-	(MaterialId marbleId)
-	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
+	(MaterialId marbleId = (mats.GetMaterialId (#MaterialCategoryMarble) 0))
 	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
 	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
@@ -236,6 +231,7 @@
 	(ISoftBoxBuilder box (GetSoftBoxBuilder))
 	(box.Clear)
 	
+	// SoftBoxTopSpec member order: width breadth | radius N S E W | ztop | edge divisions N S E W
 	(Rococo.Graphics.SoftBoxTopSpec topSpec)
 	
 	(topSpec.width = 1.0)
@@ -249,7 +245,6 @@
 	(topSpec.westEdgeDivisions = 20)
 	(topSpec.southEdgeDivisions = 20)
 	(topSpec.eastEdgeDivisions = 20)
-	
 	(box.CreateSoftBoxTop topSpec)
 	
 	(ObjectVertex a)
@@ -258,9 +253,8 @@
 	(ObjectVertex d)
 	
 	(Int32 nQuads = box.NumberOfQuads)
-	(SoftBoxQuad quad)
 	(for (Int32 i = 0)(i < nQuads)(i += 1)
-		(box.GetQuad i quad)	
+		(SoftBoxQuad quad = box.GetQuad i)
 				
 		(ObjectVertexFromBoxVertex quad.a glass a)
 		(ObjectVertexFromBoxVertex quad.b glass b)
@@ -272,9 +266,8 @@
 	)
 	
 	(Int32 nTriangles = box.NumberOfTriangles)
-	(SoftBoxTriangle triangle)
 	(for (i = 0)(i < nTriangles)(i += 1)
-		(box.GetTriangle i triangle)	
+		(SoftBoxTriangle triangle = box.GetTriangle i)
 				
 		(ObjectVertexFromBoxVertex triangle.a glass a)
 		(ObjectVertexFromBoxVertex triangle.b glass b)
@@ -292,8 +285,7 @@
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
 	
-	(MaterialId marbleId)
-	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
+	(MaterialId marbleId = (mats.GetMaterialId (#MaterialCategoryMarble) 0))
 	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
 	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
@@ -305,6 +297,7 @@
 	(ISoftBoxBuilder box (GetSoftBoxBuilder))
 	(box.Clear)
 	
+	// SoftBoxTopSpec member order: width breadth | radius N S E W | ztop | edge divisions N S E W
 	(Rococo.Graphics.SoftBoxTopSpec topSpec)
 	
 	(topSpec.width = 1.0)
@@ -317,8 +310,7 @@
 	(topSpec.northEdgeDivisions = 20)
 	(topSpec.westEdgeDivisions = 0)
 	(topSpec.southEdgeDivisions = 20)
-	(topSpec.eastEdgeDivisions = 0)
-	
+	(topSpec.eastEdgeDivisions = 0)	
 	(box.CreateSoftBoxTop topSpec)
 	
 	(ObjectVertex a)
@@ -327,9 +319,8 @@
 	(ObjectVertex d)
 	
 	(Int32 nQuads = box.NumberOfQuads)
-	(SoftBoxQuad quad)
 	(for (Int32 i = 0)(i < nQuads)(i += 1)
-		(box.GetQuad i quad)	
+		(SoftBoxQuad quad = box.GetQuad i)
 				
 		(ObjectVertexFromBoxVertex quad.a glass a)
 		(ObjectVertexFromBoxVertex quad.b glass b)
@@ -341,9 +332,8 @@
 	)
 	
 	(Int32 nTriangles = box.NumberOfTriangles)
-	(SoftBoxTriangle triangle)
 	(for (i = 0)(i < nTriangles)(i += 1)
-		(box.GetTriangle i triangle)	
+		(SoftBoxTriangle triangle = box.GetTriangle i)
 				
 		(ObjectVertexFromBoxVertex triangle.a glass a)
 		(ObjectVertexFromBoxVertex triangle.b glass b)
@@ -361,8 +351,7 @@
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
 	
-	(MaterialId marbleId)
-	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
+	(MaterialId marbleId = (mats.GetMaterialId (#MaterialCategoryMarble) 0))
 	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
 	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.2)
@@ -374,19 +363,8 @@
 	(ISoftBoxBuilder box (GetSoftBoxBuilder))
 	(box.Clear)
 	
-	(Rococo.Graphics.SoftBoxTopSpec topSpec)
-	
-	(topSpec.width = 1.0)
-	(topSpec.breadth = 1.0)
-	(topSpec.northRadius = 0.0)
-	(topSpec.southRadius = 0.0)
-	(topSpec.westRadius = 0.1)
-	(topSpec.eastRadius = 0.1)
-	(topSpec.ztop = 0.5)
-	(topSpec.northEdgeDivisions = 0)
-	(topSpec.westEdgeDivisions = 20)
-	(topSpec.southEdgeDivisions = 0)
-	(topSpec.eastEdgeDivisions = 20)
+	// SoftBoxTopSpec member order: width breadth | radius N S E W | ztop | edge divisions N S E W
+	(Rococo.Graphics.SoftBoxTopSpec topSpec = 1.0 1.0  0.0 0.0 0.1 0.1  0.5  0 0 20 20)
 	
 	(box.CreateSoftBoxTop topSpec)
 	
@@ -396,9 +374,8 @@
 	(ObjectVertex d)
 	
 	(Int32 nQuads = box.NumberOfQuads)
-	(SoftBoxQuad quad)
 	(for (Int32 i = 0)(i < nQuads)(i += 1)
-		(box.GetQuad i quad)	
+		(SoftBoxQuad quad = box.GetQuad i)
 				
 		(ObjectVertexFromBoxVertex quad.a glass a)
 		(ObjectVertexFromBoxVertex quad.b glass b)
@@ -410,9 +387,8 @@
 	)
 	
 	(Int32 nTriangles = box.NumberOfTriangles)
-	(SoftBoxTriangle triangle)
 	(for (i = 0)(i < nTriangles)(i += 1)
-		(box.GetTriangle i triangle)	
+		(SoftBoxTriangle triangle = box.GetTriangle i)
 				
 		(ObjectVertexFromBoxVertex triangle.a glass a)
 		(ObjectVertexFromBoxVertex triangle.b glass b)
@@ -430,8 +406,7 @@
 	(MaterialVertexData glass)
 	(glass.colour = (Sys.Type.ToRGBAb 0.65 0.65 1 0.2))
 	
-	(MaterialId marbleId)
-	(mats.GetMaterialId (#MaterialCategoryMarble) 0 -> marbleId)
+	(MaterialId marbleId = (mats.GetMaterialId (#MaterialCategoryMarble) 0))
 	(mats.GetColourTextureSliceIndex marbleId -> glass.txColourId)
 	(mats.GetNormalTextureSliceIndex marbleId -> glass.txNormalId)
 	(glass.gloss = 0.1)
@@ -443,6 +418,7 @@
 	(ISoftBoxBuilder box (GetSoftBoxBuilder))
 	(box.Clear)
 	
+	// RoundCornersShelfSpec member order: zTop zBottom width breadth | radius NW NE SW SE | divisions NW NE SW SE | addBottom
 	(Rococo.Graphics.RoundCornersShelfSpec shelf)
 	(shelf.zTop = 0.5)
 	(shelf.zBottom = 0.45)
@@ -456,8 +432,7 @@
 	(shelf.divisionsNE = 12)
 	(shelf.divisionsSW = 12)
 	(shelf.divisionsSE = 12)	
-	(shelf.addBottom = true)
-	(box.CreateRoundCornersShelf shelf)
+	(shelf.addBottom = true)	(box.CreateRoundCornersShelf shelf)
 	
 	(ObjectVertex a)
 	(ObjectVertex b)
@@ -465,9 +440,8 @@
 	(ObjectVertex d)
 	
 	(Int32 nQuads = box.NumberOfQuads)
-	(SoftBoxQuad quad)
 	(for (Int32 i = 0)(i < nQuads)(i += 1)
-		(box.GetQuad i quad)	
+		(SoftBoxQuad quad = box.GetQuad i)
 				
 		(ObjectVertexFromBoxVertex quad.a glass a)
 		(ObjectVertexFromBoxVertex quad.b glass b)
@@ -479,9 +453,8 @@
 	)
 	
 	(Int32 nTriangles = box.NumberOfTriangles)
-	(SoftBoxTriangle triangle)
 	(for (i = 0)(i < nTriangles)(i += 1)
-		(box.GetTriangle i triangle)	
+		(SoftBoxTriangle triangle = box.GetTriangle i)
 				
 		(ObjectVertexFromBoxVertex triangle.a glass a)
 		(ObjectVertexFromBoxVertex triangle.b glass b)
@@ -640,8 +613,7 @@
 	
 	(Sys.Geometry.M4x4.MakeTranslateMatrix light.position lightConeTranslate)
 	
-	(Matrix4x4 lightConeModel)
-	(lightConeModel = lightConeTranslate * rotX)
+	(Matrix4x4 lightConeModel = lightConeTranslate * rotX)
 	
 	(Vec3 noScale = 1 1 1)
 	

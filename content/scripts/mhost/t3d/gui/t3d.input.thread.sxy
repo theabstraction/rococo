@@ -131,8 +131,7 @@
 			)
 		)
 		
-		(Vec2 mouseDelta)
-		(this.engine.GetNextMouseDelta mouseDelta)
+		(Vec2 mouseDelta = this.engine.GetNextMouseDelta)
 
 		(if ((not this.isViewLocked) and (not this.engine.IsAppModal))
 			(if ((mouseDelta.x != 0) or (mouseDelta.y != 0))

@@ -78,7 +78,7 @@
 
 (factory T3D.NewGameBundle T3D.IBundle : (construct GameBundle))
 
-(function GetWorldToCameraQuat (WorldOrientation world)(Quat q)-> :
+(function GetWorldToCameraQuat (WorldOrientation world)(out Quat q)-> :
 	/*
 	(struct WorldOrientation
 		(Degrees bearing) // 0 = North, 90 = East, 180 = South, 270 = West
@@ -152,15 +152,12 @@
 	(while this.engine.IsRunning
 		(AdvanceCoroutines this.coroutines)
 		
-		(Vec3 playerEyePosition)
-		(world.GetPlayerEyePos playerEyePosition)
+		(Vec3 playerEyePosition = world.GetPlayerEyePos)
 		(camera.SetPosition playerEyePosition)
 		
-		(WorldOrientation cameraOrientation)
-		(world.GetCameraOrientation cameraOrientation)
+		(WorldOrientation cameraOrientation = world.GetCameraOrientation)
 		
-		(Quat cameraQuat)
-		(GetWorldToCameraQuat cameraOrientation cameraQuat)
+		(Quat cameraQuat = GetWorldToCameraQuat cameraOrientation)
 		
 		(camera.SetOrientation cameraQuat)
 		

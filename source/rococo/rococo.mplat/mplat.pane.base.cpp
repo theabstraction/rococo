@@ -30,6 +30,7 @@ IPaneSupervisor* BasePane::Parent()
 void BasePane::SetBkImage(const fstring& pingPath)
 {
 	bkImageName = pingPath;
+	bkBitmap = nullptr;
 }
 
 void BasePane::SetVolatileBkImage(const fstring& pingPath)
@@ -453,10 +454,8 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 				Rococo::Graphics::DrawText(grc, Dequantize(textRect), Alignment::Alignment_None, to_fstring(message), 0, RGBAb(255, 255, 255));
 			}
 		}
-		else
-		{
-			Graphics::StretchBitmap(grc, *bkBitmap, absRect);
-		}
+		
+		Graphics::StretchBitmap(grc, *bkBitmap, absRect);
 
 		return;
 	}
