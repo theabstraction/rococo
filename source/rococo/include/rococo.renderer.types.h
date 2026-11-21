@@ -11,6 +11,8 @@ namespace Rococo::Graphics
 	struct TextureDesc;
 	struct ITextureLoadEnumerator;
 
+	ROCOCO_ID(IdSprite, int32, 0);
+
 	namespace Textures
 	{
 		struct IBitmapArrayBuilder;
@@ -147,8 +149,8 @@ namespace Rococo::Graphics
 
 	namespace Textures
 	{
-		struct BitmapLocation;
-		struct IBitmapArrayBuilder;
+		DECLARE_ROCOCO_INTERFACE ISprite;
+		DECLARE_ROCOCO_INTERFACE IBitmapArrayBuilder;
 	}
 
 	struct MaterialArrayMetrics

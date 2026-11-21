@@ -26,6 +26,7 @@
 (primitive RGBAb Int32 Rococo.RGBAb)
 
 (primitive IdTexture MHost.IdTexture Rococo.IdTexture)
+(primitive IdSprite MHost.IdSprite Rococo.Graphics.IdSprite)
 
 (primitive Pointer Pointer uintptr_t)
 (primitive IdMesh Int32 Rococo.ID_MESH)

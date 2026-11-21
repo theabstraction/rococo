@@ -6,6 +6,8 @@
 # define RENDERER_API ROCOCO_API_IMPORT
 #endif
 
+#include <rococo.renderer.types.h>
+
 namespace Rococo::Graphics
 {
     namespace Textures
@@ -28,16 +30,13 @@ namespace Rococo::Graphics
            virtual void Load(cstr pingPath, IEventCallback<CompressedTextureBuffer>&onLoad) = 0;
         };
 
-        struct BitmapLocation
+        ROCOCO_INTERFACE ISprite
         {
-            GuiRect txUV;
-            int32 textureIndex;
-            Vec2 pixelSpan;
-
-            static BitmapLocation None()
-            {
-                return { {0,0,0,0}, -1, {0,0} };
-            }
+            virtual cstr Name() const = 0;
+            virtual Vec2i Span() const = 0;
+            virtual int TextureIndex() const = 0;
+            virtual GuiRect TxUV() const = 0;
+            virtual Rococo::Graphics::IdSprite Id() const = 0;
         };
 
         struct BitmapUpdate
@@ -50,7 +49,8 @@ namespace Rococo::Graphics
         ROCOCO_INTERFACE IBitmapArrayBuilder
         {
            virtual void AddBitmap(cstr name) = 0;
-           virtual bool TryGetBitmapLocation(cstr name, BitmapLocation& location) = 0;
+           virtual ISprite* FindBitmap(cstr name) const = 0;
+           virtual ISprite* FindBitmapById(IdSprite spriteId) const = 0;
            virtual void BuildBitmaps(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate = nullptr) = 0;
            virtual void Clear() = 0;
         };

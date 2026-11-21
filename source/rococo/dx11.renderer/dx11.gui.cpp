@@ -495,9 +495,9 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     struct Cursor
     {
-        Textures::BitmapLocation sprite;
-        Vec2i hotspotOffset;
-    } cursor { Textures::BitmapLocation { {0,0,0,0}, -1 }, Vec2i { 0,0 } };
+        Textures::ISprite* sprite = nullptr;
+        Vec2i hotspotOffset = { 0,0 };
+    } cursor;
 
     enum { GUI_BUFFER_VERTEX_CAPACITY = 3 * 512 };
 
@@ -536,6 +536,11 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         DX11::TextureBind fb = textures.Loader().LoadAlphaBitmap("!font1.tif");
         fontTexture = fb.texture;
         fontBinding = fb.shaderView;
+    }
+
+    Rococo::Graphics::Textures::ISprite* FindSprite(IdSprite spriteId) const override
+    {
+        return spriteArrayBuilder->FindBitmapById(spriteId);
     }
 
     IGuiResources& Resources() override
@@ -837,15 +842,16 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
         RouteDrawTextBasic(pos, job, *fonts, *pipeline, qrect);
     }
 
-    void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) override
+    void SetCursorBitmap(IdSprite sprite, Vec2i hotspotOffset) override
     {
-        cursor.sprite = sprite;
+        cursor.sprite = spriteArrayBuilder->FindBitmapById(sprite);
         cursor.hotspotOffset = hotspotOffset;
     }
 
     void ShowVenue(IMathsVisitor& visitor) override
     {
-        visitor.ShowString("Cursor bitmap", "Id: %d. {%d,%d}-{%d,%d}", cursor.sprite.textureIndex, cursor.sprite.txUV.left, cursor.sprite.txUV.top, cursor.sprite.txUV.right, cursor.sprite.txUV.bottom);
+        auto txUV = cursor.sprite->TxUV();
+        visitor.ShowString("Cursor bitmap", "Id: %d. {%d,%d}-{%d,%d}", cursor.sprite->TextureIndex(), txUV.left, txUV.top, txUV.right, txUV.bottom);
         visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
     }
 
@@ -858,26 +864,32 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     void DrawCursor(const GuiMetrics& metrics) override
     {
-        if (cursor.sprite.textureIndex >= 0)
+        if (!cursor.sprite)
         {
-            Vec2i span = Span(cursor.sprite.txUV);
+            return;
+        }
 
-            float u0 = (float)cursor.sprite.txUV.left;
-            float u1 = (float)cursor.sprite.txUV.right;
-            float v0 = (float)cursor.sprite.txUV.top;
-            float v1 = (float)cursor.sprite.txUV.bottom;
+        if (cursor.sprite->TextureIndex() >= 0)
+        {
+            GuiRectf txUV = Dequantize(cursor.sprite->TxUV());
+            auto span = Span(txUV);
+
+            float u0 = txUV.left;
+            float u1 = txUV.right;
+            float v0 = txUV.top;
+            float v1 = txUV.bottom;
 
             Vec2 p{ (float)metrics.cursorPosition.x, (float)metrics.cursorPosition.y };
 
             float x0 = p.x + cursor.hotspotOffset.x;
-            float x1 = x0 + (float)span.x;
+            float x1 = x0 + span.x;
             float y0 = p.y + cursor.hotspotOffset.y;
-            float y1 = y0 + (float)span.y;
+            float y1 = y0 + span.y;
 
             BaseVertexData noFont{ { 0,0 }, 0 };
             SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-            SpriteVertexData drawSprite{ 0, (float)cursor.sprite.textureIndex, 0, 0 };
+            SpriteVertexData drawSprite{ 0, (float)cursor.sprite->TextureIndex(), 0, 0};
 
             GuiVertex quad[6]
             {

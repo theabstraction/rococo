@@ -53,7 +53,7 @@ namespace Rococo
 			};
 
 			Strings::HString bkImageName;
-			Graphics::Textures::BitmapLocation bkBitmap = { {0,0,0,0},0,{0,0} };
+			Graphics::Textures::ISprite* bkBitmap = nullptr;
 
 			Strings::HString bkVolatileBackImageName;
 			ID_VOLATILE_BITMAP bkVolatileId;

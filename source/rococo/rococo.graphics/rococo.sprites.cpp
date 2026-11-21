@@ -151,13 +151,15 @@ namespace Rococo::Graphics
 		rc.AddTriangle(v + 3);
 	}
 
-	ROCOCO_API_EXPORT void DrawSprite(const Vec2i& topLeftBitmap, const BitmapLocation& location, IGuiRenderContext& gc)
+	ROCOCO_API_EXPORT void DrawSprite(const Vec2i& topLeftBitmap, const ISprite& sprite, IGuiRenderContext& gc)
 	{
+		GuiRect txUV = sprite.TxUV();
+
 		Vec2 topLeft, bottomRight;
 		topLeft.x = (float)topLeftBitmap.x;
 		topLeft.y = (float)topLeftBitmap.y;
-		bottomRight.x = (float)(topLeftBitmap.x + location.txUV.right - location.txUV.left);
-		bottomRight.y = (float)(topLeftBitmap.y + location.txUV.bottom - location.txUV.top);
+		bottomRight.x = (float)(topLeftBitmap.x + txUV.right - txUV.left);
+		bottomRight.y = (float)(topLeftBitmap.y + txUV.bottom - txUV.top);
 
 		// [0 1]
 		// [3 2]
@@ -168,13 +170,13 @@ namespace Rococo::Graphics
 		quad[1].pos = { bottomRight.x, topLeft.y };
 		quad[3].pos = { topLeft.x, bottomRight.y };
 
-		quad[0].vd.uv.x = quad[3].vd.uv.x = (float)location.txUV.left;
-		quad[1].vd.uv.x = quad[2].vd.uv.x = (float)location.txUV.right;
-		quad[0].vd.uv.y = quad[1].vd.uv.y = (float)location.txUV.top;
-		quad[2].vd.uv.y = quad[3].vd.uv.y = (float)location.txUV.bottom;
+		quad[0].vd.uv.x = quad[3].vd.uv.x = (float)txUV.left;
+		quad[1].vd.uv.x = quad[2].vd.uv.x = (float)txUV.right;
+		quad[0].vd.uv.y = quad[1].vd.uv.y = (float)txUV.top;
+		quad[2].vd.uv.y = quad[3].vd.uv.y = (float)txUV.bottom;
 
 		quad[0].vd.fontBlend = quad[1].vd.fontBlend = quad[2].vd.fontBlend = quad[3].vd.fontBlend = 0;
-		quad[0].sd = quad[1].sd = quad[2].sd = quad[3].sd = { 0, (float)location.textureIndex, 0, 0 };
+		quad[0].sd = quad[1].sd = quad[2].sd = quad[3].sd = { 0, (float) sprite.TextureIndex(), 0, 0};
 		quad[0].colour = quad[1].colour = quad[2].colour = quad[3].colour = RGBAb(0, 0, 0, 0);
 
 		GuiVertex TL[3] = { quad[0], quad[1], quad[2] };
@@ -183,8 +185,9 @@ namespace Rococo::Graphics
 		gc.AddTriangle(BR);
 	}
 
-	ROCOCO_API_EXPORT void StretchBitmap(IGuiRenderContext& gc, const Textures::BitmapLocation& location, const GuiRect& absRect)
+	ROCOCO_API_EXPORT void StretchBitmap(IGuiRenderContext& gc, const Textures::ISprite& sprite, const GuiRect& absRect)
 	{
+		GuiRect txUV = sprite.TxUV();
 		auto recti = Dequantize(absRect);
 		// [0 1]
 		// [3 2]
@@ -194,13 +197,13 @@ namespace Rococo::Graphics
 		quad[1].pos = Vec2{ recti.right, recti.top };
 		quad[3].pos = Vec2{ recti.left, recti.bottom };
 
-		quad[0].vd.uv.x = quad[3].vd.uv.x = (float)location.txUV.left;
-		quad[1].vd.uv.x = quad[2].vd.uv.x = (float)location.txUV.right;
-		quad[0].vd.uv.y = quad[1].vd.uv.y = (float)location.txUV.top;
-		quad[2].vd.uv.y = quad[3].vd.uv.y = (float)location.txUV.bottom;
+		quad[0].vd.uv.x = quad[3].vd.uv.x = (float)txUV.left;
+		quad[1].vd.uv.x = quad[2].vd.uv.x = (float)txUV.right;
+		quad[0].vd.uv.y = quad[1].vd.uv.y = (float)txUV.top;
+		quad[2].vd.uv.y = quad[3].vd.uv.y = (float)txUV.bottom;
 
 		quad[0].vd.fontBlend = quad[1].vd.fontBlend = quad[2].vd.fontBlend = quad[3].vd.fontBlend = 0;
-		quad[0].sd = quad[1].sd = quad[2].sd = quad[3].sd = { 0, (float)location.textureIndex, 0, 0 };
+		quad[0].sd = quad[1].sd = quad[2].sd = quad[3].sd = { 0, (float) sprite.TextureIndex(), 0, 0};
 		quad[0].colour = quad[1].colour = quad[2].colour = quad[3].colour = RGBAb(0, 0, 0, 0);
 
 		GuiVertex TL[3] = { quad[0], quad[1], quad[2] };
@@ -243,13 +246,13 @@ namespace Rococo::Graphics
 		gc.SetNormalBitmapRendering();
 	}
 
-	ROCOCO_API_EXPORT void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc)
+	ROCOCO_API_EXPORT void DrawSpriteCentred(const GuiRect& rect, const Textures::ISprite& sprite, IGuiRenderContext& gc)
 	{
 		GuiMetrics metrics;
 		gc.Renderer().GetGuiMetrics(metrics);
 
-		Vec2i sprSpan = Span(location.txUV);
+		Vec2i sprSpan = sprite.Span();
 		Vec2i pos = Centre(rect) - Vec2i{ sprSpan.x >> 1, sprSpan.y >> 1 };
-		DrawSprite(pos, location, gc);
+		DrawSprite(pos, sprite, gc);
 	}
 } // Rococo::Graphics

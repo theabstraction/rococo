@@ -26,15 +26,15 @@
 
 	(FillRect (const Sys.Maths.Rectf rect)(Int32 colour) -> )
 
-	(DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) -> )
+	(DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour) -> )
 
 	(DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) -> )
 
-	(DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> )
+	(DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> )
 
-	(DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc) -> )
+	(DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId) -> )
 
-	(StretchSprite (const Sys.Maths.Rectf rect)(const MPlat.BitmapLocation loc) -> )
+	(StretchSprite (const Sys.Maths.Rectf rect)(MHost.IdSprite spriteId) -> )
 
 	(DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect) -> )
 
@@ -64,11 +64,11 @@
 	(method ProxyIGui.DrawQuad (const MPlat.GuiQuad q) ->  : (MHost.Native.IGuiDrawQuad this.hObject q))
 	(method ProxyIGui.DrawBorder (const Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (MHost.Native.IGuiDrawBorder this.hObject rect pxThickness tl tr bl br))
 	(method ProxyIGui.FillRect (const Sys.Maths.Rectf rect)(Int32 colour) ->  : (MHost.Native.IGuiFillRect this.hObject rect colour))
-	(method ProxyIGui.DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour) ->  : (MHost.Native.IGuiDrawColouredSprite this.hObject pixelPos alignmentFlags loc blendFactor colour))
+	(method ProxyIGui.DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour) ->  : (MHost.Native.IGuiDrawColouredSprite this.hObject pixelPos alignmentFlags spriteId blendFactor colour))
 	(method ProxyIGui.DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (MHost.Native.IGuiDrawLeftAligned this.hObject rect text fontIndex fontHeight colour rightHardEdge rightSoftEdge))
-	(method ProxyIGui.DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (MHost.Native.IGuiDrawScaledColouredSprite this.hObject pixelPos alignmentFlags loc blendFactor colour scaleFactor))
-	(method ProxyIGui.DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(const MPlat.BitmapLocation loc) ->  : (MHost.Native.IGuiDrawSprite this.hObject pixelPos alignmentFlags loc))
-	(method ProxyIGui.StretchSprite (const Sys.Maths.Rectf rect)(const MPlat.BitmapLocation loc) ->  : (MHost.Native.IGuiStretchSprite this.hObject rect loc))
+	(method ProxyIGui.DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (MHost.Native.IGuiDrawScaledColouredSprite this.hObject pixelPos alignmentFlags spriteId blendFactor colour scaleFactor))
+	(method ProxyIGui.DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId) ->  : (MHost.Native.IGuiDrawSprite this.hObject pixelPos alignmentFlags spriteId))
+	(method ProxyIGui.StretchSprite (const Sys.Maths.Rectf rect)(MHost.IdSprite spriteId) ->  : (MHost.Native.IGuiStretchSprite this.hObject rect spriteId))
 	(method ProxyIGui.DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect) ->  : (MHost.Native.IGuiDrawClippedText this.hObject rect alignmentFlags text fontIndex colour clipRect))
 	(method ProxyIGui.DrawTextWithCaret (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect)(Int32 caretPos) ->  : (MHost.Native.IGuiDrawTextWithCaret this.hObject rect alignmentFlags text fontIndex colour clipRect caretPos))
 	(method ProxyIGui.DrawText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) ->  : (MHost.Native.IGuiDrawText this.hObject rect alignmentFlags text fontIndex colour))
@@ -131,9 +131,7 @@
 
 	(YieldForSystemMessages (Int32 sleepMS) -> (Sys.SI.Seconds frameDT))
 
-	(TryGetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) -> (Bool isSuccessful))
-
-	(GetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) -> )
+	(FindSprite (Sys.Type.IString resourceName) -> (MHost.IdSprite spriteId))
 
 	(RunMPlatScript (Sys.Type.IString scriptName) -> )
 
@@ -163,8 +161,7 @@
 	(method ProxyIEngine.IsRunning  -> (Bool isRunning) : (MHost.Native.IEngineIsRunning this.hObject  -> isRunning))
 	(method ProxyIEngine.Shutdown  ->  : (MHost.Native.IEngineShutdown this.hObject ))
 	(method ProxyIEngine.YieldForSystemMessages (Int32 sleepMS) -> (Sys.SI.Seconds frameDT) : (MHost.Native.IEngineYieldForSystemMessages this.hObject sleepMS -> frameDT))
-	(method ProxyIEngine.TryGetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) -> (Bool isSuccessful) : (MHost.Native.IEngineTryGetSpriteSpec this.hObject resourceName loc -> isSuccessful))
-	(method ProxyIEngine.GetSpriteSpec (Sys.Type.IString resourceName)(out MPlat.BitmapLocation loc) ->  : (MHost.Native.IEngineGetSpriteSpec this.hObject resourceName loc))
+	(method ProxyIEngine.FindSprite (Sys.Type.IString resourceName) -> (MHost.IdSprite spriteId) : (MHost.Native.IEngineFindSprite this.hObject resourceName -> spriteId))
 	(method ProxyIEngine.RunMPlatScript (Sys.Type.IString scriptName) ->  : (MHost.Native.IEngineRunMPlatScript this.hObject scriptName))
 	(method ProxyIEngine.SetNextScript (Sys.Type.IString scriptName) ->  : (MHost.Native.IEngineSetNextScript this.hObject scriptName))
 	(method ProxyIEngine.CaptureMouse  ->  : (MHost.Native.IEngineCaptureMouse this.hObject ))

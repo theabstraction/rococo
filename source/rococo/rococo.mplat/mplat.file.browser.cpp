@@ -196,10 +196,10 @@ struct FileBrowserRC : public IFileBrowserRenderContext
 
 		if (!file) return;
 
-		Textures::BitmapLocation loc;
-		if (gc.Resources().SpriteBuilder().TryGetBitmapLocation(file, loc))
+		Textures::ISprite* sprite = gc.Resources().SpriteBuilder().FindBitmap(file);
+		if (sprite)
 		{
-			Graphics::DrawSprite(TopLeft(rect), loc, gc);
+			Graphics::DrawSprite(TopLeft(rect), *sprite, gc);
 		}
 	}
 

@@ -74,9 +74,12 @@ struct Gui : public MHost::IGui
 	//     /   |
 	//    /    |
 	//   b-----a
-	void DrawSprite(const Vec2& pixelPos, int32 alignmentFlags, const BitmapLocation& loc) override
+	void DrawSprite(const Vec2& pixelPos, int32 alignmentFlags, IdSprite spriteId) override
 	{
-		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
+		auto* sprite = gc.FindSprite(spriteId);
+		if (!sprite) return;
+
+		GuiRectf txUV = Dequantize(sprite->TxUV());
 
 		Vec2 span = Span(txUV);
 
@@ -96,7 +99,7 @@ struct Gui : public MHost::IGui
 		topLeftPos.y = floorf(topLeftPos.y);
 
 		GuiTriangle t[2];
-		SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
+		SetGuiQuadForBitmap(t, txUV, sprite->TextureIndex());
 
 		t[0].a.pos = topLeftPos;
 		t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
@@ -110,9 +113,15 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t[1].a);
 	}
 
-	void DrawScaledColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, const Textures::BitmapLocation& loc, float blendFactor, RGBAb colour, float scaleFactor)
+	void DrawScaledColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, IdSprite spriteId, float blendFactor, RGBAb colour, float scaleFactor)
 	{
-		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
+		auto* sprite = gc.FindSprite(spriteId);
+		if (!sprite)
+		{
+			return;
+		}
+
+		GuiRectf txUV = Dequantize(sprite->TxUV());
 
 		Vec2 span = Span(txUV);
 
@@ -134,7 +143,7 @@ struct Gui : public MHost::IGui
 		topLeftPos.y = floorf(topLeftPos.y);
 
 		GuiTriangle t[2];
-		SetGuiQuadForBitmapWithColour(t, txUV, loc.textureIndex, blendFactor, colour);
+		SetGuiQuadForBitmapWithColour(t, txUV, sprite->TextureIndex(), blendFactor, colour);
 
 		t[0].a.pos = topLeftPos;
 		t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
@@ -148,9 +157,15 @@ struct Gui : public MHost::IGui
 		gc.AddTriangle(&t[1].a);
 	}
 
-	void DrawColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, const BitmapLocation& loc, float spriteToColourLerpFactor, RGBAb colour) override
+	void DrawColouredSprite(const Vec2& pixelPos, int32 alignmentFlags, IdSprite spriteId, float spriteToColourLerpFactor, RGBAb colour) override
 	{
-		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
+		auto* sprite = gc.FindSprite(spriteId);
+		if (!sprite)
+		{
+			return;
+		}
+
+		GuiRectf txUV = Dequantize(sprite->TxUV());
 
 		Vec2 span = Span(txUV);
 
@@ -160,7 +175,7 @@ struct Gui : public MHost::IGui
 		topLeftPos.y = floorf(topLeftPos.y);
 
 		GuiTriangle t[2];
-		SetGuiQuadForBitmapWithColour(t, txUV, loc.textureIndex, spriteToColourLerpFactor, colour);
+		SetGuiQuadForBitmapWithColour(t, txUV, sprite->TextureIndex(), spriteToColourLerpFactor, colour);
 
 		t[0].a.pos = topLeftPos;
 		t[0].b.pos = { topLeftPos.x + span.x, topLeftPos.y };
@@ -185,12 +200,17 @@ struct Gui : public MHost::IGui
 		DrawQuad(q);
 	}
 
-	void StretchSprite(const GuiRectf& quad, const BitmapLocation& loc) override
+	void StretchSprite(const GuiRectf& quad, IdSprite spriteId) override
 	{
-		GuiRectf txUV = { (float)loc.txUV.left,  (float)loc.txUV.top, (float)loc.txUV.right,  (float)loc.txUV.bottom };
+		auto* sprite = gc.FindSprite(spriteId);
+		if (!sprite)
+		{
+			return;
+		}
+		GuiRectf txUV = Dequantize(sprite->TxUV());
 
 		GuiTriangle t[2];
-		SetGuiQuadForBitmap(t, txUV, loc.textureIndex);
+		SetGuiQuadForBitmap(t, txUV, sprite->TextureIndex());
 
 		t[0].a.pos = { quad.left, quad.top };
 		t[0].b.pos = { quad.right, quad.top };

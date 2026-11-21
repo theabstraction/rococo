@@ -113,7 +113,7 @@ namespace Rococo::DX11
 		virtual void DrawGlyph(cr_vec2 uvTopLeft, cr_vec2 uvBottomRight, cr_vec2 posTopLeft, cr_vec2 posBottomRight, Rococo::Graphics::Fonts::FontColour fcolour) = 0;
 		virtual void Free() = 0;	
 		virtual void RenderText(const Vec2i& pos, Rococo::Graphics::Fonts::IDrawTextJob& job, const GuiRect* clipRect) = 0;
-		virtual void SetCursorBitmap(const Rococo::Graphics::Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
+		virtual void SetCursorBitmap(Rococo::Graphics::IdSprite spriteId, Vec2i hotspotOffset) = 0;
 		virtual void SetSysCursor(Rococo::Graphics::EWindowCursor id) = 0;
 		virtual void ShowVenue(IMathsVisitor& visitor) = 0;
 		virtual void RegisterSubsystem(ISubsystemMonitor& monitor, ID_SUBSYSTEM parentId) = 0;

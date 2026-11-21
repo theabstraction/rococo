@@ -437,12 +437,15 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 {
 	GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + rect.right - rect.left, topLeft.y + rect.bottom - rect.top };
 
+	GuiRect txUV = bkBitmap->TxUV();
+
 	if (bkImageName.length() > 0)
 	{
-		if (bkBitmap.txUV.left == bkBitmap.txUV.right)
+		if (txUV.left == txUV.right)
 		{
-			if (!grc.Resources().SpriteBuilder().TryGetBitmapLocation(bkImageName, bkBitmap))
-			{
+			bkBitmap = grc.Resources().SpriteBuilder().FindBitmap(bkImageName);
+			if (!bkBitmap)
+			{ 
 				char message[1024];
 				SafeFormat(message, "%s: Cannot find image %s", __ROCOCO_FUNCTION__, bkImageName.c_str());
 
@@ -453,9 +456,9 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 			}
 		}
 
-		if (bkBitmap.txUV.left != bkBitmap.txUV.right)
+		if (txUV.left != txUV.right)
 		{
-			Graphics::StretchBitmap(grc, bkBitmap, absRect);
+			Graphics::StretchBitmap(grc, *bkBitmap, absRect);
 		}
 
 		return;

@@ -15,13 +15,41 @@ namespace
 {
     using namespace Rococo;
     using namespace Rococo::Strings;
+    using namespace Rococo::Graphics;
     using namespace Rococo::Graphics::Textures;
 
-    struct BitmapLocationImpl
+    struct SpriteImpl: ISprite
     {
-        GuiRect uv;
-        Vec2i span;
-        int32 index;
+        GuiRect uv = { 0,0,0,0 };
+        Vec2i span = { 0,0 };
+        int32 index = -1;
+        cstr name = nullptr;
+        IdSprite id;
+
+        cstr Name() const override
+        {
+            return name;
+        }
+
+        int TextureIndex() const override
+        {
+            return index;
+        }
+
+        GuiRect TxUV() const override
+        {
+            return uv;
+        }
+
+        Vec2i Span() const override
+        {
+            return span;
+        }
+
+        Rococo::Graphics::IdSprite Id() const override
+        {
+            return id;
+        }
     };
 
     struct GridCell
@@ -112,15 +140,15 @@ namespace
         }
     };
 
-    void PutBitmapInCell(Grid& g, int32 index, Vec2i pos, BitmapLocationImpl& loc)
+    void PutBitmapInCell(Grid& g, int32 index, Vec2i pos, SpriteImpl& sprite)
     {
         auto& row = g[pos.y];
         auto& cell = row.cells[pos.x];
 
         cell.occupied = true;
-        cell.usedSpan = loc.span;
-        loc.uv = { cell.left, row.top, cell.left + loc.span.x, row.top + loc.span.y };
-        loc.index = index;
+        cell.usedSpan = sprite.span;
+        sprite.uv = { cell.left, row.top, cell.left + sprite.span.x, row.top + sprite.span.y };
+        sprite.index = index;
 
     }
 
@@ -189,7 +217,8 @@ namespace
 
         int newBitmaps = 0;
 
-        stringmap<BitmapLocationImpl> mapNameToLoc;
+        stringmap<SpriteImpl*> nameToSprite;
+        std::vector<SpriteImpl*> idToSprite;
 
         struct TextureSpec
         {
@@ -204,6 +233,14 @@ namespace
 
         }
 
+        virtual ~TextureArrayBuilder()
+        {
+            for (auto& i : nameToSprite)
+            {
+                delete i.second;
+            }
+        }
+        
         void Free() override
         {
             Clear();
@@ -212,32 +249,47 @@ namespace
 
         void AddBitmap(cstr name) override
         {
-            if (mapNameToLoc.insert(name, BitmapLocationImpl{ GuiRect {0,0,0,0}, {0,0},0 }).second)
+            auto i = nameToSprite.insert(name, nullptr);
+            if (i.second)
             {
                 newBitmaps++;
+                i.first->second = new SpriteImpl();
+                i.first->second->name = i.first->first;
+
+                idToSprite.push_back(i.first->second);
+
+                // Here we define the mapping of SpriteId to sprite* starts at id 1.
+                i.first->second->id.value = (int32)idToSprite.size();
             }
         }
 
-        bool TryGetBitmapLocation(cstr name, BitmapLocation& location) override
+        ISprite* FindBitmap(cstr name) const override
         {
             if (name == nullptr)
             {
-                Throw(0, "TextureArrayBuilder::TryGetBitmapLocation(name, location): name was null");
+                Throw(0, "FindBitmap: name was null");
             }
 
-            auto i = mapNameToLoc.find(name);
-            if (i == mapNameToLoc.end())
+            auto i = nameToSprite.find(name);
+            if (i == nameToSprite.end())
             {
-                location = BitmapLocation{ { 0,0,0,0 }, -1, {0,0} };
-                return false;
+                return nullptr;
             }
             else
             {
-                location.textureIndex = i->second.index;
-                location.txUV = i->second.uv;
-                location.pixelSpan = Dequantize(i->second.span);
-                return true;
+                return i->second;
             }
+        }
+
+        ISprite* FindBitmapById(IdSprite id) const override
+        {
+            size_t zeroIndex = (size_t)(id.value - 1);
+            if (zeroIndex >= idToSprite.size())
+            {
+                return nullptr;
+            }
+
+            return idToSprite[zeroIndex];
         }
 
         int32 EvaluateRequiredTextureSpan(int32 minWidth, IEventCallback<BitmapUpdate>* onUpdate)
@@ -287,7 +339,7 @@ namespace
 
             Vec2i maxSpan = { 0,0 };
 
-            for(auto& i: mapNameToLoc)
+            for(auto& i: nameToSprite)
             {
                 onLoad.span = { 0,0 };
                 onLoad.name = i.first;
@@ -324,8 +376,8 @@ namespace
                     Throw(0, "The span of %s was greater than the largest texture supported (%u x %u)", onLoad.name, textureArray.MaxWidth(), textureArray.MaxWidth());
                 }
 
-                i.second.span = onLoad.span;
-                i.second.index = -1;
+                i.second->span = onLoad.span;
+                i.second->index = -1;
 
                 maxSpan.x = max(maxSpan.x, onLoad.span.x);
                 maxSpan.y = max(maxSpan.y, onLoad.span.y);
@@ -363,7 +415,7 @@ namespace
             }
         }
 
-        bool TryInsertColumnElseRow(BitmapLocationImpl& bmp, int32 width, Grid& g, int index)
+        bool TryInsertColumnElseRow(SpriteImpl& bmp, int32 width, Grid& g, int index)
         {
             Vec2i spanUsed = g.SpanUsed();
 
@@ -386,7 +438,7 @@ namespace
             return false;
         }
 
-        bool TryInsertRowElseColumn(BitmapLocationImpl& bmp, int32 width, Grid& g, int index)
+        bool TryInsertRowElseColumn(SpriteImpl& bmp, int32 width, Grid& g, int index)
         {
             Vec2i spanUsed = g.SpanUsed();
 
@@ -417,8 +469,8 @@ namespace
 
                 bool GetRelativeOrder(cstr a, cstr b)
                 {
-                    auto& A = builder->mapNameToLoc[a];
-                    auto& B = builder->mapNameToLoc[b];
+                    auto& A = *builder->nameToSprite[a];
+                    auto& B = *builder->nameToSprite[b];
 
                     if (A.span.x > A.span.y)
                     {
@@ -463,7 +515,7 @@ namespace
             sortBy.builder = this;
 
             std::vector<cstr> orderedNames;
-            for (auto& bmp : mapNameToLoc)
+            for (auto& bmp : nameToSprite)
             {
                 orderedNames.push_back(bmp.first);
             }
@@ -471,7 +523,7 @@ namespace
 
             for (auto& name : orderedNames)
             {
-                auto& bmp = mapNameToLoc[name];
+                auto& bmp = *nameToSprite[name];
                 for (int32 i = 0; i < textureArray.TextureCount(); ++i)
                 {
                     auto& ts = textureSpecs[i];
@@ -537,7 +589,7 @@ namespace
         {
             cstr name;
             Vec2i span;
-            BitmapLocationImpl* loc;
+            SpriteImpl* loc;
             IBitmapArray* ta;
 
             void OnEvent(CompressedTextureBuffer& buffer) override
@@ -581,12 +633,12 @@ namespace
 
         void WriteSubImages()
         {
-            for (auto& i : mapNameToLoc)
+            for (auto& i : nameToSprite)
             {
                 SubImageWriterOnLoad onLoad;
                 onLoad.name = i.first;
-                onLoad.span = i.second.span;
-                onLoad.loc = &i.second;
+                onLoad.span = i.second->span;
+                onLoad.loc = i.second;
                 onLoad.ta = &textureArray;
 
                 loader.Load(i.first, onLoad);

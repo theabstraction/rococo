@@ -1663,10 +1663,10 @@ namespace
 			GuiMetrics metrics;
 			rc.Renderer().GetGuiMetrics(metrics);
 
-			Textures::BitmapLocation bml;
-			if (platform.graphics.renderer.GuiResources().SpriteBuilder().TryGetBitmapLocation(loadImage, bml))
+			Textures::ISprite* sprite = platform.graphics.renderer.GuiResources().SpriteBuilder().FindBitmap(loadImage);
+			if (sprite)
 			{
-				Rococo::Graphics::DrawSpriteCentred(buttonRect, bml, rc);
+				Rococo::Graphics::DrawSpriteCentred(buttonRect, *sprite, rc);
 			}
 			else
 			{

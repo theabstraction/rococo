@@ -79,7 +79,7 @@ namespace ANON
 
 	ROCOCO_INTERFACE IMPlatImageSupervisor : IGRImageSupervisor
 	{
-		virtual const BitmapLocation & Sprite() const = 0;
+		virtual const ISprite & Sprite() const = 0;
 	};
 
 	struct AutoScissors
@@ -173,7 +173,7 @@ namespace ANON
 
 		void DrawImageStretched(IGRImage& image, const GuiRect& absRect) override
 		{
-			auto sprite = static_cast<IMPlatImageSupervisor&>(image).Sprite();
+			auto& sprite = static_cast<IMPlatImageSupervisor&>(image).Sprite();
 			Graphics::StretchBitmap(*rc, sprite, absRect);
 		}
 
@@ -506,11 +506,13 @@ namespace ANON
 			return lastScissorRect.IsNormalized();
 		}
 
-		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, const BitmapLocation& sprite)
+		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, const ISprite& sprite)
 		{
 			UNUSED(isStretched);
 
-			if (!rc || sprite.pixelSpan.x <= 0 || sprite.pixelSpan.y <= 0 || sprite.textureIndex < 0) 
+			auto span = sprite.Span();
+
+			if (!rc || span.x <= 0 || span.y <= 0 || sprite.TextureIndex() < 0)
 			{
 				return false;
 			}
@@ -522,7 +524,7 @@ namespace ANON
 
 			GuiRect rect = panel.AbsRect();
 
-			Vec2i ds = Quantize(sprite.pixelSpan);
+			Vec2i ds = span;
 
 			if (isLeftAligned)
 			{
@@ -563,13 +565,14 @@ namespace ANON
 	struct MPlatImage : IMPlatImageSupervisor
 	{
 		Vec2i span{ 8, 8 };
-		BitmapLocation sprite = BitmapLocation::None();
+		ISprite* sprite = nullptr;
 
 		IBitmapArrayBuilder& sprites;
 
 		MPlatImage(cstr hint, cstr imagePath, IBitmapArrayBuilder& _sprites): sprites(_sprites)
 		{
-			if (!sprites.TryGetBitmapLocation(imagePath, sprite))
+			sprite = sprites.FindBitmap(imagePath);
+			if (!sprite)
 			{
 				Throw(0, "%s (%s): Could not find bitmap: %s\nNote that the MPLAT gui custodian requires sprites to be pre-loaded, typically using the game script", __ROCOCO_FUNCTION__, hint, imagePath);
 			}
@@ -577,7 +580,7 @@ namespace ANON
 
 		bool Render(IGRPanel& panel, GRAlignmentFlags alignment, Vec2i spacing, bool isStretched, IGRRenderContext& g) override
 		{
-			return static_cast<MPlatGR_Renderer&>(g).Render(panel, alignment, spacing, isStretched, sprite);
+			return static_cast<MPlatGR_Renderer&>(g).Render(panel, alignment, spacing, isStretched, *sprite);
 		}
 
 		void Free() override
@@ -587,12 +590,12 @@ namespace ANON
 
 		Vec2i Span() const override
 		{
-			return Quantize(sprite.pixelSpan);
+			return sprite->Span();
 		}
 
-		const BitmapLocation& Sprite() const override
+		const ISprite& Sprite() const override
 		{
-			return sprite;
+			return *sprite;
 		}
 	};
 

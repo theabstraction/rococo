@@ -341,18 +341,12 @@ namespace MHost
 			sceneManager.OnCompile(ss);
 		}
 
-		boolean32 TryGetSpriteSpec(const fstring& resourceName, OUT BitmapLocation& loc) override
+		IdSprite FindSprite(const fstring& resourceName) override
 		{
-			return platform.graphics.renderer.GuiResources().SpriteBuilder().TryGetBitmapLocation(resourceName, OUT loc);
+			auto* sprite = platform.graphics.renderer.GuiResources().SpriteBuilder().FindBitmap(resourceName);
+			return sprite ? sprite->Id() : IdSprite::Invalid();
 		}
 
-		void GetSpriteSpec(const fstring& resourceName, OUT BitmapLocation& loc) override
-		{
-			if (!TryGetSpriteSpec(resourceName, loc))
-			{
-				Throw(0, "Could not load bitmap: %s", (cstr)resourceName);
-			}
-		}
 	public:
 		App(Platform& _platform, IDirectAppControl& _control, const AppArgs& args) :
 			platform(_platform), control(_control), sceneManager(_platform)

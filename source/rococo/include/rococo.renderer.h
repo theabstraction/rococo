@@ -48,6 +48,11 @@ namespace Rococo::Graphics
 {
 	enum class TextureFormat : uint32;
 
+	namespace Textures
+	{
+		DECLARE_ROCOCO_INTERFACE ISprite;
+	}
+
 	ROCOCO_INTERFACE IWindowEventHandler
 	{
 		virtual void OnPostResize(bool isFullscreen, Vec2i span) = 0;
@@ -151,7 +156,7 @@ namespace Rococo::Graphics
 		virtual Textures::IBitmapArrayBuilder& SpriteBuilder() = 0;
 		virtual Fonts::IFont& FontMetrics() = 0;
 		virtual IHQFontResource& HQFontsResources() = 0;
-		virtual void SetCursorBitmap(const Textures::BitmapLocation& sprite, Vec2i hotspotOffset) = 0;
+		virtual void SetCursorBitmap(IdSprite spriteId, Vec2i hotspotOffset) = 0;
 		virtual void SetSysCursor(EWindowCursor id) = 0;
 		virtual ITextureManager& Textures() = 0;
 	};
@@ -191,6 +196,7 @@ namespace Rococo::Graphics
 		virtual void DrawCustomTexturedMesh(const GuiRect& absRect, ID_TEXTURE id, cstr pixelShader, const GuiVertex* vertices, size_t nCount) = 0;
 		virtual void FlushLayer() = 0;
 		virtual Vec2i EvalSpan(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;
+		virtual Rococo::Graphics::Textures::ISprite* FindSprite(IdSprite id) const = 0;
 		virtual void RenderText(const Vec2i& pos, Fonts::IDrawTextJob& job, const GuiRect* clipRect = nullptr) = 0;		
 		virtual void SetGuiShader(cstr pixelShader) = 0;
 		virtual void SetNormalBitmapRendering() = 0;
@@ -198,6 +204,7 @@ namespace Rococo::Graphics
 		virtual void SetScissorRect(const Rococo::GuiRect& rect) = 0;
 		virtual void ClearScissorRect() = 0;
 		virtual GuiScale GetGuiScale() const = 0;
+		
 
 		// Renders high quality text. To compute span without rendering, pass evaluateSpanOnly as true
 		enum EMode { RENDER, EVALUATE_SPAN_ONLY, };
@@ -491,10 +498,10 @@ namespace Rococo::Graphics
 	ROCOCO_GRAPHICS_API void DrawText(IGuiRenderContext& g, const GuiRectf& rect, int32 alignmentFlags, const fstring& text, int32 fontIndex, RGBAb colour);
 	ROCOCO_GRAPHICS_API void DrawTexture(IGuiRenderContext& grc, ID_TEXTURE id, const GuiRect& absRect);
 	ROCOCO_MISC_UTILS_API void RenderBitmap_ShrinkAndPreserveAspectRatio(IGuiRenderContext& rc, MaterialId id, const GuiRect& absRect);
-	ROCOCO_MISC_UTILS_API void StretchBitmap(IGuiRenderContext& rc, const Textures::BitmapLocation& location, const GuiRect& absRect);
+	ROCOCO_MISC_UTILS_API void StretchBitmap(IGuiRenderContext& rc, const Textures::ISprite& sprite, const GuiRect& absRect);
 	ROCOCO_MISC_UTILS_API void StretchBitmap(IGuiRenderContext& rc, ID_VOLATILE_BITMAP bitmapId, const GuiRect& absRect);
-	ROCOCO_MISC_UTILS_API void DrawSprite(const Vec2i& topLeft, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
-	ROCOCO_MISC_UTILS_API void DrawSpriteCentred(const GuiRect& rect, const Textures::BitmapLocation& location, IGuiRenderContext& gc);
+	ROCOCO_MISC_UTILS_API void DrawSprite(const Vec2i& topLeft, const Textures::ISprite& sprite, IGuiRenderContext& gc);
+	ROCOCO_MISC_UTILS_API void DrawSpriteCentred(const GuiRect& rect, const Textures::ISprite& sprite, IGuiRenderContext& gc);
 }// Rococo::Graphics
 
 namespace Rococo
