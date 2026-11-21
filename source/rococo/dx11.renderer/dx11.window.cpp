@@ -188,7 +188,13 @@ namespace ANON
 					return 0;
 				}
 			case WM_SETCURSOR:
-				return TRUE;
+				if (LOWORD(lParam) == HTCLIENT)
+				{
+					// DX11Gui::DrawCursor calls SetCursor every frame for the client area, so stop DefWindowProc fighting it
+					return TRUE;
+				}
+				// Caption, borders and resize grips get the standard Windows cursors rather than whatever was last set
+				break;
 			case WM_SETFOCUS:
 				hasFocus = true;
 				RegisterRawInput(hWnd);

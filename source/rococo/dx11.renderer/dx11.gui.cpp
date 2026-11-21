@@ -867,12 +867,13 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     void DrawCursor(const GuiMetrics& metrics) override
     {
-        if (!cursor.sprite)
-        {
-            return;
-        }
+        // Every frame we must tell Windows which cursor to show. The DX11 window class has hCursor = NULL and
+        // DX11GraphicsWindow swallows WM_SETCURSOR in the client area, so if we skip SetCursor here the OS keeps
+        // whatever cursor it had last - typically the app-starting/hourglass cursor from launch.
+        // A null sprite (no SetCursorBitmap call, or an invalid IdSprite) means 'use the system cursor', as
+        // textureIndex == -1 did before the ISprite refactor.
 
-        if (cursor.sprite->TextureIndex() >= 0)
+        if (cursor.sprite && cursor.sprite->TextureIndex() >= 0)
         {
             GuiRectf txUV = Dequantize(cursor.sprite->TxUV());
             auto span = Span(txUV);
@@ -889,9 +890,6 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
             float y0 = p.y + cursor.hotspotOffset.y;
             float y1 = y0 + span.y;
 
-            BaseVertexData noFont{ { 0,0 }, 0 };
-            SpriteVertexData solidColour{ 1.0f, 0.0f, 0.0f, 0.0f };
-
             SpriteVertexData drawSprite{ 0, (float)cursor.sprite->TextureIndex(), 0, 0};
 
             GuiVertex quad[6]
@@ -907,34 +905,34 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
             AddTriangle(quad);
             AddTriangle(quad + 3);
 
-            SetCursor(0);
+            // The sprite is the cursor, so hide the OS cursor over the client area
+            SetCursor(nullptr);
+            return;
         }
-        else
+
+        cstr sysId;
+
+        switch (cursorId)
         {
-            cstr sysId;
-
-            switch (cursorId)
-            {
-            case EWindowCursor_HDrag:
-                sysId = IDC_SIZEWE;
-                break;
-            case EWindowCursor_VDrag:
-                sysId = IDC_SIZENS;
-                break;
-            case EWindowCursor_BottomRightDrag:
-                sysId = IDC_SIZENWSE;
-                break;
-            case EWindowCursor_HandDrag:
-                sysId = IDC_HAND;
-                break;
-            case EWindowCursor_Default:
-            default:
-                sysId = IDC_ARROW;
-            }
-
-            HCURSOR hCursor = LoadCursorA(nullptr, sysId);
-            SetCursor(hCursor);
+        case EWindowCursor_HDrag:
+            sysId = IDC_SIZEWE;
+            break;
+        case EWindowCursor_VDrag:
+            sysId = IDC_SIZENS;
+            break;
+        case EWindowCursor_BottomRightDrag:
+            sysId = IDC_SIZENWSE;
+            break;
+        case EWindowCursor_HandDrag:
+            sysId = IDC_HAND;
+            break;
+        case EWindowCursor_Default:
+        default:
+            sysId = IDC_ARROW;
         }
+
+        HCURSOR hCursor = LoadCursorA(nullptr, sysId);
+        SetCursor(hCursor);
     }
 
     void SetScissorRect(const Rococo::GuiRect& rect) override

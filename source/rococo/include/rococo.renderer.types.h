@@ -11,8 +11,6 @@ namespace Rococo::Graphics
 	struct TextureDesc;
 	struct ITextureLoadEnumerator;
 
-	ROCOCO_ID(IdSprite, int32, 0);
-
 	namespace Textures
 	{
 		struct IBitmapArrayBuilder;

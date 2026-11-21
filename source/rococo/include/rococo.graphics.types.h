@@ -16,6 +16,8 @@ namespace Rococo
 
 namespace Rococo::Graphics
 {
+	ROCOCO_ID(IdSprite, int32, 0);
+
 	template<class T>
 	class GPU_ENTITY_ID
 	{		
