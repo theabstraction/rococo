@@ -437,11 +437,9 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 {
 	GuiRect absRect{ topLeft.x, topLeft.y, topLeft.x + rect.right - rect.left, topLeft.y + rect.bottom - rect.top };
 
-	GuiRect txUV = bkBitmap->TxUV();
-
 	if (bkImageName.length() > 0)
 	{
-		if (txUV.left == txUV.right)
+		if (!bkBitmap)
 		{
 			bkBitmap = grc.Resources().SpriteBuilder().FindBitmap(bkImageName);
 			if (!bkBitmap)
@@ -455,8 +453,7 @@ void BasePane::RenderBkImage(IGuiRenderContext& grc, const Vec2i& topLeft, const
 				Rococo::Graphics::DrawText(grc, Dequantize(textRect), Alignment::Alignment_None, to_fstring(message), 0, RGBAb(255, 255, 255));
 			}
 		}
-
-		if (txUV.left != txUV.right)
+		else
 		{
 			Graphics::StretchBitmap(grc, *bkBitmap, absRect);
 		}

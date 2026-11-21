@@ -95,10 +95,9 @@
 	
 	(g.DrawText nameRect 0 this.data.name 0 0xFFFFFFFF)
 	
-	(MPlat.BitmapLocation img)
-	(this.engine.GetSpriteSpec this.data.portrait img)
+	(IdSprite img = this.engine.FindSprite this.data.portrait)
 	
-	(if (img.arrayIndex >= 0) 
+	(if (img > 0) 
 		(Rectf innerFaceRect)
 		(innerFaceRect.left = (faceRect.left + 4))
 		(innerFaceRect.top = (faceRect.top + 4))
@@ -346,9 +345,9 @@
 			(slot.charData.GetCharData charData)
 			(IEngine engine = this.bundle.Engine)
 			
-			(MPlat.BitmapLocation img)
+			(IdSprite img)
 			(if (charData.portrait.Length > 0)
-				(engine.GetSpriteSpec charData.portrait img)
+				(engine.FindSprite charData.portrait -> img)
 				(g.StretchSprite slot.rect img)
 			)
 		)
@@ -360,9 +359,9 @@
 		(cds.GetCharData charData)
 		(IEngine engine = this.bundle.Engine)
 		
-		(MPlat.BitmapLocation img)
+		(IdSprite img)
 		(if (charData.portrait.Length > 0)
-			(engine.GetSpriteSpec charData.portrait img)
+			(engine.FindSprite charData.portrait -> img)
 			
 			(Vec2 cursorPos)
 			(g.GetCursorPos cursorPos)

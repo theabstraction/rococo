@@ -9,9 +9,12 @@
     (Int32 usFlags)
 	(Int32 buttons)
 	(Int32 rawButtons)
+	(Int32 dx)
+	(Int32 dy)
+	(Int32 extraInfo)
 	(Int32 x)
 	(Int32 y)
-	(Sys.Maths.Vec2i cursorPos)
+	(Int32 contextFlags)
 )
 
 (alias MouseEvent MHost.OS.MouseEvent)

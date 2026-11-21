@@ -678,8 +678,7 @@
 		(this.portraitFilename.AppendIString (this.malePortraits index))
 	)
 	
-	(MPlat.BitmapLocation img)
-	(engine.GetSpriteSpec this.portraitFilename img)
+	(IdSprite img = engine.FindSprite this.portraitFilename)
 	(this.portraitButton.SetImage img)
 )
 

@@ -18,27 +18,26 @@
 (interface MHost.Graphics.IImageButton
 	(extends MHost.Graphics.Widgets.IControl)
 	(SetRect (Rectf rect)(IGui g) -> )
-	(SetImage (MPlat.BitmapLocation imgLoc)->)
+	(SetImage (IdSprite spriteId)->)
 )
 
 (class ImageButton
 	(implements MHost.Graphics.IImageButton)
 	(implements IEventHandler)
 	(Rectf outerRect)
-	(MPlat.BitmapLocation imgLoc)
+	(IdSprite spriteId)
 ) 
 
 (method ImageButton.Construct :
 	(this.outerRect = -1 -1 -1 -1)
-	(this.imgLoc = (-1 -1 -1 -1) -1 (0 0))
 )
 
 (method ImageButton.GetRect (Rectf rect)-> :
 	(rect = this.outerRect)
 )
 
-(method ImageButton.SetImage (MPlat.BitmapLocation imgLoc)-> :
-	(this.imgLoc = imgLoc)
+(method ImageButton.SetImage (IdSprite spriteId)-> :
+	(this.spriteId = spriteId)
 )
 
 (method ImageButton.GetEventHandler ->(IEventHandler evHandler):
@@ -54,9 +53,7 @@
 )
 
 (method ImageButton.Render (IGui g)-> :
-	(if (this.imgLoc.arrayIndex >= 0) 
-		(g.StretchSprite this.outerRect this.imgLoc)
-	)
+	(g.StretchSprite this.outerRect this.spriteId)
 	(g.DrawBorder this.outerRect 2 0xFFFFFFFF 0xFFAFAFAF 0xFF8F8F8F 0xFF5F5F5F)
 )
 

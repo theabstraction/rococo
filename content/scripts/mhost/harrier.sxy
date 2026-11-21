@@ -20,7 +20,7 @@
 
 (struct Sprite
 	(IString filename)
-	(BitmapLocation location)
+	(IdSprite spriteId)
 	(Bool facingRight)
 )
 	
@@ -238,7 +238,7 @@
 )
 
 (function InitSprite (IEngine engine)(Sprite bmp)-> :
-	(engine.GetSpriteSpec bmp.filename bmp.location)
+	(engine.FindSprite bmp.filename -> bmp.spriteId)
 )
 
 (archetype Harrier.OnEntity (Entity e)->)
@@ -250,7 +250,7 @@
 		(alignmentFlags = (#AlignmentFlagsMirror))
 	)
 	
-	(gui.DrawSprite w.player.screenPosition alignmentFlags w.player.image.location)
+	(gui.DrawSprite w.player.screenPosition alignmentFlags w.player.image.spriteId)
 )
 
 (function RenderLives (Entity player)(IGui g)(Float32 count)-> :
@@ -267,7 +267,7 @@
 		(Float32 bottom = y + 30)
 
 		(Rectf rect = x y right bottom)
-		(g.StretchSprite rect player.image.location)
+		(g.StretchSprite rect player.image.spriteId)
 	)
 )
 
@@ -328,7 +328,7 @@
 	
 	(Float32 y = (w.worldPosition.y - 800))
 	(Vec2 moonPos = 750 y)
-	(gc.DrawSprite moonPos alignmentFlags w.moon.location)
+	(gc.DrawSprite moonPos alignmentFlags w.moon.spriteId)
 	
 	(Vec2 pos)
 	(RGBA colourF32 = 1 1 1 0)
@@ -337,14 +337,14 @@
 		(pos.x = star.x)
 		(pos.y = (w.worldPosition.y - star.y))	
 		(colourF32.a = star.brightness * (AnyFloat 0.5 1.0))
-		(gc.DrawColouredSprite pos 0 w.starSmall.location 1.0 (MHost.Graphics.ToRGBAb colourF32))
+		(gc.DrawColouredSprite pos 0 w.starSmall.spriteId 1.0 (MHost.Graphics.ToRGBAb colourF32))
 	)
 	
 	(foreach star # w.largeStars
 		(pos.x = star.x)
 		(pos.y = w.worldPosition.y - star.y)	
 		(colourF32.a = star.brightness * (AnyFloat 0.5 1.0))
-		(gc.DrawColouredSprite pos 0 w.starLarge.location 1.0 (MHost.Graphics.ToRGBAb colourF32))
+		(gc.DrawColouredSprite pos 0 w.starLarge.spriteId 1.0 (MHost.Graphics.ToRGBAb colourF32))
 	)
 )
 
@@ -389,7 +389,7 @@
 			(colour = c.colour)
 		)
 			
-		(gc.DrawScaledColouredSprite cloudPosition c.alignment this.cloud.location 0.5 colour c.scale)
+		(gc.DrawScaledColouredSprite cloudPosition c.alignment this.cloud.spriteId 0.5 colour c.scale)
 	)
 	
 	(gc.SetGuiShaders "!shaders/compiled/gui.shadow.ps")
@@ -413,7 +413,7 @@
 		(alignmentFlags = (#AlignmentFlagsMirror))
 	)
 	
-	(gc.DrawScaledColouredSprite shadowPos alignmentFlags this.player.image.location 0.5 (MHost.Graphics.ToRGBAb shadowColour) alpha)
+	(gc.DrawScaledColouredSprite shadowPos alignmentFlags this.player.image.spriteId 0.5 (MHost.Graphics.ToRGBAb shadowColour) alpha)
 	
 	(gc.SetGuiShaders "")
 
@@ -437,7 +437,7 @@
 			(colour = c.colour)
 		)
 		
-		(gc.DrawScaledColouredSprite cloudPosition c.alignment this.cloud.location 0.5 colour c.scale)
+		(gc.DrawScaledColouredSprite cloudPosition c.alignment this.cloud.spriteId 0.5 colour c.scale)
 	)
 	
 	(gc.SetGuiShaders "")
@@ -536,21 +536,19 @@
 )
 
 (method World.Run -> :
-	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1 (0 0))
-	
 	(this.playerDirection = 0 0)
 	(this.playerPosition = 500 150)
 	(this.worldPosition = 0 0)
 	(this.score = 0)
 	(this.lives = 3)
 	
-	(this.explosion = "!textures/mhost/harrier/explosion.tiff" defaultBmpLoc true)
-	(this.starSmall = "!textures/mhost/harrier/star.1.tiff" defaultBmpLoc true)
-	(this.starLarge = "!textures/mhost/harrier/star.3.tiff" defaultBmpLoc true)
-	(this.moon = "!textures/mhost/harrier/moon.tiff" defaultBmpLoc true)
-	(this.cloud = "!textures/mhost/harrier/cloud.tiff" defaultBmpLoc true)
+	(this.explosion = "!textures/mhost/harrier/explosion.tiff" 0 true)
+	(this.starSmall = "!textures/mhost/harrier/star.1.tiff" 0 true)
+	(this.starLarge = "!textures/mhost/harrier/star.3.tiff" 0 true)
+	(this.moon = "!textures/mhost/harrier/moon.tiff" 0 true)
+	(this.cloud = "!textures/mhost/harrier/cloud.tiff" 0 true)
 	
-	(this.player = (322 322) ("!textures/mhost/harrier/av-8b_facing_right.tiff" defaultBmpLoc true))
+	(this.player = (322 322) ("!textures/mhost/harrier/av-8b_facing_right.tiff" 0 true))
 	
 	(IEngine engine = this.engine)
 	

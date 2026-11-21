@@ -850,9 +850,12 @@ struct DX11Gui : IDX11Gui, IDX11FontRenderer, Fonts::IGlyphRenderer, IGuiResourc
 
     void ShowVenue(IMathsVisitor& visitor) override
     {
-        auto txUV = cursor.sprite->TxUV();
-        visitor.ShowString("Cursor bitmap", "Id: %d. {%d,%d}-{%d,%d}", cursor.sprite->TextureIndex(), txUV.left, txUV.top, txUV.right, txUV.bottom);
-        visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
+        if (cursor.sprite)
+        {
+            auto txUV = cursor.sprite->TxUV();
+            visitor.ShowString("Cursor bitmap", "Id: %d. {%d,%d}-{%d,%d}", cursor.sprite->TextureIndex(), txUV.left, txUV.top, txUV.right, txUV.bottom);
+            visitor.ShowString("Cursor hotspot delta", "(%+d %+d)", cursor.hotspotOffset.x, cursor.hotspotOffset.y);
+        }
     }
 
     EWindowCursor cursorId = EWindowCursor_Default;

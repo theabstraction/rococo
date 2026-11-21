@@ -6,8 +6,8 @@
 (using MHost.Events)
 
 (function TranslateMouseEvent ($.MouseEvent me)(MHost.Events.IUIEventHandler handler)(MHost.Events.IEventHandler modalSink)-> :
-	(Float32 x = (ToFloat32 me.cursorPos.x))
-	(Float32 y = (ToFloat32 me.cursorPos.y))
+	(Float32 x = (ToFloat32 me.x))
+	(Float32 y = (ToFloat32 me.y))
 	
 	(if (HasFlags me.buttons 0x400)
 		(Int32 spin = (RightShift me.buttons 16))

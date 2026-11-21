@@ -268,8 +268,10 @@
 	(Vec2 screenSpan)
 	(g.GetScreenSpan screenSpan)
 
-	(BitmapLocation splashScreen)
-	(if (this.engine.TryGetSpriteSpec "!portraits/painting_1.jpg" splashScreen)
+	(IdSprite splashScreen)
+	(this.engine.FindSprite "!portraits/painting_1.jpg" -> splashScreen)
+	
+	(if (splashScreen >= 0)
 		(Rectf fullScreenQuad = 0 0 screenSpan.x screenSpan.y)
 		(g.StretchSprite fullScreenQuad splashScreen)
 	)

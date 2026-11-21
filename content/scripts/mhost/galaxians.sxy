@@ -20,7 +20,7 @@
 
 (struct Sprite
 	(IString filename)
-	(BitmapLocation location)
+	(IdSprite spriteId)
 )
 	
 (struct Entity 
@@ -137,7 +137,7 @@
 (factory MHost.Galaxians MHost.IWorld (IEngine engine) : (construct Galaxians engine))
 
 (function InitSprite (IEngine engine)(Sprite bmp)-> :
-	(engine.GetSpriteSpec bmp.filename bmp.location)
+	(engine.FindSprite bmp.filename -> bmp.spriteId)
 )
 
 (archetype Galaxians.OnEntity (Entity e)->)
@@ -150,8 +150,6 @@
 )
 
 (method Galaxians.Init -> :
-	(BitmapLocation defaultBmpLoc = (0 0 0 0) -1 (0 0))
-	
 	(IString pawn1 = "!textures/mhost/galaxians/pawn.1.tiff")
 	(IString pawn2 = "!textures/mhost/galaxians/pawn.2.tiff")
 	(IString pawn3 = "!textures/mhost/galaxians/pawn.3.tiff")
@@ -160,13 +158,13 @@
 	(this.killCount = 0)
 	(this.enemyHitAt = 0)
 	
-	(this.playerExplosion =  (0  -100) ("!textures/mhost/galaxians/explosion.tiff" defaultBmpLoc))
-	(this.enemyExplosion = (0  -100) ("!textures/mhost/galaxians/explosion.tiff" defaultBmpLoc))
+	(this.playerExplosion =  (0  -100) ("!textures/mhost/galaxians/explosion.tiff" 0))
+	(this.enemyExplosion = (0  -100) ("!textures/mhost/galaxians/explosion.tiff" 0))
 	
 	// 4 enemy missiles
 	(
 		(for (Int32 i = 0)(i < 4)(i += 1)
-			(Entity a0 = (1  -40) ("!textures/mhost/galaxians/missile.2.tiff" defaultBmpLoc))
+			(Entity a0 = (1  -40) ("!textures/mhost/galaxians/missile.2.tiff" 0))
 			(this.missiles.Push a0)
 		)
 	)
@@ -175,10 +173,10 @@
 	(
 		(Int32 y = 80)
 		(Int32 x0 = 130)
-		(Entity a0 = (x0  y) (pawn4 defaultBmpLoc))
+		(Entity a0 = (x0  y) (pawn4 0))
 		(this.aliens.Push a0)
 		(Int32 x1 = 250)
-		(Entity a1 = (x1 y) (pawn4 defaultBmpLoc))
+		(Entity a1 = (x1 y) (pawn4 0))
 		(this.aliens.Push a1)
 	)
 	
@@ -187,7 +185,7 @@
 		(Int32 y = 120)
 		(for (Int32 i = 0)(i < 6)(i += 1)
 			(Int32 x = 90 + (i * 40))
-			(Entity a0 = (x  y) (pawn3 defaultBmpLoc))
+			(Entity a0 = (x  y) (pawn3 0))
 			(this.aliens.Push a0)
 		)
 	)
@@ -197,7 +195,7 @@
 		(Int32 y = 160)
 		(for (Int32 i = 0)(i < 8)(i += 1)
 			(Int32 x = 50 + (i * 40))
-			(Entity a0 = (x  y) (pawn2 defaultBmpLoc))
+			(Entity a0 = (x  y) (pawn2 0))
 			(this.aliens.Push a0)
 		)
 	)
@@ -208,13 +206,13 @@
 		(Int32 y = (80 + (j * 40)))
 		(for (Int32 i = 0)(i < 10)(i += 1)
 			(Int32 x = (10 + (i * 40)))
-			(Entity a0 = (x  y) (pawn1 defaultBmpLoc))
+			(Entity a0 = (x  y) (pawn1 0))
 			(this.aliens.Push a0)
 		)
 	)
 	
-	(this.player = (500 800) ("!textures/mhost/galaxians/player.1.tiff" defaultBmpLoc))
-	(this.playerMissile = (-100 -100) ("!textures/mhost/galaxians/missile.1.tiff" defaultBmpLoc))
+	(this.player = (500 800) ("!textures/mhost/galaxians/player.1.tiff" 0))
+	(this.playerMissile = (-100 -100) ("!textures/mhost/galaxians/missile.1.tiff" 0))
 	(this.deathAt = Sys.Time.TickCount)
 	(this.lives = 3)
 	
@@ -264,13 +262,13 @@
 (function DrawStretchedSprite(IGui gc)(Recti rect)(Entity e) -> :
 	(Rectf rectF)
 	(ToRectf rect rectF)
-	(gc.StretchSprite rectF e.image.location)
+	(gc.StretchSprite rectF e.image.spriteId)
 )
 
 (function DrawSprite(IGui gc)(Vec2i pos)(Sprite s)-> :
 	(Vec2 fpos)
 	(ToVec2f pos /* -> */ fpos)
-	(gc.DrawSprite fpos 0 s.location)
+	(gc.DrawSprite fpos 0 s.spriteId)
 )
 
 (function DrawEntity(IGui gc)(Entity e)-> :

@@ -283,10 +283,15 @@ namespace
 
         ISprite* FindBitmapById(IdSprite id) const override
         {
+            if (!id)
+            {
+                return nullptr;
+            }
+
             size_t zeroIndex = (size_t)(id.value - 1);
             if (zeroIndex >= idToSprite.size())
             {
-                return nullptr;
+                Throw(0, "FindBitmapById: Invalid sprite id %d", id.value);
             }
 
             return idToSprite[zeroIndex];
