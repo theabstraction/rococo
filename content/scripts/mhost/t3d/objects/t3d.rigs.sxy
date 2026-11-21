@@ -188,8 +188,7 @@
 
 	(MaterialVertexData steel)
 	(AnyColour 200 255 0 0 0 0 192 192 -> steel.colour)
-	(MaterialId steelId = (matBuilder.GetRandomMaterialId (#MaterialCategoryMetal)))
-	(matBuilder.GetTextureSliceIndex steelId -> steel.txSliceId)
+	(matBuilder.PopulateRandomMaterialTextures (#MaterialCategoryMetal) steel)
 	(steel.gloss = 0.1)
 
 	(IRodTesselator rod (RodTesselator))

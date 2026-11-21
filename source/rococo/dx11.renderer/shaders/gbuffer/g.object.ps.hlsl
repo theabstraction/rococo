@@ -1,5 +1,5 @@
 #include "..\mplat.api.hlsl"
-#include "..\shadows.api.hlsl"
+#include "..\shadow.api.hlsl"
 #include "..\lights.api.hlsl"
 
 GBufferOutput main(ObjectPixelVertex p)

@@ -1,5 +1,5 @@
 #include "..\mplat.api.hlsl"
-#include "..\shadows.api.hlsl"
+#include "..\shadow.api.hlsl"
 #include "..\lights.api.hlsl"
 
 // normal element range is -1 to 1, so add + 1 and halve to normalize to [0,1]
@@ -47,8 +47,9 @@ float4 main(GPixelSpec spec) : SV_TARGET
 	
     float3 Ng = ReconstructGeometricNormal(int2(spec.position.xy), worldPosition, normal);
 
-    float4 shadowPos = Transform_World_To_ShadowBuffer(float4(worldPosition, 1.0f));
-    float shadowDensity = GetShadowDensity_16Sample(shadowPos);
+    // Normal offset along Ng (reconstructed from the position buffer), then 9-tap hardware PCF
+    float4 shadowPos = GetShadowPosNormalOffset(worldPosition, Ng);
+    float shadowDensity = GetShadowDensity_PCF9(shadowPos);
 
     float3 incident = ComputeEyeToWorldDirectionG(spec, worldPosition);
 

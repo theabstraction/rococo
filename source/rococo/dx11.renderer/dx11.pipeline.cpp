@@ -18,6 +18,33 @@ using namespace Rococo::Reflection;
 
 namespace Rococo::DX11
 {
+	// Sampler slot s1 is read with SampleCmpLevelZero by shadow.api.hlsl (shadowCmpSampler), so it must be a comparison sampler.
+	enum { SHADOW_MAP_SAMPLER_INDEX = 1 };
+
+	// Hardware 2x2 PCF. Lit when receiver depth <= stored depth, which matches the shadow pass (depth cleared to 1, default LESS depth test).
+	// Border colour 1 means taps that fall off the shadow map read as lit.
+	static ID3D11SamplerState* CreateShadowComparisonSampler(ID3D11Device& device)
+	{
+		D3D11_SAMPLER_DESC desc = {};
+		desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+		desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+		desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+		desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+		desc.BorderColor[0] = 1.0f;
+		desc.BorderColor[1] = 1.0f;
+		desc.BorderColor[2] = 1.0f;
+		desc.BorderColor[3] = 1.0f;
+		desc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+		desc.MaxAnisotropy = 1;
+		desc.MipLODBias = 0;
+		desc.MinLOD = 0;
+		desc.MaxLOD = 0;
+
+		ID3D11SamplerState* state = nullptr;
+		VALIDATEDX11(device.CreateSamplerState(&desc, &state));
+		return state;
+	}
+
 	struct AmbientData
 	{
 		RGBA localLight;
@@ -224,6 +251,9 @@ namespace Rococo::DX11
 			alphaBlend = DX11::CreateAlphaBlend(device);
 
 			RAL_pipeline = RAL::CreatePipeline(*this, bundle.RAL);
+
+			// Bound even if no script calls SetSampler for the shadow slot, as SampleCmp with a non-comparison sampler is undefined
+			defaultSamplers[SHADOW_MAP_SAMPLER_INDEX] = CreateShadowComparisonSampler(device);
 
 		}
 
@@ -453,6 +483,13 @@ namespace Rococo::DX11
 			{
 				defaultSamplers[index]->Release();
 				defaultSamplers[index] = nullptr;
+			}
+
+			if (index == SHADOW_MAP_SAMPLER_INDEX)
+			{
+				// The script's filter, address modes and border colour are ignored for the shadow map: shadow.api.hlsl needs a comparison sampler with a lit border
+				defaultSamplers[index] = CreateShadowComparisonSampler(device);
+				return;
 			}
 
 			auto* sampler = Rococo::DX11::GetSampler(device, filter, u, v, w, borderColour);

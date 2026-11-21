@@ -37,6 +37,6 @@
 	// These are the default shader options before the graphics window is created
 	(Rococo.Graphics.IShaderOptionsConfig shaders (Rococo.Graphics.ShaderOptions))
 	
-	// For refShadowModel options, look at shadow.api.hlsl
-	(shaders.Set "refShadowModel" "ShadowModel16Samples")
+	// For refShadowModel options, look at shadow.api.hlsl: ShadowModelPCF1 (1 hardware PCF tap) or ShadowModelPCF9 (9 taps, smooth)
+	(shaders.Set "refShadowModel" "ShadowModelPCF9")
 )

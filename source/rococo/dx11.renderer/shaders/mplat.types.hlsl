@@ -254,7 +254,7 @@ cbuffer BoneMatricesState: register(b7)
 };
 
 SamplerState fontSampler: register(s0);
-SamplerState shadowSampler: register(s1);
+// s1 is the shadow comparison sampler, declared as shadowCmpSampler in shadow.api.hlsl
 SamplerState envSampler: register(s2);
 SamplerState selectSampler: register(s3);
 SamplerState matSampler: register(s4);

@@ -1,5 +1,5 @@
 #include "mplat.api.hlsl"
-#include "shadows.api.hlsl"
+#include "shadow.api.hlsl"
 #include "lights.api.hlsl"
 
 float4 main(ObjectPixelVertex p) : SV_TARGET
@@ -7,7 +7,7 @@ float4 main(ObjectPixelVertex p) : SV_TARGET
     float3 Ng = normalize(p.worldNormal.xyz);   // geometric normal, before bumping
     p.worldNormal = GetBumpedWorldNormal(p);
 
-    float shadowDensity = GetShadowDensity(p);
+    float shadowDensity = GetShadowDensity(p, Ng);   // refShadowModel (PCF9 by default) with normal offset along the geometric normal
     float4 texel = SampleMaterial(p);
 
     float2 ds = GetDiffuseAndSpecular(p, Ng);   // x = diffuse, y = specular
