@@ -150,7 +150,7 @@ namespace
 		_offset += sizeof(numerator);
 		ReadInput(numerator, _sf, -_offset);
 
-		if (denominator == -1 && numerator == std::numeric_limits<int32>::min())
+		if (denominator == -1 && numerator == std::numeric_limits<int64>::min())
 		{
 			_nce.ss.ThrowFromNativeCodeF(0, "Undefined mod");
 			return;

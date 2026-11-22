@@ -4,6 +4,7 @@
 #include "rococo.textures.h"
 #include "dx11helpers.inl"
 #include "rococo.imaging.h"
+#include "rococo.dds.win32.h"
 
 using namespace Rococo;
 using namespace Rococo::DX11;
@@ -223,9 +224,140 @@ struct DX11BitmapArray : public IDX11BitmapArray
         }
     }
 
+    static bool IsBlockCompressed(DXGI_FORMAT f)
+    {
+        switch (f)
+        {
+        case DXGI_FORMAT_BC1_TYPELESS: case DXGI_FORMAT_BC1_UNORM: case DXGI_FORMAT_BC1_UNORM_SRGB:
+        case DXGI_FORMAT_BC2_TYPELESS: case DXGI_FORMAT_BC2_UNORM: case DXGI_FORMAT_BC2_UNORM_SRGB:
+        case DXGI_FORMAT_BC3_TYPELESS: case DXGI_FORMAT_BC3_UNORM: case DXGI_FORMAT_BC3_UNORM_SRGB:
+        case DXGI_FORMAT_BC4_TYPELESS: case DXGI_FORMAT_BC4_UNORM: case DXGI_FORMAT_BC4_SNORM:
+        case DXGI_FORMAT_BC5_TYPELESS: case DXGI_FORMAT_BC5_UNORM: case DXGI_FORMAT_BC5_SNORM:
+        case DXGI_FORMAT_BC6H_TYPELESS: case DXGI_FORMAT_BC6H_UF16: case DXGI_FORMAT_BC6H_SF16:
+        case DXGI_FORMAT_BC7_TYPELESS: case DXGI_FORMAT_BC7_UNORM: case DXGI_FORMAT_BC7_UNORM_SRGB:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    // Number of mips in a full chain down to 1x1, which is what texconv -m 0 writes
+    static UINT FullMipChainLength(UINT width, UINT height)
+    {
+        UINT levels = 1;
+        UINT span = width > height ? width : height;
+        while (span > 1)
+        {
+            span >>= 1;
+            levels++;
+        }
+        return levels;
+    }
+
+    // Copies every mip of a loaded DDS texture into array slice [index]. The copy is GPU side (CopySubresourceRegion),
+    // so block compressed data is never touched by the CPU and no row pitch arithmetic is required.
+    // The array is created on first use with the format of the first DDS file and a full mip chain.
+    // Every subsequent file must match that format and span, and supply at least that many mips.
     void WriteSubImage(size_t index, Vec2i span, IDDSTextureSupervisor* tx) override
     {
-        
+        if (!activeDC)
+        {
+            Throw(0, "%s: no active DC", __ROCOCO_FUNCTION__);
+        }
+
+        if (!tx)
+        {
+            Throw(0, "%s: null DDS texture", __ROCOCO_FUNCTION__);
+        }
+
+        if (width <= 0 || height <= 0)
+        {
+            Throw(0, "%s: cannot write into texture array, the array span was %d x %d", __ROCOCO_FUNCTION__, width, height);
+        }
+
+        if (span.x != width || span.y != height)
+        {
+            Throw(0, "%s: DDS span %d x %d does not match the texture array span %d x %d", __ROCOCO_FUNCTION__, span.x, span.y, width, height);
+        }
+
+        ID3D11Resource& src = tx->SysTexture().Resource();
+
+        D3D11_RESOURCE_DIMENSION dimension = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+        src.GetType(&dimension);
+        if (dimension != D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+        {
+            Throw(0, "%s: DDS resource was not a 2D texture (dimension %d)", __ROCOCO_FUNCTION__, (int)dimension);
+        }
+
+        // GetType guarantees this is an ID3D11Texture2D, so no QueryInterface (and no AddRef/Release) is needed
+        D3D11_TEXTURE2D_DESC srcDesc;
+        static_cast<ID3D11Texture2D&>(src).GetDesc(&srcDesc);
+
+        if ((int32)srcDesc.Width != width || (int32)srcDesc.Height != height)
+        {
+            Throw(0, "%s: DDS texture is %u x %u but the texture array is %d x %d", __ROCOCO_FUNCTION__, srcDesc.Width, srcDesc.Height, width, height);
+        }
+
+        if (srcDesc.ArraySize != 1 || (srcDesc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0)
+        {
+            Throw(0, "%s: DDS texture must be a single 2D image, not an array or cube map (ArraySize %u)", __ROCOCO_FUNCTION__, srcDesc.ArraySize);
+        }
+
+        if (srcDesc.SampleDesc.Count != 1)
+        {
+            Throw(0, "%s: DDS texture is multisampled", __ROCOCO_FUNCTION__);
+        }
+
+        if (tb.texture == nullptr)
+        {
+            if (IsBlockCompressed(srcDesc.Format) && ((width % 4) != 0 || (height % 4) != 0))
+            {
+                Throw(0, "%s: block compressed format %d requires a span that is a multiple of 4, but it was %d x %d", __ROCOCO_FUNCTION__, (int)srcDesc.Format, width, height);
+            }
+
+            arrayCapacity = count;
+            format = srcDesc.Format;
+
+            D3D11_TEXTURE2D_DESC ddsArray;
+            ddsArray.Width = width;
+            ddsArray.Height = height;
+            ddsArray.MipLevels = FullMipChainLength(width, height);
+            ddsArray.ArraySize = (UINT)arrayCapacity;
+            ddsArray.Format = srcDesc.Format;
+            ddsArray.SampleDesc.Count = 1;
+            ddsArray.SampleDesc.Quality = 0;
+            ddsArray.Usage = D3D11_USAGE_DEFAULT;
+            ddsArray.BindFlags = D3D11_BIND_SHADER_RESOURCE; // BC formats cannot be render targets
+            ddsArray.CPUAccessFlags = 0;
+            ddsArray.MiscFlags = 0; // GENERATE_MIPS is illegal for BC formats, the mips come from the file
+            VALIDATEDX11(device.CreateTexture2D(&ddsArray, nullptr, &tb.texture));
+            tb.texture->GetDesc(&tb.desc);
+
+            // Stops GenMipMaps from calling GenerateMips on a resource that lacks D3D11_RESOURCE_MISC_GENERATE_MIPS
+            isMipMapped = true;
+        }
+
+        if (format != srcDesc.Format)
+        {
+            Throw(0, "%s: DDS format %d does not match the texture array format %d", __ROCOCO_FUNCTION__, (int)srcDesc.Format, (int)format);
+        }
+
+        if (index >= (size_t)tb.desc.ArraySize)
+        {
+            Throw(0, "%s: index %llu out of range. The texture array has %u elements", __ROCOCO_FUNCTION__, (unsigned long long)index, tb.desc.ArraySize);
+        }
+
+        if (srcDesc.MipLevels < tb.desc.MipLevels)
+        {
+            Throw(0, "%s: DDS texture has %u mip levels but the texture array needs %u. Re-cook it with a full mip chain (texconv -m 0)", __ROCOCO_FUNCTION__, srcDesc.MipLevels, tb.desc.MipLevels);
+        }
+
+        for (UINT mip = 0; mip < tb.desc.MipLevels; mip++)
+        {
+            UINT dstSubresource = D3D11CalcSubresource(mip, (UINT)index, tb.desc.MipLevels);
+            UINT srcSubresource = D3D11CalcSubresource(mip, 0, srcDesc.MipLevels);
+            activeDC->CopySubresourceRegion(tb.texture, dstSubresource, 0, 0, 0, &src, srcSubresource, nullptr);
+        }
     }
 
     int32 MaxWidth() const override

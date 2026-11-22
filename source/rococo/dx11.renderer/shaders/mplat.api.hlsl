@@ -215,7 +215,10 @@ float3 GetBumpedWorldNormal(ObjectPixelVertex p)
     float3 N = normalize(p.worldNormal.xyz);
     float2 uv = p.uv_and_gloss.xy;
 
-    float3 tn = tx_normals.Sample(normalSampler, float3(uv, p.textureIndices.y)).xyz * 2.0f - 1.0f;
+    // Rebuild z from xy so two-channel BC5 maps (B = 0) work as well as RGB maps
+    float3 tn;
+    tn.xy = tx_normals.Sample(normalSampler, float3(uv, p.textureIndices.y)).xy * 2.0f - 1.0f;
+    tn.z = sqrt(saturate(1.0f - dot(tn.xy, tn.xy)));
 	// tn.y = -tn.y; // uncomment if the bumps look lit from the wrong side (OpenGL-convention map)
 
     float3x3 TBN = CotangentFrame(N, p.worldPosition, uv);

@@ -409,6 +409,25 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		}
 	}
 
+	// Reads span and format from a loaded DDS texture without QueryInterface, so there is no reference to leak
+	static Vec2i GetDDSSpanAndFormat(IDDSTextureSupervisor* tx, cstr pingPath, OUT DXGI_FORMAT& format)
+	{
+		ID3D11Resource& resource = tx->SysTexture().Resource();
+
+		D3D11_RESOURCE_DIMENSION dimension = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+		resource.GetType(&dimension);
+		if (dimension != D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+		{
+			Throw(0, "%s: expecting a 2D texture, but the resource dimension was %d", pingPath, (int)dimension);
+		}
+
+		D3D11_TEXTURE2D_DESC desc;
+		static_cast<ID3D11Texture2D&>(resource).GetDesc(&desc);
+
+		format = desc.Format;
+		return Vec2i{ (int32)desc.Width, (int32)desc.Height };
+	}
+
 	FORCE_NOT_INLINE void CommitTextureBuffer(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format, IDDSTextureSupervisor* texture)
 	{
 		TxTableId id;
@@ -420,8 +439,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		switch (format)
 		{
 		case DXGI_FORMAT_BC5_UNORM:
-			textures->WriteSubImage(mts.index, span, texture);
-			break;
+		case DXGI_FORMAT_BC7_UNORM:
 		case DXGI_FORMAT_BC7_UNORM_SRGB:
 			textures->WriteSubImage(mts.index, span, texture);
 			break;
@@ -454,18 +472,9 @@ struct DX11Materials : IDX11MaterialsSupervisor
 
 			[this, &def, type, pingPath](IDDSTextureSupervisor* tx)
 			{
-				ID3D11Texture2D* texture2D = nullptr;
-				HRESULT hr = tx->SysTexture().Resource().QueryInterface(IID_ID3D11Texture2D, (void**) & texture2D);
-				if FAILED(hr)
-				{
-					Throw(hr, "QueryInterface for ID3D11Texture2D failed for %s", pingPath);
-				}
-
-				D3D11_TEXTURE2D_DESC desc;
-				texture2D->GetDesc(&desc);
-
-				Vec2i span = { (int32) desc.Width, (int32) desc.Height };
-				this->ReserveTextureBuffer(def, type, span, desc.Format);
+				DXGI_FORMAT format;
+				Vec2i span = GetDDSSpanAndFormat(tx, pingPath, OUT format);
+				this->ReserveTextureBuffer(def, type, span, format);
 			}
 		);
 	}
@@ -502,19 +511,9 @@ struct DX11Materials : IDX11MaterialsSupervisor
 
 			[this, &def, type, pingPath](IDDSTextureSupervisor* tx)
 			{
-				ID3D11Texture2D* texture2D = nullptr;
-				HRESULT hr = tx->SysTexture().Resource().QueryInterface(IID_ID3D11Texture2D, (void**)&texture2D);
-				if FAILED(hr)
-				{
-					Throw(hr, "QueryInterface for ID3D11Texture2D failed for %s", pingPath);
-				}
-
-				D3D11_TEXTURE2D_DESC desc;
-				texture2D->GetDesc(&desc);
-
-				Vec2i span = { (int32)desc.Width, (int32)desc.Height };
-
-				this->CommitTextureBuffer(def, type, span, desc.Format, tx);
+				DXGI_FORMAT format;
+				Vec2i span = GetDDSSpanAndFormat(tx, pingPath, OUT format);
+				this->CommitTextureBuffer(def, type, span, format, tx);
 			}
 		);
 	}

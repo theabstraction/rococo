@@ -101,7 +101,7 @@ namespace
 
 			AutoFree<DDSTexture> tx = new DDSTexture();
 
-			DirectX::DX11::DDS_LOADER_FLAGS loaderFlags = DirectX::DX11::DDS_LOADER_DEFAULT;
+			DirectX::DX11::DDS_LOADER_FLAGS loaderFlags = DirectX::DX11::DDS_LOADER_IGNORE_SRGB;
 
 			HRESULT hr = DirectX::CreateDDSTextureFromMemoryEx(&context.device, &context.dc, scratchBuffer->GetData(), scratchBuffer->Length(),
 				maxTextureSize,
