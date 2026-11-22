@@ -115,9 +115,6 @@ boolean32 IsSignalNan(double f)
 
 boolean32 IsNan(double f)
 {
-	DoubleInt v;
-	v.fValue = f;
-
 	return std::isnan(f) ? 1 : 0;
 }
 
