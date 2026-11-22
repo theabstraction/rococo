@@ -8,6 +8,11 @@
 
 #include <rococo.renderer.types.h>
 
+namespace Rococo
+{
+    DECLARE_ROCOCO_INTERFACE IDDSTextureSupervisor;
+}
+
 namespace Rococo::Graphics
 {
     namespace Textures
@@ -73,6 +78,7 @@ namespace Rococo::Graphics
             virtual void ResetWidth(int32 width, int32 height) = 0;
             virtual void WriteSubImage(size_t index, const RGBAb* pixels, const GuiRect& targetLocatio) = 0;
             virtual void WriteSubImage(size_t index, const uint8* grayScalePixels, Vec2i span) = 0;
+            virtual void WriteSubImage(size_t index, Vec2i span, IDDSTextureSupervisor* tx) = 0;
             virtual int32 MaxWidth() const = 0;
             virtual size_t TextureCount() const = 0;
         };

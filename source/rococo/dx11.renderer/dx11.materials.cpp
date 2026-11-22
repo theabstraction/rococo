@@ -8,6 +8,8 @@
 #include "rococo.sexml.h"
 #include "sexy.types.h"
 
+#include "rococo.dds.win32.h"
+
 using namespace Rococo::DX11;
 using namespace Rococo::Graphics;
 using namespace Rococo::Strings;
@@ -98,10 +100,12 @@ struct DX11Materials : IDX11MaterialsSupervisor
 	ID3D11Device& device;
 	ID3D11DeviceContext& dc;
 
+	AutoFree<IDDSLoaderSupervisor> ddLoader;
+
 	DX11Materials(IO::IInstallation& _installation, ID3D11Device& _device, ID3D11DeviceContext& _dc): device(_device), dc(_dc),
 		installation(_installation)
 	{
-
+		ddLoader = CreateDDSSystem(installation, 2048);
 	}
 
 	virtual ~DX11Materials()
@@ -240,6 +244,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		mapTextureTableIdToTextureArray.clear();
 	}
 
+	using GenericCallbackFunction = Rococo::Function<void(IDDSTextureSupervisor* textureSupervisor)>;
 	using ColourCallbackFunction = Rococo::Function<void(const Vec2i& span, const RGBAb* data)>;
 	using AlphaCallbackFunction = Rococo::Function<void(const Vec2i& span, const uint8* data)>;
 
@@ -266,7 +271,7 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		}
 	};
 
-	void DecompressImageFile(const IExpandingBuffer& buffer, cstr pingPath, ColourCallbackFunction onColour, AlphaCallbackFunction onAlpha)
+	void DecompressImageFile(const IExpandingBuffer& buffer, cstr pingPath, ColourCallbackFunction onColour, AlphaCallbackFunction onAlpha, GenericCallbackFunction onGeneric)
 	{
 		ImageLoader loader;
 		loader.onRGBAb = onColour;
@@ -288,6 +293,16 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			if (loader.err.length() > 0)
 			{
 				Throw(0, "Bad file %s for %s", loader.err.c_str(), pingPath);
+			}
+		}
+		else if (EqI(ext, ".dds"))
+		{
+			DDSContext context { device, dc, D3D11_USAGE_IMMUTABLE,	D3D11_BIND_SHADER_RESOURCE,	0, 0};
+			AutoFree<IDDSTextureSupervisor> tx = ddLoader->Load(pingPath, context);
+
+			if (onGeneric.IsBound())
+			{
+				onGeneric(tx);
 			}
 		}
 		else
@@ -394,6 +409,27 @@ struct DX11Materials : IDX11MaterialsSupervisor
 		}
 	}
 
+	FORCE_NOT_INLINE void CommitTextureBuffer(MaterialDef& def, TxTableId::Type type, Vec2i span, DXGI_FORMAT format, IDDSTextureSupervisor* texture)
+	{
+		TxTableId id;
+		IDX11BitmapArray* textures = GetTextureTable(span, type, format, OUT id);
+
+		MaterialTextureSlot& mts = def.GetSlot(type);
+
+		// Commit
+		switch (format)
+		{
+		case DXGI_FORMAT_BC5_UNORM:
+			textures->WriteSubImage(mts.index, span, texture);
+			break;
+		case DXGI_FORMAT_BC7_UNORM_SRGB:
+			textures->WriteSubImage(mts.index, span, texture);
+			break;
+		default:
+			Throw(0, "Bad DXGI format: %d", format);
+		}
+	}
+
 	void ReserveTexture(MaterialDef& def, cstr pingPath, TxTableId::Type type)
 	{
 		if (!*pingPath)
@@ -414,6 +450,22 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			{
 				UNUSED(data);
 				this->ReserveTextureBuffer(def, type, span, DXGI_FORMAT_A8_UNORM);
+			},
+
+			[this, &def, type, pingPath](IDDSTextureSupervisor* tx)
+			{
+				ID3D11Texture2D* texture2D = nullptr;
+				HRESULT hr = tx->SysTexture().Resource().QueryInterface(IID_ID3D11Texture2D, (void**) & texture2D);
+				if FAILED(hr)
+				{
+					Throw(hr, "QueryInterface for ID3D11Texture2D failed for %s", pingPath);
+				}
+
+				D3D11_TEXTURE2D_DESC desc;
+				texture2D->GetDesc(&desc);
+
+				Vec2i span = { (int32) desc.Width, (int32) desc.Height };
+				this->ReserveTextureBuffer(def, type, span, desc.Format);
 			}
 		);
 	}
@@ -446,6 +498,23 @@ struct DX11Materials : IDX11MaterialsSupervisor
 			[this, &def, type](const Vec2i& span, const uint8* data)
 			{
 				this->CommitTextureBuffer(def, type, span, DXGI_FORMAT_A8_UNORM, data);
+			},
+
+			[this, &def, type, pingPath](IDDSTextureSupervisor* tx)
+			{
+				ID3D11Texture2D* texture2D = nullptr;
+				HRESULT hr = tx->SysTexture().Resource().QueryInterface(IID_ID3D11Texture2D, (void**)&texture2D);
+				if FAILED(hr)
+				{
+					Throw(hr, "QueryInterface for ID3D11Texture2D failed for %s", pingPath);
+				}
+
+				D3D11_TEXTURE2D_DESC desc;
+				texture2D->GetDesc(&desc);
+
+				Vec2i span = { (int32)desc.Width, (int32)desc.Height };
+
+				this->CommitTextureBuffer(def, type, span, desc.Format, tx);
 			}
 		);
 	}

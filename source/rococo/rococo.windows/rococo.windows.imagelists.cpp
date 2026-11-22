@@ -206,6 +206,11 @@ public:
         UNUSED(grayPixels);
         UNUSED(span);
     }
+
+    void WriteSubImage(size_t index, Vec2i span, IDDSTextureSupervisor* tx) override
+    {
+
+    }
 };
 
 #include <rococo.imaging.h>

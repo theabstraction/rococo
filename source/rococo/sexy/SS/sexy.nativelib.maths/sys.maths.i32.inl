@@ -182,7 +182,6 @@ namespace
 
 		ReadInput(denominator, _sf, -_offset);
 		int32 numerator;
-		_offset += sizeof(numerator);
 
 		if (denominator == 0)
 		{
@@ -190,13 +189,15 @@ namespace
 			return;
 		}
 
+		_offset += sizeof(numerator);	
+		ReadInput(numerator, _sf, -_offset);
+
 		if (denominator == -1 && numerator == std::numeric_limits<int32>::min())
 		{
 			_nce.ss.ThrowFromNativeCodeF(0, "Undefined mod");
 			return;
 		}
 
-		ReadInput(numerator, _sf, -_offset);
 		int32 remainder = Mod(numerator, denominator);
 		_offset += sizeof(remainder);
 		WriteOutput(remainder, _sf, -_offset);

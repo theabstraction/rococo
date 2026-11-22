@@ -223,6 +223,11 @@ struct DX11BitmapArray : public IDX11BitmapArray
         }
     }
 
+    void WriteSubImage(size_t index, Vec2i span, IDDSTextureSupervisor* tx) override
+    {
+        
+    }
+
     int32 MaxWidth() const override
     {
         return 4096;
