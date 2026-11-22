@@ -143,8 +143,10 @@ namespace
 		_offset += sizeof(a);
 		ReadInput(a, _sf, -_offset);
 
-		sa->x = a->x * scaleFactor;
-		sa->y = a->y  * scaleFactor;
+		float ooScaleFactor = 1.0f / scaleFactor;
+
+		sa->x = a->x * ooScaleFactor;
+		sa->y = a->y * ooScaleFactor;
 	}
 
 	void NativeSysMathsIsNotEqVec2fVec2f(NativeCallEnvironment& _nce)

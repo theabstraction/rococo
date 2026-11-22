@@ -50,6 +50,12 @@ namespace
 		int64 x;
 		_offset += sizeof(x);
 
+		if (bitCount >= 64 || bitCount < 0)
+		{
+			_nce.ss.ThrowFromNativeCodeF(0, "Bad shift count");
+			return;
+		}
+
 		ReadInput(x, _sf, -_offset);
 		int64 value = LeftShift(x, bitCount);
 		_offset += sizeof(value);
@@ -136,10 +142,40 @@ namespace
 		int64 numerator;
 		_offset += sizeof(numerator);
 
+		if (denominator == 0)
+		{
+			_nce.ss.ThrowFromNativeCodeF(0, "Divide by zero");
+			return;
+		}
+
 		ReadInput(numerator, _sf, -_offset);
 		int64 remainder = Mod(numerator, denominator);
 		_offset += sizeof(remainder);
 		WriteOutput(remainder, _sf, -_offset);
+	}
+
+	void NativeSysMathsI64FromString(NativeCallEnvironment& _nce)
+	{
+		Rococo::uint8* _sf = _nce.cpu.SF();
+		ptrdiff_t _offset = 2 * sizeof(size_t);
+		InterfacePointer pString;
+		_offset += sizeof(pString);
+		ReadInput(pString, _sf, -_offset);
+
+		ObjectStub* obj = Rococo::Compiler::InterfaceToInstance(pString);
+		CStringConstant* sc = (CStringConstant*)obj;
+
+		VariantValue val;
+		val.int64Value = 0;
+		Rococo::Parse::PARSERESULT result = Rococo::Parse::TryParse(val, SexyVarType_Int64, sc->pointer);
+
+		boolean32 bSuccess = result == Parse::PARSERESULT_GOOD;
+		_offset += sizeof(bSuccess);
+		WriteOutput(bSuccess, _sf, -_offset);
+
+		int64 iValue = val.int64Value;
+		_offset += sizeof(iValue);
+		WriteOutput(iValue, _sf, -_offset);
 	}
 
 	void NativeSysMathsI64ToInt32(NativeCallEnvironment& _nce)
@@ -198,7 +234,7 @@ namespace Sys { namespace Maths { namespace I64 {
 	{
 		UNUSED(nullContext);
 		const INamespace& ns = ss.AddNativeNamespace(("Sys.Maths.I64"));
-		ss.AddNativeCall(ns, NativeSysMathsI32Clamp, nullptr, ("Clamp(Int64 x)(Int64 lower)(Int64 upper) -> (Int64 value)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI64Clamp, nullptr, ("Clamp(Int64 x)(Int64 lower)(Int64 upper) -> (Int64 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI64Abs, nullptr, ("Abs(Int64 x) -> (Int64 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI64LeftShift, nullptr, ("LeftShift(Int64 x)(Int64 bitCount) -> (Int64 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI64RightShift, nullptr, ("RightShift(Int64 x)(Int64 bitCount) -> (Int64 value)"), __FILE__, __LINE__);
@@ -211,5 +247,6 @@ namespace Sys { namespace Maths { namespace I64 {
 		ss.AddNativeCall(ns, NativeSysMathsI64ToFloat32, nullptr, ("ToFloat32(Int64 x) -> (Float32 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI64ToFloat64, nullptr, ("ToFloat64(Int64 x) -> (Float64 value)"), __FILE__, __LINE__);
 		ss.AddNativeCall(ns, NativeSysMathsI64GenUnique, nullptr, ("GenUnique -> (Int64 sessionValue)"), __FILE__, __LINE__);
+		ss.AddNativeCall(ns, NativeSysMathsI64FromString, nullptr, "FromString (IString text)->(Int64 value)(Bool isOk)", __FILE__, __LINE__);
 	}
 }}}

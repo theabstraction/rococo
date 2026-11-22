@@ -83,17 +83,12 @@ boolean32 IsSignalNan(float f)
 
 boolean32 IsNan(float f)
 {
-	FloatInt v;
-	v.fValue = f;
-
-	return ((v.iValue & 0x7F800000) == 0x7F800000) && ((v.iValue & 0x003FFFFF) != 0) ? 1 : 0;
+	return std::isnan(f) ? 1 : 0;
 }
 
 float QuietNanF32()
 {
-	FloatInt v;
-	v.iValue = 0x7FC00000;
-	return v.fValue;
+	return std::numeric_limits<float>::quiet_NaN();
 }
 
 union DoubleInt
@@ -115,7 +110,7 @@ boolean32 IsSignalNan(double f)
 	DoubleInt v;
 	v.fValue = f;
 
-	return ((v.iValue & 0x7FF800000000000) == 0x7FF000000000000) && ((v.iValue & 0x7FFFFFFFFFFF) != 0) ? 1 : 0;
+	return ((v.iValue & 0x7FF8000000000000) == 0x7FF0000000000000) && ((v.iValue & 0x0007FFFFFFFFFFFF) != 0) ? 1 : 0;
 }
 
 boolean32 IsNan(double f)
@@ -123,14 +118,12 @@ boolean32 IsNan(double f)
 	DoubleInt v;
 	v.fValue = f;
 
-	return ((v.iValue & 0x7FFF000000000000) == 0x7FFF000000000000) && ((v.iValue & 0x7FFFFFFFFFFF) != 0) ? 1 : 0;
+	return std::isnan(f) ? 1 : 0;
 }
 
 double QuietNanF64()
 {
-	DoubleInt v;
-	v.iValue = 0x7FF800000000000;
-	return v.fValue;
+	return std::numeric_limits<double>::quiet_NaN();
 }
 
 template<class T>

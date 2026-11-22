@@ -92,6 +92,12 @@ namespace
 		int32 x;
 		_offset += sizeof(x);
 
+		if (bitCount >= 32 || bitCount < 0)
+		{
+			_nce.ss.ThrowFromNativeCodeF(0, "Bad shift count");
+			return;
+		}
+
 		ReadInput(x, _sf, -_offset);
 		int32 value = LeftShift(x, bitCount);
 		_offset += sizeof(value);
@@ -177,6 +183,12 @@ namespace
 		ReadInput(denominator, _sf, -_offset);
 		int32 numerator;
 		_offset += sizeof(numerator);
+
+		if (denominator == 0)
+		{
+			_nce.ss.ThrowFromNativeCodeF(0, "Divide by zero");
+			return;
+		}
 
 		ReadInput(numerator, _sf, -_offset);
 		int32 remainder = Mod(numerator, denominator);
@@ -367,6 +379,7 @@ namespace
 		CStringConstant* sc = (CStringConstant*)obj;
 
 		VariantValue val;
+		val.int64Value = 0;
 		Rococo::Parse::PARSERESULT result = Rococo::Parse::TryParse(val, SexyVarType_Int32, sc->pointer);
 
 		boolean32 bSuccess = result == Parse::PARSERESULT_GOOD;
@@ -384,6 +397,7 @@ namespace
 		ptrdiff_t _offset = 2 * sizeof(size_t);
 		
 		int32 seedValue;
+		_offset += sizeof(seedValue);
 		ReadInput(seedValue, _sf, -_offset);
 
 		SeedRandom(seedValue);

@@ -48,7 +48,7 @@
 )
 
 (struct Rectlf
-	(Vec2lf left top right bottom)
+	(Float64 left top right bottom)
 )
 
 (struct Vec3lf
