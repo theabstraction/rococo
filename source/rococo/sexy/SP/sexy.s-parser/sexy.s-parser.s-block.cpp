@@ -1164,6 +1164,7 @@ namespace Anon
 		CodeOffsets offsets;
 		LinkOrArray children;
 		int32 numberOfChildren;
+		ISExpressionLinkBuilder* lastChild = nullptr; // tail of the child list during the build phase, giving O(1) appends as in RootExpression
 
 		int TransformationDepth() const override
 		{
@@ -1195,8 +1196,10 @@ namespace Anon
 			}
 			else
 			{
-				children.firstChild->AddSibling(child);
+				lastChild->AddSibling(child);
 			}
+
+			lastChild = child;
 		}
 
 		void AddSibling(ISExpressionLinkBuilder* sibling) override
