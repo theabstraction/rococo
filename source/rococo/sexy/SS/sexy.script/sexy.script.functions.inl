@@ -659,7 +659,7 @@ namespace Rococo
 					}
 					break;
 				case SexyVarType_Int64:
-					v.int64Value = (int32)enumValue;
+					v.int64Value = (int64)enumValue;
 					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
 					break;
 				case SexyVarType_Float32:
@@ -692,7 +692,7 @@ namespace Rococo
 					}
 					break;
 				case SexyVarType_Int64:
-					v.int64Value = (int32)enumValue;
+					v.int64Value = (int64)enumValue;
 					ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, v, BITCOUNT_64);
 					break;
 				case SexyVarType_Float32:
