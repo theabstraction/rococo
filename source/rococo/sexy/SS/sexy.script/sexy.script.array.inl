@@ -1096,6 +1096,39 @@ namespace Rococo
 			
 			   cr_sex value = s.GetElement(1);
 
+			   if (IsAtomic(value))
+			   {
+				   cstr valtext = value.c_str();
+				   if (*valtext == '.' && elementType.IsStrongType())
+				   {
+					   cstr enumValue = valtext + 1;
+
+					   VariantValue v;
+					   if (!elementType.TryGetEnumValue(enumValue, OUT v.int64Value))
+					   {
+						   Throw(s, "Unrecognized enum %s for %s", enumValue, GetFriendlyName(elementType));
+					   }
+
+					   ce.Builder.AssignVariableToRegister(instanceName, VM::REGISTER_D4);
+					   ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_64);
+
+					   switch (SizeOfElement(elementType))
+					   {
+					   case 4:
+						   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPush32);
+						   break;
+					   case 8:
+						   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayPush64);
+						   break;
+					   default:
+						   Throw(s, ("Internal compiler error compiling Array.Push. Unhandled element size"));
+						   break;
+					   }
+
+					   return;
+				   }
+			   }
+			 
 			   if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
 			   {
 				   Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));

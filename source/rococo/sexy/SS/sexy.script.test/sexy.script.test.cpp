@@ -4130,6 +4130,42 @@ R"((namespace EntryPoint)
 		validate(x == 5);
 	}
 
+	void TestConstants5(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(array Day days 5)
+				(days.Push 1)
+				(days.Push .Friday)
+				(result = (days 1))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
 
 	static int64 TestNativeHandle_globalHandle = 0;
 
@@ -19313,6 +19349,7 @@ R"(
 		TEST(TestConstants2);
 		TEST(TestConstants3);
 		TEST(TestConstants4);
+		TEST(TestConstants5);
 
 		TEST(TestEnumByCPP);
 
