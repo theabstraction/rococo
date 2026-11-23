@@ -233,7 +233,7 @@ namespace Rococo
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, val, BITCOUNT_32);
       }
 
-      SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex s, cstr id, int tempdepth)
+      SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, cr_sex s, cstr id, int targetRegister)
       {
          SexyVarType type = SexyVarType_Bad;
 
@@ -248,9 +248,9 @@ namespace Rococo
             type = f.GetArgumentType(0).VarType();
             CompileFunctionCallAndReturnValue(ce, s, f, type, NULL, NULL);
 
-            if (tempdepth > Rococo::ROOT_TEMPDEPTH)
+            if (targetRegister > VM::REGISTER_D7)
             {
-               ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempdepth, GetBitCount(type));
+               ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, targetRegister, GetBitCount(type));
             }
          }
          else if (Eq(id, "true") || Eq(id, "false"))
@@ -282,9 +282,9 @@ namespace Rococo
                      Throw(s, "Expecting method returning %s", Parse::VarTypeName(type));
                   }
 
-                  if (tempdepth > Rococo::ROOT_TEMPDEPTH)
+                  if (targetRegister > VM::REGISTER_D7)
                   {
-                     ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempdepth, GetBitCount(type));
+                     ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, targetRegister, GetBitCount(type));
                   }
                }
                else
@@ -292,7 +292,7 @@ namespace Rococo
                   MemberDef def;
                   if (ce.Builder.TryGetVariableByName(OUT def, id))
                   {
-                     ce.Builder.AssignVariableToRegister(id, tempdepth + VM::REGISTER_D4);
+                     ce.Builder.AssignVariableToRegister(id, targetRegister);
                      type = def.ResolvedType->VarType();
                   }
                   else
@@ -306,7 +306,7 @@ namespace Rococo
                const IStructure* st = ce.Builder.GetVarStructure(id);
                if (st != NULL)
                {
-                  ce.Builder.AssignVariableToRegister(id, tempdepth + VM::REGISTER_D4);
+                  ce.Builder.AssignVariableToRegister(id, targetRegister);
                   type = st->VarType();
                }
                else
@@ -332,30 +332,30 @@ namespace Rococo
          }
       }
 
-      void AddBinaryComparison(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, CONDITION op, SexyVarType type)
+      void AddBinaryComparison(cr_sex src, VM::IAssembler& assembler, int targetRegister, int sourceRegisterA, int sourceRegisterB, CONDITION op, SexyVarType type)
       {
          switch (type)
          {
          case SexyVarType_Float32:
-            assembler.Append_FloatSubtract(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB, VM::FLOATSPEC_SINGLE);
+            assembler.Append_FloatSubtract(sourceRegisterA, sourceRegisterB, VM::FLOATSPEC_SINGLE);
             break;
          case SexyVarType_Float64:
-            assembler.Append_FloatSubtract(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB, VM::FLOATSPEC_DOUBLE);
+            assembler.Append_FloatSubtract(sourceRegisterA, sourceRegisterB, VM::FLOATSPEC_DOUBLE);
             break;
          case SexyVarType_Int32:
-            assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+            assembler.Append_IntSubtract(sourceRegisterA, BITCOUNT_32, sourceRegisterB);
             break;
          case SexyVarType_Int64:
-            assembler.Append_IntSubtract(VM::REGISTER_D4 + sourceA, BITCOUNT_64, VM::REGISTER_D4 + sourceB);
+            assembler.Append_IntSubtract(sourceRegisterA, BITCOUNT_64, sourceRegisterB);
             break;
          case SexyVarType_Bool:
-            assembler.Append_BooleanCompare(VM::REGISTER_D4 + sourceA, VM::REGISTER_D4 + sourceB);
+            assembler.Append_BooleanCompare(sourceRegisterA, sourceRegisterB);
             break;
          default:
             Throw(src, "Cannot find subtraction rule for the given type");
          }
 
-         assembler.Append_SetIf(op, VM::REGISTER_D4 + booleanTargetId, GetBitCount(type));
+         assembler.Append_SetIf(op, targetRegister, GetBitCount(type));
       }
 
 
@@ -371,7 +371,7 @@ namespace Rococo
 
          if (IsZero(rValue, rType))
          {
-            SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH);
+            SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, VM::REGISTER_D7);
 
             VariantValue newRValue;
             if (varLType != SexyVarType_Pointer && !Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
@@ -383,7 +383,7 @@ namespace Rococo
          }
          else
          {
-            SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
+            SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftVarExpr, leftVarName, VM::REGISTER_D8);
 
             VariantValue newRValue;
             if (!Variants::TryRecast(OUT newRValue, IN rValue, rType, varLType))
@@ -392,27 +392,27 @@ namespace Rococo
             }
 
             builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 2, newRValue, GetBitCount(varLType));
-            AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
+            AddBinaryComparison(parent, builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op, varLType);
          }
       }
 
-      void AddBinaryBoolean(cr_sex src, VM::IAssembler& assembler, int booleanTargetId, int sourceA, int sourceB, LOGICAL_OP op)
+      void AddBinaryBoolean(cr_sex src, VM::IAssembler& assembler, int targetRegister, int sourceRegisterA, int sourceRegisterB, LOGICAL_OP op)
       {
-         if (booleanTargetId != sourceA - 1)
+         if (targetRegister != sourceRegisterA - 1)
          {
-            Throw(src, ("Algorthimic error: Expecting [booleanTargetId] to be [sourceA-1]"));
+            Throw(src, ("Algorthimic error: Expecting [targetRegister] to be [sourceRegisterA-1]"));
          }
 
          switch (op)
          {
          case LOGICAL_OP_AND:
-            assembler.Append_LogicalAND(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+            assembler.Append_LogicalAND(sourceRegisterA, BITCOUNT_32, sourceRegisterB);
             break;
          case LOGICAL_OP_OR:
-            assembler.Append_LogicalOR(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+            assembler.Append_LogicalOR(sourceRegisterA, BITCOUNT_32, sourceRegisterB);
             break;
          case LOGICAL_OP_XOR:
-            assembler.Append_LogicalXOR(VM::REGISTER_D4 + sourceA, BITCOUNT_32, VM::REGISTER_D4 + sourceB);
+            assembler.Append_LogicalXOR(sourceRegisterA, BITCOUNT_32, sourceRegisterB);
             break;
          }
       }
@@ -434,7 +434,7 @@ namespace Rococo
 
               // Assembly now puts the value in D7
               ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
-              AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH+1, Rococo::ROOT_TEMPDEPTH, op);
+              AddBinaryBoolean(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D7+1, VM::REGISTER_D7, op);
               return;
           }
           else if (varType == SexyVarType_Derivative)
@@ -448,7 +448,7 @@ namespace Rococo
 
           ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, lValue, BITCOUNT_32);
           ce.Builder.AssignVariableToRegister(variableName, VM::REGISTER_D7 + 2);
-          AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
+          AddBinaryBoolean(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op);
       }
 
       void CompileBinaryCompareLiteralVsVariable(CCompileEnvironment& ce, cr_sex parent, cstr leftString, SexyVarType lType, CONDITION op, cstr rightVarName)
@@ -477,7 +477,7 @@ namespace Rococo
 
          ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7 + 1, newLValue, GetBitCount(varRType));
          ce.Builder.AssignVariableToRegister(rightVarName, VM::REGISTER_D7 + 2);
-         AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varRType);
+         AddBinaryComparison(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op, varRType);
       }
 
       void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr varName, CONDITION op, cr_sex s, bool leftToRight);
@@ -653,7 +653,7 @@ namespace Rococo
 
           if (IsAtomic(leftExpr) && TryCompileAsCompareStruct(ce, parent, leftExpr, leftExpr.c_str(), op, rightExpr)) return;
 
-          SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 1);
+          SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftExpr.c_str(), VM::REGISTER_D8);
           if (!TryCompileArithmeticExpression(ce, rightExpr, true, varLType))
           {
               Throw(rightExpr, "Failed to compile expression as a numeric value");
@@ -661,7 +661,7 @@ namespace Rococo
 
           ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(varLType));
 
-          AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
+          AddBinaryComparison(parent, builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op, varLType);
       }
 
       void CompileBinaryCompareVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex rightExpr)
@@ -671,15 +671,15 @@ namespace Rococo
 		 if (TryCompileAsCompareStruct(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
          if (TryCompileAsCompareToEnum(ce, parent, leftExpr, leftVarName, op, rightExpr)) return;
 
-         SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, Rococo::ROOT_TEMPDEPTH + 1);
-         SexyVarType varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.c_str(), Rococo::ROOT_TEMPDEPTH + 2);
+         SexyVarType varLType = GetAtomicValueAnyNumeric(ce, leftExpr, leftVarName, VM::REGISTER_D8);
+         SexyVarType varRType = GetAtomicValueAnyNumeric(ce, rightExpr, rightExpr.c_str(), VM::REGISTER_D9);
 
          if (varLType != varRType)
          {
             Throw(parent, ("Cannot compare left with right, they are of different types"));
          }
 
-         AddBinaryComparison(parent, builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, varLType);
+         AddBinaryComparison(parent, builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op, varLType);
       }
 
       void CompileBinaryBooleanVariableVsVariable(CCompileEnvironment& ce, cr_sex parent, cr_sex sLeftVarName, LOGICAL_OP op, cr_sex sRightVarName)
@@ -699,7 +699,7 @@ namespace Rococo
              if (varLType == SexyVarType_Bool)
              {
                  ce.Builder.AssignVariableToRegister(sRightVarName.c_str(), VM::REGISTER_D8);
-                 AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
+                 AddBinaryBoolean(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D7, op);
                  return;
              }
              else
@@ -712,7 +712,7 @@ namespace Rococo
 
                  // assembly placed the RHS boolean value in D7
                  ce.Builder.Assembler().Append_RestoreRegister(VM::REGISTER_D8, BITCOUNT_32);
-                 AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
+                 AddBinaryBoolean(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D7, op);
                  return;
              }
          }
@@ -734,7 +734,7 @@ namespace Rococo
 
              // assembly placed the boolean value in D7
              ce.Builder.AssignVariableToRegister(sLeftVarName.c_str(), VM::REGISTER_D8);
-             AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH, op);
+             AddBinaryBoolean(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D7, op);
              return;
          }
          else if (varRType == SexyVarType_Derivative)
@@ -748,7 +748,7 @@ namespace Rococo
 
          ce.Builder.AssignVariableToRegister(sLeftVarName.c_str(), VM::REGISTER_D8);
          ce.Builder.AssignVariableToRegister(sRightVarName.c_str(), VM::REGISTER_D9);
-         AddBinaryBoolean(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op);
+         AddBinaryBoolean(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op);
       }
 
       void CompileBinaryCompareAtomicVsCompound(CCompileEnvironment& ce, cr_sex parent, cstr varName, CONDITION op, cr_sex s, bool leftToRight)
@@ -784,16 +784,16 @@ namespace Rococo
             ce.Builder.AssignVariableToRegister(varName, VM::REGISTER_D7 + A);
          }
 
-		 AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, GetBitCount(type));
+		 AddArchiveRegister(ce, VM::REGISTER_D7 + A, VM::REGISTER_D7 + A, GetBitCount(type));
 		 TryCompileArithmeticExpression(ce, s, true, type);
 		 ce.Builder.PopLastVariables(1,true);
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, GetBitCount(type));
 
-         AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, type);
+         AddBinaryComparison(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op, type);
       }
 
-      // Compile code to evaluate a boolean and copy the value to the temp variable #tempDepth
+      // Compile code to evaluate a boolean and leave the value in D7
       void CompileBinaryCompareExpression(CCompileEnvironment& ce, cr_sex parent, cr_sex left, CONDITION op, cr_sex right)
       {
          // Types: literal, variable, compound expression
@@ -867,12 +867,12 @@ namespace Rococo
 
                   TryCompileArithmeticExpression(ce, left, true, guessType);
 
-                  AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
+                  AddArchiveRegister(ce, VM::REGISTER_D7, VM::REGISTER_D8, bits);
                   TryCompileArithmeticExpression(ce, right, true, guessType);
                   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(guessType));
                   ce.Builder.PopLastVariables(1,true);
 
-                  AddBinaryComparison(parent, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2, op, guessType);
+                  AddBinaryComparison(parent, ce.Builder.Assembler(), VM::REGISTER_D7, VM::REGISTER_D8, VM::REGISTER_D9, op, guessType);
                }
                else
                {
@@ -931,7 +931,7 @@ namespace Rococo
 
             if (invert)
             {
-               ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D4 + Rococo::ROOT_TEMPDEPTH, VM::REGISTER_D4 + Rococo::ROOT_TEMPDEPTH + offset, BITCOUNT_32);
+               ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + offset, BITCOUNT_32);
             }
 
             if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
@@ -949,18 +949,18 @@ namespace Rococo
          }
       }
 
-      void AppendBooleanLogicalOp(cr_sex src, LOGICAL_OP op, VM::IAssembler& assember, int tempDepthA, int tempDepthB)
+      void AppendBooleanLogicalOp(cr_sex src, LOGICAL_OP op, VM::IAssembler& assember, int registerA, int registerB)
       {
          switch (op)
          {
          case LOGICAL_OP_AND:
-            assember.Append_LogicalAND(VM::REGISTER_D4 + tempDepthA, BITCOUNT_32, VM::REGISTER_D4 + tempDepthB);
+            assember.Append_LogicalAND(registerA, BITCOUNT_32, registerB);
             break;
          case LOGICAL_OP_OR:
-            assember.Append_LogicalOR(VM::REGISTER_D4 + tempDepthA, BITCOUNT_32, VM::REGISTER_D4 + tempDepthB);
+            assember.Append_LogicalOR(registerA, BITCOUNT_32, registerB);
             break;
          case LOGICAL_OP_XOR:
-            assember.Append_LogicalXOR(VM::REGISTER_D4 + tempDepthA, BITCOUNT_32, VM::REGISTER_D4 + tempDepthB);
+            assember.Append_LogicalXOR(registerA, BITCOUNT_32, registerB);
             break;
          default:
             Throw(src, ("Unhandled logical op type"));
@@ -981,7 +981,7 @@ namespace Rococo
             if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
             ce.Builder.AssignVariableToRegister(leftString, VM::REGISTER_D8);
             ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D9, GetBitCount(type));
-            AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2);
+            AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), VM::REGISTER_D8, VM::REGISTER_D9);
             return;
          }
          else
@@ -1000,7 +1000,7 @@ namespace Rococo
 
          if (negate) ce.Builder.Assembler().Append_BooleanNot(VM::REGISTER_D7);
 
-         AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, BITCOUNT_32);
+         AddArchiveRegister(ce, VM::REGISTER_D7, VM::REGISTER_D8, BITCOUNT_32);
          negate = false;
          if (!TryCompileBooleanExpression(ce, right, true, negate))
          {
@@ -1012,7 +1012,7 @@ namespace Rococo
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, BITCOUNT_32);
 
-         AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), Rococo::ROOT_TEMPDEPTH + 1, Rococo::ROOT_TEMPDEPTH + 2);
+         AppendBooleanLogicalOp(parent, op, ce.Builder.Assembler(), VM::REGISTER_D8, VM::REGISTER_D9);
       }
 
       void CompileBinaryBooleanAtomicVsCompoundExpression(CCompileEnvironment& ce, cr_sex parent, cstr leftString, LOGICAL_OP op, cr_sex right)
@@ -1041,7 +1041,7 @@ namespace Rococo
          CompileBinaryBooleanVariableVsCompoundExpression(ce, parent, leftString, op, right);
       }
 
-      // Compile code to evaluate a boolean and copy the value to the temp variable #tempDepth
+      // Compile code to evaluate a boolean and leave the value in D7
       void CompileBinaryBooleanExpression(CCompileEnvironment& ce, cr_sex parent, cr_sex left, LOGICAL_OP op, cr_sex right)
       {
          // Types: literal, variable, compound expression

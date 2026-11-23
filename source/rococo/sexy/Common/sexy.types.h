@@ -84,7 +84,6 @@ namespace Rococo
 		[[noreturn]] ROCOCO_API void Throw(ParseException& ex);
 	}
 
-	enum { ROOT_TEMPDEPTH = 3 };
 
 	typedef unsigned long refcount_t;
 

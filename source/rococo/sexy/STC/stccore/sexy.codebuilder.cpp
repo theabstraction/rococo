@@ -122,7 +122,7 @@ namespace Anon
 		size_t pcEnd;
 		int primaryOffset;
 		VARLOCATION location;
-		int tempDepthOnRelease;
+		int restoreRegisterOnRelease;
 		bool canCaptureClosureData;
 	public:
 		Variable(const IArgument& arg, int32 _sectionIndex, void* _userData, int _primaryOffset):
@@ -135,7 +135,7 @@ namespace Anon
 			pcStart(0),
 			pcEnd((size_t) -1),
 			primaryOffset(_primaryOffset),
-			tempDepthOnRelease(-1),
+			restoreRegisterOnRelease(-1),
 			canCaptureClosureData(arg.IsClosureInput())
 		{
 			location = arg.Direction() == ARGDIRECTION_INPUT ? VARLOCATION_INPUT : VARLOCATION_OUTPUT;
@@ -151,7 +151,7 @@ namespace Anon
 			return Rococo::Memory::FreeSexyUnknownMemory(buffer);
 		}
 
-		Variable(size_t _pcStart, const NameString& name, const IStructure& resolvedType, int32 _sectionIndex, void* _userData, int _allocSize, VARLOCATION _location, bool asRef = false, int _tempDepthOnRelease = -1):
+		Variable(size_t _pcStart, const NameString& name, const IStructure& resolvedType, int32 _sectionIndex, void* _userData, int _allocSize, VARLOCATION _location, bool asRef = false, int _restoreRegisterOnRelease = -1):
 			name(name.c_str()),
 			usage(asRef ? ARGUMENTUSAGE_BYREFERENCE : ARGUMENTUSAGE_BYVALUE),
 			sectionIndex(_sectionIndex),
@@ -162,7 +162,7 @@ namespace Anon
 			pcEnd((size_t) - 1),
 			primaryOffset(0),
 			location(_location),
-			tempDepthOnRelease(_tempDepthOnRelease),
+			restoreRegisterOnRelease(_restoreRegisterOnRelease),
 			canCaptureClosureData(false)
 		{
 
@@ -186,7 +186,7 @@ namespace Anon
 		void SetPCEnd(size_t _pcEnd) { pcEnd = _pcEnd; }
 		const int PrimaryOffset() const { return primaryOffset; }
 		VARLOCATION Location() const { return location; }
-		const int TempDepthOnRelease() const { return tempDepthOnRelease; } 
+		const int RestoreRegisterOnRelease() const { return restoreRegisterOnRelease; } 
 		bool CanCaptureClosures() const { return canCaptureClosureData; }
 	};
 
@@ -301,10 +301,10 @@ namespace Anon
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) override;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) override;
 		virtual void AssignRegisterToVariable(int registerIndex, cstr target) override;
-		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgMutatingIndex, SexyVarType type) override;
-		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgMutatingIndex, SexyVarType type) override;
-		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) override;
-		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) override;
+		virtual void BinaryOperatorAdd(int registerA, int registerB, SexyVarType type) override;
+		virtual void BinaryOperatorSubtract(int registerA, int registerB, SexyVarType type) override;
+		virtual void BinaryOperatorMultiply(int registerA, int registerB, SexyVarType type) override;
+		virtual void BinaryOperatorDivide(int registerA, int registerB, SexyVarType type) override;
 		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection) override;
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition) override;
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection) override;
@@ -355,7 +355,7 @@ namespace Anon
 		virtual int GetThisOffset() const override;
 		virtual void SetThisOffset(int offset) override;
 
-		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData) override;
+		virtual void ArchiveRegister(int saveRegister, int restoreRegister, BITCOUNT bits, void* userData) override;
 		virtual void AddArgVariable(cstr desc, const TypeString& typeName, void* userData) override;
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) override;
 
@@ -464,16 +464,16 @@ namespace Anon
 		return dx;
 	}
 
-	void CodeBuilder::ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData)
+	void CodeBuilder::ArchiveRegister(int saveRegister, int restoreRegister, BITCOUNT bits, void* userData)
 	{
 		TokenBuffer name;
-		SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_archive_D%d_%d"), saveTempDepth + 4, nextId++);
+		SafeFormat(name.Text, TokenBuffer::MAX_TOKEN_CHARS, ("_archive_D%d_%d"), saveRegister, nextId++);
 
 		const IStructure& type =  (bits == BITCOUNT_32) ? Module().Object().Common().TypeInt32() :  Module().Object().Common().TypeInt64();
 
-		Variable *v = new Variable(Assembler().WritePosition(), NameString::From(name), type, sectionIndex, userData, -1, VARLOCATION_TEMP, false, restoreTempDepth);
+		Variable *v = new Variable(Assembler().WritePosition(), NameString::From(name), type, sectionIndex, userData, -1, VARLOCATION_TEMP, false, restoreRegister);
 		int dx = AddVariableToVariables(v);
-		if (dx >= 0) Assembler().Append_PushRegister((VM::DINDEX) saveTempDepth + 4, bits);
+		if (dx >= 0) Assembler().Append_PushRegister((VM::DINDEX) saveRegister, bits);
 	}
 
 	void CodeBuilder::AddArgVariable(cstr desc, const IStructure& type, void* userData)
@@ -819,8 +819,8 @@ namespace Anon
 				expiredVariables.push_back(v);
 			}
 
-			int tempDepth = v->TempDepthOnRelease();
-			if (tempDepth >= 0)
+			int restoreRegister = v->RestoreRegisterOnRelease();
+			if (restoreRegister >= 0)
 			{
 				if (bytesToFree > 0)
 				{
@@ -829,7 +829,7 @@ namespace Anon
 				}
 
 				BITCOUNT bits = v->ResolvedType().SizeOfStruct() == 4 ? BITCOUNT_32 : BITCOUNT_64;
-				Assembler().Append_RestoreRegister((VM::DINDEX) tempDepth + VM::REGISTER_D4, bits);
+				Assembler().Append_RestoreRegister((VM::DINDEX) restoreRegister, bits);
 			}
 			else
 			{
@@ -1459,8 +1459,8 @@ namespace Anon
 				ReleaseMembers(*this, &v.ResolvedType(), v.Name());
 			}
 
-			int tempDepth = v.TempDepthOnRelease();
-			if (tempDepth >= 0)
+			int restoreRegister = v.RestoreRegisterOnRelease();
+			if (restoreRegister >= 0)
 			{
 				if (bytesToFree > 0)
 				{
@@ -1469,7 +1469,7 @@ namespace Anon
 				}
 
 				BITCOUNT bits = v.ResolvedType().SizeOfStruct() == 4 ? BITCOUNT_32 : BITCOUNT_64;
-				Assembler().Append_RestoreRegister((VM::DINDEX)tempDepth + VM::REGISTER_D4, bits);
+				Assembler().Append_RestoreRegister((VM::DINDEX)restoreRegister, bits);
 			}
 			else
 			{
@@ -2441,84 +2441,84 @@ namespace Anon
 		Assembler().Append_SetGlobal(bitCount, (int32) g.offset);
 	}
 
-	void CodeBuilder::BinaryOperatorAdd(int a, int b, SexyVarType type)
+	void CodeBuilder::BinaryOperatorAdd(int registerA, int registerB, SexyVarType type)
 	{
 		switch(type)
 		{
 		case SexyVarType_Float32:
-			Assembler().Append_FloatAdd(VM::REGISTER_D4+ (VM::DINDEX)a,VM::REGISTER_D4+ (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatAdd((VM::DINDEX)registerA,(VM::DINDEX)registerB, VM::FLOATSPEC_SINGLE);
 			break;
 		case SexyVarType_Float64:
-			Assembler().Append_FloatAdd(VM::REGISTER_D4 + (VM::DINDEX)a,VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatAdd((VM::DINDEX)registerA,(VM::DINDEX)registerB, VM::FLOATSPEC_DOUBLE);
 			break;
 		case SexyVarType_Int32:
-			Assembler().Append_IntAdd(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntAdd((VM::DINDEX)registerA, BITCOUNT_32, (VM::DINDEX)registerB);
 			break;
 		case SexyVarType_Int64:
-			Assembler().Append_IntAdd(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntAdd((VM::DINDEX)registerA, BITCOUNT_64, (VM::DINDEX)registerB);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorAdd"));
 		}
 	}
 
-	void CodeBuilder::BinaryOperatorSubtract(int a, int b, SexyVarType type)
+	void CodeBuilder::BinaryOperatorSubtract(int registerA, int registerB, SexyVarType type)
 	{
 		switch (type)
 		{
 		case SexyVarType_Float32:
-			Assembler().Append_FloatSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatSubtract((VM::DINDEX)registerA, (VM::DINDEX)registerB, VM::FLOATSPEC_SINGLE);
 			break;
 		case SexyVarType_Float64:
-			Assembler().Append_FloatSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatSubtract((VM::DINDEX)registerA, (VM::DINDEX)registerB, VM::FLOATSPEC_DOUBLE);
 			break;
 		case SexyVarType_Int32:
-			Assembler().Append_IntSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntSubtract((VM::DINDEX)registerA, BITCOUNT_32, (VM::DINDEX)registerB);
 			break;
 		case SexyVarType_Int64:
-			Assembler().Append_IntSubtract(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntSubtract((VM::DINDEX)registerA, BITCOUNT_64, (VM::DINDEX)registerB);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorSubtract"));
 		}
 	}
 
-	void CodeBuilder::BinaryOperatorMultiply(int a, int b, SexyVarType type)
+	void CodeBuilder::BinaryOperatorMultiply(int registerA, int registerB, SexyVarType type)
 	{
 		switch (type)
 		{
 		case SexyVarType_Float32:
-			Assembler().Append_FloatMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatMultiply((VM::DINDEX)registerA, (VM::DINDEX)registerB, VM::FLOATSPEC_SINGLE);
 			break;
 		case SexyVarType_Float64:
-			Assembler().Append_FloatMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatMultiply((VM::DINDEX)registerA, (VM::DINDEX)registerB, VM::FLOATSPEC_DOUBLE);
 			break;
 		case SexyVarType_Int32:
-			Assembler().Append_IntMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntMultiply((VM::DINDEX)registerA, BITCOUNT_32, (VM::DINDEX)registerB);
 			break;
 		case SexyVarType_Int64:
-			Assembler().Append_IntMultiply(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntMultiply((VM::DINDEX)registerA, BITCOUNT_64, (VM::DINDEX)registerB);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorMultiply"));
 		}
 	}
 
-	void CodeBuilder::BinaryOperatorDivide(int a, int b, SexyVarType type)
+	void CodeBuilder::BinaryOperatorDivide(int registerA, int registerB, SexyVarType type)
 	{
 		switch (type)
 		{
 		case SexyVarType_Float32:
-			Assembler().Append_FloatDivide(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_SINGLE);
+			Assembler().Append_FloatDivide((VM::DINDEX)registerA, (VM::DINDEX)registerB, VM::FLOATSPEC_SINGLE);
 			break;
 		case SexyVarType_Float64:
-			Assembler().Append_FloatDivide(VM::REGISTER_D4 + (VM::DINDEX)a, VM::REGISTER_D4 + (VM::DINDEX)b, VM::FLOATSPEC_DOUBLE);
+			Assembler().Append_FloatDivide((VM::DINDEX)registerA, (VM::DINDEX)registerB, VM::FLOATSPEC_DOUBLE);
 			break;
 		case SexyVarType_Int32:
-			Assembler().Append_IntDivide(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_32, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntDivide((VM::DINDEX)registerA, BITCOUNT_32, (VM::DINDEX)registerB);
 			break;
 		case SexyVarType_Int64:
-			Assembler().Append_IntDivide(VM::REGISTER_D4 + (VM::DINDEX)a, BITCOUNT_64, VM::REGISTER_D4 + (VM::DINDEX)b);
+			Assembler().Append_IntDivide((VM::DINDEX)registerA, BITCOUNT_64, (VM::DINDEX)registerB);
 			break;
 		default:
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unhandled type for BinaryOperatorMultiply"));

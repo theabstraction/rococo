@@ -391,15 +391,15 @@ namespace Rococo::Compiler
 		virtual void AssignVariableToGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignVariableFromGlobal(const GlobalValue& g, const MemberDef& def) = 0;
 		virtual void AssignLiteralToGlobal(const GlobalValue& g, const VariantValue& value) = 0;
-		virtual void BinaryOperatorAdd(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
-		virtual void BinaryOperatorSubtract(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
-		virtual void BinaryOperatorMultiply(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
-		virtual void BinaryOperatorDivide(int srcInvariantIndex, int trgInvariantIndex, SexyVarType type) = 0;
+		virtual void BinaryOperatorAdd(int registerA, int registerB, SexyVarType type) = 0;
+		virtual void BinaryOperatorSubtract(int registerA, int registerB, SexyVarType type) = 0;
+		virtual void BinaryOperatorMultiply(int registerA, int registerB, SexyVarType type) = 0;
+		virtual void BinaryOperatorDivide(int registerA, int registerB, SexyVarType type) = 0;
 		virtual void AppendConditional(CONDITION condition, ICompileSection& thenSection, ICompileSection& elseSection) = 0;
 		virtual void AppendWhileDo(ICompileSection& loopCriterion, CONDITION condition, ICompileSection& loopBody, ICompileSection& finalSection) = 0;
 		virtual void AppendDoWhile(ICompileSection& loopBody, ICompileSection& loopCriterion, CONDITION condition) = 0;
 
-		virtual void ArchiveRegister(int saveTempDepth, int restoreTempDepth, BITCOUNT bits, void* userData) = 0;
+		virtual void ArchiveRegister(int saveRegister, int restoreRegister, BITCOUNT bits, void* userData) = 0;
 		virtual void AddArgVariable(cstr desc, const TypeString& type, void* userData) = 0;
 		virtual void AddArgVariable(cstr desc, const IStructure& type, void* userData) = 0;
 

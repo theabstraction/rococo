@@ -1248,7 +1248,7 @@ namespace Rococo::Script
 		ce.Builder.AddSymbol(("(foreach..."));
 
 		ce.Builder.AddSymbol(collectionName);
-		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+		AddArchiveRegister(ce, VM::REGISTER_D13, VM::REGISTER_D13, BITCOUNT_POINTER);
 		ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13);	// List ref is in D13
 
 		//////////////////////////////////////////////////////// Test list to see if it is empty //////////////////////////////////////////////////////
@@ -1280,7 +1280,7 @@ namespace Rococo::Script
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER); // D12 to be used as node pointer
+		AddArchiveRegister(ce, VM::REGISTER_D12, VM::REGISTER_D12, BITCOUNT_POINTER); // D12 to be used as node pointer
 		ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D13, VM::REGISTER_D7, BITCOUNT_POINTER);
 		AppendInvoke(ce, GetListCallbacks(ce).ListGetHead, collection);
 		ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_POINTER); // D12 is current node pointer
@@ -1288,13 +1288,13 @@ namespace Rococo::Script
 		if (indexName != NULL)
 		{
 			ce.Builder.AddSymbol(("D11 - working index"));
-			AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
+			AddArchiveRegister(ce, VM::REGISTER_D11, VM::REGISTER_D11, BITCOUNT_32); // Index is D11
 			VariantValue zero;
 			zero.int32Value = 0;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D11, zero, BITCOUNT_32); // init index to zero
 
 			// We may be nested in a function that overwrites D10, which is used as the result of D11-1
-			AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
+			AddArchiveRegister(ce, VM::REGISTER_D10, VM::REGISTER_D10, BITCOUNT_POINTER);
 		}
 
 		AddVariableRef(ce, NameString::From(refName), ce.Object.Common().TypeNode());

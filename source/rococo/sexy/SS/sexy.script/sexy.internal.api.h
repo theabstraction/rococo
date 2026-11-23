@@ -103,7 +103,7 @@ namespace Rococo::Script
 
 	};
 
-	void AddArchiveRegister(CCompileEnvironment& ce, int saveTempDepth, int restoreTempDepth, BITCOUNT bits);
+	void AddArchiveRegister(CCompileEnvironment& ce, int saveRegister, int restoreRegister, BITCOUNT bits);
 	void AlignedMemcpy(void* __restrict dest, const void* __restrict source, size_t nBytes);
 	int AllocFunctionOutput(CCompileEnvironment& ce, const Compiler::IArchetype& callee, Sex::cr_sex sExpr);
 	Compiler::IMacroBuilder* DeclareMacro(Sex::cr_sex macroDef, Compiler::IModuleBuilder& module);

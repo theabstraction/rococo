@@ -1249,7 +1249,7 @@ namespace Rococo
 			   Throw(index, ("Could not evaluate the expression as index type Int32"));
 		   }
 
-		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, 0, BITCOUNT_32); // save the value to D7 for popping to D4
+		   AddArchiveRegister(ce, VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_32); // save the value to D7 for popping to D4
 		
 		   const IStructure& elementType = GetElementTypeForArrayVariable(ce, s, arrayName);
 
@@ -1445,10 +1445,10 @@ namespace Rococo
 		   }
 	   }
 
-	   void CompileValidateIndexPositive(CCompileEnvironment& ce, cr_sex s, int tempDepth)
+	   void CompileValidateIndexPositive(CCompileEnvironment& ce, cr_sex s, int indexRegister)
 	   {
 		   ce.Builder.AddSymbol("ValidateIndexPositive...");
-		   ce.Builder.Assembler().Append_MoveRegister(tempDepth + VM::REGISTER_D4, VM::REGISTER_D4, BITCOUNT_32); 
+		   ce.Builder.Assembler().Append_MoveRegister(indexRegister, VM::REGISTER_D4, BITCOUNT_32); 
 		   ce.Builder.Assembler().Append_Test(VM::REGISTER_D4, BITCOUNT_32);
 
 		   size_t branchPos = ce.Builder.Assembler().WritePosition();
@@ -1468,7 +1468,7 @@ namespace Rococo
 		   ce.Builder.Assembler().SetWriteModeToAppend();
 	   }
 
-	   void CompileValidateIndexLowerThanArrayElementCount(CCompileEnvironment& ce, cr_sex s, int indexTempDepth, cstr arrayName)
+	   void CompileValidateIndexLowerThanArrayElementCount(CCompileEnvironment& ce, cr_sex s, int indexRegister, cstr arrayName)
 	   {
 		   ce.Builder.AssignVariableToRegister(arrayName, VM::REGISTER_D4, 0); // This shifts the array pointer to D4
 
@@ -1477,7 +1477,7 @@ namespace Rococo
 		   AppendInvoke(ce, callbacks.ArrayGetLength, s); // the length is now written to D6
 
 		   ce.Builder.AddSymbol("ValidateIndexLowerThanArrayElementCount...");
-		   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D6, BITCOUNT_32, VM::REGISTER_D4 + indexTempDepth);
+		   ce.Builder.Assembler().Append_IntSubtract(VM::REGISTER_D6, BITCOUNT_32, indexRegister);
 		   ce.Builder.Assembler().Append_Test(VM::REGISTER_D5, BITCOUNT_32);
 
 		   size_t branchPos = ce.Builder.Assembler().WritePosition();
@@ -1513,7 +1513,7 @@ namespace Rococo
 		   return false;
 	   }
 
-	   int AddVariableArrayLock(CCompileEnvironment& ce, int arrayTempDepth)
+	   int AddVariableArrayLock(CCompileEnvironment& ce, int arrayRegister)
 	   {
 		   TokenBuffer lockName;
 		   StringPrint(lockName, "_arrayLock_%d", ce.SS.NextID());
@@ -1525,7 +1525,7 @@ namespace Rococo
 
 		   TokenBuffer lockSource;
 		   StringPrint(lockSource, "%s._lockSource", (cstr) lockName);
-		   ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4 + arrayTempDepth, lockSource);
+		   ce.Builder.AssignRegisterToVariable(arrayRegister, lockSource);
 
 		   TokenBuffer lockMemberOffset;
 		   StringPrint(lockMemberOffset, "%s._lockMemberOffset", (cstr) lockName);
@@ -1570,7 +1570,7 @@ namespace Rococo
 
 		   AddVariableRef(ce, NameString::From(refName), elementType);
 
-		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, VM::REGISTER_D13, VM::REGISTER_D13, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13, 0); // Array ref is now in D13
@@ -1596,13 +1596,13 @@ namespace Rococo
 		   else
 		   {
 			   if (!TryCompileArithmeticExpression(ce, indexExpr, true, SexyVarType_Int32)) Throw(indexExpr, ("Failed to parse expression as (Int32 startIndex)"));
-			   CompileValidateIndexPositive(ce, collection, Rococo::ROOT_TEMPDEPTH); // index now validated to be positive
+			   CompileValidateIndexPositive(ce, collection, VM::REGISTER_D7); // index now validated to be positive
 			   ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D12, BITCOUNT_32); // D12 contains the working index throughout the entire iteration
 		   }
 				
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock); // Prevent popping of the array during enumeration
 
-		   int lockSize = AddVariableArrayLock(ce, 9);
+		   int lockSize = AddVariableArrayLock(ce, VM::REGISTER_D13);
 		   UNUSED(lockSize);
 
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayGetRefUnchecked); // returns pointer to element in D7, D12 is element index and D11 is array ref
@@ -1671,13 +1671,13 @@ namespace Rococo
 			   ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,refName);
 		   }
 
-		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, VM::REGISTER_D13, VM::REGISTER_D13, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol(collectionName);
 		   ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13, 0);  // Array ref is now in D13
 
 		   ce.Builder.AddSymbol("D12 - working index");
-		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, VM::REGISTER_D12, VM::REGISTER_D12, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol("(foreach...");
 
@@ -1687,18 +1687,18 @@ namespace Rococo
 
 		   // We may be nested in a function that overwrites D11, so save it
 		   ce.Builder.AddSymbol("D11 - final index");
-		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, VM::REGISTER_D11, VM::REGISTER_D11, BITCOUNT_POINTER);
 
 		   ce.Builder.AddSymbol("(D13 array)->(D11 lastIndex)");
 		   AppendInvoke(ce, GetArrayCallbacks(ce).ArrayGetLastIndex, s);
 
 		   // We may be nested in a function that overwrites D10, which is used as the result of D10-11
-		   AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
+		   AddArchiveRegister(ce, VM::REGISTER_D10, VM::REGISTER_D10, BITCOUNT_POINTER);
 
 		   // Prevent popping of the array during enumeration, since this may corrupt our references
 		   ce.Builder.Assembler().Append_Invoke(GetArrayCallbacks(ce).ArrayLock);
 
-		   int lockSize = AddVariableArrayLock(ce, 9);
+		   int lockSize = AddVariableArrayLock(ce, VM::REGISTER_D13);
 		   UNUSED(lockSize);
 
 		   struct ConditionSection : public ICompileSection
@@ -1819,7 +1819,7 @@ namespace Rococo
 			   }
 			   else
 			   {
-				   SexyVarType atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.c_str(), Rococo::ROOT_TEMPDEPTH);
+				   SexyVarType atomicType = GetAtomicValueAnyNumeric(ce, valueExpr, valueExpr.c_str(), VM::REGISTER_D7);
 				   if (atomicType == type) return;
 			   }
 		   }

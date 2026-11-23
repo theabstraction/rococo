@@ -307,9 +307,9 @@ namespace Rococo
 			}
 		}
 
-		void AppendArithmeticOp(VM::IAssembler& assembler, cr_sex src, ARITHMETIC_OP op, SexyVarType type, int tempDepth)
+		void AppendArithmeticOp(VM::IAssembler& assembler, cr_sex src, ARITHMETIC_OP op, SexyVarType type, int baseRegister)
 		{
-			VM::DINDEX reg = VM::REGISTER_D4 + tempDepth;
+			VM::DINDEX reg = (VM::DINDEX) baseRegister;
 			VM::FLOATSPEC spec = VM::FLOATSPEC_DOUBLE;
 
 			switch (type)
@@ -461,7 +461,7 @@ namespace Rococo
 
 			GetAtomicValue(ce, atomicExpr, varname, type);
 			ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, GetBitCount(type));
-			AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
+			AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, VM::REGISTER_D7);
 		}
 
 		void CompileArithmeticAtomicVsAtomic(CCompileEnvironment& ce, cr_sex parent, cstr left, ARITHMETIC_OP op, cstr right, SexyVarType type, cr_sex leftExpr, cr_sex rightExpr)
@@ -494,16 +494,16 @@ namespace Rococo
 				BITCOUNT bits = GetBitCount(type);
 				GetAtomicValue(ce, leftExpr, left, type);
 
-				AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
+				AddArchiveRegister(ce, VM::REGISTER_D7, VM::REGISTER_D8, bits);
 				GetAtomicValue(ce, rightExpr, right, type);
 				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, GetBitCount(type));
 				ce.Builder.PopLastVariables(1, true);
 
-				AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
+				AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, VM::REGISTER_D7);
 			}
 		}
 
-		void CompileAtomicSide(CCompileEnvironment& ce, cr_sex parent, cstr token, int tempDepth, ARITHMETIC_ORDER order, SexyVarType type)
+		void CompileAtomicSide(CCompileEnvironment& ce, cr_sex parent, cstr token, int targetRegister, ARITHMETIC_ORDER order, SexyVarType type)
 		{
 			TokenBuffer symbol;
 			StringPrint(symbol, (" = %s"), token);
@@ -511,7 +511,7 @@ namespace Rococo
 			VariantValue value;
 			if (Parse::TryParse(OUT value, type, token) == Parse::PARSERESULT_GOOD)
 			{
-				ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempDepth, value, GetBitCount(type));
+				ce.Builder.Assembler().Append_SetRegisterImmediate(targetRegister, value, GetBitCount(type));
 			}
 			else
 			{
@@ -519,9 +519,9 @@ namespace Rococo
 				{
 					// Negation
 					ValidateArithmeticVariable(parent, token + 1, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? "LHS" : "RHS");
-					ce.Builder.AssignVariableToRegister(token + 1, tempDepth + VM::REGISTER_D4);
+					ce.Builder.AssignVariableToRegister(token + 1, targetRegister);
 
-					int dx = VM::REGISTER_D4 + tempDepth;
+					int dx = targetRegister;
 
 					switch (type)
 					{
@@ -544,7 +544,7 @@ namespace Rococo
 				else
 				{
 					ValidateArithmeticVariable(parent, token, ce.Builder, type, order == ARITHMETIC_ORDER_LEFT_TO_RIGHT ? "LHS" : "RHS");
-					ce.Builder.AssignVariableToRegister(token, tempDepth + VM::REGISTER_D4);
+					ce.Builder.AssignVariableToRegister(token, targetRegister);
 				}
 			}
 		}
@@ -558,9 +558,9 @@ namespace Rococo
 
 			if (B > A)
 			{
-				CompileAtomicSide(ce, parent, token, Rococo::ROOT_TEMPDEPTH + A, order, type);
+				CompileAtomicSide(ce, parent, token, VM::REGISTER_D7 + A, order, type);
 
-				AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + A, Rococo::ROOT_TEMPDEPTH + A, bits);
+				AddArchiveRegister(ce, VM::REGISTER_D7 + A, VM::REGISTER_D7 + A, bits);
 				TryCompileArithmeticExpression(ce, s, true, type);
 				ce.Builder.PopLastVariables(1, true);
 
@@ -570,10 +570,10 @@ namespace Rococo
 			{
 				TryCompileArithmeticExpression(ce, s, true, type);
 				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, bits);
-				CompileAtomicSide(ce, parent, token, Rococo::ROOT_TEMPDEPTH + A, order, type);
+				CompileAtomicSide(ce, parent, token, VM::REGISTER_D7 + A, order, type);
 			}
 
-			AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, Rococo::ROOT_TEMPDEPTH);
+			AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, VM::REGISTER_D7);
 		}
 
 		void CompileArithmeticCompoundVsCompound(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, SexyVarType type)
@@ -581,11 +581,11 @@ namespace Rococo
 			BITCOUNT bits = GetBitCount(type);
 
 			TryCompileArithmeticExpression(ce, left, true, type);
-			AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH, Rococo::ROOT_TEMPDEPTH + 1, bits);
+			AddArchiveRegister(ce, VM::REGISTER_D7, VM::REGISTER_D8, bits);
 			TryCompileArithmeticExpression(ce, right, true, type);
 			ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, bits);
 			ce.Builder.PopLastVariables(1, true);
-			AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, Rococo::ROOT_TEMPDEPTH);
+			AppendArithmeticOp(ce.Builder.Assembler(), parent, op, type, VM::REGISTER_D7);
 		}
 
 		void CompileBinaryArithmeticExpression(CCompileEnvironment& ce, cr_sex parent, cr_sex left, ARITHMETIC_OP op, cr_sex right, SexyVarType type)

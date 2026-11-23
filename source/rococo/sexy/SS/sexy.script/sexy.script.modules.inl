@@ -1227,8 +1227,6 @@ namespace Rococo::Script
 			Throw(args, "Algorithmic error. ConstructMemberByRef must not modify D4");
 		}
 
-		int tempDepth = registerIndexToRef - VM::REGISTER_D4;
-
 		if (IsAtomic(args))
 		{
 			MemberDef def;
@@ -1276,7 +1274,7 @@ namespace Rococo::Script
 				}
 
 				// ToDo -> remove archiving when the assembly does not overwrite any registers, save D7
-				AddArchiveRegister(ce, tempDepth, tempDepth, BITCOUNT_POINTER);
+				AddArchiveRegister(ce, registerIndexToRef, registerIndexToRef, BITCOUNT_POINTER);
 				CompileNumericExpression(ce, arg, mtype.VarType()); // Numeric value in D7
 				ce.Builder.PopLastVariables(1,true); // registerIndexToRef contains the value pointer
 				ce.Builder.Assembler().Append_Poke(VM::REGISTER_D7, GetBitCount(mtype.VarType()), registerIndexToRef, offset); // write the argument to the member	

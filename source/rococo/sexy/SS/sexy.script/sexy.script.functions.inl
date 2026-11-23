@@ -3006,12 +3006,12 @@ namespace Rococo
 			return false;
 		}
 
-		void AddArchiveRegister(CCompileEnvironment& ce, int saveTempDepth, int restoreTempDepth, BITCOUNT bits)
+		void AddArchiveRegister(CCompileEnvironment& ce, int saveRegister, int restoreRegister, BITCOUNT bits)
 		{
 			char declText[256];
-			SafeFormat(declText, 256, ("save D%d. restore to D%d"), saveTempDepth + 4, restoreTempDepth + 4);
+			SafeFormat(declText, 256, ("save D%d. restore to D%d"), saveRegister, restoreRegister);
 			ce.Builder.AddSymbol(declText);
-			ce.Builder.ArchiveRegister(saveTempDepth, restoreTempDepth, bits, (void*)GetTryCatchExpression(ce.Script));
+			ce.Builder.ArchiveRegister(saveRegister, restoreRegister, bits, (void*)GetTryCatchExpression(ce.Script));
 		}
 
 		void AddVariable(CCompileEnvironment& ce, const NameString& ns, const TypeString& ts)

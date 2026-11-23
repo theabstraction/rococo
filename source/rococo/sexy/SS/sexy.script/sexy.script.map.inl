@@ -930,7 +930,7 @@ namespace Rococo::Script
 
 	bool HasInterface(const IObjectInterface& interface, const IStructure& classspec);
 
-	void CompileAsKeyToTemp(CCompileEnvironment& ce, cr_sex keyExpr, const MapDef& mapDef, int tempIndex)
+	void CompileAsKeyToTemp(CCompileEnvironment& ce, cr_sex keyExpr, const MapDef& mapDef, int targetRegister)
 	{
 		auto& typeIStringInterface = ce.Object.Common().SysTypeIString();
 		auto& typeIString = typeIStringInterface.NullObjectType();
@@ -973,14 +973,14 @@ namespace Rococo::Script
 						VariantValue value;
 						if (Parse::TryParse(OUT value, keyVarType, svalue) == Parse::PARSERESULT_GOOD)
 						{
-							ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4 + tempIndex, value, GetBitCount(keyVarType));
+							ce.Builder.Assembler().Append_SetRegisterImmediate(targetRegister, value, GetBitCount(keyVarType));
 							return;
 						}
 					}
 				}
 
 				CompileNumericExpression(ce, keyExpr, keyVarType); // D7 now contains the key
-				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4 + tempIndex, GetBitCount(keyVarType));
+				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, targetRegister, GetBitCount(keyVarType));
 			}
 			else
 			{
@@ -991,7 +991,7 @@ namespace Rococo::Script
 
 	void ConstructExplicitByRef(CCompileEnvironment& ce, cr_sex args, int registerIndex, const IStructure& type)
 	{
-		// The space has been allocated on the map and the reference is in REGISTER_(tempDepth + D4)
+		// The space has been allocated on the map and the reference is in registerIndex
 
 		const IFunction& constructor = *type.Constructor();
 
@@ -1021,7 +1021,7 @@ namespace Rococo::Script
 			Throw(args, "The number of arguments supplied in the memberwise constructor is %d, while the number of members in %s is %d", args.NumberOfElements(), GetFriendlyName(type), type.MemberCount());
 		}
 
-		AddArchiveRegister(ce, 6, 6, BITCOUNT_POINTER); // save D10
+		AddArchiveRegister(ce, VM::REGISTER_D10, VM::REGISTER_D10, BITCOUNT_POINTER); // save D10
 		ce.Builder.Assembler().Append_MoveRegister((VM::DINDEX)registerIndex, VM::REGISTER_D10, BITCOUNT_POINTER); // copy our ref to D10
 
 		ConstructMemberByRef(ce, args, REGISTER_D10, type, 0);
@@ -1061,7 +1061,7 @@ namespace Rococo::Script
 
 		cr_sex keyExpr = s.GetElement(1);
 
-		CompileAsKeyToTemp(ce, keyExpr, def, Rococo::ROOT_TEMPDEPTH + 1);
+		CompileAsKeyToTemp(ce, keyExpr, def, VM::REGISTER_D8);
 
 		if (IsPrimitiveType(def.ValueType.VarType()))
 		{
@@ -1169,7 +1169,7 @@ namespace Rococo::Script
 
 		AddMapNodeDef(ce.Script, ce.Builder, def, nodeName, mapName, source);
 
-		CompileAsKeyToTemp(ce, keyExpr, def, Rococo::ROOT_TEMPDEPTH + 1);
+		CompileAsKeyToTemp(ce, keyExpr, def, VM::REGISTER_D8);
 
 		ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D7); // D7 refers to the map
 		AppendInvoke(ce, GetMapCallbacks(ce).MapTryGet, source); // now D7 refers to the correct node
@@ -1429,7 +1429,7 @@ namespace Rococo::Script
 		ce.Builder.AddSymbol("(foreach...");
 
 		ce.Builder.AddSymbol(collectionName);
-		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 6, Rococo::ROOT_TEMPDEPTH + 6, BITCOUNT_POINTER);
+		AddArchiveRegister(ce, VM::REGISTER_D13, VM::REGISTER_D13, BITCOUNT_POINTER);
 		ce.Builder.AssignVariableToRegister(collectionName, VM::REGISTER_D13);	// Map ref is in D13
 
 		AppendInvoke(ce, GetMapCallbacks(ce).MapGetLength, collection); // MapGetLength takes map ref at D13 and assigns map length to D7
@@ -1440,7 +1440,7 @@ namespace Rococo::Script
 		ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_EQUAL, 0);
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 5, Rococo::ROOT_TEMPDEPTH + 5, BITCOUNT_POINTER);
+		AddArchiveRegister(ce, VM::REGISTER_D12, VM::REGISTER_D12, BITCOUNT_POINTER);
 
 		ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D13, VM::REGISTER_D7, BITCOUNT_POINTER);
 		AppendInvoke(ce, GetMapCallbacks(ce).MapGetHead, collection);
@@ -1449,13 +1449,13 @@ namespace Rococo::Script
 		if (indexName != NULL)
 		{
 			ce.Builder.AddSymbol(("D11 - working index"));
-			AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 4, Rococo::ROOT_TEMPDEPTH + 4, BITCOUNT_32); // Index is D11
+			AddArchiveRegister(ce, VM::REGISTER_D11, VM::REGISTER_D11, BITCOUNT_32); // Index is D11
 			VariantValue zero;
 			zero.int32Value = 0;
 			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D11, zero, BITCOUNT_32); // init index to zero
 
 			// We may be nested in a function that overwrites D10, which is used as the result of D11-1
-			AddArchiveRegister(ce, Rococo::ROOT_TEMPDEPTH + 3, Rococo::ROOT_TEMPDEPTH + 3, BITCOUNT_POINTER);
+			AddArchiveRegister(ce, VM::REGISTER_D10, VM::REGISTER_D10, BITCOUNT_POINTER);
 		}
 
 		AddVariableRef(ce, NameString::From(refName), ce.Object.Common().TypeMapNode());

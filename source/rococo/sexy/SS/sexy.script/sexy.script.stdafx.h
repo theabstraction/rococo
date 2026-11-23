@@ -428,10 +428,10 @@ namespace Rococo
         bool TryCompileAsMapNodeCall(CCompileEnvironment& ce, Sex::cr_sex s, cstr name, cstr methodName);
         bool TryCompileAsInlineMapAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, cstr instance, cstr methodName, SexyVarType returnType, const Compiler::IStructure& instanceStruct, OUT SexyVarType& outputType);
 
-        void ConstructMemberByRef(CCompileEnvironment& ce, Sex::cr_sex args, int tempDepth, const Compiler::IStructure& type, int offset);
+        void ConstructMemberByRef(CCompileEnvironment& ce, Sex::cr_sex args, int registerIndexToRef, const Compiler::IStructure& type, int offset);
         SCRIPTEXPORT_API cstr GetTypeName(SexyVarType type);
 
-        SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, int tempdepth);
+        SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, int targetRegister);
         void AssignVariableToVariable(CCompileEnvironment& ce, Sex::cr_sex exceptionSource, cstr lhs, cstr rhs);
         CStringConstant* CreateStringConstant(CScript& script, int length, cstr s, const Sex::ISExpression* srcExpression);
         Compiler::IFunctionBuilder& DeclareFunctionForModule(Compiler::IModuleBuilder& module, Sex::cr_sex source, Compiler::FunctionPrototype& prototype);

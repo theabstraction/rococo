@@ -787,7 +787,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorAdd(1,2,VARTYPE_Float32);
+		builder.BinaryOperatorAdd(REGISTER_D5, REGISTER_D6, VARTYPE_Float32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -818,7 +818,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorAdd(1,2,VARTYPE_Float64);
+		builder.BinaryOperatorAdd(REGISTER_D5, REGISTER_D6, VARTYPE_Float64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -849,7 +849,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorAdd(1,2,VARTYPE_Int32);
+		builder.BinaryOperatorAdd(REGISTER_D5, REGISTER_D6, VARTYPE_Int32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -880,7 +880,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorAdd(1,2,VARTYPE_Int64);
+		builder.BinaryOperatorAdd(REGISTER_D5, REGISTER_D6, VARTYPE_Int64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -911,7 +911,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorSubtract(1,2,VARTYPE_Float32);
+		builder.BinaryOperatorSubtract(REGISTER_D5, REGISTER_D6, VARTYPE_Float32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -942,7 +942,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorSubtract(1,2,VARTYPE_Float64);
+		builder.BinaryOperatorSubtract(REGISTER_D5, REGISTER_D6, VARTYPE_Float64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -973,7 +973,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorSubtract(1,2,VARTYPE_Int32);
+		builder.BinaryOperatorSubtract(REGISTER_D5, REGISTER_D6, VARTYPE_Int32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1005,7 +1005,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorSubtract(1,2,VARTYPE_Int64);
+		builder.BinaryOperatorSubtract(REGISTER_D5, REGISTER_D6, VARTYPE_Int64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1036,7 +1036,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorMultiply(1,2,VARTYPE_Float32);
+		builder.BinaryOperatorMultiply(REGISTER_D5, REGISTER_D6, VARTYPE_Float32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1067,7 +1067,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorMultiply(1,2,VARTYPE_Float64);
+		builder.BinaryOperatorMultiply(REGISTER_D5, REGISTER_D6, VARTYPE_Float64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1098,7 +1098,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorMultiply(1,2,VARTYPE_Int32);
+		builder.BinaryOperatorMultiply(REGISTER_D5, REGISTER_D6, VARTYPE_Int32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1130,7 +1130,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorMultiply(1,2,VARTYPE_Int64);
+		builder.BinaryOperatorMultiply(REGISTER_D5, REGISTER_D6, VARTYPE_Int64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1161,7 +1161,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorDivide(1,2,VARTYPE_Float32);
+		builder.BinaryOperatorDivide(REGISTER_D5, REGISTER_D6, VARTYPE_Float32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1192,7 +1192,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorDivide(1,2,VARTYPE_Float64);
+		builder.BinaryOperatorDivide(REGISTER_D5, REGISTER_D6, VARTYPE_Float64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1223,7 +1223,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorDivide(1,2,VARTYPE_Int32);
+		builder.BinaryOperatorDivide(REGISTER_D5, REGISTER_D6, VARTYPE_Int32);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
@@ -1255,7 +1255,7 @@ namespace
 		builder.Begin();
 		builder.AssignVariableToTemp(("x"), 1);
 		builder.AssignVariableToTemp(("y"), 2);
-		builder.BinaryOperatorDivide(1,2,VARTYPE_Int64);
+		builder.BinaryOperatorDivide(REGISTER_D5, REGISTER_D6, VARTYPE_Int64);
 		builder.AssignTempToVariable(0, ("result"));
 		builder.End();
 
