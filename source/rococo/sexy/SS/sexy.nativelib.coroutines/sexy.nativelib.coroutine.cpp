@@ -138,20 +138,36 @@ struct Coroutines : public Sys::ICoroutineControl
 {
 	enum Constants: int64 { nextYear = 0x4001000100010001 };
 	int64 nextId = 1;
+	// 0 means "pick specs.begin()". Never store a live hash-map iterator across VM calls.
+	int64 nextIdToRun = 0;
+	// True while Execute/ContinueExecution is running a slice. Add/Release/ReleaseAll are
+	// deferred until the slice ends (including Release of the running coroutine). Nested
+	// Continue throws immediately — it cannot be deferred without re-entering the VM.
+	bool inSlice = false;
+	char sliceError[256] = { 0 };
 	IScriptSystem& ss;
 	IProgramObject& object;
 	VM::IVirtualMachine& vm;
 	SpecMap specs;
-	SpecMap::iterator next;
 	StackPool stacks;
 	int64 nextWakeTime = Constants::nextYear;
 
 	TSexyVector<CoSpec*> dormantCoSpecs;
 
+	enum class PendingKind { Add, Release, ReleaseAll };
+
+	struct PendingOp
+	{
+		PendingKind kind;
+		int64 id = 0;
+		CoSpec* spec = nullptr;
+	};
+
+	TSexyVector<PendingOp> pendingOps;
+
 	Coroutines(IScriptSystem& _ss) :
 		ss(_ss), object(ss.ProgramObject()), vm(object.VirtualMachine())
 	{
-		next = specs.end();
 	}
 
 	int64 Add(Rococo::Sex::CoroutineRef coroutine) override
@@ -161,18 +177,31 @@ struct Coroutines : public Sys::ICoroutineControl
 		auto* stub = InterfaceToInstance(pInterface);
 
 		ss.ProgramObject().IncrementRefCount(coroutine);
-		
+
 		ID_BYTECODE runId = (*coroutine)->FirstMethodId;
 
 		int64 id = nextId++;
-		next = specs.insert(std::make_pair(id, new CoSpec( id, stub, coroutine, runId ))).first;
+		auto* spec = new CoSpec(id, stub, coroutine, runId);
+
+		if (inSlice)
+		{
+			PendingOp op;
+			op.kind = PendingKind::Add;
+			op.id = id;
+			op.spec = spec;
+			pendingOps.push_back(op);
+		}
+		else
+		{
+			specs.insert(std::make_pair(id, spec));
+		}
 
 		return id;
 	}
 
 	void Wakeup(int64 now)
 	{
-		if (now > nextWakeTime)
+		if (now >= nextWakeTime)
 		{
 			// Wake up dormant jobs, by sticking them on the active map
 
@@ -183,7 +212,7 @@ struct Coroutines : public Sys::ICoroutineControl
 
 			for (auto& d : dormantCoSpecs)
 			{
-				if (now > d->nextWaitTrigger)
+				if (now >= d->nextWaitTrigger)
 				{
 					specs.insert(std::make_pair(d->id, d));
 					d->isDormant = false;
@@ -210,8 +239,224 @@ struct Coroutines : public Sys::ICoroutineControl
 		}
 	}
 
+	void EraseFromCollections(int64 id)
+	{
+		auto i = specs.find(id);
+		if (i != specs.end())
+		{
+			specs.erase(i);
+		}
+
+		struct
+		{
+			int64 id;
+			bool operator()(CoSpec* spec)
+			{
+				return spec->id == id;
+			}
+		} matchesId;
+		matchesId.id = id;
+
+		auto erasePoint = std::remove_if(dormantCoSpecs.begin(), dormantCoSpecs.end(), matchesId);
+		dormantCoSpecs.erase(erasePoint, dormantCoSpecs.end());
+	}
+
+	void DestroyDetached(CoSpec* spec)
+	{
+		if (!spec)
+		{
+			return;
+		}
+
+		object.DecrementRefCount(spec->coroutine);
+
+		if (spec->startOfStackMemory)
+		{
+			stacks.FreeBuffer(spec->startOfStackMemory);
+			spec->startOfStackMemory = nullptr;
+			spec->endOfStackMemory = nullptr;
+		}
+
+		delete spec;
+	}
+
+	// Unlink from specs/dormant first so a destructor that calls Release/ReleaseAll cannot double-delete.
+	void UnlinkAndDestroy(CoSpec* spec)
+	{
+		if (!spec)
+		{
+			return;
+		}
+
+		int64 id = spec->id;
+		EraseFromCollections(id);
+
+		for (auto& op : pendingOps)
+		{
+			if (op.kind == PendingKind::Add && op.id == id)
+			{
+				op.spec = nullptr;
+			}
+		}
+
+		DestroyDetached(spec);
+	}
+
+	void ReleaseNow(int64 id)
+	{
+		auto i = specs.find(id);
+		if (i != specs.end())
+		{
+			UnlinkAndDestroy(i->second);
+			return;
+		}
+
+		for (auto* d : dormantCoSpecs)
+		{
+			if (d->id == id)
+			{
+				UnlinkAndDestroy(d);
+				return;
+			}
+		}
+
+		for (auto& op : pendingOps)
+		{
+			if (op.kind == PendingKind::Add && op.id == id && op.spec)
+			{
+				CoSpec* s = op.spec;
+				op.spec = nullptr;
+				DestroyDetached(s);
+				return;
+			}
+		}
+	}
+
+	void ReleaseAllNow()
+	{
+		TSexyVector<CoSpec*> all;
+
+		for (auto& i : specs)
+		{
+			all.push_back(i.second);
+		}
+		specs.clear();
+
+		for (auto* d : dormantCoSpecs)
+		{
+			all.push_back(d);
+		}
+		dormantCoSpecs.clear();
+
+		for (auto& op : pendingOps)
+		{
+			if (op.kind == PendingKind::Add && op.spec)
+			{
+				all.push_back(op.spec);
+				op.spec = nullptr;
+			}
+		}
+		pendingOps.clear();
+
+		nextIdToRun = 0;
+		nextWakeTime = nextYear;
+
+		for (auto* s : all)
+		{
+			DestroyDetached(s);
+		}
+	}
+
+	void FlushPending()
+	{
+		if (pendingOps.empty())
+		{
+			return;
+		}
+
+		TSexyVector<PendingOp> ops = pendingOps;
+		pendingOps.clear();
+
+		for (auto& op : ops)
+		{
+			if (op.kind == PendingKind::ReleaseAll)
+			{
+				ReleaseAllNow();
+			}
+			else if (op.kind == PendingKind::Add)
+			{
+				if (op.spec)
+				{
+					specs.insert(std::make_pair(op.id, op.spec));
+				}
+			}
+			else if (op.kind == PendingKind::Release)
+			{
+				ReleaseNow(op.id);
+			}
+		}
+	}
+
+	void AdvanceCursorAfter(int64 ranId)
+	{
+		auto i = specs.find(ranId);
+		if (i == specs.end())
+		{
+			nextIdToRun = 0;
+			return;
+		}
+
+		++i;
+		nextIdToRun = (i == specs.end()) ? 0 : i->first;
+	}
+
+	// Saves the host VM cpu state and always restores it, including when a coroutine throws.
+	struct CpuShadow
+	{
+		VM::CPU& cpu;
+
+		VariantValue mainCpuState[VM::CPU::DATA_REGISTER_COUNT];
+		uint8* startOfStackMemory = nullptr;
+		uint8* endOfStackMemory = nullptr;
+		bool restore = true;
+
+		CpuShadow(VM::CPU& _cpu): cpu(_cpu)
+		{
+			memcpy(mainCpuState, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
+			startOfStackMemory = cpu.StackStart;
+			endOfStackMemory = cpu.StackEnd;
+		}
+
+		~CpuShadow()
+		{
+			Restore();
+		}
+
+		void Restore()
+		{
+			if (!restore)
+			{
+				return;
+			}
+
+			memcpy(&cpu.D, mainCpuState, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
+			cpu.StackStart = startOfStackMemory;
+			cpu.StackEnd = endOfStackMemory;
+			restore = false;
+		}
+	};
+
 	int64 Continue() override
 	{
+		if (inSlice)
+		{
+			cstr msg = "Cannot call ICoroutineControl.Continue while a coroutine is executing";
+			size_t n = 0;
+			while (msg[n] != 0 && n < 255) { sliceError[n] = msg[n]; n++; }
+			sliceError[n] = 0;
+			Throw(0, "%s", sliceError);
+		}
+
 		int64 now = Rococo::Time::TickCount();
 
 		Wakeup(now);
@@ -219,85 +464,78 @@ struct Coroutines : public Sys::ICoroutineControl
 		// N.B the more work we do here the greater the cost of context switching,
 		// and the fewer the coroutines that can progress in a given time frame
 
-		if (next == specs.end())
-		{
-			next = specs.begin();
-		}
-
-		if (next != specs.end())
-		{
-			int64 id = next->first;
-			auto* spec = next->second;
-
-			auto& cpu = vm.Cpu();
-			CpuShadow shadow(cpu);
-
-			struct Anon: IEventCallback<VM::WaitArgs>
-			{
-				VM::IVirtualMachine* vm;
-				int64 nextWaitTrigger = 0;
-				void OnEvent(VM::WaitArgs& args) override
-				{
-					nextWaitTrigger = args.nextWakeTime;
-				}
-
-				~Anon()
-				{
-					vm->SetWaitHandler(nullptr);
-				}
-			} waitMonitor;
-
-			waitMonitor.vm = &vm;
-
-			vm.SetWaitHandler(&waitMonitor);
-			id = Continue(*spec);
-
-			shadow.Restore();
-
-			if (waitMonitor.nextWaitTrigger > now)
-			{
-				// Coroutine is yielding for a bit
-				spec->nextWaitTrigger = waitMonitor.nextWaitTrigger;
-				spec->isDormant = true;
-				dormantCoSpecs.push_back(spec);
-
-				if (spec->id == next->first)
-				{
-					next = specs.erase(next);
-				}
-				else
-				{
-					auto j = specs.find(spec->id);
-					next = specs.erase(j);
-				}
-
-				nextWakeTime = min(waitMonitor.nextWaitTrigger, nextWakeTime);
-			}
-			else
-			{
-				next++;
-			}
-
-			return id;
-		}
-		else // Nothing in the spec map
+		if (specs.empty())
 		{
 			return dormantCoSpecs.empty() ? 0 : -1;
 		}
-	}
 
-	void Detach(CoSpec& spec)
-	{
-		object.DecrementRefCount(spec.coroutine);
-		auto i = specs.find(spec.id);
-		if (i != specs.end())
+		auto i = specs.find(nextIdToRun);
+		if (i == specs.end())
 		{
-			delete i->second;
-			next = specs.erase(i);
+			i = specs.begin();
 		}
+
+		CoSpec* spec = i->second;
+		int64 id = spec->id;
+
+		auto& cpu = vm.Cpu();
+		CpuShadow shadow(cpu);
+
+		struct Anon: IEventCallback<VM::WaitArgs>
+		{
+			VM::IVirtualMachine* vm;
+			int64 nextWaitTrigger = 0;
+			void OnEvent(VM::WaitArgs& args) override
+			{
+				nextWaitTrigger = args.nextWakeTime;
+			}
+
+			~Anon()
+			{
+				vm->SetWaitHandler(nullptr);
+			}
+		} waitMonitor;
+
+		waitMonitor.vm = &vm;
+
+		vm.SetWaitHandler(&waitMonitor);
+
+		inSlice = true;
+		sliceError[0] = 0;
+		try
+		{
+			id = Continue(*spec);
+		}
+		catch (...)
+		{
+			inSlice = false;
+			FlushPending();
+			vm.SetStatus(EXECUTERESULT_RUNNING);
+			throw;
+		}
+		inSlice = false;
+
+		// Park only if the wake time is still strictly in the future (i.e. not now >= trigger).
+		if (waitMonitor.nextWaitTrigger > now)
+		{
+			auto j = specs.find(id);
+			if (j != specs.end())
+			{
+				spec = j->second;
+				spec->nextWaitTrigger = waitMonitor.nextWaitTrigger;
+				spec->isDormant = true;
+				dormantCoSpecs.push_back(spec);
+				specs.erase(j);
+				nextWakeTime = min(waitMonitor.nextWaitTrigger, nextWakeTime);
+			}
+		}
+
+		FlushPending();
+		AdvanceCursorAfter(id);
+		return id;
 	}
 
-	void UpdateWithResult(CoSpec& spec, EXECUTERESULT result) 
+	void UpdateWithResult(CoSpec& spec, EXECUTERESULT result)
 	{
 		vm.SetStatus(EXECUTERESULT_RUNNING);
 
@@ -310,45 +548,49 @@ struct Coroutines : public Sys::ICoroutineControl
 			break;
 		case EXECUTERESULT_TERMINATED:
 			// Co-routine completed
-			Detach(spec);
-			break;
-		case EXECUTERESULT_THROWN:	
-			Detach(spec);
-			Throw(0, "%s %lld threw an exception", spec.ClassName(), spec.id);
-			break;
-		case EXECUTERESULT_SEH:
-			Detach(spec);
-			Throw(0, "%s %lld threw SEH", spec.ClassName(), spec.id);
+			UnlinkAndDestroy(&spec);
 			break;
 		default:
-			Detach(spec);
-			Throw(0, "Unknown Virtual Machine state: %u executing coroutine for %s %lld", result, spec.ClassName(), spec.id);
+			{
+		char className[256];
+		className[0] = 0;
+		if (cstr cn = spec.ClassName())
+		{
+			size_t n = 0;
+			while (cn[n] != 0 && n < 255) { className[n] = cn[n]; n++; }
+			className[n] = 0;
+		}
+		int64 id = spec.id;
+		UnlinkAndDestroy(&spec);
+		Throw(0, "Unknown Virtual Machine state: %u executing coroutine for %s %lld", result, className, id);
+			}
+			break;
 		}
 	}
 
-	// Creates a temp buffer for the VM cpu state. When the object goes out of scope the cpu state is restored
-	struct CpuShadow
+	void FailSlice(CoSpec& spec, cstr resultString)
 	{
-		VM::CPU& cpu;
-
-		VariantValue mainCpuState[VM::CPU::DATA_REGISTER_COUNT];
-		uint8* startOfStackMemory = nullptr;
-		uint8* endOfStackMemory = nullptr;
-
-		CpuShadow(VM::CPU& _cpu): cpu(_cpu)
+		char className[256];
+		className[0] = 0;
+		if (cstr cn = spec.ClassName())
 		{
-			memcpy(mainCpuState, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
-			startOfStackMemory = cpu.StackStart;
-			endOfStackMemory = cpu.StackEnd;
+			size_t n = 0;
+			while (cn[n] != 0 && n < 255) { className[n] = cn[n]; n++; }
+			className[n] = 0;
 		}
-
-		void Restore() // We could put this in a destructor, but sometime we dont want to restore, such as on a crash
+		UnlinkAndDestroy(&spec);
+		vm.SetStatus(EXECUTERESULT_RUNNING);
+		if (sliceError[0] != 0)
 		{
-			memcpy(&cpu.D, mainCpuState, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
-			cpu.StackStart = startOfStackMemory;
-			cpu.StackEnd = endOfStackMemory;
+			char msg[256];
+			size_t n = 0;
+			while (sliceError[n] != 0 && n < 255) { msg[n] = sliceError[n]; n++; }
+			msg[n] = 0;
+			sliceError[0] = 0;
+			Throw(0, "%s", msg);
 		}
-	};
+		Throw(0, "Coroutine %s crashed. %s", className, resultString);
+	}
 
 	int64 Continue(CoSpec& spec)
 	{
@@ -369,7 +611,7 @@ struct Coroutines : public Sys::ICoroutineControl
 
 				if (spec.runId == 0)
 				{
-					Throw(0, "Unexpected bad run id: spec %s", GetFriendlyName(*spec.stub->Desc->TypeInfo));
+					Throw(0, "Unexpected bad run id: spec %s", spec.ClassName());
 				}
 
 				cpu.D[5].byteCodeIdValue = spec.runId;
@@ -385,7 +627,11 @@ struct Coroutines : public Sys::ICoroutineControl
 
 				cpu.Push(spec.coroutine);
 
-				result = vm.Execute(VM::ExecutionFlags(flags.ThrowToQuit, true, true), nullptr);
+				// Set SF to the post-push SP explicitly. Do not rely on CorrectSF, which compares
+				// the host SF pointer with this freshly allocated stack.
+				cpu.SetSF(cpu.SP());
+
+				result = vm.Execute(VM::ExecutionFlags(flags.ThrowToQuit, true, false), nullptr);
 			}
 			else
 			{
@@ -397,6 +643,11 @@ struct Coroutines : public Sys::ICoroutineControl
 				result = vm.ContinueExecution(VM::ExecutionFlags(flags.ThrowToQuit, true, true), nullptr);
 			}
 		} // Spec unlocked
+
+		if (cpu.SP() < cpu.StackStart || cpu.SP() > cpu.StackEnd)
+		{
+			FailSlice(spec, "stack overflow");
+		}
 
 		if (result == EXECUTERESULT_THROWN || result == EXECUTERESULT_SEH || result == EXECUTERESULT_ILLEGAL)
 		{
@@ -419,75 +670,41 @@ struct Coroutines : public Sys::ICoroutineControl
 				resultString = "EXECUTERESULT_ILLEGAL";
 				break;
 			}
-			// The cpu was trashed due to an exception, we should rethrow here
-			Throw(0, "Coroutine %s crashed. %s", spec.ClassName(), resultString);
+			FailSlice(spec, resultString);
 		}
 
 		memcpy(spec.registers, &cpu.D, sizeof(VariantValue) * VM::CPU::DATA_REGISTER_COUNT);
 
+		int64 id = spec.id;
 		UpdateWithResult(spec, result);
-
-		return spec.id;
+		return id;
 	}
 
 	void Release(int64 id) override
 	{
-		auto i = specs.find(id);
-		if (i != specs.end())
+		if (inSlice)
 		{
-			if (i->second->isLocked)
-			{
-				Throw(0, "Coroutine %s %lld tried to release itself during execution", i->second->ClassName(), id);
-			}
-			int64 specId = i->second->id;
-			object.DecrementRefCount(i->second->coroutine);
-			// Possibly a destructor invalidated the iterator, so grab again
-			i = specs.find(specId);
-			if (i != specs.end())
-			{
-				delete i->second;
-				next = specs.erase(i);
-			}
+			PendingOp op;
+			op.kind = PendingKind::Release;
+			op.id = id;
+			pendingOps.push_back(op);
+			return;
 		}
-		else
-		{
-			struct
-			{
-				int64 id;
-				bool operator()(CoSpec* spec)
-				{
-					return spec->id == id;
-				}
-			} matchesId;
-			matchesId.id = id;
 
-			auto erasePoint = std::remove_if(dormantCoSpecs.begin(), dormantCoSpecs.end(), matchesId);
-			for (auto j = erasePoint; j != dormantCoSpecs.end(); ++j)
-			{
-				delete *j;
-			}
-			dormantCoSpecs.erase(erasePoint, dormantCoSpecs.end());
-		}
+		ReleaseNow(id);
 	}
 
 	void ReleaseAll() override
 	{
-		for (auto& i : specs)
+		if (inSlice)
 		{
-			object.DecrementRefCount(i.second->coroutine);
-			delete i.second;
+			PendingOp op;
+			op.kind = PendingKind::ReleaseAll;
+			pendingOps.push_back(op);
+			return;
 		}
 
-		for (auto& d : dormantCoSpecs)
-		{
-			object.DecrementRefCount(d->coroutine);
-			delete d;
-		}
-
-		specs.clear();
-		dormantCoSpecs.clear();
-
-		nextWakeTime = nextYear;
+		ReleaseAllNow();
 	}
 };
 

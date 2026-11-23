@@ -8082,6 +8082,406 @@ R"(
 		validate(x == 0);
 	}
 
+
+	int32 RunScriptMain(IPublicScriptSystem& ss, cstr srcCode)
+	{
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		return vm.PopInt32();
+	}
+
+	// Single coroutine whose Run returns; Main must still be able to assign a result.
+	void TestCoroutineCompleteOne(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(class Quick (implements ICoroutine))"
+			"(method Quick.Construct :)"
+			"(factory Sys.NewQuick ICoroutine : (construct Quick))"
+			"(method Quick.Run -> : )"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutine q (NewQuick))"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(coroutines.Add q)"
+			"	(Int64 id = (coroutines.Continue))"
+			"	(Int64 empty = (coroutines.Continue))"
+			"	(if ((id != 0) and (empty == 0)) (result = 42) else (result = 0))"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 42);
+	}
+
+	// Last remaining runnable coroutine terminates while another is timed-dormant.
+	// while (Continue > 0) must return -1 (or 0) without crashing, then we ReleaseAll.
+	void TestCoroutineCompleteLastWhileDormant(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(global Int32 done = 0)"
+			"(class Sleeper (implements ICoroutine))"
+			"(method Sleeper.Construct :)"
+			"(factory Sys.NewSleeper ICoroutine : (construct Sleeper))"
+			"(method Sleeper.Run -> : (yield 2000000))"
+			"(class Worker (implements ICoroutine))"
+			"(method Worker.Construct :)"
+			"(factory Sys.NewWorker ICoroutine : (construct Worker))"
+			"(method Worker.Run -> :"
+			"	(Int32 x)"
+			"	(global done -> x)"
+			"	(x += 1)"
+			"	(global done <- x)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine sleeper (NewSleeper))"
+			"	(ICoroutine worker (NewWorker))"
+			"	(coroutines.Add sleeper)"
+			"	(coroutines.Add worker)"
+			"	(while (coroutines.Continue > 0))"
+			"	(coroutines.ReleaseAll)"
+			"	(global done -> result)"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 1);
+	}
+
+	void TestCoroutineReleaseAllThenContinue(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(class Q (implements ICoroutine))"
+			"(method Q.Construct :)"
+			"(factory Sys.NewQ ICoroutine : (construct Q))"
+			"(method Q.Run -> : (yield))"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutine q (NewQ))"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(coroutines.Add q)"
+			"	(coroutines.ReleaseAll)"
+			"	(Int64 last = (coroutines.Continue))"
+			"	(if (last == 0) (result = 1) else (result = 0))"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 1);
+	}
+
+	// Uncaught throw inside Run: the test harness catches the scheduler error,
+	// the host stack is restored, and a subsequent VM push/pop works.
+	void TestCoroutineThrowInRun(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(class Boom (implements ICoroutine))"
+			"(method Boom.Construct :)"
+			"(factory Sys.NewBoom ICoroutine : (construct Boom))"
+			"(method Boom.Run -> : (Sys.Throw 1 \"boom\"))"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutine b (NewBoom))"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(coroutines.Add b)"
+			"	(coroutines.Continue)"
+			"	(result = 99)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+
+		auto stackBytes = [&]() -> int64 { return (int64)(vm.Cpu().StackEnd - vm.Cpu().StackStart); };
+
+		bool caught = false;
+		try
+		{
+			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+			if (result == EXECUTERESULT_TERMINATED)
+			{
+				Throw(0, "Expected the coroutine throw to abort Main");
+			}
+			caught = true;
+			printf("TestCoroutineThrowInRun: Execute returned %d\n", (int)result);
+		}
+		catch (IException& e)
+		{
+			caught = true;
+			printf("TestCoroutineThrowInRun: %s\n", e.Message());
+			cstr msg = e.Message();
+			bool hasCrash = false;
+			if (msg)
+			{
+				for (cstr p = msg; *p; p++)
+				{
+					if (p[0] == 'B' && p[1] == 'o' && p[2] == 'o' && p[3] == 'm' && p[4] == ' ' && p[5] == 'c')
+					{
+						hasCrash = true;
+						break;
+					}
+				}
+			}
+			validate(hasCrash);
+		}
+
+		validate(caught);
+		validate(stackBytes() == 65536);
+		vm.SetStatus(EXECUTERESULT_RUNNING);
+		vm.Push((int32)123);
+		validate(vm.PopInt32() == 123);
+		s_logger.Clear();
+	}
+
+	// Timed-yield, then Release the id without keeping a local. Destruct should run; no leak.
+	void TestCoroutineReleaseDormantNoLeak(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(global Int32 destroyed = 0)"
+			"(class Sleeper (implements ICoroutine))"
+			"(method Sleeper.Construct :)"
+			"(factory Sys.NewSleeper ICoroutine : (construct Sleeper))"
+			"(method Sleeper.Run -> : (yield 2000000))"
+			"(method Sleeper.Destruct -> :"
+			"	(Int32 x)"
+			"	(global destroyed -> x)"
+			"	(x += 1)"
+			"	(global destroyed <- x)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine s (NewSleeper))"
+			"	(Int64 id = (coroutines.Add s))"
+			"	(ICoroutine none)"
+			"	(s = none)"
+			"	(Int64 last = (coroutines.Continue))"
+			"	(coroutines.Release id)"
+			"	(Int32 d)"
+			"	(global destroyed -> d)"
+			"	(if ((last != 0) and (d == 1)) (result = 1) else (result = 0))"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 1);
+	}
+
+	// Add from inside Run is deferred until the slice ends; both coroutines then complete.
+	void TestCoroutineAddDuringRun(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(global Int32 hits = 0)"
+			"(class Other (implements ICoroutine))"
+			"(method Other.Construct :)"
+			"(factory Sys.NewOther ICoroutine : (construct Other))"
+			"(method Other.Run -> :"
+			"	(Int32 x)"
+			"	(global hits -> x)"
+			"	(x += 1)"
+			"	(global hits <- x)"
+			")"
+			"(class Worker (implements ICoroutine))"
+			"(method Worker.Construct :)"
+			"(factory Sys.NewWorker ICoroutine : (construct Worker))"
+			"(method Worker.Run -> :"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine o (NewOther))"
+			"	(coroutines.Add o)"
+			"	(yield)"
+			"	(Int32 x)"
+			"	(global hits -> x)"
+			"	(x += 1)"
+			"	(global hits <- x)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine w (NewWorker))"
+			"	(coroutines.Add w)"
+			"	(while (coroutines.Continue > 0))"
+			"	(global hits -> result)"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 2);
+	}
+
+	// Release(self) from inside Run is deferred until the slice ends.
+	void TestCoroutineReleaseSelfDuringRun(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(global Int64 myId = 0)"
+			"(global Int32 ran = 0)"
+			"(class SelfRel (implements ICoroutine))"
+			"(method SelfRel.Construct :)"
+			"(factory Sys.NewSelfRel ICoroutine : (construct SelfRel))"
+			"(method SelfRel.Run -> :"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(Int64 id)"
+			"	(global myId -> id)"
+			"	(coroutines.Release id)"
+			"	(Int32 x)"
+			"	(global ran -> x)"
+			"	(x += 1)"
+			"	(global ran <- x)"
+			"	(yield)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine slf (NewSelfRel))"
+			"	(Int64 id = (coroutines.Add slf))"
+			"	(global myId <- id)"
+			"	(coroutines.Continue)"
+			"	(Int64 after = (coroutines.Continue))"
+			"	(Int32 x)"
+			"	(global ran -> x)"
+			"	(if ((x == 1) and (after == 0)) (result = 1) else (result = 0))"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 1);
+	}
+
+	// ReleaseAll from inside Run is deferred until the slice ends.
+	void TestCoroutineReleaseAllDuringRun(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(class Worker (implements ICoroutine))"
+			"(method Worker.Construct :)"
+			"(factory Sys.NewWorker ICoroutine : (construct Worker))"
+			"(method Worker.Run -> :"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(coroutines.ReleaseAll)"
+			"	(yield)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine w (NewWorker))"
+			"	(coroutines.Add w)"
+			"	(coroutines.Continue)"
+			"	(Int64 after = (coroutines.Continue))"
+			"	(if (after == 0) (result = 1) else (result = 0))"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 1);
+	}
+
+	// Nested Continue from inside Run throws; the harness catches it, host stack is restored.
+	void TestCoroutineNestedContinue(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(class Nested (implements ICoroutine))"
+			"(method Nested.Construct :)"
+			"(factory Sys.NewNested ICoroutine : (construct Nested))"
+			"(method Nested.Run -> :"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(coroutines.Continue)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine n (NewNested))"
+			"	(coroutines.Add n)"
+			"	(coroutines.Continue)"
+			"	(result = 99)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+
+		auto stackBytes = [&]() -> int64 { return (int64)(vm.Cpu().StackEnd - vm.Cpu().StackStart); };
+
+		bool caught = false;
+		try
+		{
+			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+			if (result == EXECUTERESULT_TERMINATED)
+			{
+				Throw(0, "Expected nested Continue to abort Main");
+			}
+			caught = true;
+			printf("TestCoroutineNestedContinue: Execute returned %d\n", (int)result);
+		}
+		catch (IException& e)
+		{
+			caught = true;
+			printf("TestCoroutineNestedContinue: %s\n", e.Message());
+			cstr msg = e.Message();
+			bool hasMsg = false;
+			cstr needle = "Cannot call ICoroutineControl.Continue";
+			if (msg)
+			{
+				for (cstr p = msg; *p; p++)
+				{
+					cstr n = needle;
+					cstr q = p;
+					while (*n && *q && *n == *q) { n++; q++; }
+					if (*n == 0) { hasMsg = true; break; }
+				}
+			}
+			validate(hasMsg);
+		}
+
+		validate(caught);
+		validate(stackBytes() == 65536);
+		vm.SetStatus(EXECUTERESULT_RUNNING);
+		vm.Push((int32)123);
+		validate(vm.PopInt32() == 123);
+		s_logger.Clear();
+	}
+
+	// (yield 0) must be an immediate yield, not a timed wait or a leftover D4 wait.
+	void TestCoroutineYieldZero(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(using Sys)"
+			"(global Int32 hits = 0)"
+			"(class A (implements ICoroutine))"
+			"(method A.Construct :)"
+			"(factory Sys.NewA ICoroutine : (construct A))"
+			"(method A.Run -> :"
+			"	(yield 0)"
+			"	(Int32 x)"
+			"	(global hits -> x)"
+			"	(x += 1)"
+			"	(global hits <- x)"
+			")"
+			"(class B (implements ICoroutine))"
+			"(method B.Construct :)"
+			"(factory Sys.NewB ICoroutine : (construct B))"
+			"(method B.Run -> :"
+			"	(yield 0)"
+			"	(Int32 x)"
+			"	(global hits -> x)"
+			"	(x += 1)"
+			"	(global hits <- x)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine a (NewA))"
+			"	(ICoroutine b (NewB))"
+			"	(coroutines.Add a)"
+			"	(coroutines.Add b)"
+			"	(while (coroutines.Continue > 0))"
+			"	(global hits -> result)"
+			")";
+		validate(RunScriptMain(ss, srcCode) == 2);
+	}
+
 	void TestTypenames(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
@@ -19532,6 +19932,16 @@ R"(
 
 		TEST(TestEssentialInterface);
 		TEST2(TestCoroutine1);
+		TEST2(TestCoroutineCompleteOne);
+		TEST2(TestCoroutineCompleteLastWhileDormant);
+		TEST2(TestCoroutineReleaseAllThenContinue);
+		TEST2(TestCoroutineThrowInRun);
+		TEST2(TestCoroutineReleaseDormantNoLeak);
+		TEST2(TestCoroutineAddDuringRun);
+		TEST2(TestCoroutineReleaseSelfDuringRun);
+		TEST2(TestCoroutineReleaseAllDuringRun);
+		TEST2(TestCoroutineNestedContinue);
+		TEST2(TestCoroutineYieldZero);
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
 		TEST(TestRock);

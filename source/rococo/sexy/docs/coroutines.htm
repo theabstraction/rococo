@@ -42,8 +42,8 @@ table, th, td {
 	
 	Using ICoroutineControl one would call <b>(control.Continue)</b> to give each coroutine a slice of execution. 
 	<b>(control.Continue)</b> returns the id of the last coroutine that yielded since the method was called. If it 
-	returns zero, it means all routines are in a yielded state and waiting for a future time to wake up. If it returns a 
-	negative value, no coroutines are awaiting a time slice.  Generally each cycle of a user-interface loop in a script that 
+	returns zero, no coroutines remain (the queue is empty). If it returns a 
+	negative value, all remaining coroutines are dormant and waiting for a future time to wake up.  Generally each cycle of a user-interface loop in a script that 
 	calls coroutines should spin until the result is zero or negative:
 	
 	<pre><code>

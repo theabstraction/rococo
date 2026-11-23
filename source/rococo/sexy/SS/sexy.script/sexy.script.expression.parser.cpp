@@ -3210,6 +3210,13 @@ namespace Rococo
 						AddSymbol(ce.Builder, "yield %lld us", waitPeriod.int64Value);
 						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, waitPeriod, BITCOUNT_64);
 					}
+					else if (waitPeriod.int64Value == 0)
+					{
+						// (yield 0) is an immediate cooperative yield, same as bare (yield).
+						AddSymbol(ce.Builder, "yield 0");
+						ce.Builder.Assembler().Append_Yield();
+						return;
+					}
 					else
 					{
 						Throw(s, "yield: negative yield period!");
