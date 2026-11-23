@@ -932,6 +932,10 @@ namespace Rococo::Script
 					Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 				}
 			}
+			else if (TryCompileEnumLiteralToRegister(ce, value, elementType, VM::REGISTER_D7))
+			{
+				// .Friday etc. now in D7
+			}
 			else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
 			{
 				Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
@@ -998,6 +1002,10 @@ namespace Rococo::Script
 				{
 					Throw(value, "Could not evaluate the expression as type %s", GetTypeName(elementType.VarType()));
 				}
+			}
+			else if (TryCompileEnumLiteralToRegister(ce, value, elementType, VM::REGISTER_D7))
+			{
+				// .Friday etc. now in D7
 			}
 			else if (!TryCompileArithmeticExpression(ce, value, true, elementType.VarType()))
 			{

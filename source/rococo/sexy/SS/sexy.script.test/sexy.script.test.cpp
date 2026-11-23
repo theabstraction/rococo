@@ -4167,6 +4167,197 @@ R"((namespace EntryPoint)
 		validate(x == 5);
 	}
 
+	void TestConstants6(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(array Day days 5)
+				(days.Push 1)
+				(days.Set 0 .Friday)
+				(result = (days 0))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestConstants7(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(list Day a)
+				(a.Append .Friday)
+				(node na = a.Head)
+
+				(list Day b)
+				(b.Prepend .Monday)
+				(node nb = b.Head)
+
+				(list Day c)
+				(c.Append .Monday)
+				(c.Append .Friday)
+				(node hc = c.Head)
+				(hc.Append .Wednesday)
+				(node mid = hc.Next)
+
+				(Int32 va = na.Value)
+				(Int32 vb = nb.Value)
+				(Int32 vm = mid.Value)
+				(result = ((va + (vb * 10)) + (vm * 100)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 315);
+	}
+
+	void TestConstants8(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(map Int32 Day mv)
+				(mv.Insert 45 .Friday)
+				(node nv = (mv 45))
+
+				(map Day Int32 mk)
+				(mk.Insert .Friday 7)
+				(node nk = (mk .Friday))
+
+				(Int32 vv = nv.Value)
+				(Int32 vk = nk.Value)
+				(result = (vv + (vk * 10)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 75);
+	}
+
+	void TestConstants9(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong BigDay (Int64))
+
+			(alias BigDay Sys.Type.BigDay)
+
+			(enum Sys.Type.BigDay
+				(Monday 1)
+				(Huge 4294967297)
+			)
+
+			(function Main -> (Int32 result):
+				(array BigDay days 5)
+				(days.Push .Monday)
+				(days.Set 0 .Huge)
+				(BigDay d = (days 0))
+
+				(list BigDay lst)
+				(lst.Append .Huge)
+				(node n = lst.Head)
+
+				(map Int32 BigDay mv)
+				(mv.Insert 1 .Huge)
+				(node nv = (mv 1))
+
+				(map BigDay Int32 mk)
+				(mk.Insert .Huge 2)
+				(node nk = (mk .Huge))
+
+				(Int64 huge = 4294967297)
+				(Int64 vd = d.Value)
+				(Int64 vn = n.Value)
+				(Int64 vnv = nv.Value)
+				(Int32 vk = nk.Value)
+				(Int32 ok = 0)
+				(if (vd == huge) (ok += 1))
+				(if (vn == huge) (ok += 1))
+				(if (vnv == huge) (ok += 1))
+				(if (vk == 2) (ok += 1))
+				(result = ok)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 4);
+	}
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -19350,6 +19541,10 @@ R"(
 		TEST(TestConstants3);
 		TEST(TestConstants4);
 		TEST(TestConstants5);
+		TEST(TestConstants6);
+		TEST(TestConstants7);
+		TEST(TestConstants8);
+		TEST(TestConstants9);
 
 		TEST(TestEnumByCPP);
 

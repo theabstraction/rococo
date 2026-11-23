@@ -739,6 +739,36 @@ namespace Rococo
 			return true;
 		}
 
+		// Leading-dot enum constant, e.g. .Friday, resolved against 'type' and loaded into targetReg.
+		// Returns false when the token is not a leading-dot constant on a strong type, so callers can
+		// fall through to the existing literal/variable path. Throws if the name is not an enum of 'type'.
+		// The value is written as 64 bits so Int64 constants above 2^32 are preserved.
+		bool TryCompileEnumLiteralToRegister(CCompileEnvironment& ce, cr_sex value, const IStructure& type, VM::DINDEX targetReg)
+		{
+			if (!IsAtomic(value))
+			{
+				return false;
+			}
+
+			cstr valtext = value.c_str();
+			if (*valtext != '.' || !type.IsStrongType())
+			{
+				return false;
+			}
+
+			cstr enumKey = valtext + 1;
+
+			VariantValue v;
+			if (!type.TryGetEnumValue(enumKey, OUT v.int64Value))
+			{
+				Throw(value, "Unrecognized enum %s for %s", enumKey, GetFriendlyName(type));
+			}
+
+			ce.Builder.Assembler().Append_SetRegisterImmediate(targetReg, v, BITCOUNT_64);
+			AddSymbol(ce.Builder, "enum %s = %lld / 0x%llX", enumKey, v.int64Value, v.int64Value);
+			return true;
+		}
+
 		bool TryCompilePushStructRef(CCompileEnvironment& ce, cr_sex s, bool expectingStructRef, const IStructure& inputType, cstr name, const IStructure* genericArg1)
 		{
 			// TODO refactor all of this, its old and ugly

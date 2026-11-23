@@ -979,6 +979,11 @@ namespace Rococo::Script
 					}
 				}
 
+				if (TryCompileEnumLiteralToRegister(ce, keyExpr, mapDef.KeyType, (VM::DINDEX) targetRegister))
+				{
+					return;
+				}
+
 				CompileNumericExpression(ce, keyExpr, keyVarType); // D7 now contains the key
 				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, targetRegister, GetBitCount(keyVarType));
 			}
@@ -1068,7 +1073,10 @@ namespace Rococo::Script
 			cr_sex valueExpr = s.GetElement(2);
 			cstr value = valueExpr.c_str();
 			UNUSED(value);
-			CompileNumericExpression(ce, valueExpr, def.ValueType.VarType()); // value goes to D7
+			if (!TryCompileEnumLiteralToRegister(ce, valueExpr, def.ValueType, VM::REGISTER_D7))
+			{
+				CompileNumericExpression(ce, valueExpr, def.ValueType.VarType()); // value goes to D7
+			}
 			ce.Builder.AssignVariableToRegister(mapName, VM::REGISTER_D4); // map ref goes to D4
 			AppendInvoke(ce, GetMemberSize(def.ValueType) == 4 ? GetMapCallbacks(ce).MapInsert32 : GetMapCallbacks(ce).MapInsert64, s);
 		}
