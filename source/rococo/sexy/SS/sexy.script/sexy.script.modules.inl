@@ -3614,11 +3614,6 @@ namespace Rococo::Script
 		cstr body, tail;
 		INamespaceBuilder& ns = ValidateSplitTail(REF splitter, OUT body, OUT tail, IN nameExpr, IN programObject, IN module);
 
-		if (strstr(body, "IECS") != nullptr)
-		{
-			OS::TripDebugger();
-		}
-
 		AssertValidInterfaceName(nameExpr, tail);
 
 		IInterfaceBuilder* current_interf = ns.FindInterface(tail);

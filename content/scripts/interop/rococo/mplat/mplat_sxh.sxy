@@ -203,7 +203,7 @@
 
 	(SetSpectrum (const Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) -> )
 
-	(AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Rococo.ROID id) -> )
+	(AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Rococo.RGBAb colour)(Rococo.ROID id) -> )
 
 	(AddVerticalFlame (const Rococo.FlameDef flameDef)(Rococo.ROID id) -> )
 
@@ -217,7 +217,7 @@
 	(method ProxyIParticleSystem.ApplySpectrum (Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemApplySpectrum this.hObject id))
 	(method ProxyIParticleSystem.ClearSpectrum  ->  : (Rococo.Entities.Native.IParticleSystemClearSpectrum this.hObject ))
 	(method ProxyIParticleSystem.SetSpectrum (const Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) ->  : (Rococo.Entities.Native.IParticleSystemSetSpectrum this.hObject colour relativeLifeTime))
-	(method ProxyIParticleSystem.AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemAddDust this.hObject particles meanParticleSize range minHeight maxHeight colour id))
+	(method ProxyIParticleSystem.AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Rococo.RGBAb colour)(Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemAddDust this.hObject particles meanParticleSize range minHeight maxHeight colour id))
 	(method ProxyIParticleSystem.AddVerticalFlame (const Rococo.FlameDef flameDef)(Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemAddVerticalFlame this.hObject flameDef id))
 	(method ProxyIParticleSystem.Clear  ->  : (Rococo.Entities.Native.IParticleSystemClear this.hObject ))
 	(method ProxyIParticleSystem.Snuff (Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemSnuff this.hObject id))
@@ -625,7 +625,7 @@
 
 	(SplitThreeRows (const Rococo.MaterialVertexData r1)(const Rococo.MaterialVertexData r2)(const Rococo.MaterialVertexData r3)(Float32 y0)(Float32 y1) -> )
 
-	(SplitAcrossTangent (Float32 v)(Int32 topColour)(Int32 middleColour)(Int32 lowColour)(const Rococo.MaterialVertexData topMat)(const Rococo.MaterialVertexData bottomMat) -> )
+	(SplitAcrossTangent (Float32 v)(Rococo.RGBAb topColour)(Rococo.RGBAb middleColour)(Rococo.RGBAb lowColour)(const Rococo.MaterialVertexData topMat)(const Rococo.MaterialVertexData bottomMat) -> )
 
 	(TileMosaic (const Rococo.MaterialVertexData a)(const Rococo.MaterialVertexData b)(const Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) -> )
 
@@ -656,7 +656,7 @@
 	(method ProxyIQuadStackTesselator.Shrink (const Sys.Maths.Rectf rect) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorShrink this.hObject rect))
 	(method ProxyIQuadStackTesselator.SplitThreeColumns (const Rococo.MaterialVertexData c1)(const Rococo.MaterialVertexData c2)(const Rococo.MaterialVertexData c3)(Float32 x0)(Float32 x1) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorSplitThreeColumns this.hObject c1 c2 c3 x0 x1))
 	(method ProxyIQuadStackTesselator.SplitThreeRows (const Rococo.MaterialVertexData r1)(const Rococo.MaterialVertexData r2)(const Rococo.MaterialVertexData r3)(Float32 y0)(Float32 y1) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorSplitThreeRows this.hObject r1 r2 r3 y0 y1))
-	(method ProxyIQuadStackTesselator.SplitAcrossTangent (Float32 v)(Int32 topColour)(Int32 middleColour)(Int32 lowColour)(const Rococo.MaterialVertexData topMat)(const Rococo.MaterialVertexData bottomMat) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorSplitAcrossTangent this.hObject v topColour middleColour lowColour topMat bottomMat))
+	(method ProxyIQuadStackTesselator.SplitAcrossTangent (Float32 v)(Rococo.RGBAb topColour)(Rococo.RGBAb middleColour)(Rococo.RGBAb lowColour)(const Rococo.MaterialVertexData topMat)(const Rococo.MaterialVertexData bottomMat) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorSplitAcrossTangent this.hObject v topColour middleColour lowColour topMat bottomMat))
 	(method ProxyIQuadStackTesselator.TileMosaic (const Rococo.MaterialVertexData a)(const Rococo.MaterialVertexData b)(const Sys.Maths.Rectf uvRect)(Sys.SI.Metres roughSize) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorTileMosaic this.hObject a b uvRect roughSize))
 	(method ProxyIQuadStackTesselator.Translate (const Sys.Maths.Vec3 v) ->  : (Rococo.Graphics.Native.IQuadStackTesselatorTranslate this.hObject v))
 
@@ -800,9 +800,9 @@
 
 
 (interface Rococo.Graphics.ITextTesselator
-	(AddBlankQuad (const Sys.Maths.Quadf positions)(Int32 paperColour) -> )
+	(AddBlankQuad (const Sys.Maths.Quadf positions)(Rococo.RGBAb paperColour) -> )
 
-	(AddLeftAlignedText (Int32 colour)(Sys.Type.IString text) -> )
+	(AddLeftAlignedText (Rococo.RGBAb colour)(Sys.Type.IString text) -> )
 
 	(Clear  -> )
 
@@ -819,8 +819,8 @@
 
 (class ProxyITextTesselator (implements Rococo.Graphics.ITextTesselator) (Pointer hObject) (attribute not-serialized))
 	(method ProxyITextTesselator.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyITextTesselator.AddBlankQuad (const Sys.Maths.Quadf positions)(Int32 paperColour) ->  : (Rococo.Graphics.Native.ITextTesselatorAddBlankQuad this.hObject positions paperColour))
-	(method ProxyITextTesselator.AddLeftAlignedText (Int32 colour)(Sys.Type.IString text) ->  : (Rococo.Graphics.Native.ITextTesselatorAddLeftAlignedText this.hObject colour text))
+	(method ProxyITextTesselator.AddBlankQuad (const Sys.Maths.Quadf positions)(Rococo.RGBAb paperColour) ->  : (Rococo.Graphics.Native.ITextTesselatorAddBlankQuad this.hObject positions paperColour))
+	(method ProxyITextTesselator.AddLeftAlignedText (Rococo.RGBAb colour)(Sys.Type.IString text) ->  : (Rococo.Graphics.Native.ITextTesselatorAddLeftAlignedText this.hObject colour text))
 	(method ProxyITextTesselator.Clear  ->  : (Rococo.Graphics.Native.ITextTesselatorClear this.hObject ))
 	(method ProxyITextTesselator.SaveMesh (Sys.Type.IString meshName) ->  : (Rococo.Graphics.Native.ITextTesselatorSaveMesh this.hObject meshName))
 	(method ProxyITextTesselator.SetUVScale (Float32 scaleFactor) ->  : (Rococo.Graphics.Native.ITextTesselatorSetUVScale this.hObject scaleFactor))
@@ -835,13 +835,13 @@
 
 
 (interface Rococo.Graphics.IHQFonts
-	(BindFont (Rococo.HQFontDef fontDef)(const Sys.Type.IString fontFamily) -> (Int32 fontId))
+	(BindFont (Rococo.HQFontDef fontDef)(const Sys.Type.IString fontFamily) -> (Rococo.IdFont fontId))
 
-	(Build (Int32 font) -> )
+	(Build (Rococo.EHQFont font) -> )
 
 	(Clear  -> )
 
-	(GetHeight (Int32 font) -> (Int32 pixelHeight))
+	(GetHeight (Rococo.IdFont font) -> (Int32 pixelHeight))
 
 	(SetFaceName (Sys.Type.IString name) -> )
 
@@ -857,17 +857,17 @@
 
 	(AddRange (Int32 unicodeStarChar)(Int32 unicodeEndChar) -> )
 
-	(Commit  -> (Int32 sysFontId))
+	(Commit  -> (Rococo.IdFont sysFontId))
 
 	(SetZoomLevel (Float32 zoomLevel) -> )
 )
 
 (class ProxyIHQFonts (implements Rococo.Graphics.IHQFonts) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIHQFonts.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIHQFonts.BindFont (Rococo.HQFontDef fontDef)(const Sys.Type.IString fontFamily) -> (Int32 fontId) : (Rococo.Graphics.Native.IHQFontsBindFont this.hObject fontDef fontFamily -> fontId))
-	(method ProxyIHQFonts.Build (Int32 font) ->  : (Rococo.Graphics.Native.IHQFontsBuild this.hObject font))
+	(method ProxyIHQFonts.BindFont (Rococo.HQFontDef fontDef)(const Sys.Type.IString fontFamily) -> (Rococo.IdFont fontId) : (Rococo.Graphics.Native.IHQFontsBindFont this.hObject fontDef fontFamily -> fontId))
+	(method ProxyIHQFonts.Build (Rococo.EHQFont font) ->  : (Rococo.Graphics.Native.IHQFontsBuild this.hObject font))
 	(method ProxyIHQFonts.Clear  ->  : (Rococo.Graphics.Native.IHQFontsClear this.hObject ))
-	(method ProxyIHQFonts.GetHeight (Int32 font) -> (Int32 pixelHeight) : (Rococo.Graphics.Native.IHQFontsGetHeight this.hObject font -> pixelHeight))
+	(method ProxyIHQFonts.GetHeight (Rococo.IdFont font) -> (Int32 pixelHeight) : (Rococo.Graphics.Native.IHQFontsGetHeight this.hObject font -> pixelHeight))
 	(method ProxyIHQFonts.SetFaceName (Sys.Type.IString name) ->  : (Rococo.Graphics.Native.IHQFontsSetFaceName this.hObject name))
 	(method ProxyIHQFonts.SetHeight (Int32 dyPixels) ->  : (Rococo.Graphics.Native.IHQFontsSetHeight this.hObject dyPixels))
 	(method ProxyIHQFonts.MakeItalics  ->  : (Rococo.Graphics.Native.IHQFontsMakeItalics this.hObject ))
@@ -875,7 +875,7 @@
 	(method ProxyIHQFonts.AddUnicode32Char (Int32 unicodeValue) ->  : (Rococo.Graphics.Native.IHQFontsAddUnicode32Char this.hObject unicodeValue))
 	(method ProxyIHQFonts.AddCharacters (Sys.Type.IString s) ->  : (Rococo.Graphics.Native.IHQFontsAddCharacters this.hObject s))
 	(method ProxyIHQFonts.AddRange (Int32 unicodeStarChar)(Int32 unicodeEndChar) ->  : (Rococo.Graphics.Native.IHQFontsAddRange this.hObject unicodeStarChar unicodeEndChar))
-	(method ProxyIHQFonts.Commit  -> (Int32 sysFontId) : (Rococo.Graphics.Native.IHQFontsCommit this.hObject  -> sysFontId))
+	(method ProxyIHQFonts.Commit  -> (Rococo.IdFont sysFontId) : (Rococo.Graphics.Native.IHQFontsCommit this.hObject  -> sysFontId))
 	(method ProxyIHQFonts.SetZoomLevel (Float32 zoomLevel) ->  : (Rococo.Graphics.Native.IHQFontsSetZoomLevel this.hObject zoomLevel))
 
 (factory Rococo.Graphics.HQFonts Rococo.Graphics.IHQFonts  :

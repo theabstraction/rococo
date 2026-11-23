@@ -161,8 +161,6 @@
 
 (archetype MPlat.OnFileName (IString filename) -> )
 
-(alias Sys.Type.Float32 Rococo.Graphics.MaterialId)
-
 (struct FontMetrics
 	(Int32 ascent)
 	(Int32 descent)
@@ -243,13 +241,11 @@
 (strong SampleMethod        (Int32))
 (strong SampleFilter        (Int32))
 (strong SampleIndex     	(Int32))
-(strong ELegacySoundShape   (Int32))
 
 (alias RGBAb Rococo.RGBAb)
 (alias IdFont Rococo.IdFont)
 (alias EHQFont Rococo.EHQFont)
 (alias IdMesh Rococo.IdMesh)
-(alias IdEntity Rococo.IdEntity)
 (alias IdSysMesh Rococo.IdSysMesh)
 (alias IdCubeTexture Rococo.IdCubeTexture)
 (alias IdSkeleton Rococo.IdSkeleton)
@@ -260,5 +256,4 @@
 (alias SampleMethod Rococo.SampleMethod)
 (alias SampleFilter Rococo.SampleFilter)
 (alias SampleIndex Rococo.SampleIndex)
-(alias ELegacySoundShape Rococo.ELegacySoundShape)
 (alias Sys.Type.ROID Rococo.ROID)
