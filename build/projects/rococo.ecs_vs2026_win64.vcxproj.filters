@@ -9,9 +9,6 @@
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h">
       <Filter>include\components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -21,6 +18,11 @@
     <ClInclude Include="..\..\source\rococo\rococo.ecs\code-gen\ecs_declarations.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\rococo.ecs\code-gen\ecs.sxh">
+      <Filter>code-gen</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

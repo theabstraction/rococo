@@ -49,7 +49,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.component.configuration\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.component.configuration.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -60,7 +59,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.component.configuration\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.component.configuration.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -142,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.ecs.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.ecs.lib;rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -150,9 +148,6 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.component.configuration.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.configuration.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -231,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.ecs.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.ecs.lib;rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -239,16 +234,24 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.component.configuration.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.configuration.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\component.modules\configuration\code-gen\config.sxh" />
     <ClInclude Include="..\..\source\rococo\component.modules\configuration\code-gen\config.sxh.h" />
     <ClInclude Include="..\..\source\rococo\component.modules\configuration\code-gen\config.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\component.modules\configuration\code-gen\config_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\component.modules\configuration\code-gen\config.sxh">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">BennyHill: generating C++ and SXY code from config.sxh with ..\..\..\config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\component.modules\configuration\code-gen\ ..\..\content\scripts\interop\rococo\components\ config.sxh ..\..\source\rococo\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\source\rococo\component.modules\configuration\code-gen\config.sxh.inl</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">BennyHill: generating C++ and SXY code from config.sxh with ..\..\..\config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\component.modules\configuration\code-gen\ ..\..\content\scripts\interop\rococo\components\ config.sxh ..\..\source\rococo\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\source\rococo\component.modules\configuration\code-gen\config.sxh.inl</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\component.modules\configuration\configuration.component.cpp" />
@@ -265,6 +268,11 @@
     </ProjectReference>
     <ProjectReference Include="sexy.util_vs2026_win64.vcxproj">
       <Project>{21752CDC-A457-2526-8B4B-8B0D4AC48CF2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.sexml_vs2026_win64.vcxproj">
+      <Project>{48E7450E-FF4C-BDE0-57F0-23A8BF6B99F8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

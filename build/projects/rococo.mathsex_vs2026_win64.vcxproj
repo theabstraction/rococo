@@ -49,7 +49,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mathsex\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mathsex.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -60,7 +59,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mathsex\</IntDir>
     <TargetExt>.dll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mathsex.dll</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -142,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.maths.lib;rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -150,9 +148,6 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mathsex.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.mathsex.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mathsex\code-gen rococo\mplat Mathsex.sxh config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -231,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.maths.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.maths.lib;rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -239,13 +234,9 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mathsex.map</MapFileName>
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.mathsex.lib</ImportLibrary>
     </Link>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mathsex\code-gen rococo\mplat Mathsex.sxh config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml" />
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex_declarations.sxh.h" />
@@ -254,6 +245,18 @@
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.time.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">BennyHill: generating C++ and SXY code from Mathsex.sxh with config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\rococo.mathsex\code-gen\ ..\..\content\scripts\interop\rococo\mplat\ Mathsex.sxh ..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh.inl</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">BennyHill: generating C++ and SXY code from Mathsex.sxh with config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\rococo.mathsex\code-gen\ ..\..\content\scripts\interop\rococo\mplat\ Mathsex.sxh ..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh.inl</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.mathsex\dllmain.cpp" />
@@ -270,6 +273,11 @@
     </ProjectReference>
     <ProjectReference Include="sexy.util_vs2026_win64.vcxproj">
       <Project>{21752CDC-A457-2526-8B4B-8B0D4AC48CF2}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.sexml_vs2026_win64.vcxproj">
+      <Project>{48E7450E-FF4C-BDE0-57F0-23A8BF6B99F8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

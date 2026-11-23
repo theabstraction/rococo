@@ -261,3 +261,4 @@
 (alias SampleFilter Rococo.SampleFilter)
 (alias SampleIndex Rococo.SampleIndex)
 (alias ELegacySoundShape Rococo.ELegacySoundShape)
+(alias Sys.Type.ROID Rococo.ROID)

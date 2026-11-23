@@ -293,7 +293,7 @@
 
 	(Container  -> (Rococo.GUI.IPaneContainer container))
 
-	(SetLayoutAlgorithm (Int32 layout) -> )
+	(SetLayoutAlgorithm (Rococo.LayoutId layout) -> )
 
 	(SetMinMaxSpan (Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY) -> )
 
@@ -335,7 +335,7 @@
 	(method ProxyIFramePane.AddEnumList (Int32 fontIndex)(Sys.Type.IString populateEvent)(const Sys.Maths.Recti rect) -> (Rococo.GUI.IEnumListPane enumList) : (Rococo.GUI.Native.IFramePaneAddEnumList this.hObject fontIndex populateEvent rect -> enumList))
 	(method ProxyIFramePane.GetChildRect (out Sys.Maths.Recti rect) ->  : (Rococo.GUI.Native.IFramePaneGetChildRect this.hObject rect))
 	(method ProxyIFramePane.Container  -> (Rococo.GUI.IPaneContainer container) : (Rococo.GUI.Native.IFramePaneContainer this.hObject  -> container))
-	(method ProxyIFramePane.SetLayoutAlgorithm (Int32 layout) ->  : (Rococo.GUI.Native.IFramePaneSetLayoutAlgorithm this.hObject layout))
+	(method ProxyIFramePane.SetLayoutAlgorithm (Rococo.LayoutId layout) ->  : (Rococo.GUI.Native.IFramePaneSetLayoutAlgorithm this.hObject layout))
 	(method ProxyIFramePane.SetMinMaxSpan (Int32 minDX)(Int32 minDY)(Int32 maxDX)(Int32 maxDY) ->  : (Rococo.GUI.Native.IFramePaneSetMinMaxSpan this.hObject minDX minDY maxDX maxDY))
 	(method ProxyIFramePane.SetCaption (Sys.Type.IString caption) ->  : (Rococo.GUI.Native.IFramePaneSetCaption this.hObject caption))
 	(method ProxyIFramePane.SetCaptionEvent (Sys.Type.IString eventId) ->  : (Rococo.GUI.Native.IFramePaneSetCaptionEvent this.hObject eventId))

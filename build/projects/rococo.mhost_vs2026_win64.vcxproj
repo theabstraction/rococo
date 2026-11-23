@@ -49,7 +49,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mhost\</IntDir>
     <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -60,7 +59,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mhost\</IntDir>
     <TargetExt>.exe</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\bin\win64\$(configuration)\rococo.mhost.exe</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -149,9 +147,6 @@
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -237,19 +232,27 @@
       <LargeAddressAware>true</LargeAddressAware>
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml" />
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost_declarations.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">BennyHill: generating C++ and SXY code from mhost.sxh with config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\rococo.mhost\code-gen\ ..\..\content\ mhost.sxh ..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">BennyHill: generating C++ and SXY code from mhost.sxh with config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\rococo.mhost\code-gen\ ..\..\content\ mhost.sxh ..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.app.cpp" />

@@ -144,7 +144,7 @@
 	(source.dopplerVelocity = 0 0 0)
 		
 	(IMaterialBuilder matBuilder (MaterialBuilder))
-	(Int64 cubeId = (matBuilder.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
+	(IdCubeTexture cubeId = (matBuilder.CreateCubeTexture "!textures/t3d/skybox/YokohamaSmall/" "jpg"))
 	(scene.SetSkyBox cubeId)
 	(scene.SetEnvironmentMap cubeId)
 

@@ -5,9 +5,6 @@
     <ClCompile Include="..\..\source\rococo\component.modules\body\body.scripts.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -20,6 +17,11 @@
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h">
       <Filter>include\components</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\component.modules\body\code-gen\body.sxh">
+      <Filter>code-gen</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

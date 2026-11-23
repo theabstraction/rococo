@@ -211,9 +211,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -228,6 +225,11 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh">
+      <Filter>code-gen</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

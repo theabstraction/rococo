@@ -1,6 +1,6 @@
 (struct TriangleScan
-	(Int64 id)
-	(Int64 idMesh)
+	(Rococo.ROID id)
+	(Rococo.IdSysMesh idMesh)
 	(Sys.Maths.Triangle t)
 )
 (alias TriangleScan Rococo.TriangleScan)

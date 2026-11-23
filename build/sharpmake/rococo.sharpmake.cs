@@ -165,6 +165,15 @@ namespace Rococo
             }
         }
 
+        // Adds a step that runs BennyHill on an sxh file to generate C++ and SXY code.
+        //   sxh:                         the sxh file, relative to SourceRootPath\projectRelativeToSourceRoot
+        //   xc:                          BennyHill's config (config.xc.sexml, or a legacy config.xc), relative to the same directory as the sxh
+        //   sxyInteropSubDir:            where the generated sxy goes, relative to content\scripts\interop\
+        //   asPreBuildStep:              true  - legacy: a pre-build event runs build\tools\rococo.sxh.bat, which runs nmake on build\tools\rococo.sxh.mak.
+        //                                        Visual Studio's fast up-to-date check does not know about the xc file, so editing only the xc skips the build and the event never runs.
+        //                                false - a CustomBuild item on the sxh file, with the xc file (and sexy.bennyhill.exe) as AdditionalInputs and the sxh.inl as Outputs.
+        //                                        MSBuild then reruns BennyHill on a normal build (F7) whenever the sxh, the xc or BennyHill itself is newer than the sxh.inl
+        //   projectRelativeToSourceRoot: the directory of the sxh file, relative to SourceRootPath
         public void AddSXHFileBuildStep(Configuration conf, Target target, string sxh, string xc, string sxyInteropSubDir, bool asPreBuildStep, string projectRelativeToSourceRoot = "")
         {
             conf.AddPrivateDependency<SexyBennyHillProject>(target);
@@ -192,22 +201,50 @@ namespace Rococo
             }
             else
             {
-                string srcRelative = Roots.GetRelativeToProject(SourceRootPath);
-                string contentRelative = Roots.GetRelativeToProject(Roots.RococoContentPath);
+                // The same command line as rococo.sxh.mak:
+                //     sexy.bennyhill.exe <sxh-dir>\ <content>\scripts\interop\<sxyInteropSubDir>\ <sxh> <sxh-dir>\<xc>
+                // MSBuild runs custom build steps in the project directory (build\projects\) rather than the rococo root, so the paths are relative to the project.
+                string sxhDir = Path.Combine(SourceRootPath, projectRelativeToSourceRoot);
+                string sxhDirRelative = WithTrailingSlash(Roots.GetRelativeToProject(sxhDir));
+                string interopDirRelative = WithTrailingSlash(Roots.GetRelativeToProject(Path.Combine(Roots.RococoContentPath, @"scripts\interop\", sxyInteropSubDir)));
+                string xcPath = Path.Combine(sxhDir, xc);
+                string xcRelative = Roots.GetRelativeToProject(xcPath);
 
-                string[] args = new[] { srcRelative, contentRelative, sxh };
+                // Same exe as BENNY_HILL in rococo.sxh.mak. Not $(OutDir), because the OutDir of a static lib project (e.g. rococo.mplat) is gen\lib\..., not gen\bin\...
+                string bennyHill = Path.Combine(Roots.RococoBinPath, target.Platform.ToString(), @"$(Configuration)\sexy.bennyhill.exe");
+
+                // Sharpmake only emits a CustomBuild item for a KeyInput that is one of the project's files, otherwise it silently drops the step.
+                // SourceFiles is read-only during configuration, so the project constructor must add the sxh file, e.g. SourceFiles.Add(@"code-gen\ecs.sxh")
+                string sxhSourceFile = projectRelativeToSourceRoot.Length == 0 ? sxh : projectRelativeToSourceRoot.TrimEnd('\\') + @"\" + sxh;
+                if (!SourceFiles.Contains(sxhSourceFile))
+                {
+                    throw new Exception("Expecting " + sxhSourceFile + " to be added to the SourceFiles of " + Name + " in its constructor, otherwise Sharpmake drops the custom build step for it");
+                }
 
                 var customStep = new Configuration.CustomFileBuildStep
                 {
-                    KeyInput = sxh,
-                    Output = sxh + ".inl",
-                    Description = "Generates C++ and SXY code from the " + sxh + " file",
-                    Executable = @"$(OutDir)sexy.bennyhill.exe",
-                    ExecutableArguments = string.Format("{0} {1} {2}", srcRelative, contentRelative, sxh)
+                    KeyInput = Path.Combine(sxhDir, sxh),
+                    Output = Path.Combine(sxhDir, sxh + ".inl"), // BennyHill deletes and rewrites this on every run, so it is always newer than the inputs after a successful run
+                    Description = "BennyHill: generating C++ and SXY code from " + sxh + " with " + xc,
+                    Executable = bennyHill,
+                    ExecutableArguments = string.Format("{0} {1} {2} {3}", sxhDirRelative, interopDirRelative, sxh, xcRelative)
                 };
+
+                // Sharpmake also adds the Executable to the AdditionalInputs, so a rebuilt sexy.bennyhill.exe regenerates the code too
+                customStep.AdditionalInputs.Add(xcPath);
 
                 conf.CustomFileBuildSteps.Add(customStep);
             }
+        }
+
+        private static string WithTrailingSlash(string path)
+        {
+            if (path.EndsWith(@"\") || path.EndsWith("/"))
+            {
+                return path;
+            }
+
+            return path + Path.DirectorySeparatorChar;
         }
     }
 
@@ -605,7 +642,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc.sexml", @"rococo\components", false, @"code-gen");
         }
     }
 
@@ -667,7 +704,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.SolutionFolder = "ECS";
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
-            AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", false, @"code-gen");
         }
     }
 
@@ -688,7 +725,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
-            AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", false, @"code-gen");
         }
     }
 
@@ -709,7 +746,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", false, @"code-gen");
         }
     }
 
@@ -730,7 +767,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", false, @"code-gen");
         }
     }
 
@@ -1115,7 +1152,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
-            AddSXHFileBuildStep(conf, target, @"Mathsex.sxh", @"config.xc.sexml", @"rococo\mplat", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"Mathsex.sxh", @"config.xc.sexml", @"rococo\mplat", false, @"code-gen");
         }
     }
 
@@ -1308,7 +1345,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
             conf.Defines.Add("SEXYIDE_API=");
-            AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc.sexml", @"rococo\mplat", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc.sexml", @"rococo\mplat", false, @"code-gen");
         }
     }
 
@@ -1368,7 +1405,7 @@ namespace Rococo
 
             // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\
             // We go back 2 directories which takes us to the content root, which is what mhost is set up for
-            AddSXHFileBuildStep(conf, target, @"mhost.sxh", @"config.xc.sexml", @"..\..\", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"mhost.sxh", @"config.xc.sexml", @"..\..\", false, @"code-gen");
         }
     }
 
@@ -1684,7 +1721,7 @@ namespace Rococo
             conf.AddPublicDependency<VorbisFileProject>(target);
             conf.IncludePaths.Add(@"..\..\3rd-party\libvorbis\include\");
             conf.IncludePaths.Add(@"..\..\3rd-party\libogg\include\");
-            AddSXHFileBuildStep(conf, target, "Audio.sxh", "config.xc.sexml", @"rococo\audio", true);
+            AddSXHFileBuildStep(conf, target, "Audio.sxh", "config.xc.sexml", @"rococo\audio", false);
         }
     }
 
@@ -1985,7 +2022,7 @@ namespace Rococo
             conf.SolutionFolder = " - Sexy";
 
             // We dont need the sxy file, as a copy is embedded in Sys.Types.sxy. So dump to the temp folder
-            AddSXHFileBuildStep(conf, target, "coroutines.sxh", "config.xc.sexml", @"..\..\..\gen\temp", true);
+            AddSXHFileBuildStep(conf, target, "coroutines.sxh", "config.xc.sexml", @"..\..\..\gen\temp", false);
         }
     }
 

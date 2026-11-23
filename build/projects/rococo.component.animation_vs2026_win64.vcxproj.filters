@@ -6,9 +6,6 @@
     <ClCompile Include="..\..\source\rococo\component.modules\animation\animation.scripts.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -21,6 +18,11 @@
     <ClInclude Include="..\..\source\rococo\include\components\rococo.ecs.h">
       <Filter>include\components</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\component.modules\animation\code-gen\animation.sxh">
+      <Filter>code-gen</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

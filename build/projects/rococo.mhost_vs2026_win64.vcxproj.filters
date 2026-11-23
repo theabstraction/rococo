@@ -12,9 +12,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -27,6 +24,11 @@
     <ClInclude Include="..\..\source\rococo\rococo.mhost\hv.script.types.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\mhost.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\Resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh">
+      <Filter>code-gen</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

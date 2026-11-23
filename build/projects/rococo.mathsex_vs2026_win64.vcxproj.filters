@@ -8,9 +8,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml">
       <Filter>code-gen</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh">
-      <Filter>code-gen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h">
       <Filter>code-gen</Filter>
     </ClInclude>
@@ -25,6 +22,11 @@
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.random.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\mathsex.time.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh">
+      <Filter>code-gen</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="code-gen">

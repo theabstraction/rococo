@@ -172,6 +172,7 @@
     <ClInclude Include="..\..\source\rococo\include\rococo.release.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.formats.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.h" />
+    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.textures.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.renderer.types.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.ringbuffer.h" />
     <ClInclude Include="..\..\source\rococo\include\rococo.rings.inl" />
@@ -238,7 +239,6 @@
     <ClInclude Include="..\..\source\rococo\include\third-party\rococo.sal.h">
       <Filter>third-party</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rococo\include\rococo.renderer.textures.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="3D">

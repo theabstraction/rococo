@@ -81,9 +81,9 @@
 
 	(SetParentOfChild (Sys.Type.IString parent)(Sys.Type.IString ofChild) -> )
 
-	(CommitToSkeleton (Sys.Type.IString name) -> (Int64 id))
+	(CommitToSkeleton (Sys.Type.IString name) -> (Rococo.IdSkeleton id))
 
-	(CommitToPose (Sys.Type.IString name) -> (Int64 id))
+	(CommitToPose (Sys.Type.IString name) -> (Rococo.IdPose id))
 )
 
 (class ProxyIRigBuilder (implements Rococo.Entities.IRigBuilder) (Pointer hObject) (attribute not-serialized))
@@ -100,8 +100,8 @@
 	(method ProxyIRigBuilder.SetQuatFromParent (Sys.Type.IString name)(const Sys.Maths.Quat quatFromParent)(Bool validateQuat) ->  : (Rococo.Entities.Native.IRigBuilderSetQuatFromParent this.hObject name quatFromParent validateQuat))
 	(method ProxyIRigBuilder.SetRotationFromParent (Sys.Type.IString name)(Sys.Maths.Degrees rX)(Sys.Maths.Degrees rY)(Sys.Maths.Degrees rZ) ->  : (Rococo.Entities.Native.IRigBuilderSetRotationFromParent this.hObject name rX rY rZ))
 	(method ProxyIRigBuilder.SetParentOfChild (Sys.Type.IString parent)(Sys.Type.IString ofChild) ->  : (Rococo.Entities.Native.IRigBuilderSetParentOfChild this.hObject parent ofChild))
-	(method ProxyIRigBuilder.CommitToSkeleton (Sys.Type.IString name) -> (Int64 id) : (Rococo.Entities.Native.IRigBuilderCommitToSkeleton this.hObject name -> id))
-	(method ProxyIRigBuilder.CommitToPose (Sys.Type.IString name) -> (Int64 id) : (Rococo.Entities.Native.IRigBuilderCommitToPose this.hObject name -> id))
+	(method ProxyIRigBuilder.CommitToSkeleton (Sys.Type.IString name) -> (Rococo.IdSkeleton id) : (Rococo.Entities.Native.IRigBuilderCommitToSkeleton this.hObject name -> id))
+	(method ProxyIRigBuilder.CommitToPose (Sys.Type.IString name) -> (Rococo.IdPose id) : (Rococo.Entities.Native.IRigBuilderCommitToPose this.hObject name -> id))
 
 (factory Rococo.Entities.RigBuilder Rococo.Entities.IRigBuilder  :
 	(Pointer pObject = (Rococo.Entities.Native.GetHandleForIRigBuilder0 ))
@@ -177,18 +177,18 @@
 
 
 (interface Rococo.Entities.IMobiles
-	(Link (Int64 id) -> )
+	(Link (Rococo.ROID id) -> )
 
-	(GetAngles (Int64 id)(out Sys.Maths.FPSAngles angles) -> )
+	(GetAngles (Rococo.ROID id)(out Sys.Maths.FPSAngles angles) -> )
 
-	(SetAngles (Int64 id)(const Sys.Maths.FPSAngles angles) -> )
+	(SetAngles (Rococo.ROID id)(const Sys.Maths.FPSAngles angles) -> )
 )
 
 (class ProxyIMobiles (implements Rococo.Entities.IMobiles) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIMobiles.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIMobiles.Link (Int64 id) ->  : (Rococo.Entities.Native.IMobilesLink this.hObject id))
-	(method ProxyIMobiles.GetAngles (Int64 id)(out Sys.Maths.FPSAngles angles) ->  : (Rococo.Entities.Native.IMobilesGetAngles this.hObject id angles))
-	(method ProxyIMobiles.SetAngles (Int64 id)(const Sys.Maths.FPSAngles angles) ->  : (Rococo.Entities.Native.IMobilesSetAngles this.hObject id angles))
+	(method ProxyIMobiles.Link (Rococo.ROID id) ->  : (Rococo.Entities.Native.IMobilesLink this.hObject id))
+	(method ProxyIMobiles.GetAngles (Rococo.ROID id)(out Sys.Maths.FPSAngles angles) ->  : (Rococo.Entities.Native.IMobilesGetAngles this.hObject id angles))
+	(method ProxyIMobiles.SetAngles (Rococo.ROID id)(const Sys.Maths.FPSAngles angles) ->  : (Rococo.Entities.Native.IMobilesSetAngles this.hObject id angles))
 
 (factory Rococo.Entities.Mobiles Rococo.Entities.IMobiles  :
 	(Pointer pObject = (Rococo.Entities.Native.GetHandleForIMobiles0 ))
@@ -197,30 +197,30 @@
 
 
 (interface Rococo.Entities.IParticleSystem
-	(ApplySpectrum (Int64 id) -> )
+	(ApplySpectrum (Rococo.ROID id) -> )
 
 	(ClearSpectrum  -> )
 
 	(SetSpectrum (const Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) -> )
 
-	(AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Int64 id) -> )
+	(AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Rococo.ROID id) -> )
 
-	(AddVerticalFlame (const Rococo.FlameDef flameDef)(Int64 id) -> )
+	(AddVerticalFlame (const Rococo.FlameDef flameDef)(Rococo.ROID id) -> )
 
 	(Clear  -> )
 
-	(Snuff (Int64 id) -> )
+	(Snuff (Rococo.ROID id) -> )
 )
 
 (class ProxyIParticleSystem (implements Rococo.Entities.IParticleSystem) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIParticleSystem.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIParticleSystem.ApplySpectrum (Int64 id) ->  : (Rococo.Entities.Native.IParticleSystemApplySpectrum this.hObject id))
+	(method ProxyIParticleSystem.ApplySpectrum (Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemApplySpectrum this.hObject id))
 	(method ProxyIParticleSystem.ClearSpectrum  ->  : (Rococo.Entities.Native.IParticleSystemClearSpectrum this.hObject ))
 	(method ProxyIParticleSystem.SetSpectrum (const Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) ->  : (Rococo.Entities.Native.IParticleSystemSetSpectrum this.hObject colour relativeLifeTime))
-	(method ProxyIParticleSystem.AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Int64 id) ->  : (Rococo.Entities.Native.IParticleSystemAddDust this.hObject particles meanParticleSize range minHeight maxHeight colour id))
-	(method ProxyIParticleSystem.AddVerticalFlame (const Rococo.FlameDef flameDef)(Int64 id) ->  : (Rococo.Entities.Native.IParticleSystemAddVerticalFlame this.hObject flameDef id))
+	(method ProxyIParticleSystem.AddDust (Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Int32 colour)(Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemAddDust this.hObject particles meanParticleSize range minHeight maxHeight colour id))
+	(method ProxyIParticleSystem.AddVerticalFlame (const Rococo.FlameDef flameDef)(Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemAddVerticalFlame this.hObject flameDef id))
 	(method ProxyIParticleSystem.Clear  ->  : (Rococo.Entities.Native.IParticleSystemClear this.hObject ))
-	(method ProxyIParticleSystem.Snuff (Int64 id) ->  : (Rococo.Entities.Native.IParticleSystemSnuff this.hObject id))
+	(method ProxyIParticleSystem.Snuff (Rococo.ROID id) ->  : (Rococo.Entities.Native.IParticleSystemSnuff this.hObject id))
 
 (factory Rococo.Entities.ParticleSystem Rococo.Entities.IParticleSystem  :
 	(Pointer pObject = (Rococo.Entities.Native.GetHandleForIParticleSystem0 ))
@@ -241,13 +241,13 @@
 
 	(SetOrientation (const Sys.Maths.Quat orientation) -> )
 
-	(FollowEntity (Int64 id) -> )
+	(FollowEntity (Rococo.ROID id) -> )
 
-	(MoveToEntity (Int64 id) -> )
+	(MoveToEntity (Rococo.ROID id) -> )
 
-	(OrientateWithEntity (Int64 id)(Int32 flags) -> )
+	(OrientateWithEntity (Rococo.ROID id)(Int32 flags) -> )
 
-	(OrientateToEntity (Int64 id)(Int32 flags) -> )
+	(OrientateToEntity (Rococo.ROID id)(Int32 flags) -> )
 
 	(GetPosition (out Sys.Maths.Vec3 position) -> )
 
@@ -273,10 +273,10 @@
 	(method ProxyICamera.SetRHProjection (Sys.Maths.Degrees fov)(Float32 near)(Float32 far) ->  : (Rococo.Graphics.Native.ICameraSetRHProjection this.hObject fov near far))
 	(method ProxyICamera.SetPosition (const Sys.Maths.Vec3 position) ->  : (Rococo.Graphics.Native.ICameraSetPosition this.hObject position))
 	(method ProxyICamera.SetOrientation (const Sys.Maths.Quat orientation) ->  : (Rococo.Graphics.Native.ICameraSetOrientation this.hObject orientation))
-	(method ProxyICamera.FollowEntity (Int64 id) ->  : (Rococo.Graphics.Native.ICameraFollowEntity this.hObject id))
-	(method ProxyICamera.MoveToEntity (Int64 id) ->  : (Rococo.Graphics.Native.ICameraMoveToEntity this.hObject id))
-	(method ProxyICamera.OrientateWithEntity (Int64 id)(Int32 flags) ->  : (Rococo.Graphics.Native.ICameraOrientateWithEntity this.hObject id flags))
-	(method ProxyICamera.OrientateToEntity (Int64 id)(Int32 flags) ->  : (Rococo.Graphics.Native.ICameraOrientateToEntity this.hObject id flags))
+	(method ProxyICamera.FollowEntity (Rococo.ROID id) ->  : (Rococo.Graphics.Native.ICameraFollowEntity this.hObject id))
+	(method ProxyICamera.MoveToEntity (Rococo.ROID id) ->  : (Rococo.Graphics.Native.ICameraMoveToEntity this.hObject id))
+	(method ProxyICamera.OrientateWithEntity (Rococo.ROID id)(Int32 flags) ->  : (Rococo.Graphics.Native.ICameraOrientateWithEntity this.hObject id flags))
+	(method ProxyICamera.OrientateToEntity (Rococo.ROID id)(Int32 flags) ->  : (Rococo.Graphics.Native.ICameraOrientateToEntity this.hObject id flags))
 	(method ProxyICamera.GetPosition (out Sys.Maths.Vec3 position) ->  : (Rococo.Graphics.Native.ICameraGetPosition this.hObject position))
 	(method ProxyICamera.GetOrientation (out Sys.Maths.Quat orientation) ->  : (Rococo.Graphics.Native.ICameraGetOrientation this.hObject orientation))
 	(method ProxyICamera.GetWorld (out Sys.Maths.Matrix4x4 world) ->  : (Rococo.Graphics.Native.ICameraGetWorld this.hObject world))
@@ -306,11 +306,11 @@
 
 
 (interface Rococo.Graphics.ISceneBuilder
-	(AddStatics (Int64 entityId) -> )
+	(AddStatics (Rococo.ROID entityId) -> )
 
-	(AddDebugObject (Int64 entityId) -> )
+	(AddDebugObject (Rococo.ROID entityId) -> )
 
-	(AddDynamicObject (Int64 entityId) -> )
+	(AddDynamicObject (Rococo.ROID entityId) -> )
 
 	(Clear  -> )
 
@@ -318,24 +318,24 @@
 
 	(SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) -> )
 
-	(SetEnvironmentMap (Int64 cubeId) -> )
+	(SetEnvironmentMap (Rococo.IdCubeTexture cubeId) -> )
 
 	(SetLight (const Rococo.LightSpec light)(Int32 index) -> )
 
-	(SetSkyBox (Int64 cubeId) -> )
+	(SetSkyBox (Rococo.IdCubeTexture cubeId) -> )
 )
 
 (class ProxyISceneBuilder (implements Rococo.Graphics.ISceneBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyISceneBuilder.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyISceneBuilder.AddStatics (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddStatics this.hObject entityId))
-	(method ProxyISceneBuilder.AddDebugObject (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddDebugObject this.hObject entityId))
-	(method ProxyISceneBuilder.AddDynamicObject (Int64 entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddDynamicObject this.hObject entityId))
+	(method ProxyISceneBuilder.AddStatics (Rococo.ROID entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddStatics this.hObject entityId))
+	(method ProxyISceneBuilder.AddDebugObject (Rococo.ROID entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddDebugObject this.hObject entityId))
+	(method ProxyISceneBuilder.AddDynamicObject (Rococo.ROID entityId) ->  : (Rococo.Graphics.Native.ISceneBuilderAddDynamicObject this.hObject entityId))
 	(method ProxyISceneBuilder.Clear  ->  : (Rococo.Graphics.Native.ISceneBuilderClear this.hObject ))
 	(method ProxyISceneBuilder.ClearLights  ->  : (Rococo.Graphics.Native.ISceneBuilderClearLights this.hObject ))
 	(method ProxyISceneBuilder.SetClearColour (Float32 red)(Float32 green)(Float32 blue)(Float32 alpha) ->  : (Rococo.Graphics.Native.ISceneBuilderSetClearColour this.hObject red green blue alpha))
-	(method ProxyISceneBuilder.SetEnvironmentMap (Int64 cubeId) ->  : (Rococo.Graphics.Native.ISceneBuilderSetEnvironmentMap this.hObject cubeId))
+	(method ProxyISceneBuilder.SetEnvironmentMap (Rococo.IdCubeTexture cubeId) ->  : (Rococo.Graphics.Native.ISceneBuilderSetEnvironmentMap this.hObject cubeId))
 	(method ProxyISceneBuilder.SetLight (const Rococo.LightSpec light)(Int32 index) ->  : (Rococo.Graphics.Native.ISceneBuilderSetLight this.hObject light index))
-	(method ProxyISceneBuilder.SetSkyBox (Int64 cubeId) ->  : (Rococo.Graphics.Native.ISceneBuilderSetSkyBox this.hObject cubeId))
+	(method ProxyISceneBuilder.SetSkyBox (Rococo.IdCubeTexture cubeId) ->  : (Rococo.Graphics.Native.ISceneBuilderSetSkyBox this.hObject cubeId))
 
 (factory Rococo.Graphics.SceneBuilder Rococo.Graphics.ISceneBuilder  :
 	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForISceneBuilder0 ))
@@ -358,47 +358,47 @@
 
 
 (interface Rococo.Graphics.IMaterialBuilder
-	(CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId))
+	(CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Rococo.IdCubeTexture cubeId))
 
 	(LoadMaterialArray (Sys.Type.IString folder) -> )
 
-	(GetColourTextureSliceIndex (Float32 id) -> (Float32 colourSliceIndex))
+	(GetColourTextureSliceIndex (Rococo.MaterialId id) -> (Float32 colourSliceIndex))
 
-	(GetNormalTextureSliceIndex (Float32 id) -> (Float32 normalSliceIndex))
+	(GetNormalTextureSliceIndex (Rococo.MaterialId id) -> (Float32 normalSliceIndex))
 
-	(GetMaterialCateogry (Float32 id) -> (Int32 category))
+	(GetMaterialCateogry (Rococo.MaterialId id) -> (Rococo.MaterialCategory category))
 
-	(CountMaterialsInCategory (Int32 category) -> (Int32 count))
+	(CountMaterialsInCategory (Rococo.MaterialCategory category) -> (Int32 count))
 
-	(GetMaterialId (Int32 category)(Int32 index) -> (Float32 id))
+	(GetMaterialId (Rococo.MaterialCategory category)(Int32 index) -> (Rococo.MaterialId id))
 
-	(GetMaterialDirect (Sys.Type.IString pingPath) -> (Float32 id))
+	(GetMaterialDirect (Sys.Type.IString pingPath) -> (Rococo.MaterialId id))
 
-	(GetRandomMaterialId (Int32 category) -> (Float32 id))
+	(GetRandomMaterialId (Rococo.MaterialCategory category) -> (Rococo.MaterialId id))
 
 	(SetMaterialMacro (Sys.Type.IString pingPath) -> )
 
 	/*  Populates the texture fields of the MVD, nothing else */
-	(PopulateRandomMaterialTextures (Int32 category)(out Rococo.MaterialVertexData mvd) -> (Float32 id))
+	(PopulateRandomMaterialTextures (Rococo.MaterialCategory category)(out Rococo.MaterialVertexData mvd) -> (Rococo.MaterialId id))
 
 	/*  Populates the texture fields of the MVD, nothing else */
-	(PopulateMaterialTextures (Int32 category)(Int32 index)(out Rococo.MaterialVertexData mvd) -> (Float32 id))
+	(PopulateMaterialTextures (Rococo.MaterialCategory category)(Int32 index)(out Rococo.MaterialVertexData mvd) -> (Rococo.MaterialId id))
 )
 
 (class ProxyIMaterialBuilder (implements Rococo.Graphics.IMaterialBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIMaterialBuilder.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIMaterialBuilder.CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Int64 cubeId) : (Rococo.Graphics.Native.IMaterialBuilderCreateCubeTexture this.hObject folder extension -> cubeId))
+	(method ProxyIMaterialBuilder.CreateCubeTexture (Sys.Type.IString folder)(Sys.Type.IString extension) -> (Rococo.IdCubeTexture cubeId) : (Rococo.Graphics.Native.IMaterialBuilderCreateCubeTexture this.hObject folder extension -> cubeId))
 	(method ProxyIMaterialBuilder.LoadMaterialArray (Sys.Type.IString folder) ->  : (Rococo.Graphics.Native.IMaterialBuilderLoadMaterialArray this.hObject folder))
-	(method ProxyIMaterialBuilder.GetColourTextureSliceIndex (Float32 id) -> (Float32 colourSliceIndex) : (Rococo.Graphics.Native.IMaterialBuilderGetColourTextureSliceIndex this.hObject id -> colourSliceIndex))
-	(method ProxyIMaterialBuilder.GetNormalTextureSliceIndex (Float32 id) -> (Float32 normalSliceIndex) : (Rococo.Graphics.Native.IMaterialBuilderGetNormalTextureSliceIndex this.hObject id -> normalSliceIndex))
-	(method ProxyIMaterialBuilder.GetMaterialCateogry (Float32 id) -> (Int32 category) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialCateogry this.hObject id -> category))
-	(method ProxyIMaterialBuilder.CountMaterialsInCategory (Int32 category) -> (Int32 count) : (Rococo.Graphics.Native.IMaterialBuilderCountMaterialsInCategory this.hObject category -> count))
-	(method ProxyIMaterialBuilder.GetMaterialId (Int32 category)(Int32 index) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialId this.hObject category index -> id))
-	(method ProxyIMaterialBuilder.GetMaterialDirect (Sys.Type.IString pingPath) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialDirect this.hObject pingPath -> id))
-	(method ProxyIMaterialBuilder.GetRandomMaterialId (Int32 category) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderGetRandomMaterialId this.hObject category -> id))
+	(method ProxyIMaterialBuilder.GetColourTextureSliceIndex (Rococo.MaterialId id) -> (Float32 colourSliceIndex) : (Rococo.Graphics.Native.IMaterialBuilderGetColourTextureSliceIndex this.hObject id -> colourSliceIndex))
+	(method ProxyIMaterialBuilder.GetNormalTextureSliceIndex (Rococo.MaterialId id) -> (Float32 normalSliceIndex) : (Rococo.Graphics.Native.IMaterialBuilderGetNormalTextureSliceIndex this.hObject id -> normalSliceIndex))
+	(method ProxyIMaterialBuilder.GetMaterialCateogry (Rococo.MaterialId id) -> (Rococo.MaterialCategory category) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialCateogry this.hObject id -> category))
+	(method ProxyIMaterialBuilder.CountMaterialsInCategory (Rococo.MaterialCategory category) -> (Int32 count) : (Rococo.Graphics.Native.IMaterialBuilderCountMaterialsInCategory this.hObject category -> count))
+	(method ProxyIMaterialBuilder.GetMaterialId (Rococo.MaterialCategory category)(Int32 index) -> (Rococo.MaterialId id) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialId this.hObject category index -> id))
+	(method ProxyIMaterialBuilder.GetMaterialDirect (Sys.Type.IString pingPath) -> (Rococo.MaterialId id) : (Rococo.Graphics.Native.IMaterialBuilderGetMaterialDirect this.hObject pingPath -> id))
+	(method ProxyIMaterialBuilder.GetRandomMaterialId (Rococo.MaterialCategory category) -> (Rococo.MaterialId id) : (Rococo.Graphics.Native.IMaterialBuilderGetRandomMaterialId this.hObject category -> id))
 	(method ProxyIMaterialBuilder.SetMaterialMacro (Sys.Type.IString pingPath) ->  : (Rococo.Graphics.Native.IMaterialBuilderSetMaterialMacro this.hObject pingPath))
-	(method ProxyIMaterialBuilder.PopulateRandomMaterialTextures (Int32 category)(out Rococo.MaterialVertexData mvd) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderPopulateRandomMaterialTextures this.hObject category mvd -> id))
-	(method ProxyIMaterialBuilder.PopulateMaterialTextures (Int32 category)(Int32 index)(out Rococo.MaterialVertexData mvd) -> (Float32 id) : (Rococo.Graphics.Native.IMaterialBuilderPopulateMaterialTextures this.hObject category index mvd -> id))
+	(method ProxyIMaterialBuilder.PopulateRandomMaterialTextures (Rococo.MaterialCategory category)(out Rococo.MaterialVertexData mvd) -> (Rococo.MaterialId id) : (Rococo.Graphics.Native.IMaterialBuilderPopulateRandomMaterialTextures this.hObject category mvd -> id))
+	(method ProxyIMaterialBuilder.PopulateMaterialTextures (Rococo.MaterialCategory category)(Int32 index)(out Rococo.MaterialVertexData mvd) -> (Rococo.MaterialId id) : (Rococo.Graphics.Native.IMaterialBuilderPopulateMaterialTextures this.hObject category index mvd -> id))
 
 (factory Rococo.Graphics.MaterialBuilder Rococo.Graphics.IMaterialBuilder  :
 	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForIMaterialBuilder0 ))
@@ -766,7 +766,7 @@
 
 	(Clear  -> )
 
-	(CommitToMesh (Sys.Type.IString meshName) -> (Int32 id))
+	(CommitToMesh (Sys.Type.IString meshName) -> (Rococo.IdMesh id))
 
 	(GenerateByRecursiveSubdivision (Sys.SI.Metres maxAltitude) -> )
 
@@ -785,7 +785,7 @@
 	(method ProxyILandscapeTesselator.Construct (Pointer hObject): (this.hObject = hObject))
 	(method ProxyILandscapeTesselator.AddQuadField (Int32 base2exponentDivisions)(Sys.SI.Metres span) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorAddQuadField this.hObject base2exponentDivisions span))
 	(method ProxyILandscapeTesselator.Clear  ->  : (Rococo.Graphics.Native.ILandscapeTesselatorClear this.hObject ))
-	(method ProxyILandscapeTesselator.CommitToMesh (Sys.Type.IString meshName) -> (Int32 id) : (Rococo.Graphics.Native.ILandscapeTesselatorCommitToMesh this.hObject meshName -> id))
+	(method ProxyILandscapeTesselator.CommitToMesh (Sys.Type.IString meshName) -> (Rococo.IdMesh id) : (Rococo.Graphics.Native.ILandscapeTesselatorCommitToMesh this.hObject meshName -> id))
 	(method ProxyILandscapeTesselator.GenerateByRecursiveSubdivision (Sys.SI.Metres maxAltitude) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorGenerateByRecursiveSubdivision this.hObject maxAltitude))
 	(method ProxyILandscapeTesselator.GetBounds (out Sys.Maths.Vec3 minPoint)(out Sys.Maths.Vec3 maxPoint) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorGetBounds this.hObject minPoint maxPoint))
 	(method ProxyILandscapeTesselator.RaiseMountain (const Sys.Maths.Vec3 atPosition)(Sys.SI.Metres deltaHeight)(Sys.SI.Metres spread) ->  : (Rococo.Graphics.Native.ILandscapeTesselatorRaiseMountain this.hObject atPosition deltaHeight spread))
@@ -885,12 +885,12 @@
 
 
 (interface Rococo.Graphics.IRendererConfig
-	(SetSampler (const Rococo.SampleStateDef ssd)(Int32 index) -> )
+	(SetSampler (const Rococo.SampleStateDef ssd)(Rococo.SampleIndex index) -> )
 )
 
 (class ProxyIRendererConfig (implements Rococo.Graphics.IRendererConfig) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIRendererConfig.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIRendererConfig.SetSampler (const Rococo.SampleStateDef ssd)(Int32 index) ->  : (Rococo.Graphics.Native.IRendererConfigSetSampler this.hObject ssd index))
+	(method ProxyIRendererConfig.SetSampler (const Rococo.SampleStateDef ssd)(Rococo.SampleIndex index) ->  : (Rococo.Graphics.Native.IRendererConfigSetSampler this.hObject ssd index))
 
 (factory Rococo.Graphics.RendererConfig Rococo.Graphics.IRendererConfig  :
 	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForIRendererConfig0 ))
@@ -936,7 +936,7 @@
 
 
 (interface Rococo.IWorldBuilder
-	(AddMeshToQuadtree (Int64 id) -> )
+	(AddMeshToQuadtree (Rococo.ROID id) -> )
 
 	(GetHeightAt (Float32 x)(Float32 y)(out Rococo.TriangleScan t) -> (Float32 height))
 
@@ -947,7 +947,7 @@
 
 (class ProxyIWorldBuilder (implements Rococo.IWorldBuilder) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIWorldBuilder.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyIWorldBuilder.AddMeshToQuadtree (Int64 id) ->  : (Rococo.Native.IWorldBuilderAddMeshToQuadtree this.hObject id))
+	(method ProxyIWorldBuilder.AddMeshToQuadtree (Rococo.ROID id) ->  : (Rococo.Native.IWorldBuilderAddMeshToQuadtree this.hObject id))
 	(method ProxyIWorldBuilder.GetHeightAt (Float32 x)(Float32 y)(out Rococo.TriangleScan t) -> (Float32 height) : (Rococo.Native.IWorldBuilderGetHeightAt this.hObject x y t -> height))
 	(method ProxyIWorldBuilder.GetTriangleAt (const Sys.Maths.Vec2 position)(out Rococo.TriangleScan t) ->  : (Rococo.Native.IWorldBuilderGetTriangleAt this.hObject position t))
 	(method ProxyIWorldBuilder.New (Sys.SI.Metres span)(Sys.SI.Metres minSpan) ->  : (Rococo.Native.IWorldBuilderNew this.hObject span minSpan))

@@ -49,7 +49,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mplat\</IntDir>
     <TargetExt>.lib</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -60,7 +59,6 @@
     <IntDir>..\..\gen\temp\win64\$(configuration)\rococo.mplat\</IntDir>
     <TargetExt>.lib</TargetExt>
     <GenerateManifest>true</GenerateManifest>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <LinkIncremental>false</LinkIncremental>
     <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
@@ -127,9 +125,6 @@
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
     </Lib>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -193,9 +188,6 @@
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
     </Lib>
-    <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc.sexml&#x0D;&#x0A;</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc.sexml" />
@@ -249,7 +241,6 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IKeyboard.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.IWorldBuilder.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\rococo.script.types.h" />
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh.inl" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo_declarations.sxh.h" />
@@ -258,6 +249,18 @@
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.editor.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.landscapes.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\mplat.panel.base.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.sxh">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">BennyHill: generating C++ and SXY code from Rococo.sxh with config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\rococo.mplat\code-gen\ ..\..\content\scripts\interop\rococo\mplat\ Rococo.sxh ..\..\source\rococo\rococo.mplat\code-gen\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\rococo.mplat\code-gen\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">BennyHill: generating C++ and SXY code from Rococo.sxh with config.xc.sexml</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe" ..\..\source\rococo\rococo.mplat\code-gen\ ..\..\content\scripts\interop\rococo\mplat\ Rococo.sxh ..\..\source\rococo\rococo.mplat\code-gen\config.xc.sexml&#x0D;&#x0A;</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\gen\bin\win64\$(configuration)\sexy.bennyhill.exe;..\..\source\rococo\rococo.mplat\code-gen\config.xc.sexml</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.archive.cpp" />
