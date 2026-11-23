@@ -973,6 +973,17 @@ namespace Rococo
 						Throw(src, "The type of %s  does not match the type of %s",targetVariable, sourceText);
 					}
 				}
+				else if (sourceType == SexyVarType_Bad)
+				{
+					if (*sourceText == '.')
+					{
+						MemberDef def;
+						GetVariableByName(ce.Builder, OUT def, targetVariable, src);
+						// Possible enumeration assignment
+						AssignEnumToVariable(ce, sourceText + 1, *def.ResolvedType, src, targetVariable);
+						return;
+					}
+				}
 				else
 				{
 					Throw(src, "Cannot assign to type of %s. The source is not a primitive type", targetVariable);

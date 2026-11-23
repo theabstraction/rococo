@@ -110,7 +110,7 @@ namespace Rococo
 
 	ROCOCO_API bool operator == (const fstring& a, const fstring& b);
 
-	ROCOCO_API [[nodiscard]] fstring to_fstring(cstr const msg);
+	[[nodiscard]] ROCOCO_API fstring to_fstring(cstr const msg);
 
 	typedef const Matrix4x4& cr_m4x4;
 

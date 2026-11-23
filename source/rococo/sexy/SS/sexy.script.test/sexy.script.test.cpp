@@ -4090,6 +4090,46 @@ R"((namespace EntryPoint)
 		validate(x == 8);
 	}
 
+	void TestConstants4(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(struct Time
+				(Sys.Type.Day day)
+				(Int32 seconds)
+			)
+
+			(function Main -> (Int32 result):
+				(Time t = .Friday 1)
+				(result = t.day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 
 	static int64 TestNativeHandle_globalHandle = 0;
 
@@ -19272,6 +19312,7 @@ R"(
 		TEST(TestConstants);
 		TEST(TestConstants2);
 		TEST(TestConstants3);
+		TEST(TestConstants4);
 
 		TEST(TestEnumByCPP);
 
@@ -19360,8 +19401,8 @@ int main(int argc, char* argv[])
 	AutoFree<IAllocatorSupervisor> sexyAllocator = CreateBlockAllocator(5120, 0, "script-test");
 	SetSexyAllocator(sexyAllocator);
 
-//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
-	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
+	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_All);
+//	Rococo::OS::SetBreakPoints(Rococo::OS::Flags::BreakFlag_None);
 
 //	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 

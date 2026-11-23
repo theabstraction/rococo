@@ -180,7 +180,7 @@
 	(Int32 alignMirror = (#AlignmentFlagsMirror))
 	(Int32 alignFlip = (#AlignmentFlagsFlip))
 	
-	(RGBAb white = 0xFFFFFFF)
+	(RGBAb white = 0xFFFFFFFF)
 	
 	(for (i = 0)(i < 150)(i += 1)
 		(Cloud cloud = (-1000 -1000) 0 0 white (1 1 1 1)(0 0))

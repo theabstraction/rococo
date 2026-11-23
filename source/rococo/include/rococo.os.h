@@ -175,7 +175,7 @@ namespace Rococo::OS
 
 	ROCOCO_API ICriticalSection* CreateCriticalSection(CriticalSectionMemorySource src = CriticalSectionMemorySource::OPERATOR_NEW);
 
-	ROCOCO_API [[nodiscard]] IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
+	[[nodiscard]] ROCOCO_API IThreadSupervisor* CreateRococoThread(IThreadJob* thread, uint32 stacksize);
 
 	ROCOCO_API void InitRococoOS();
 	ROCOCO_API void TerminateRococoOS();
@@ -183,7 +183,7 @@ namespace Rococo::OS
 	ROCOCO_API void AddThreadError(int errorCode, cstr format, ...);
 	ROCOCO_API void ThrowOnThreadError();
 
-	ROCOCO_API [[nodiscard]] void* AllocBoundedMemory(size_t nBytes);
+	[[nodiscard]] ROCOCO_API void* AllocBoundedMemory(size_t nBytes);
 	ROCOCO_API void FreeBoundedMemory(void* pMemory);
 
 	ROCOCO_API void UILoop(uint32 milliseconds);
@@ -219,7 +219,7 @@ namespace Rococo::OS
 	ROCOCO_API void ShellOpenDocument(Windows::IWindow& parent, cstr caption, cstr path, int lineNumber);
 	ROCOCO_API void TripDebugger();
 	ROCOCO_API void PrintDebug(const char* format, ...);	
-	ROCOCO_API [[nodiscard]] bool IsDebugging();
+	[[nodiscard]] ROCOCO_API bool IsDebugging();
 	ROCOCO_API void BreakOnThrow(Flags::BreakFlag flag);
 
 	// Merge Flags::BreakFlag to provide the argument to SetBreakPoints
@@ -247,8 +247,8 @@ namespace Rococo::Windows
 
 namespace Rococo::Memory
 {
-	ROCOCO_API [[nodiscard]] IAllocator& CheckedAllocator();
-	ROCOCO_API [[nodiscard]] IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
+	[[nodiscard]] ROCOCO_API IAllocator& CheckedAllocator();
+	[[nodiscard]] ROCOCO_API IAllocatorSupervisor* CreateBlockAllocator(size_t kilobytes, size_t maxkilobytes, const char* const name);
 	ROCOCO_API void* AlignedAlloc(size_t nBytes, int32 alignment, void* allocatorFunction(size_t));
 	ROCOCO_API void AlignedFree(void* buffer, void deleteFunction(void*));
 }

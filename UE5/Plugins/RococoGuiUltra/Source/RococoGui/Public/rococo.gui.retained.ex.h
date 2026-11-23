@@ -104,7 +104,7 @@ namespace Rococo::Gui
 	ROCOCO_GUI_RETAINED_API void DrawPanelBackgroundEx(IGRPanel& panel, IGRRenderContext& g, EGRSchemeColourSurface back, EGRSchemeColourSurface leftEdge, EGRSchemeColourSurface rightEdge, float alphaScale = 1.0f, bool raised = false, bool focused = false);
 	ROCOCO_GUI_RETAINED_API void DrawGameOptionBackground(IGRWidgetText& title, IGRPanel& panel, IGRRenderContext& rc);
 	// Dynamic casting methods
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b);
+	[[nodiscard]] ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b);
 
 	ROCOCO_GUI_RETAINED_API EGREventRouting TranslateToEditor(Windows::IWindow& owningWindow, const GRKeyEvent& keyEvent, IGREditorMicromanager& manager, Strings::ICharBuilder& builder);
 

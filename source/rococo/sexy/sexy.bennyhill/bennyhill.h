@@ -147,6 +147,8 @@ namespace Rococo
         CppType underlyingType;
         CppType asCppEnum;
         char asSexyEnum[MAX_TOKEN_LEN];
+        char sexyUnderlyingType[MAX_TOKEN_LEN]; // The SexyType of the underlying primitive, as given by the config file, e.g. Int32
+        bool isEnum2 = false; // true if defined with (enum2 ...), which generates a strong type, alias and Sexy enum rather than macros
         char appendSexyFile[_MAX_PATH];
         char appendCppHeaderFile[_MAX_PATH];
         char appendCppImplFile[_MAX_PATH];
@@ -155,6 +157,7 @@ namespace Rococo
         EnumContext()
         {
             asSexyEnum[0] = 0;
+            sexyUnderlyingType[0] = 0;
             appendSexyFile[0] = 0;
             appendCppHeaderFile[0] = 0;
             appendCppImplFile[0] = 0;

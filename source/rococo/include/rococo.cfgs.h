@@ -68,10 +68,10 @@ namespace Rococo::CFGS
 		ConstOutputRef
 	};
 
-	CFGS_MARSHALLER_API [[nodiscard]] bool TryParse(OUT SocketClass& sclass, cstr text);
-	CFGS_MARSHALLER_API [[nodiscard]] bool IsInputClass(SocketClass x);
-	CFGS_MARSHALLER_API [[nodiscard]] bool IsOutputClass(SocketClass x);
-	CFGS_MARSHALLER_API [[nodiscard]] SocketClass FlipInputOutputClass(SocketClass x);
+	[[nodiscard]] CFGS_MARSHALLER_API bool TryParse(OUT SocketClass& sclass, cstr text);
+	[[nodiscard]] CFGS_MARSHALLER_API bool IsInputClass(SocketClass x);
+	[[nodiscard]] CFGS_MARSHALLER_API bool IsOutputClass(SocketClass x);
+	[[nodiscard]] CFGS_MARSHALLER_API SocketClass FlipInputOutputClass(SocketClass x);
 
 	struct CFGSSocketType
 	{
@@ -443,14 +443,14 @@ namespace Rococo::CFGS
 		virtual void Free() = 0;
 	};
 
-	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketClass sclass);
+	[[nodiscard]] CFGS_MARSHALLER_API cstr ToString(SocketClass sclass);
 
-	CFGS_MARSHALLER_API [[nodiscard]] cstr ToString(SocketPlacement placement);
+	[[nodiscard]] CFGS_MARSHALLER_API cstr ToString(SocketPlacement placement);
 
 	// Creates a gui for a CFGS database
-	CFGS_MARSHALLER_API [[nodiscard]] ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
+	[[nodiscard]] CFGS_MARSHALLER_API ICFGSGuiSupervisor* CreateCFGSGui(ICFGSDatabase& cfgs, Rococo::Editors::IDesignSpace& designSpace, ICFGSGuiEventHandler& eventHandler);
 
-	CFGS_MARSHALLER_API [[nodiscard]] ICFGSDatabaseSupervisor* CreateCFGSDatabase(Rococo::Events::IPublisher& publisher);
+	[[nodiscard]] CFGS_MARSHALLER_API ICFGSDatabaseSupervisor* CreateCFGSDatabase(Rococo::Events::IPublisher& publisher);
 
 	[[nodiscard]] cstr GetCFGSAppTitle();
 }

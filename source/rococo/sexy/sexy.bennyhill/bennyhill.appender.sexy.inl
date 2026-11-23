@@ -362,6 +362,23 @@ namespace
 
 		DeclareNamespaces(appender, ns, pc);
 
+		if (ec.isEnum2)
+		{
+			// (enum2 ...) generates a strong type named after the tail of the as.sxy name, an alias to the full as.sxy name, and the Sexy enum values.
+			// Values are written in decimal, as sexystudio reads enum values with atoll
+			appender.Append("(strong %s (%s))\n", tail, ec.sexyUnderlyingType);
+			appender.Append("(alias %s %s)\n", tail, ec.asSexyEnum);
+			appender.Append("(enum %s\n", ec.asSexyEnum);
+
+			for (auto& i : ec.values)
+			{
+				appender.Append("\t(%s %I64d)\n", i.first.c_str(), i.second);
+			}
+
+			appender.Append(")\n\n");
+			return;
+		}
+
 		for (auto &i : ec.values)
 		{
 			appender.Append("(macro %s.%s%s in out (out.AddAtomic \"0x%I64X\"))\n", ns, tail, i.first.c_str(), i.second);

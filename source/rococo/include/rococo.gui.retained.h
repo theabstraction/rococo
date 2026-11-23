@@ -850,13 +850,13 @@ namespace Rococo::Gui
 
 	ROCOCO_INTERFACE IGRWidget : IGRBase
 	{
-		ROCOCO_GUI_RETAINED_API [[nodiscard]] static cstr InterfaceId();
+		[[nodiscard]] ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 		[[nodiscard]] virtual IGRPanel& Panel() = 0;
 		[[nodiscard]] virtual EGRQueryInterfaceResult QueryInterface(IGRBase** ppOutputArg, cstr interfaceId) = 0;
 
 		virtual cstr GetImplementationTypeName() const = 0;
-		ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetManager& Manager();
-		ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetSupervisor& Supervisor();
+		[[nodiscard]] ROCOCO_GUI_RETAINED_API IGRWidgetManager& Manager();
+		[[nodiscard]] ROCOCO_GUI_RETAINED_API IGRWidgetSupervisor& Supervisor();
 	};
 
 	inline bool operator == (IGRWidget& src, IGRWidget& target)
@@ -874,12 +874,12 @@ namespace Rococo::Gui
 		virtual void OnSetConstantHeight(IGRPanel& panel, int height) = 0;
 		virtual void OnSetConstantWidth(IGRPanel& panel, int width) = 0;
 		virtual void OnSetAbsRect(IGRPanel& panel, const GuiRect& absRect) = 0;
-		ROCOCO_GUI_RETAINED_API  [[nodiscard]] static cstr InterfaceId();
+		[[nodiscard]] ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 	};
 
 	ROCOCO_INTERFACE IGRWidgetManager : IGRWidget
 	{
-		ROCOCO_GUI_RETAINED_API [[nodiscard]] static cstr InterfaceId();
+		[[nodiscard]] ROCOCO_GUI_RETAINED_API static cstr InterfaceId();
 
 		virtual EGREventRouting OnChildEvent(GRWidgetEvent& widgetEvent, IGRWidget& sourceWidget) = 0;
 		virtual EGREventRouting OnCursorClick(GRCursorEvent& ce) = 0;

@@ -110,7 +110,7 @@ namespace Rococo::Events
 	   virtual void Free() = 0;
 	};
 
-	ROCOCO_API [[nodiscard]] IPublisherSupervisor* CreatePublisher();
+	[[nodiscard]] ROCOCO_API IPublisherSupervisor* CreatePublisher();
 
 	template<class T> [[nodiscard]] inline T& As(Event& ev)
 	{

@@ -18,7 +18,7 @@
 
 namespace Rococo
 {
-	ROCOCO_API [[nodiscard]] fstring to_fstring(cstr const msg);
+	[[nodiscard]] ROCOCO_API fstring to_fstring(cstr const msg);
 	typedef _ROCOCO_WIDECHAR_ ROCOCO_WIDECHAR;
 	typedef const ROCOCO_WIDECHAR* crwstr;
 }
@@ -44,7 +44,7 @@ namespace Rococo::Strings
 	inline int PrintD(const char*, ...) { return 0; }
 #endif
 
-	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
+	[[nodiscard]] ROCOCO_API uint32 FastHash(cstr text);
 
 	ROCOCO_API int SafeVFormat(char* buffer, size_t capacity, const char* format, va_list args);
 	ROCOCO_API int SafeVFormat(ROCOCO_WIDECHAR* buffer, size_t capacity, crwstr format, va_list args);
@@ -366,7 +366,7 @@ namespace Rococo::Strings
 	ROCOCO_API void ValidateFQNamespace(cstr fqName);
 	ROCOCO_API void ValidateFQNameIdentifier(cstr fqName);
 
-	ROCOCO_API [[nodiscard]] uint32 FastHash(cstr text);
+	[[nodiscard]] ROCOCO_API uint32 FastHash(cstr text);
 
 	ROCOCO_API void SplitString(cstr text, size_t length, IStringPopulator& onSubString, cstr delimiter);
 

@@ -951,7 +951,7 @@ namespace Rococo::Sex::SEXML
 		Rococo::Throw(0, "Bad parameter");
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] ISEXMLRootSupervisor* CreateSEXMLParser(IAllocator& allocator, cr_sex sRoot)
+	[[nodiscard]] ROCOCO_SEXML_API ISEXMLRootSupervisor* CreateSEXMLParser(IAllocator& allocator, cr_sex sRoot)
 	{
 #ifdef _WIN32
 		_invalid_parameter_handler old = _set_invalid_parameter_handler(OnBadParameter);
@@ -976,7 +976,7 @@ namespace Rococo::Sex::SEXML
 		}
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLDirective* FindDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
+	[[nodiscard]] ROCOCO_SEXML_API const ISEXMLDirective* FindDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
 	{
 		if (startIndex >= items.NumberOfDirectives())
 		{
@@ -996,7 +996,7 @@ namespace Rococo::Sex::SEXML
 		return nullptr;
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLDirective& GetDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
+	[[nodiscard]] ROCOCO_SEXML_API const ISEXMLDirective& GetDirective(const ISEXMLDirectiveList& items, cstr directiveName, IN OUT size_t& startIndex)
 	{
 		const ISEXMLDirective* dir = FindDirective(items, directiveName, startIndex);
 		if (!dir)
@@ -1006,7 +1006,7 @@ namespace Rococo::Sex::SEXML
 		return *dir;
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value)
+	[[nodiscard]] ROCOCO_SEXML_API const ISEXMLAttributeStringValue& AsString(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())
 		{
@@ -1020,7 +1020,7 @@ namespace Rococo::Sex::SEXML
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringValue&>(value);
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
+	[[nodiscard]] ROCOCO_SEXML_API const ISEXMLAttributeStringListValue& AsStringList(const ISEXMLAttributeValue& value)
 	{
 		switch (value.Type())
 		{
@@ -1035,7 +1035,7 @@ namespace Rococo::Sex::SEXML
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeStringListValue&>(value);
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] uint64 AsFlags(const ISEXMLAttributeValue& value, Function<uint64(const fstring& s)> mapNameToFlag)
+	[[nodiscard]] ROCOCO_SEXML_API uint64 AsFlags(const ISEXMLAttributeValue& value, Function<uint64(const fstring& s)> mapNameToFlag)
 	{
 		uint64 flags = 0;
 
@@ -1070,7 +1070,7 @@ namespace Rococo::Sex::SEXML
 		return static_cast<const Rococo::Sex::SEXML::ISEXMLAttributeSmallVectorIValue&>(value);
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] Vec2i AsVec2i(const ISEXMLAttributeValue& value)
+	[[nodiscard]] ROCOCO_SEXML_API Vec2i AsVec2i(const ISEXMLAttributeValue& value)
 	{
 		auto& v = AsSmallIVector(value);
 		if (v.NumberOfDimensions() != 2)
@@ -1081,7 +1081,7 @@ namespace Rococo::Sex::SEXML
 		return { v.X()[0], v.X()[1] };
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] GuiRect AsGuiRect(const ISEXMLAttributeValue& value)
+	[[nodiscard]] ROCOCO_SEXML_API GuiRect AsGuiRect(const ISEXMLAttributeValue& value)
 	{
 		auto& v = AsSmallIVector(value);
 		if (v.NumberOfDimensions() != 4)
@@ -1136,7 +1136,7 @@ namespace Rococo::Sex::SEXML
 		return value.ToFString();
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] int GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, int defaultValue)
+	[[nodiscard]] ROCOCO_SEXML_API int GetOptionalAttribute(const ISEXMLDirective& directive, cstr attributeName, int defaultValue)
 	{
 		auto* a = directive.FindAttributeByName(attributeName);
 		if (!a)
@@ -1257,7 +1257,7 @@ namespace Rococo::Sex::SEXML
 		return atoi(text);
 	}
 
-	ROCOCO_SEXML_API [[nodiscard]] RGBAb AsAtomicRGBA(const ISEXMLAttributeValue& value)
+	[[nodiscard]] ROCOCO_SEXML_API RGBAb AsAtomicRGBA(const ISEXMLAttributeValue& value)
 	{
 		int32 i = AsAtomicInt32(value);
 		RGBAb c(i);

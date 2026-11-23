@@ -832,7 +832,7 @@ namespace Rococo::Gui
 		return supervisor.OnGREvent(ev);
 	}
 
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] bool DoInterfaceNamesMatch(cstr a, cstr b)
+	[[nodiscard]] ROCOCO_GUI_RETAINED_API bool DoInterfaceNamesMatch(cstr a, cstr b)
 	{
 		return Strings::EqI(a, b);
 	}
@@ -920,12 +920,12 @@ namespace Rococo::Gui
 		}
 	}
 
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetManager& IGRWidget::Manager()
+	[[nodiscard]] ROCOCO_GUI_RETAINED_API IGRWidgetManager& IGRWidget::Manager()
 	{
 		return static_cast<IGRWidgetManager&>(*this);
 	}
 
-	ROCOCO_GUI_RETAINED_API [[nodiscard]] IGRWidgetSupervisor& IGRWidget::Supervisor()
+	[[nodiscard]] ROCOCO_GUI_RETAINED_API IGRWidgetSupervisor& IGRWidget::Supervisor()
 	{
 		return static_cast<IGRWidgetSupervisor&>(*this);
 	}

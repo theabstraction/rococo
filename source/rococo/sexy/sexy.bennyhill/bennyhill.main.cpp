@@ -673,11 +673,14 @@ void SetINLandHnames(EnumContext& ec, ParseContext& pc, cstr fqEnumName, cr_sex 
 	}
 }
 
-void ParseEnum(cr_sex senumDef, ParseContext& pc)
+// Parses (enum <underlying-type> ...) and (enum2 <underlying-type> ...). Both share syntax and C++ generation. They differ only in the Sexy output:
+// enum generates one macro per value, enum2 generates a strong type, an alias and a Sexy (enum ...) definition
+void ParseEnum(cr_sex senumDef, ParseContext& pc, bool isEnum2)
 {
 	EnumDef def;
 	def.sdef = &senumDef;
 	EnumContext& ec = def.ec;
+	ec.isEnum2 = isEnum2;
 
 	if (senumDef.NumberOfElements() < 4)
 	{
@@ -697,6 +700,16 @@ void ParseEnum(cr_sex senumDef, ParseContext& pc)
 	}
 
 	ec.underlyingType.Set(foundType->second.cppType.c_str());
+	CopyString(ec.sexyUnderlyingType, EnumContext::MAX_TOKEN_LEN, foundType->second.sexyType.c_str());
+
+	if (isEnum2)
+	{
+		cstr t = ec.sexyUnderlyingType;
+		if (!Eq(t, "Int32") && !Eq(t, "Int64") && !Eq(t, "Sys.Type.Int32") && !Eq(t, "Sys.Type.Int64"))
+		{
+			Throw(sbasicType, "enum2 requires an underlying type whose SexyType in the config file is Int32 or Int64. %s maps to %s", sbasicType.c_str(), t);
+		}
+	}
 
 	for (int i = 2; i < senumDef.NumberOfElements(); ++i)
 	{
@@ -1140,7 +1153,11 @@ void ParseSXHFile(cr_sex root, ParseContext& pc)
 		}
 		else if (AreEqual("enum", cmd))
 		{
-			ParseEnum(topLevelItem, pc);
+			ParseEnum(topLevelItem, pc, false);
+		}
+		else if (AreEqual("enum2", cmd))
+		{
+			ParseEnum(topLevelItem, pc, true);
 		}
 		else
 		{
