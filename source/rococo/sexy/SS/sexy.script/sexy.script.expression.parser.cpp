@@ -983,6 +983,10 @@ namespace Rococo
 						AssignEnumToVariable(ce, sourceText + 1, *def.ResolvedType, src, targetVariable);
 						return;
 					}
+					else
+					{
+						Throw(src, "Cannot assign to type of %s. The source is not a primitive type nor an enumeration", targetVariable);
+					}
 				}
 				else
 				{
