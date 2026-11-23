@@ -151,7 +151,7 @@
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.animation.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\animation\code-gen rococo\components animation.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\animation\code-gen rococo\components animation.sxh ..\..\..\config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -240,7 +240,7 @@
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.animation.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\animation\code-gen rococo\components animation.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\animation\code-gen rococo\components animation.sxh ..\..\..\config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

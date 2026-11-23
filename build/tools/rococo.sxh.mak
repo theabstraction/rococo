@@ -47,7 +47,7 @@ BENNY_HILL=$(BIN_DIR)sexy.bennyhill.exe
 !   ERROR tools\rococo.sxh.mak error:  $(SXH_XC_FULL_PATH) does not appear to exist
 !ENDIF
 
-# We want to generate an INL file, and it depends on the sxh and associated config.xc file. To create it we run benny hill on the sxh file.
+# We want to generate an INL file, and it depends on the sxh and associated config file (config.xc.sexml, or a legacy config.xc). To create it we run benny hill on the sxh file.
 $(SXH_INL): $(SXH_FILE_FULL_PATH) $(SXH_XC_FULL_PATH)
 	$(BENNY_HILL) $(SOURCE_ROOT)\ $(INTEROP_DIR)$(INTEROP_SUBDIR)\ $(SXH_FILE) $(SXH_XC_FULL_PATH)
 	@echo Built $(SXH_INL) which depended on $(SXH_FILE_FULL_PATH) and $(SXH_XC_FULL_PATH). Rococo root is: $(ROCOCO_DIR). 

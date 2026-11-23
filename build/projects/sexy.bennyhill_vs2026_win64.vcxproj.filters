@@ -12,6 +12,7 @@
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.appender.cpp.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.appender.sexy.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.config.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.config.sexml.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.h" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.stdafx.h" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.templates.inl" />

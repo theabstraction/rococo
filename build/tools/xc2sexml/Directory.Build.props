@@ -1,0 +1,9 @@
+<Project>
+  <!-- Replaces the repository Directory.Build.props, whose paths depend on $(SolutionDir). This tool is built without a solution -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Authors>Mark Anthony Taylor</Authors>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\..\gen\temp\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)..\..\..\gen\bin\</BaseOutputPath>
+  </PropertyGroup>
+</Project>

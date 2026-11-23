@@ -151,7 +151,7 @@
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.mathsex.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mathsex\code-gen rococo\mplat Mathsex.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mathsex\code-gen rococo\mplat Mathsex.sxh config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -240,11 +240,11 @@
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.mathsex.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mathsex\code-gen rococo\mplat Mathsex.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mathsex\code-gen rococo\mplat Mathsex.sxh config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" />

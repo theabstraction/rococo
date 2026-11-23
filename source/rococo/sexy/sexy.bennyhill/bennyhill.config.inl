@@ -34,6 +34,7 @@
 */
 
 #include <rococo.strings.h>
+#include <rococo.functional.h>
 
 namespace
 {
@@ -41,11 +42,11 @@ namespace
 	using namespace Rococo::Sex;
 	using namespace Rococo::Strings;
 
-	void ParseCppRoot(cr_sex sconfigItem, ParseContext& pc)
+	// The config model builders. Shared by the xc and sexml config front ends. The cr_sex arguments locate errors and supply the values
+
+	void SetCppRoot(cr_sex sCppPath, ParseContext& pc)
 	{
-		if (*pc.cppRootDirectory != 0) Throw(sconfigItem, ("cpp.root has already been specified"));
-		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, ("Expecting (cpp.root <cpp-root-directory>). If the first character of <cpp-root-directory> is $, then $ is substituted with the project root"));
-		cstr cppPath = StringFrom(sconfigItem.GetElement(1));
+		cstr cppPath = StringFrom(sCppPath);
 
 		if (*cppPath == '$')
 		{
@@ -57,22 +58,22 @@ namespace
 		}
 	}
 
-	void ParseCppException(cr_sex sconfigItem, ParseContext& pc)
+	void SetCppException(cr_sex sCppException, ParseContext& pc)
 	{
-		if (*pc.cppException != 0) Throw(sconfigItem, ("cpp.exception has already been specified"));
-		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, ("Expecting (cpp.exception <cpp-exception name>)."));
-
-		cstr cppException = StringFrom(sconfigItem.GetElement(1));
+		cstr cppException = StringFrom(sCppException);
 		SafeFormat(pc.cppException, 128, ("%s"), cppException);
 	}
 
-	void ParseTypeFile(cr_sex sconfigItem, ParseContext& pc)
+	void ValidateTypeFilesCanBeSet(cr_sex sconfigItem, const ParseContext& pc)
 	{
 		if (*pc.cppRootDirectory == 0) Throw(sconfigItem, ("cpp.root must be specified before cpp.types"));
 		if (*pc.cppTypesFilename != 0) Throw(sconfigItem, ("cpp.types has already been specified"));
 		if (*pc.sexyTypesFilename != 0) Throw(sconfigItem, ("sexy.types has already been specified"));
-		if (sconfigItem.NumberOfElements() != 3) Throw(sconfigItem, ("Expecting (cpp.types <sexy-types> <cpp-types>). Either argument can be prefixed with $project$ to map to the project root, or $cpp$ to map to the C++ root"));
-		cstr cppTypesPath = StringFrom(sconfigItem.GetElement(2));
+	}
+
+	void SetTypeFiles(cr_sex sSexyTypesPath, cr_sex sCppTypesPath, ParseContext& pc)
+	{
+		cstr cppTypesPath = StringFrom(sCppTypesPath);
 
 		fstring contentPrefix = "$content$"_fstring;
 		fstring projectPrefix = "$project$"_fstring;
@@ -95,7 +96,7 @@ namespace
 			SafeFormat(pc.cppTypesFilename, _MAX_PATH, "%s", cppTypesPath);
 		}
 
-		cstr sexyTypesPath = StringFrom(sconfigItem.GetElement(1));
+		cstr sexyTypesPath = StringFrom(sSexyTypesPath);
 
 		if (AreEqual(sexyTypesPath, projectPrefix.buffer, projectPrefix.length))
 		{
@@ -114,21 +115,20 @@ namespace
 		}
 	}
 
-	void ParsePrimitive(cr_sex sprimitiveDef, ParseContext& pc)
+	// Maps <sxh-type>, the type name used in the generator file signatures, to a sexy type passed by value and the C++ type
+	void AddPrimitive(cr_sex sprimitiveDef, cr_sex sSxhType, cr_sex sSxyType, cr_sex sCppType, ParseContext& pc)
 	{
-		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, ("Expecting 4 elements: (primitive <sxh-type> <sxy-type> <cpp-type>)"));
-
-		cstr sxhType = StringFrom(sprimitiveDef, 1);
-		cstr sxyType = StringFrom(sprimitiveDef, 2);
-		cstr cppType = StringFrom(sprimitiveDef, 3);
+		cstr sxhType = StringFrom(sSxhType);
+		cstr sxyType = StringFrom(sSxyType);
+		cstr cppType = StringFrom(sCppType);
 
 		if (AreEqual(cppType, ("bool")))
 		{
 			Throw(sprimitiveDef, ("Primitive type bool in the config file is unnacceptable, as Sexy scripting primitives must be 32-bit or 64-bit. Type bool is 8-bit on many C++ compilers."));
 		}
 
-		ValidateCPPType(sprimitiveDef.GetElement(3), cppType);
-		ValidateSexyType(sprimitiveDef.GetElement(2), sxyType);
+		ValidateCPPType(sCppType, cppType);
+		ValidateSexyType(sSxyType, sxyType);
 
 		auto i = pc.primitives.find(sxhType);
 		if (i != pc.primitives.end()) Throw(sprimitiveDef, ("sxh-type has already been defined"));
@@ -140,16 +140,14 @@ namespace
 		pc.primitives[sxhType] = def;
 	}
 
-	void ParseInterfaceDecl(cr_sex sprimitiveDef, ParseContext& pc)
+	void AddInterfaceDecl(cr_sex sprimitiveDef, cr_sex sSxhType, cr_sex sSxyType, cr_sex sCppType, ParseContext& pc)
 	{
-		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, "Expecting 4 elements: (interface <sxh-type> <sxy-type> <cpp-type>)");
-		
-		cstr sxhType = StringFrom(sprimitiveDef, 1);
-		cstr sxyType = StringFrom(sprimitiveDef, 2);
-		cstr cppType = StringFrom(sprimitiveDef, 3);
+		cstr sxhType = StringFrom(sSxhType);
+		cstr sxyType = StringFrom(sSxyType);
+		cstr cppType = StringFrom(sCppType);
 
-		ValidateCPPType(sprimitiveDef.GetElement(3), cppType);
-		ValidateSexyType(sprimitiveDef.GetElement(2), sxyType);
+		ValidateCPPType(sCppType, cppType);
+		ValidateSexyType(sSxyType, sxyType);
 
 		auto i = pc.interfaces.find(sxhType);
 		if (i != pc.interfaces.end()) Throw(sprimitiveDef, ("sxh-type has already been defined"));
@@ -159,19 +157,17 @@ namespace
 		def->ic.asCppInterface.Set(cppType);
 		def->sdef = &sprimitiveDef;
 		pc.interfaces.insert(std::make_pair(stdstring(sxhType), def));
-
 	}
 
-	void ParseStruct(cr_sex sprimitiveDef, ParseContext& pc)
+	// Maps <sxh-type> to a sexy struct passed by reference and the C++ struct. The structs are defined elsewhere
+	void AddStruct(cr_sex sprimitiveDef, cr_sex sSxhType, cr_sex sSxyType, cr_sex sCppType, ParseContext& pc)
 	{
-		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, ("Expecting 4 elements: (struct <sxh-type> <sxy-type> <cpp-type>)"));
+		cstr sxhType = StringFrom(sSxhType);
+		cstr sxyType = StringFrom(sSxyType);
+		cstr cppType = StringFrom(sCppType);
 
-		cstr sxhType = StringFrom(sprimitiveDef, 1);
-		cstr sxyType = StringFrom(sprimitiveDef, 2);
-		cstr cppType = StringFrom(sprimitiveDef, 3);
-
-		ValidateCPPType(sprimitiveDef.GetElement(3), cppType);
-		ValidateSexyType(sprimitiveDef.GetElement(2), sxyType);
+		ValidateCPPType(sCppType, cppType);
+		ValidateSexyType(sSxyType, sxyType);
 
 		TTypeMap::iterator i = pc.structs.find(sxhType);
 		if (i != pc.structs.end()) Throw(sprimitiveDef, ("sxh-type has already been defined"));
@@ -203,7 +199,8 @@ namespace
 		}
 	}
 
-	void AppendStructDefToCppTypeFile(FileAppender& cppTypeAppender, cstr cppType, cr_sex sprimitiveDef, const ParseContext& pc)
+	// The fields of a defstruct are the elements of sFields from index firstField onwards, each of the form (<field-type> <field-name>)
+	void AppendStructDefToCppTypeFile(FileAppender& cppTypeAppender, cstr cppType, cr_sex sFields, int firstField, const ParseContext& pc)
 	{
 		char cppTypeShortName[256];
 		int nsDepth = AppendCppNamespaceFromType(cppTypeAppender, cppType, cppTypeShortName);
@@ -211,9 +208,9 @@ namespace
 
 		cppTypeAppender.Append(("\tstruct %s\n\t{\n"), cppTypeShortName);
 
-		for (int i = 4; i < sprimitiveDef.NumberOfElements(); ++i)
+		for (int i = firstField; i < sFields.NumberOfElements(); ++i)
 		{
-			cr_sex field = sprimitiveDef.GetElement(i);
+			cr_sex field = sFields.GetElement(i);
 			if (field.NumberOfElements() != 2) Throw(field, ("Expecting two elements in a field definition (<field-type> <field-name>)"));
 
 			cstr fieldType = StringFrom(field, 0);
@@ -239,7 +236,7 @@ namespace
 		}
 	}
 
-	void AppendStructDefToSexyTypeFile(FileAppender& sexyTypeAppender, cstr sexyType, cr_sex sprimitiveDef, const ParseContext& pc)
+	void AppendStructDefToSexyTypeFile(FileAppender& sexyTypeAppender, cstr sexyType, cr_sex sprimitiveDef, cr_sex sFields, int firstField, const ParseContext& pc)
 	{
 		NamespaceSplitter splitter(sexyType);
 		cstr ns, shortName;
@@ -250,9 +247,9 @@ namespace
 
 		sexyTypeAppender.Append(("(struct %s\n"), shortName);
 
-		for (int i = 4; i < sprimitiveDef.NumberOfElements(); ++i)
+		for (int i = firstField; i < sFields.NumberOfElements(); ++i)
 		{
-			cr_sex field = sprimitiveDef.GetElement(i);
+			cr_sex field = sFields.GetElement(i);
 			if (field.NumberOfElements() != 2) Throw(field, ("Expecting two elements in a field definition (<field-type> <field-name>)"));
 
 			cstr fieldType = StringFrom(field, 0);
@@ -275,27 +272,24 @@ namespace
 		sexyTypeAppender.Append((")\n(alias %s %s.%s)\n\n"), shortName, ns, shortName);
 	}
 
-	void ParseStructDef(cr_sex sprimitiveDef, ParseContext& pc, FileAppender& cppTypeAppender, FileAppender& sexyTypeAppender)
+	void ValidateDefStructCanBeAdded(cr_sex sprimitiveDef, const ParseContext& pc)
 	{
 		if (*pc.cppRootDirectory == 0) Throw(sprimitiveDef, ("cpp.root must be specified before a defstruct"));
 		if (*pc.cppTypesFilename == 0) Throw(sprimitiveDef, ("cpp.types must be specified before a defstruct"));
+	}
 
-		if (sprimitiveDef.NumberOfElements() < 5) Throw(sprimitiveDef, "Expecting 5 or more elements: (defstruct <sxh-type> <sxy-type> <cpp-type> (field1)...(fieldN))");
+	// Defines a new struct, generating its definition in the sexy and C++ type files
+	void AddDefStruct(cr_sex sprimitiveDef, cr_sex sSxhType, cr_sex sSxyType, cr_sex sCppType, cr_sex sFields, int firstField, ParseContext& pc, FileAppender& cppTypeAppender, FileAppender& sexyTypeAppender)
+	{
+		cstr sxhType = StringFrom(sSxhType);
+		cstr sxyType = StringFrom(sSxyType);
+		cstr cppType = StringFrom(sCppType);
 
-		if (!IsAtomic(sprimitiveDef[1]) || !IsAtomic(sprimitiveDef[2]) || !IsAtomic(sprimitiveDef[3]))
-		{
-			Throw(sprimitiveDef, "Expected 3 atomics in positions 1, 2 and 3 of expression.\n i.e (defstruct <sxh - type> <sxy - type> <cpp - type> (field1)...(fieldN))");
-		}
+		ValidateCPPType(sCppType, cppType);
+		ValidateSexyType(sSxyType, sxyType);
 
-		cstr sxhType = StringFrom(sprimitiveDef, 1);
-		cstr sxyType = StringFrom(sprimitiveDef, 2);
-		cstr cppType = StringFrom(sprimitiveDef, 3);
-
-		ValidateCPPType(sprimitiveDef.GetElement(3), cppType);
-		ValidateSexyType(sprimitiveDef.GetElement(2), sxyType);
-
-		AppendStructDefToCppTypeFile(cppTypeAppender, cppType, sprimitiveDef, pc);
-		AppendStructDefToSexyTypeFile(sexyTypeAppender, sxyType, sprimitiveDef, pc);
+		AppendStructDefToCppTypeFile(cppTypeAppender, cppType, sFields, firstField, pc);
+		AppendStructDefToSexyTypeFile(sexyTypeAppender, sxyType, sprimitiveDef, sFields, firstField, pc);
 
 		auto i = pc.structs.find(sxhType);
 		if (i != pc.structs.end()) Throw(sprimitiveDef, ("sxh-type has already been defined"));
@@ -308,6 +302,81 @@ namespace
 		def.sexyType = sxyType;
 
 		pc.structs[sxhType] = def;
+	}
+
+	void ValidateTypeFilesForDefStructs(cr_sex configDef, const ParseContext& pc)
+	{
+		if (*pc.cppTypesFilename == 0) Throw(configDef, ("cpp.types was not defined"));
+		if (*pc.sexyTypesFilename == 0) Throw(configDef, ("sexy.types was not defined"));
+		if (*pc.cppException == 0) Throw(configDef, ("cpp.exception was not defined"));
+	}
+
+	void AppendTypeFileSignature(FileAppender& cppTypeAppender)
+	{
+		cppTypeAppender.Append("#pragma once\n\n");
+
+		SYSTEMTIME t;
+		GetSystemTime(&t);
+
+		char signature[256];
+		SafeFormat(signature, "// Generated by BennyHill on %u/%u/%u %u:%u:%u UTC\n\n", (uint32) t.wDay, (uint32) t.wMonth, (uint32) t.wYear, (uint32) t.wHour, (uint32) t.wMinute, (uint32) t.wSecond);
+
+		cppTypeAppender.Append(signature);
+	}
+
+	// The xc config front end. Each config item is an s-expression: (cpp.root ...) (cpp.exception ...) (type.files ...) (primitive ...) (struct ...) (interface ...) (defstruct ...)
+
+	void ParseCppRoot(cr_sex sconfigItem, ParseContext& pc)
+	{
+		if (*pc.cppRootDirectory != 0) Throw(sconfigItem, ("cpp.root has already been specified"));
+		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, ("Expecting (cpp.root <cpp-root-directory>). If the first character of <cpp-root-directory> is $, then $ is substituted with the project root"));
+		SetCppRoot(sconfigItem.GetElement(1), pc);
+	}
+
+	void ParseCppException(cr_sex sconfigItem, ParseContext& pc)
+	{
+		if (*pc.cppException != 0) Throw(sconfigItem, ("cpp.exception has already been specified"));
+		if (sconfigItem.NumberOfElements() != 2) Throw(sconfigItem, ("Expecting (cpp.exception <cpp-exception name>)."));
+		SetCppException(sconfigItem.GetElement(1), pc);
+	}
+
+	void ParseTypeFile(cr_sex sconfigItem, ParseContext& pc)
+	{
+		ValidateTypeFilesCanBeSet(sconfigItem, pc);
+		if (sconfigItem.NumberOfElements() != 3) Throw(sconfigItem, ("Expecting (cpp.types <sexy-types> <cpp-types>). Either argument can be prefixed with $project$ to map to the project root, or $cpp$ to map to the C++ root"));
+		SetTypeFiles(sconfigItem.GetElement(1), sconfigItem.GetElement(2), pc);
+	}
+
+	void ParsePrimitive(cr_sex sprimitiveDef, ParseContext& pc)
+	{
+		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, ("Expecting 4 elements: (primitive <sxh-type> <sxy-type> <cpp-type>)"));
+		AddPrimitive(sprimitiveDef, sprimitiveDef.GetElement(1), sprimitiveDef.GetElement(2), sprimitiveDef.GetElement(3), pc);
+	}
+
+	void ParseInterfaceDecl(cr_sex sprimitiveDef, ParseContext& pc)
+	{
+		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, "Expecting 4 elements: (interface <sxh-type> <sxy-type> <cpp-type>)");
+		AddInterfaceDecl(sprimitiveDef, sprimitiveDef.GetElement(1), sprimitiveDef.GetElement(2), sprimitiveDef.GetElement(3), pc);
+	}
+
+	void ParseStruct(cr_sex sprimitiveDef, ParseContext& pc)
+	{
+		if (sprimitiveDef.NumberOfElements() != 4) Throw(sprimitiveDef, ("Expecting 4 elements: (struct <sxh-type> <sxy-type> <cpp-type>)"));
+		AddStruct(sprimitiveDef, sprimitiveDef.GetElement(1), sprimitiveDef.GetElement(2), sprimitiveDef.GetElement(3), pc);
+	}
+
+	void ParseStructDef(cr_sex sprimitiveDef, ParseContext& pc, FileAppender& cppTypeAppender, FileAppender& sexyTypeAppender)
+	{
+		ValidateDefStructCanBeAdded(sprimitiveDef, pc);
+
+		if (sprimitiveDef.NumberOfElements() < 5) Throw(sprimitiveDef, "Expecting 5 or more elements: (defstruct <sxh-type> <sxy-type> <cpp-type> (field1)...(fieldN))");
+
+		if (!IsAtomic(sprimitiveDef[1]) || !IsAtomic(sprimitiveDef[2]) || !IsAtomic(sprimitiveDef[3]))
+		{
+			Throw(sprimitiveDef, "Expected 3 atomics in positions 1, 2 and 3 of expression.\n i.e (defstruct <sxh - type> <sxy - type> <cpp - type> (field1)...(fieldN))");
+		}
+
+		AddDefStruct(sprimitiveDef, sprimitiveDef.GetElement(1), sprimitiveDef.GetElement(2), sprimitiveDef.GetElement(3), sprimitiveDef, 4, pc, cppTypeAppender, sexyTypeAppender);
 	}
 
 	void ParseConfig(cr_sex configDef, ParseContext& pc)
@@ -357,22 +426,12 @@ namespace
 
 		if (nStructDefs > 0)
 		{
-			if (*pc.cppTypesFilename == 0) Throw(configDef, ("cpp.types was not defined"));
-			if (*pc.sexyTypesFilename == 0) Throw(configDef, ("sexy.types was not defined"));
-			if (*pc.cppException == 0) Throw(configDef, ("cpp.exception was not defined"));
+			ValidateTypeFilesForDefStructs(configDef, pc);
 
 			FileAppender cppTypeAppender(pc.cppTypesFilename);
 			FileAppender sexyTypeAppender(pc.sexyTypesFilename);
 
-			cppTypeAppender.Append("#pragma once\n\n");
-
-			SYSTEMTIME t;
-			GetSystemTime(&t);
-
-			char signature[256];
-			SafeFormat(signature, "// Generated by BennyHill on %u/%u/%u %u:%u:%u UTC\n\n", (uint32) t.wDay, (uint32) t.wMonth, (uint32) t.wYear, (uint32) t.wHour, (uint32) t.wMinute, (uint32) t.wSecond);
-
-			cppTypeAppender.Append(signature);
+			AppendTypeFileSignature(cppTypeAppender);
 
 			for (int i = 0; i < configDef.NumberOfElements(); ++i)
 			{
@@ -389,7 +448,8 @@ namespace
 		if (*pc.cppRootDirectory == 0) Throw(configDef, ("cpp.root was not specified"));
 	}
 
-	void LoadConfigXC(cr_sex configSpec, ParseContext& pc)
+	// Loads the config file at pc.xcPath, then invokes parseConfig on the root of its s-expression tree
+	void LoadConfigFile(ParseContext& pc, Rococo::Function<void(cr_sex configRoot)> parseConfig)
 	{
 		Auto<ISParser> parser = CreateSexParser_2_0(Rococo::Memory::CheckedAllocator());
 		Auto<ISourceCode> configSrc;
@@ -402,7 +462,7 @@ namespace
 			configSrc = parser->LoadSource(wXCPath, Vec2i{ 1,1 });
 			tree = parser->CreateTree(configSrc());
 
-			ParseConfig(tree().Root(), pc);
+			parseConfig(tree().Root());
 
 			IO::ToSysPath(pc.sexyTypesFilename);
 			IO::ToSysPath(pc.cppTypesFilename);
@@ -413,6 +473,34 @@ namespace
 		{
 			WriteToStandardOutput("%s: %s. Specimen: %s", pc.xcPath, ex.Message(), ex.Specimen());
 			Throw(ex);
+		}
+	}
+
+}
+
+// The SEXML config front end (*.xc.sexml)
+#include "bennyhill.config.sexml.inl"
+
+namespace
+{
+	// Loads the config file given on the command line. Files ending with .sexml are read with the SEXML config front end, others as xc
+	void LoadConfigXC(cr_sex configSpec, ParseContext& pc)
+	{
+		if (EndsWithI(pc.xcPath, ".sexml"))
+		{
+			LoadConfigFile(pc, [&pc](cr_sex configRoot)
+				{
+					ParseSEXMLConfig(configRoot, pc);
+				}
+			);
+		}
+		else
+		{
+			LoadConfigFile(pc, [&pc](cr_sex configRoot)
+				{
+					ParseConfig(configRoot, pc);
+				}
+			);
 		}
 	}
 }

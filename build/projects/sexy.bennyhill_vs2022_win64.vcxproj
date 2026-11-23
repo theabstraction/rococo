@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -225,7 +225,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rococo.sexml.lib;rococo.util.lib;sexy.s-parser.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -238,6 +238,7 @@
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.appender.cpp.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.appender.sexy.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.config.inl" />
+    <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.config.sexml.inl" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.h" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.stdafx.h" />
     <ClInclude Include="..\..\source\rococo\sexy\sexy.bennyhill\bennyhill.templates.inl" />
@@ -264,6 +265,11 @@
     </ProjectReference>
     <ProjectReference Include="sexy.s-parser_vs2022_win64.vcxproj">
       <Project>{BACEFA6A-2AAC-DC56-B568-376B6F64FA56}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.sexml_vs2022_win64.vcxproj">
+      <Project>{AE85B54B-E7B4-7488-34AA-23A839360CB8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

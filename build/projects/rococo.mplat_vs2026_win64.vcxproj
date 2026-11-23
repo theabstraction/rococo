@@ -128,7 +128,7 @@
       <OutputFile>..\..\gen\lib\win64\debug\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -194,11 +194,11 @@
       <OutputFile>..\..\gen\lib\win64\release\rococo.mplat.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mplat\code-gen rococo\mplat Rococo.sxh config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc.sexml" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.ELayoutAlgorithm.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Entities.IMobiles.sxh.h" />

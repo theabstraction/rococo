@@ -150,7 +150,7 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -238,11 +238,11 @@
       <MapFileName>..\..\gen\bin\win64\$(configuration)\rococo.mhost.map</MapFileName>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\rococo.mhost\code-gen ..\..\ mhost.sxh config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc" />
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.h" />
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" />

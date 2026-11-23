@@ -1,0 +1,99 @@
+// BennyHill config file in SEXML format. The schema is described in source/rococo/sexy/sexy.bennyhill/README.sexml.txt
+(CppRoot (Path $))
+// The config must contain one and only one (CppRoot (Path <cpp-root>)) entry, which gives the path of generated c++ code. If the path is prefixed with $ then $ is replaced with the <project_root> given in the bennyhill command line
+
+(CppException (Type Rococo::IException))
+
+// (TypeFiles (SexyTypes <sexy-types-path>) (CppTypes <cpp-types-path>)) gives the location where custom types are generated from definitions found in this file. If the path is prefixed with $project$ then $project$ is replaced with the <project_root> given in the bennyhill command line
+// if the path is prefixed with $cpp$ then $cpp$ is replaced with the CppRoot path as specified above
+// SexyTypes gives the sexy definition file, CppTypes gives the types that are written into the cpp header
+(TypeFiles (SexyTypes $content$types.sxy) (CppTypes $cpp$rococo.script.types.h))
+
+// First define the fundamental types. The format of the directive is (Primitive (Name <name>) (SexyType <sexy-name>) (CppType <cpp-name>)), which maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
+// Arguments that are primitive are passed by value to the script system. If they are output arguments then the cpp side implements them as a return value for the first argument and ref values for the successive arguments.
+
+// Note that namespaces are separated by . in all cases, and the bennyhill system maps cpp namespace separators . to ::
+
+(Primitive (Name Int32) (SexyType Int32) (CppType int32))
+(Primitive (Name Int64) (SexyType Int64) (CppType int64))
+(Primitive (Name Float32) (SexyType Float32) (CppType float))
+(Primitive (Name Float64) (SexyType Float64) (CppType double))
+(Primitive (Name Bool) (SexyType Bool) (CppType boolean32))
+(Primitive (Name Degrees) (SexyType Sys.Maths.Degrees) (CppType Degrees))
+(Primitive (Name Radians) (SexyType Sys.Maths.Radians) (CppType Radians))
+(Primitive (Name Seconds) (SexyType Sys.SI.Seconds) (CppType Seconds))
+(Primitive (Name Metres) (SexyType Sys.SI.Metres) (CppType Metres))
+(Primitive (Name Kilograms) (SexyType Sys.SI.Kilograms) (CppType Kilograms))
+(Primitive (Name RGBAb) (SexyType Int32) (CppType RGBAb))
+(Primitive (Name IdFont) (SexyType Int32) (CppType ID_FONT))
+(Primitive (Name EHQFont) (SexyType Int32) (CppType Rococo.Graphics.HQFont))
+(Primitive (Name IdSprite) (SexyType Int64) (CppType ID_SPRITE))
+
+(Primitive (Name Pointer) (SexyType Pointer) (CppType uintptr_t))
+(Primitive (Name IdMesh) (SexyType Int32) (CppType ID_MESH))
+(Primitive (Name IdEntity) (SexyType Int64) (CppType ID_ENTITY))
+(Primitive (Name IdSysMesh) (SexyType Int64) (CppType ID_SYS_MESH))
+(Primitive (Name IdCubeTexture) (SexyType Int64) (CppType ID_CUBE_TEXTURE))
+(Primitive (Name IdSkeleton) (SexyType Int64) (CppType ID_SKELETON))
+(Primitive (Name IdPose) (SexyType Int64) (CppType ID_POSE))
+(Primitive (Name LayoutId) (SexyType Int32) (CppType ELayoutAlgorithm))
+(Primitive (Name MaterialId) (SexyType Float32) (CppType Rococo.Graphics.MaterialId))
+(Primitive (Name MaterialCategory) (SexyType Int32) (CppType Rococo.Graphics.MaterialCategory))
+(Primitive (Name SampleMethod) (SexyType Int32) (CppType Rococo.Graphics.SampleMethod))
+(Primitive (Name SampleFilter) (SexyType Int32) (CppType Rococo.Graphics.SampleFilter))
+(Primitive (Name SampleIndex) (SexyType Int32) (CppType Rococo.Graphics.SampleIndex))
+(Primitive (Name ELegacySoundShape) (SexyType Int32) (CppType Rococo.Audio.ELegacySoundShape))
+
+// (Struct (Name <name>) (SexyType <sexy-name>) (CppType <cpp-name>))  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
+// Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
+
+(Struct (Name Vec2i) (SexyType Sys.Maths.Vec2i) (CppType Vec2i))
+(Struct (Name Vec2) (SexyType Sys.Maths.Vec2) (CppType Vec2))
+(Struct (Name Vec3) (SexyType Sys.Maths.Vec3) (CppType Vec3))
+(Struct (Name Vec4) (SexyType Sys.Maths.Vec4) (CppType Vec4))
+(Struct (Name Quat) (SexyType Sys.Maths.Quat) (CppType Quat))
+(Struct (Name Rect) (SexyType Sys.Maths.Recti) (CppType GuiRect))
+(Struct (Name Rectf) (SexyType Sys.Maths.Rectf) (CppType GuiRectf))
+(Struct (Name Matrix4x4) (SexyType Sys.Maths.Matrix4x4) (CppType Matrix4x4))
+(Struct (Name IString) (SexyType Sys.Type.IString) (CppType fstring))
+(Struct (Name IStringBuilder) (SexyType Sys.Type.IStringBuilder) (CppType IStringPopulator))
+(Struct (Name FPSAngles) (SexyType Sys.Maths.FPSAngles) (CppType FPSAngles))
+(Struct (Name Quad) (SexyType Sys.Maths.Quadf) (CppType Quad))
+(Struct (Name Triangle) (SexyType Sys.Maths.Triangle) (CppType Triangle))
+(Struct (Name Triangle2d) (SexyType Sys.Maths.Triangle2d) (CppType Triangle2d))
+(Struct (Name RGBA) (SexyType Sys.Maths.Vec4) (CppType RGBA))
+
+// (DefStruct (Name <name>) (SexyType <sexy-name>) (CppType <cpp-name>) (' Fields (fields)))  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (TypeFiles ...)
+// (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent DefStruct and <name> is a unique name for the variable.
+// Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
+
+(Struct (Name MaterialVertexData) (SexyType Rococo.MaterialVertexData) (CppType Rococo.Graphics.MaterialVertexData))
+
+(Struct (Name Vertex) (SexyType Rococo.ObjectVertex) (CppType Rococo.Graphics.ObjectVertex))
+(Struct (Name BoneWeights) (SexyType Rococo.BoneWeights) (CppType Rococo.Graphics.BoneWeights))
+(Struct (Name LightSpec) (SexyType Rococo.LightSpec) (CppType Rococo.LightSpec))
+(Struct (Name QuadColours) (SexyType Rococo.QuadColours) (CppType Rococo.Graphics.QuadColours))
+(Struct (Name QuadVertices) (SexyType Rococo.QuadVertices) (CppType Rococo.QuadVertices))
+(Struct (Name VertexTriangle) (SexyType Rococo.VertexTriangle) (CppType Rococo.Graphics.VertexTriangle))
+(Struct (Name AABB2d) (SexyType Rococo.AAB2d) (CppType AABB2d))
+(Struct (Name FlameDef) (SexyType Rococo.FlameDef) (CppType FlameDef))
+(Struct (Name SampleStateDef) (SexyType Rococo.SampleStateDef) (CppType Rococo.Graphics.SampleStateDef))
+(Struct (Name FontMetrics) (SexyType Rococo.Graphics.FontMetrics) (CppType Rococo.Graphics.FontMetrics))
+(Struct (Name BitmapLocation) (SexyType MPlat.BitmapLocation) (CppType Rococo.Graphics.Textures.BitmapLocation))
+(Struct (Name SoftBoxTopSpec) (SexyType Rococo.Graphics.SoftBoxTopSpec) (CppType Rococo.Graphics.SoftBoxTopSpec))
+(Struct (Name SoftBoxQuad) (SexyType Rococo.Graphics.SoftBoxQuad) (CppType Rococo.Graphics.SoftBoxQuad))
+(Struct (Name SoftBoxVertex) (SexyType Rococo.Graphics.SoftBoxVertex) (CppType Rococo.Graphics.SoftBoxVertex))
+(Struct (Name SoftBoxTriangle) (SexyType Rococo.Graphics.SoftBoxTriangle) (CppType Rococo.Graphics.SoftBoxTriangle))
+(Struct (Name RoundCornersShelfSpec) (SexyType Rococo.Graphics.RoundCornersShelfSpec) (CppType Rococo.Graphics.RoundCornersShelfSpec))
+
+(DefStruct (Name TriangleScan) (SexyType Rococo.TriangleScan) (CppType Rococo.TriangleScan) (' Fields (
+	(IdEntity id)
+	(IdSysMesh idMesh)
+	(Triangle t)
+)))
+
+(DefStruct (Name HQFontDef) (SexyType Rococo.HQFontDef) (CppType Rococo.HQFontDef) (' Fields (
+	(Int32 fontSize)
+	(Bool isItalic)
+	(Bool isBold)
+)))

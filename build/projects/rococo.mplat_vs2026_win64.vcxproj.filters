@@ -58,7 +58,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.world.editor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc">
+    <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\config.xc.sexml">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mplat\code-gen\Rococo.Configuration.IConfig.sxh.h">

@@ -151,7 +151,7 @@
       <ImportLibrary>..\..\gen\lib\win64\debug\rococo.component.configuration.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -240,7 +240,7 @@
       <ImportLibrary>..\..\gen\lib\win64\release\rococo.component.configuration.lib</ImportLibrary>
     </Link>
     <PreBuildEvent>
-      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc&#x0D;&#x0A;</Command>
+      <Command>..\tools\rococo.sxh.bat $(Configuration) source\rococo\component.modules\configuration\code-gen rococo\components config.sxh ..\..\..\config.xc.sexml&#x0D;&#x0A;</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

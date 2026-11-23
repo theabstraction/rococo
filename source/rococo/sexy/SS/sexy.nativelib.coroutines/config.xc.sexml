@@ -1,0 +1,32 @@
+// BennyHill config file in SEXML format. The schema is described in source/rococo/sexy/sexy.bennyhill/README.sexml.txt
+// The config must contain one and only one (CppRoot (Path <cpp-root>)) entry, which gives the path of generated c++ code. If the path is prefixed with $ then $ is replaced with the <project_root> given in the bennyhill command line
+(CppRoot (Path $))
+
+// (TypeFiles (SexyTypes <sexy-types-path>) (CppTypes <cpp-types-path>)) gives the location where custom types are generated from definitions found in this file. If the path is prefixed with $project$ then $project$ is replaced with the <project_root> given in the bennyhill command line
+// if the path is prefixed with $cpp$ then $cpp$ is replaced with the CppRoot path as specified above
+// SexyTypes gives the sexy definition file, CppTypes gives the types that are written into the cpp header
+(TypeFiles (SexyTypes $project$types.sxy) (CppTypes $cpp$types.h))
+
+// First define the fundamental types. The format of the directive is (Primitive (Name <name>) (SexyType <sexy-name>) (CppType <cpp-name>)), which maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
+// Arguments that are primitive are passed by value to the script system. If they are output arguments then the cpp side implements them as a return value for the first argument and ref values for the successive arguments.
+
+// Note that namespaces are separated by . in all cases, and the bennyhill system maps cpp namespace separators . to ::
+
+(Primitive (Name Int32) (SexyType Int32) (CppType int32))
+(Primitive (Name Int64) (SexyType Int64) (CppType int64))
+(Primitive (Name Float32) (SexyType Float32) (CppType float))
+(Primitive (Name Float64) (SexyType Float64) (CppType double))
+(Primitive (Name Bool) (SexyType Bool) (CppType boolean32))
+
+// System defined strings. They are defined as structs to stop them being used as output values, which is not yet implemented.
+(Struct (Name IString) (SexyType Sys.Type.IString) (CppType fstring))
+(Struct (Name IStringBuilder) (SexyType Sys.Type.IStringBuilder) (CppType Rococo.IStringPopulator))
+
+(Primitive (Name Pointer) (SexyType Pointer) (CppType uintptr_t))
+(Primitive (Name ICoroutine) (SexyType Sys.ICoroutine) (CppType Rococo.Sex.CoroutineRef))
+
+(CppException (Type Sys::IException))
+
+
+
+

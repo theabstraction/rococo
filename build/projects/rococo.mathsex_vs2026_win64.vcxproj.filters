@@ -5,7 +5,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mathsex\rococo.sexy.mathsex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc">
+    <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\config.xc.sexml">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mathsex\code-gen\mathsex.sxh">

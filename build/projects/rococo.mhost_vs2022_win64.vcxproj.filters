@@ -9,7 +9,7 @@
     <ClCompile Include="..\..\source\rococo\rococo.mhost\mhost.tests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc">
+    <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\config.xc.sexml">
       <Filter>code-gen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\rococo\rococo.mhost\code-gen\mhost.sxh">

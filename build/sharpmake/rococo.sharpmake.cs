@@ -174,9 +174,10 @@ namespace Rococo
                 throw new Exception("Expecting file " + sxh + " to end with .sxh");
             }
 
-            if (!xc.EndsWith(".xc"))
+            // BennyHill reads a config ending with .sexml (e.g. config.xc.sexml) with the SEXML config front end, otherwise as a legacy xc file
+            if (!xc.EndsWith(".xc.sexml") && !xc.EndsWith(".xc"))
             {
-                throw new Exception("Expecting config file " + xc + " to end with .xc");
+                throw new Exception("Expecting config file " + xc + " to end with .xc.sexml or .xc");
             }
 
             if (asPreBuildStep)
@@ -604,7 +605,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_ECS_API=__declspec(dllexport)");
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"ecs.sxh", @"..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
         }
     }
 
@@ -666,7 +667,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoECSProject>(target);
             conf.SolutionFolder = "ECS";
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
-            AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"config.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
         }
     }
 
@@ -687,7 +688,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.SolutionFolder = "ECS";
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
-            AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"animation.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
         }
     }
 
@@ -708,7 +709,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"body.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
         }
     }
 
@@ -729,7 +730,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.SolutionFolder = "ECS";
-            AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc", @"rococo\components", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"skeleton.sxh", @"..\..\..\config.xc.sexml", @"rococo\components", true, @"code-gen");
         }
     }
 
@@ -1105,7 +1106,7 @@ namespace Rococo
     {
         public RococoSexyMathSexProject() : base("rococo.mathsex")
         {
-            SourceFiles.Add(@"code-gen\Mathsex.sxh", @"code-gen\config.xc");
+            SourceFiles.Add(@"code-gen\Mathsex.sxh", @"code-gen\config.xc.sexml");
         }
 
         [Configure()]
@@ -1114,7 +1115,7 @@ namespace Rococo
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoMathsProject>(target);
             conf.AddPublicDependency<RococoUtilsProject>(target);
-            AddSXHFileBuildStep(conf, target, @"Mathsex.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"Mathsex.sxh", @"config.xc.sexml", @"rococo\mplat", true, @"code-gen");
         }
     }
 
@@ -1290,7 +1291,7 @@ namespace Rococo
     {
         public RococoMPlatProject() : base("rococo.mplat")
         {
-            SourceFiles.Add(@"code-gen\Rococo.sxh", @"code-gen\config.xc");
+            SourceFiles.Add(@"code-gen\Rococo.sxh", @"code-gen\config.xc.sexml");
         }
 
         [Configure()]
@@ -1307,7 +1308,7 @@ namespace Rococo
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
             conf.Defines.Add("SEXYIDE_API=");
-            AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc", @"rococo\mplat", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"Rococo.sxh", @"config.xc.sexml", @"rococo\mplat", true, @"code-gen");
         }
     }
 
@@ -1348,7 +1349,7 @@ namespace Rococo
     {
         public RococoMHostProject() : base("rococo.mhost")
         {
-            SourceFiles.Add(@"code-gen\mhost.sxh", @"code-gen\config.xc");
+            SourceFiles.Add(@"code-gen\mhost.sxh", @"code-gen\config.xc.sexml");
         }
 
         [Configure()]
@@ -1367,7 +1368,7 @@ namespace Rococo
 
             // The third item is relative to the interop directory, which is $(ROCOCO_ROOT)content\scripts\interop\
             // We go back 2 directories which takes us to the content root, which is what mhost is set up for
-            AddSXHFileBuildStep(conf, target, @"mhost.sxh", @"config.xc", @"..\..\", true, @"code-gen");
+            AddSXHFileBuildStep(conf, target, @"mhost.sxh", @"config.xc.sexml", @"..\..\", true, @"code-gen");
         }
     }
 
@@ -1669,7 +1670,7 @@ namespace Rococo
         public RococoAudioProject() : base("rococo.audio")
         {
             base.SourceFiles.Add("audio.sxh");
-            base.SourceFiles.Add("config.xc");
+            base.SourceFiles.Add("config.xc.sexml");
             SourceFiles.Add(@"..\include\rococo.audio.h");
         }
 
@@ -1683,7 +1684,7 @@ namespace Rococo
             conf.AddPublicDependency<VorbisFileProject>(target);
             conf.IncludePaths.Add(@"..\..\3rd-party\libvorbis\include\");
             conf.IncludePaths.Add(@"..\..\3rd-party\libogg\include\");
-            AddSXHFileBuildStep(conf, target, "Audio.sxh", "config.xc", @"rococo\audio", true);
+            AddSXHFileBuildStep(conf, target, "Audio.sxh", "config.xc.sexml", @"rococo\audio", true);
         }
     }
 
@@ -1894,6 +1895,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoUtilsProject>(target);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target); // reads config files (*.xc.sexml), see bennyhill.config.sexml.inl
             conf.Options.Add(new Sharpmake.Options.Vc.Compiler.DisableSpecificWarnings("4100", "4189"));
             conf.SolutionFolder = " - Sexy";
         }
@@ -1983,7 +1985,7 @@ namespace Rococo
             conf.SolutionFolder = " - Sexy";
 
             // We dont need the sxy file, as a copy is embedded in Sys.Types.sxy. So dump to the temp folder
-            AddSXHFileBuildStep(conf, target, "coroutines.sxh", "config.xc", @"..\..\..\gen\temp", true);
+            AddSXHFileBuildStep(conf, target, "coroutines.sxh", "config.xc.sexml", @"..\..\..\gen\temp", true);
         }
     }
 
