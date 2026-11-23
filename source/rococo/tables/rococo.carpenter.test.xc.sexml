@@ -14,58 +14,58 @@
 
 // Note that namespaces are separated by . in all cases, and the bennyhill system maps cpp namespace separators . to ::
 
-(Primitive (Name Int32) (SexyType Int32) (CppType int32))
-(Primitive (Name Int64) (SexyType Int64) (CppType int64))
-(Primitive (Name Float32) (SexyType Float32) (CppType float))
-(Primitive (Name Float64) (SexyType Float64) (CppType double))
-(Primitive (Name Bool) (SexyType Bool) (CppType boolean32))
-(Primitive (Name Degrees) (SexyType Sys.Maths.Degrees) (CppType Degrees))
-(Primitive (Name Radians) (SexyType Sys.Maths.Radians) (CppType Radians))
-(Primitive (Name Seconds) (SexyType Sys.SI.Seconds) (CppType Seconds))
-(Primitive (Name Metres) (SexyType Sys.SI.Metres) (CppType Metres))
-(Primitive (Name Kilograms) (SexyType Sys.SI.Kilograms) (CppType Kilograms))
-(Primitive (Name RGBAb) (SexyType Int32) (CppType RGBAb))
-(Primitive (Name Pointer) (SexyType Pointer) (CppType uintptr_t))
-(Primitive (Name IExpression) (SexyType Sys.Reflection.IExpression) (CppType InterfacePointer))
+(Primitive (Name Int32)             (SexyType Int32)                                     (CppType int32))
+(Primitive (Name Int64)             (SexyType Int64)                                     (CppType int64))
+(Primitive (Name Float32)           (SexyType Float32)                                   (CppType float))
+(Primitive (Name Float64)           (SexyType Float64)                                   (CppType double))
+(Primitive (Name Bool)              (SexyType Bool)                                      (CppType boolean32))
+(Primitive (Name Degrees)           (SexyType Sys.Maths.Degrees)                         (CppType Degrees))
+(Primitive (Name Radians)           (SexyType Sys.Maths.Radians)                         (CppType Radians))
+(Primitive (Name Seconds)           (SexyType Sys.SI.Seconds)                            (CppType Seconds))
+(Primitive (Name Metres)            (SexyType Sys.SI.Metres)                             (CppType Metres))
+(Primitive (Name Kilograms)         (SexyType Sys.SI.Kilograms)                          (CppType Kilograms))
+(Primitive (Name RGBAb)             (SexyType Int32)                                     (CppType RGBAb))
+(Primitive (Name Pointer)           (SexyType Pointer)                                   (CppType uintptr_t))
+(Primitive (Name IExpression)       (SexyType Sys.Reflection.IExpression)                (CppType InterfacePointer))
 
 // (Struct (Name <name>) (SexyType <sexy-name>) (CppType <cpp-name>))  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files
 // Arguments that are struct are passed by reference in the script system. They may not be used as output arguments. It is assumed that the structures are defined elsewhere.
 
-(Struct (Name Vec2i) (SexyType Sys.Maths.Vec2i) (CppType Vec2i))
-(Struct (Name Vec2) (SexyType Sys.Maths.Vec2) (CppType Vec2))
-(Struct (Name Vec3) (SexyType Sys.Maths.Vec3) (CppType Vec3))
-(Struct (Name Vec4) (SexyType Sys.Maths.Vec4) (CppType Vec4))
-(Struct (Name Quat) (SexyType Sys.Maths.Quat) (CppType Quat))
-(Struct (Name Matrix4x4) (SexyType Sys.Maths.Matrix4x4) (CppType Matrix4x4))
-(Struct (Name IString) (SexyType Sys.Type.IString) (CppType fstring))
-(Struct (Name IStringBuilder) (SexyType Sys.Type.IStringBuilder) (CppType Rococo.IStringPopulator))
-(Struct (Name ITableString) (SexyType Sys.Type.IStringBuilder) (CppType InterfacePointer))
-(Struct (Name FPSAngles) (SexyType Sys.Maths.FPSAngles) (CppType FPSAngles))
-(Struct (Name Vertex) (SexyType Rococo.ObjectVertex) (CppType ObjectVertex))
-(Struct (Name VertexTriangle) (SexyType Rococo.VertexTriangle) (CppType VertexTriangle))
-(Struct (Name Quad) (SexyType Sys.Maths.Quadf) (CppType Quad))
-(Struct (Name Triangle) (SexyType Sys.Maths.Triangle) (CppType Triangle))
-(Struct (Name Triangle2d) (SexyType Sys.Maths.Triangle2d) (CppType Triangle2d))
-(Struct (Name MaterialVertexData) (SexyType Rococo.MaterialVertexData) (CppType MaterialVertexData))
-(Struct (Name AABB2d) (SexyType Rococo.AAB2d) (CppType AABB2d))
-(Struct (Name QuadVertices) (SexyType Rococo.QuadVertices) (CppType QuadVertices))
-(Struct (Name GuiQuad) (SexyType MPlat.GuiQuad) (CppType Rococo.GuiQuad))
-(Struct (Name Rectf) (SexyType Sys.Maths.Rectf) (CppType Rococo.GuiRectf))
-(Struct (Name Recti) (SexyType Sys.Maths.Recti) (CppType Rococo.GuiRect))
-(Struct (Name RGBA) (SexyType RGBA) (CppType RGBA))
+(Struct (Name Vec2i)                (SexyType Sys.Maths.Vec2i)                           (CppType Vec2i))
+(Struct (Name Vec2)                 (SexyType Sys.Maths.Vec2)                            (CppType Vec2))
+(Struct (Name Vec3)                 (SexyType Sys.Maths.Vec3)                            (CppType Vec3))
+(Struct (Name Vec4)                 (SexyType Sys.Maths.Vec4)                            (CppType Vec4))
+(Struct (Name Quat)                 (SexyType Sys.Maths.Quat)                            (CppType Quat))
+(Struct (Name Matrix4x4)            (SexyType Sys.Maths.Matrix4x4)                       (CppType Matrix4x4))
+(Struct (Name IString)              (SexyType Sys.Type.IString)                          (CppType fstring))
+(Struct (Name IStringBuilder)       (SexyType Sys.Type.IStringBuilder)                   (CppType Rococo.IStringPopulator))
+(Struct (Name ITableString)         (SexyType Sys.Type.IStringBuilder)                   (CppType InterfacePointer))
+(Struct (Name FPSAngles)            (SexyType Sys.Maths.FPSAngles)                       (CppType FPSAngles))
+(Struct (Name Vertex)               (SexyType Rococo.ObjectVertex)                       (CppType ObjectVertex))
+(Struct (Name VertexTriangle)       (SexyType Rococo.VertexTriangle)                     (CppType VertexTriangle))
+(Struct (Name Quad)                 (SexyType Sys.Maths.Quadf)                           (CppType Quad))
+(Struct (Name Triangle)             (SexyType Sys.Maths.Triangle)                        (CppType Triangle))
+(Struct (Name Triangle2d)           (SexyType Sys.Maths.Triangle2d)                      (CppType Triangle2d))
+(Struct (Name MaterialVertexData)   (SexyType Rococo.MaterialVertexData)                 (CppType MaterialVertexData))
+(Struct (Name AABB2d)               (SexyType Rococo.AAB2d)                              (CppType AABB2d))
+(Struct (Name QuadVertices)         (SexyType Rococo.QuadVertices)                       (CppType QuadVertices))
+(Struct (Name GuiQuad)              (SexyType MPlat.GuiQuad)                             (CppType Rococo.GuiQuad))
+(Struct (Name Rectf)                (SexyType Sys.Maths.Rectf)                           (CppType Rococo.GuiRectf))
+(Struct (Name Recti)                (SexyType Sys.Maths.Recti)                           (CppType Rococo.GuiRect))
+(Struct (Name RGBA)                 (SexyType RGBA)                                      (CppType RGBA))
 
 // (DefStruct (Name <name>) (SexyType <sexy-name>) (CppType <cpp-name>) (' Fields (fields)))  maps <name> found in the sxh file to the <sexy-name> in the generated sxy file, and <cpp-name> in the c++ files. It creates new structures in the target specified in (TypeFiles ...)
 // (fields) is a sequence of s-expressions of the format (<type> <name>) where <type> is either a primitive or struct defined BEFORE the parent DefStruct and <name> is a unique name for the variable.
 // Field names must follow the naming rules for field variables in sexy, i.e, begin with a lowercase letter a-z and succeed with any sequence of alphanumerics.
 
 
-(Primitive (Name EnumElementName) (SexyType Rococo.Science.Materials.ElementName) (CppType Rococo.Science.Materials.ElementName))
-(Primitive (Name EnumElementSymbol) (SexyType Rococo.Science.Materials.ElementSymbol) (CppType Rococo.Science.Materials.ElementSymbol))
-(Primitive (Name EnumElementType) (SexyType Rococo.Science.Materials.ElementType) (CppType Rococo.Science.Materials.ElementType))
-(Primitive (Name TypeElectronVolts) (SexyType Rococo.SI.ElectronVolts) (CppType Rococo.SI.ElectronVolts))
-(Primitive (Name TypeKelvin) (SexyType Rococo.SI.Kelvin) (CppType Rococo.SI.Kelvin))
+(Primitive (Name EnumElementName)   (SexyType Rococo.Science.Materials.ElementName)      (CppType Rococo.Science.Materials.ElementName))
+(Primitive (Name EnumElementSymbol) (SexyType Rococo.Science.Materials.ElementSymbol)    (CppType Rococo.Science.Materials.ElementSymbol))
+(Primitive (Name EnumElementType)   (SexyType Rococo.Science.Materials.ElementType)      (CppType Rococo.Science.Materials.ElementType))
+(Primitive (Name TypeElectronVolts) (SexyType Rococo.SI.ElectronVolts)                   (CppType Rococo.SI.ElectronVolts))
+(Primitive (Name TypeKelvin)        (SexyType Rococo.SI.Kelvin)                          (CppType Rococo.SI.Kelvin))
 
-(DefStruct (Name PeriodicTableRow) (SexyType Rococo.Science.Materials.PeriodicTableRow) (CppType Rococo.Science.Materials.PeriodicTableRow) (' Fields (
+(DefStruct (Name PeriodicTableRow)  (SexyType Rococo.Science.Materials.PeriodicTableRow) (CppType Rococo.Science.Materials.PeriodicTableRow) (' Fields (
 	(Int32 atomicNumber)
 	(EnumElementName element)
 	(EnumElementSymbol symbol)
@@ -78,20 +78,20 @@
 	(TypeKelvin meltingPoint)
 	(TypeKelvin boilingPoint)
 )))
-(Primitive (Name EnumTextId) (SexyType Rococo.Strings.TextId) (CppType Rococo.Strings.TextId))
+(Primitive (Name EnumTextId)        (SexyType Rococo.Strings.TextId)                     (CppType Rococo.Strings.TextId))
 
-(DefStruct (Name LocalizedTextRow) (SexyType Rococo.Strings.LocalizedTextRow) (CppType Rococo.Strings.LocalizedTextRowSexy) (' Fields (
+(DefStruct (Name LocalizedTextRow)  (SexyType Rococo.Strings.LocalizedTextRow)           (CppType Rococo.Strings.LocalizedTextRowSexy) (' Fields (
 	(EnumTextId id)
 	(ITableString english)
 	(ITableString german)
 )))
-(Primitive (Name EnumQuoteId) (SexyType Rococo.Quotes.QuoteId) (CppType Rococo.Quotes.QuoteId))
+(Primitive (Name EnumQuoteId)       (SexyType Rococo.Quotes.QuoteId)                     (CppType Rococo.Quotes.QuoteId))
 
-(DefStruct (Name QuotesRow) (SexyType Rococo.Quotes.QuotesRow) (CppType Rococo.Quotes.QuotesRowSexy) (' Fields (
+(DefStruct (Name QuotesRow)         (SexyType Rococo.Quotes.QuotesRow)                   (CppType Rococo.Quotes.QuotesRowSexy) (' Fields (
 	(EnumQuoteId id)
 	(ITableString text)
 )))
-(DefStruct (Name UsersRow) (SexyType Rococo.Test.UserDemo.UsersRow) (CppType Rococo.Test.UserDemo.UsersRowSexy) (' Fields (
+(DefStruct (Name UsersRow)          (SexyType Rococo.Test.UserDemo.UsersRow)             (CppType Rococo.Test.UserDemo.UsersRowSexy) (' Fields (
 	(ITableString ownerId)
 	(Int64 purchaseId)
 )))

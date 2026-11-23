@@ -12,18 +12,18 @@
 
 // Note that namespaces are separated by . in all cases, and the bennyhill system maps cpp namespace separators . to ::
 
-(Primitive (Name Int32) (SexyType Int32) (CppType int32))
-(Primitive (Name Int64) (SexyType Int64) (CppType int64))
-(Primitive (Name Float32) (SexyType Float32) (CppType float))
-(Primitive (Name Float64) (SexyType Float64) (CppType double))
-(Primitive (Name Bool) (SexyType Bool) (CppType boolean32))
+(Primitive (Name Int32)       (SexyType Int32)                   (CppType int32))
+(Primitive (Name Int64)       (SexyType Int64)                   (CppType int64))
+(Primitive (Name Float32)     (SexyType Float32)                 (CppType float))
+(Primitive (Name Float64)     (SexyType Float64)                 (CppType double))
+(Primitive (Name Bool)        (SexyType Bool)                    (CppType boolean32))
 
 // System defined strings. They are defined as structs to stop them being used as output values, which is not yet implemented.
-(Struct (Name IString) (SexyType Sys.Type.IString) (CppType fstring))
+(Struct (Name IString)        (SexyType Sys.Type.IString)        (CppType fstring))
 (Struct (Name IStringBuilder) (SexyType Sys.Type.IStringBuilder) (CppType Rococo.IStringPopulator))
 
-(Primitive (Name Pointer) (SexyType Pointer) (CppType uintptr_t))
-(Primitive (Name ICoroutine) (SexyType Sys.ICoroutine) (CppType Rococo.Sex.CoroutineRef))
+(Primitive (Name Pointer)     (SexyType Pointer)                 (CppType uintptr_t))
+(Primitive (Name ICoroutine)  (SexyType Sys.ICoroutine)          (CppType Rococo.Sex.CoroutineRef))
 
 (CppException (Type Sys::IException))
 

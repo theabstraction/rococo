@@ -2,8 +2,8 @@
 (CppRoot (Path $cpp\))
 
 (Primitive (Name String) (SexyType Sys.Type.IString) (CppType fstring))
-(Primitive (Name Bool) (SexyType Bool) (CppType boolean32))
-(Primitive (Name Int) (SexyType Int32) (CppType int32))
-(Primitive (Name Long) (SexyType Int64) (CppType int64))
-(Primitive (Name Float) (SexyType Float32) (CppType float32))
-(Primitive (Name Double) (SexyType Float64) (CppType float64))
+(Primitive (Name Bool)   (SexyType Bool)             (CppType boolean32))
+(Primitive (Name Int)    (SexyType Int32)            (CppType int32))
+(Primitive (Name Long)   (SexyType Int64)            (CppType int64))
+(Primitive (Name Float)  (SexyType Float32)          (CppType float32))
+(Primitive (Name Double) (SexyType Float64)          (CppType float64))
