@@ -279,17 +279,6 @@
 	(factory Rococo.Graphics.SpriteBuilder)
 )
 
-(interface 
-	(as.sxy Rococo.Graphics.ISprites "mplat")
-	(as.cpp Rococo.Graphics.ISprites)
-	(context factory Rococo.Graphics.ISprites)
-	(methods
-		(TryGetId (IString pingPath)->(IdSprite id))
-		(AppendPingPath (IdSprite id)(IStringBuilder sb))
-	)
-	(factory Rococo.Graphics.Sprites)
-)
-
 (interface
 	(as.sxy Rococo.Entities.IMobiles "mplat")
 	(as.cpp Rococo.Entities.IMobiles)

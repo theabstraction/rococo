@@ -159,23 +159,6 @@
 )
 
 
-(interface Rococo.Graphics.ISprites
-	(TryGetId (Sys.Type.IString pingPath) -> (Int64 id))
-
-	(AppendPingPath (Int64 id)(Sys.Type.IStringBuilder sb) -> )
-)
-
-(class ProxyISprites (implements Rococo.Graphics.ISprites) (Pointer hObject) (attribute not-serialized))
-	(method ProxyISprites.Construct (Pointer hObject): (this.hObject = hObject))
-	(method ProxyISprites.TryGetId (Sys.Type.IString pingPath) -> (Int64 id) : (Rococo.Graphics.Native.ISpritesTryGetId this.hObject pingPath -> id))
-	(method ProxyISprites.AppendPingPath (Int64 id)(Sys.Type.IStringBuilder sb) ->  : (Rococo.Graphics.Native.ISpritesAppendPingPath this.hObject id sb))
-
-(factory Rococo.Graphics.Sprites Rococo.Graphics.ISprites  :
-	(Pointer pObject = (Rococo.Graphics.Native.GetHandleForISprites0 ))
-	(construct ProxyISprites pObject)
-)
-
-
 (interface Rococo.Entities.IMobiles
 	(Link (Rococo.ROID id) -> )
 

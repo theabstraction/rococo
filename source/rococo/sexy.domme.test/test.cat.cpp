@@ -57,7 +57,7 @@ int MainProtected(int argc, char* argv[])
 
 		void AddTask(Rococo::Function<void()> lambda) override
 		{
-
+			UNUSED(lambda);
 		}
 
 		bool ExecuteNext() override

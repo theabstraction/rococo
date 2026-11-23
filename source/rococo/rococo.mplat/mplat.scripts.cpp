@@ -52,11 +52,6 @@ namespace Rococo // declarations herein are to help intellisense do its job.
 	}
 }
 
-Rococo::Graphics::ISprites* FactoryConstructRococoGraphicsSprites(Rococo::Graphics::ISprites* s)
-{
-	return s;
-}
-
 Rococo::Entities::IRigBuilder* FactoryConstructRococoEntitiesRigBuilder(Rococo::Entities::IRigs* rigs)
 {
 	return &rigs->Builder();
@@ -359,7 +354,6 @@ namespace Rococo
 						Graphics::Interop::AddNativeCalls_RococoGraphicsICamera(args.ss, &platform.graphics.camera);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsISceneBuilder(args.ss, &platform.graphics.scene.Builder());
 						Graphics::Interop::AddNativeCalls_RococoGraphicsISpriteBuilder(args.ss, &platform.graphics.spriteBuilder);
-						Graphics::Interop::AddNativeCalls_RococoGraphicsISprites(args.ss, &platform.graphics.sprites);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIRimTesselator(args.ss, &platform.tesselators.rim);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIFieldTesselator(args.ss, nullptr);
 						Graphics::Interop::AddNativeCalls_RococoGraphicsIQuadStackTesselator(args.ss, nullptr);

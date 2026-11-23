@@ -22,25 +22,25 @@
 
 	(DrawQuad (const MPlat.GuiQuad q) -> )
 
-	(DrawBorder (const Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) -> )
+	(DrawBorder (const Sys.Maths.Rectf rect)(Float32 pxThickness)(Sys.Type.RGBAb tl)(Sys.Type.RGBAb tr)(Sys.Type.RGBAb bl)(Sys.Type.RGBAb br) -> )
 
-	(FillRect (const Sys.Maths.Rectf rect)(Int32 colour) -> )
+	(FillRect (const Sys.Maths.Rectf rect)(Sys.Type.RGBAb colour) -> )
 
-	(DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour) -> )
+	(DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Rococo.IdSprite spriteId)(Float32 blendFactor)(Sys.Type.RGBAb colour) -> )
 
-	(DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) -> )
+	(DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Type.RGBAb colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) -> )
 
-	(DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) -> )
+	(DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Rococo.IdSprite spriteId)(Float32 blendFactor)(Sys.Type.RGBAb colour)(Float32 scaleFactor) -> )
 
-	(DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId) -> )
+	(DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Rococo.IdSprite spriteId) -> )
 
-	(StretchSprite (const Sys.Maths.Rectf rect)(MHost.IdSprite spriteId) -> )
+	(StretchSprite (const Sys.Maths.Rectf rect)(Rococo.IdSprite spriteId) -> )
 
-	(DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect) -> )
+	(DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Type.RGBAb colour)(const Sys.Maths.Rectf clipRect) -> )
 
-	(DrawTextWithCaret (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect)(Int32 caretPos) -> )
+	(DrawTextWithCaret (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Type.RGBAb colour)(const Sys.Maths.Rectf clipRect)(Int32 caretPos) -> )
 
-	(DrawText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) -> )
+	(DrawText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Type.RGBAb colour) -> )
 
 	(EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(out Sys.Maths.Vec2 pixelSpan) -> )
 
@@ -62,16 +62,16 @@
 (class ProxyIGui (implements MHost.IGui) (Pointer hObject) (attribute not-serialized))
 	(method ProxyIGui.DrawTriangle (const MPlat.GuiTriangle t) ->  : (MHost.Native.IGuiDrawTriangle this.hObject t))
 	(method ProxyIGui.DrawQuad (const MPlat.GuiQuad q) ->  : (MHost.Native.IGuiDrawQuad this.hObject q))
-	(method ProxyIGui.DrawBorder (const Sys.Maths.Rectf rect)(Float32 pxThickness)(Int32 tl)(Int32 tr)(Int32 bl)(Int32 br) ->  : (MHost.Native.IGuiDrawBorder this.hObject rect pxThickness tl tr bl br))
-	(method ProxyIGui.FillRect (const Sys.Maths.Rectf rect)(Int32 colour) ->  : (MHost.Native.IGuiFillRect this.hObject rect colour))
-	(method ProxyIGui.DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour) ->  : (MHost.Native.IGuiDrawColouredSprite this.hObject pixelPos alignmentFlags spriteId blendFactor colour))
-	(method ProxyIGui.DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Int32 colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (MHost.Native.IGuiDrawLeftAligned this.hObject rect text fontIndex fontHeight colour rightHardEdge rightSoftEdge))
-	(method ProxyIGui.DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId)(Float32 blendFactor)(Int32 colour)(Float32 scaleFactor) ->  : (MHost.Native.IGuiDrawScaledColouredSprite this.hObject pixelPos alignmentFlags spriteId blendFactor colour scaleFactor))
-	(method ProxyIGui.DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(MHost.IdSprite spriteId) ->  : (MHost.Native.IGuiDrawSprite this.hObject pixelPos alignmentFlags spriteId))
-	(method ProxyIGui.StretchSprite (const Sys.Maths.Rectf rect)(MHost.IdSprite spriteId) ->  : (MHost.Native.IGuiStretchSprite this.hObject rect spriteId))
-	(method ProxyIGui.DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect) ->  : (MHost.Native.IGuiDrawClippedText this.hObject rect alignmentFlags text fontIndex colour clipRect))
-	(method ProxyIGui.DrawTextWithCaret (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour)(const Sys.Maths.Rectf clipRect)(Int32 caretPos) ->  : (MHost.Native.IGuiDrawTextWithCaret this.hObject rect alignmentFlags text fontIndex colour clipRect caretPos))
-	(method ProxyIGui.DrawText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Int32 colour) ->  : (MHost.Native.IGuiDrawText this.hObject rect alignmentFlags text fontIndex colour))
+	(method ProxyIGui.DrawBorder (const Sys.Maths.Rectf rect)(Float32 pxThickness)(Sys.Type.RGBAb tl)(Sys.Type.RGBAb tr)(Sys.Type.RGBAb bl)(Sys.Type.RGBAb br) ->  : (MHost.Native.IGuiDrawBorder this.hObject rect pxThickness tl tr bl br))
+	(method ProxyIGui.FillRect (const Sys.Maths.Rectf rect)(Sys.Type.RGBAb colour) ->  : (MHost.Native.IGuiFillRect this.hObject rect colour))
+	(method ProxyIGui.DrawColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Rococo.IdSprite spriteId)(Float32 blendFactor)(Sys.Type.RGBAb colour) ->  : (MHost.Native.IGuiDrawColouredSprite this.hObject pixelPos alignmentFlags spriteId blendFactor colour))
+	(method ProxyIGui.DrawLeftAligned (const Sys.Maths.Rectf rect)(Sys.Type.IString text)(Int32 fontIndex)(Int32 fontHeight)(Sys.Type.RGBAb colour)(Float32 rightHardEdge)(Float32 rightSoftEdge) ->  : (MHost.Native.IGuiDrawLeftAligned this.hObject rect text fontIndex fontHeight colour rightHardEdge rightSoftEdge))
+	(method ProxyIGui.DrawScaledColouredSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Rococo.IdSprite spriteId)(Float32 blendFactor)(Sys.Type.RGBAb colour)(Float32 scaleFactor) ->  : (MHost.Native.IGuiDrawScaledColouredSprite this.hObject pixelPos alignmentFlags spriteId blendFactor colour scaleFactor))
+	(method ProxyIGui.DrawSprite (const Sys.Maths.Vec2 pixelPos)(Int32 alignmentFlags)(Rococo.IdSprite spriteId) ->  : (MHost.Native.IGuiDrawSprite this.hObject pixelPos alignmentFlags spriteId))
+	(method ProxyIGui.StretchSprite (const Sys.Maths.Rectf rect)(Rococo.IdSprite spriteId) ->  : (MHost.Native.IGuiStretchSprite this.hObject rect spriteId))
+	(method ProxyIGui.DrawClippedText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Type.RGBAb colour)(const Sys.Maths.Rectf clipRect) ->  : (MHost.Native.IGuiDrawClippedText this.hObject rect alignmentFlags text fontIndex colour clipRect))
+	(method ProxyIGui.DrawTextWithCaret (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Type.RGBAb colour)(const Sys.Maths.Rectf clipRect)(Int32 caretPos) ->  : (MHost.Native.IGuiDrawTextWithCaret this.hObject rect alignmentFlags text fontIndex colour clipRect caretPos))
+	(method ProxyIGui.DrawText (const Sys.Maths.Rectf rect)(Int32 alignmentFlags)(Sys.Type.IString text)(Int32 fontIndex)(Sys.Type.RGBAb colour) ->  : (MHost.Native.IGuiDrawText this.hObject rect alignmentFlags text fontIndex colour))
 	(method ProxyIGui.EvalTextSpan (Sys.Type.IString text)(Int32 fontIndex)(out Sys.Maths.Vec2 pixelSpan) ->  : (MHost.Native.IGuiEvalTextSpan this.hObject text fontIndex pixelSpan))
 	(method ProxyIGui.GetFontDescription (Int32 fontIndex)(Sys.Type.IStringBuilder familyName)(out MHost.Graphics.FontDesc fd) ->  : (MHost.Native.IGuiGetFontDescription this.hObject fontIndex familyName fd))
 	(method ProxyIGui.GetNumberOfFonts  -> (Int32 numberOfFonts) : (MHost.Native.IGuiGetNumberOfFonts this.hObject  -> numberOfFonts))
@@ -131,7 +131,7 @@
 
 	(YieldForSystemMessages (Int32 sleepMS) -> (Sys.SI.Seconds frameDT))
 
-	(FindSprite (Sys.Type.IString resourceName) -> (MHost.IdSprite spriteId))
+	(FindSprite (Sys.Type.IString resourceName) -> (Rococo.IdSprite spriteId))
 
 	(RunMPlatScript (Sys.Type.IString scriptName) -> )
 
@@ -161,7 +161,7 @@
 	(method ProxyIEngine.IsRunning  -> (Bool isRunning) : (MHost.Native.IEngineIsRunning this.hObject  -> isRunning))
 	(method ProxyIEngine.Shutdown  ->  : (MHost.Native.IEngineShutdown this.hObject ))
 	(method ProxyIEngine.YieldForSystemMessages (Int32 sleepMS) -> (Sys.SI.Seconds frameDT) : (MHost.Native.IEngineYieldForSystemMessages this.hObject sleepMS -> frameDT))
-	(method ProxyIEngine.FindSprite (Sys.Type.IString resourceName) -> (MHost.IdSprite spriteId) : (MHost.Native.IEngineFindSprite this.hObject resourceName -> spriteId))
+	(method ProxyIEngine.FindSprite (Sys.Type.IString resourceName) -> (Rococo.IdSprite spriteId) : (MHost.Native.IEngineFindSprite this.hObject resourceName -> spriteId))
 	(method ProxyIEngine.RunMPlatScript (Sys.Type.IString scriptName) ->  : (MHost.Native.IEngineRunMPlatScript this.hObject scriptName))
 	(method ProxyIEngine.SetNextScript (Sys.Type.IString scriptName) ->  : (MHost.Native.IEngineSetNextScript this.hObject scriptName))
 	(method ProxyIEngine.CaptureMouse  ->  : (MHost.Native.IEngineCaptureMouse this.hObject ))

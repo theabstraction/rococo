@@ -650,13 +650,6 @@ namespace Rococo
 
 	namespace Graphics
 	{
-		ROCOCO_INTERFACE ISpritesSupervisor : ISprites
-		{
-			virtual void Free() = 0;
-		};
-
-		ISpritesSupervisor* CreateSpriteTable(IRenderer& renderer);
-
 		struct IMaterialBuilderSupervisor;
 		struct IShaderOptionsConfig;
 	}
@@ -691,8 +684,6 @@ namespace Rococo
 		Graphics::IRendererConfig& rendererConfig;	
 		
 		Graphics::IRenderer& renderer;
-
-		Graphics::ISprites& sprites;
 
 		// GUI stack
 		IGUIStack& gui;	

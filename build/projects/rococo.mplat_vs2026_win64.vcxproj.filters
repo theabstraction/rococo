@@ -24,7 +24,6 @@
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.rod.tesselator.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.scene.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.softbox.cpp" />
-    <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprites.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.sprite_builder.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.tess.rim.cpp" />
     <ClCompile Include="..\..\source\rococo\rococo.mplat\mplat.graphics.text.tesselator.cpp" />

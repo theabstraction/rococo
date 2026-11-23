@@ -639,7 +639,6 @@ int InitPlatformAndExecuteMainLoop(HINSTANCE hInstance, IMainloop& mainloop, cst
 	AutoFree<IInstallationManagerSupervisor> ims = Rococo::MPlatImpl::CreateIMS(*installation);
 	AutoFree<IArchiveSupervisor> archive = Rococo::CreateArchive();
 	AutoFree<IWorldSupervisor> world = Rococo::CreateWorld(*meshes, *ecs);
-	AutoFree<Graphics::ISpritesSupervisor> sprites = Rococo::Graphics::CreateSpriteTable(mainWindow->Renderer());
 
 	Rococo::Gui::GRConfig grConfig;
 
@@ -694,7 +693,7 @@ int InitPlatformAndExecuteMainLoop(HINSTANCE hInstance, IMainloop& mainloop, cst
 	Platform platform
 	{ 
 		// Platform graphics
-		{ *rendererConfig, mainWindow->Renderer(), *sprites, *gui, *meshes, *materialBuilder, *softBoxBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderOptions->Config(), shaderEventHandler},
+		{ *rendererConfig, mainWindow->Renderer(), *gui, *meshes, *materialBuilder, *softBoxBuilder, *spriteBuilder, *camera, *scene, *GR, *mplat_gcs, shaderOptions->Config(), shaderEventHandler},
 
 		// Platform os
 		{ *os, *installation, *ims, *appControl, mainWindow->Window(), title, *mainWindow },

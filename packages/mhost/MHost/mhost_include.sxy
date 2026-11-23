@@ -3,14 +3,6 @@
 
 (archetype MHost.GuiPopulator (MHost.IGui gui) -> )
 
-(strong IdTexture (Int64))
-(alias IdTexture MHost.IdTexture) // 0 = none/undefined, 1+ = index. -ve = invalid 
-
-(strong IdSprite (Int32))
-
-// <= 0  none/undefined, 1+ = index 
-(alias IdSprite MHost.IdSprite)
-
 (strong GuiEventId (Int64))
 (alias GuiEventId MHost.GuiTypes.GuiEventId)
 

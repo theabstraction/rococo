@@ -229,7 +229,6 @@
 (strong IdFont	   			(Int32))
 (strong EHQFont    		    (Int32))
 (strong IdMesh     		    (Int32))
-(strong IdSprite            (Int32))
 (strong IdEntity			(Int64))
 (strong IdSysMesh           (Int64))
 (strong IdCubeTexture       (Int64))
@@ -242,7 +241,15 @@
 (strong SampleFilter        (Int32))
 (strong SampleIndex     	(Int32))
 
+ // 0 = none/undefined, 1+ = index. -ve = invalid 
+(strong IdTexture (Int64))
+
 (alias IdFont Rococo.IdFont)
+(alias IdTexture Rococo.IdTexture)
+
+// <= 0  none/undefined, 1+ = index 
+(strong IdSprite (Int32))
+
 (alias IdSprite Rococo.IdSprite)
 (alias EHQFont Rococo.EHQFont)
 (alias IdMesh Rococo.IdMesh)
