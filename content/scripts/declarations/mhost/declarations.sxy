@@ -735,7 +735,7 @@
 (function LengthSq245 (const Sys.Maths.Vec3 a) -> (Float32 lenSq) : (source "D:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 726))
 (alias LengthSq245 Sys.Geometry.F32.LengthSq)
 
-(function AnyColour246 (Int32 rMin)(Int32 rMax)(Int32 gMin)(Int32 gMax)(Int32 bMin)(Int32 bMax)(Int32 aMin)(Int32 aMax) -> (Int32 colour) : (source "D:\work\rococo\source\rococo\rococo.mathsex\mathsex.random.inl" 145))
+(function AnyColour246 (Int32 rMin)(Int32 rMax)(Int32 gMin)(Int32 gMax)(Int32 bMin)(Int32 bMax)(Int32 aMin)(Int32 aMax) -> (Sys.Type.RGBAb colour) : (source "D:\work\rococo\source\rococo\rococo.mathsex\mathsex.random.inl" 145))
 (alias AnyColour246 Sys.Random.AnyColour)
 
 (function LengthSqVec4247 (const Sys.Maths.Vec4 a) -> (Float32 lenSq) : (source "D:\work\rococo\source\rococo\rococo.mathsex\code-gen\Mathsex.sxh.inl" 728))
@@ -966,7 +966,7 @@
 (function IArchiveLoadVec392  (Pointer hObject)(Sys.Type.IString key)(out Sys.Maths.Vec3 targetVariable)(Float32 defaultX)(Float32 defaultY)(Float32 defaultZ) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 11240))
 (alias IArchiveLoadVec392 Rococo.Native.IArchiveLoadVec3)
 
-(function EnumerateFiles96  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnAddedMainModuleBeforePartialCompile" 381))
+(function EnumerateFiles96  (Sys.Type.IString filter)(MPlat.OnFileName callback)-> : (source "Rococo::MPlatImpl::RunEnvironmentScriptImpl::ScriptContext::OnAddedMainModuleBeforePartialCompile" 382))
 (alias EnumerateFiles96 MPlat.OS.EnumerateFiles)
 
 (function IRodTesselatorAddBowl98  (Pointer hObject)(Sys.SI.Metres radius1)(Sys.SI.Metres radius2)(Int32 nRings)(Int32 startRing)(Int32 endRing)(Int32 nDivs) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10456))
@@ -1002,7 +1002,7 @@
 (function GetHandleForIHQFonts0139   -> (Pointer hObject) : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 11051))
 (alias GetHandleForIHQFonts0139 Rococo.Graphics.Native.GetHandleForIHQFonts0)
 
-(function ITextTesselatorAddLeftAlignedText140  (Pointer hObject)(Rococo.RGBAb colour)(Sys.Type.IString text) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10829))
+(function ITextTesselatorAddLeftAlignedText140  (Pointer hObject)(Sys.Type.RGBAb colour)(Sys.Type.IString text) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10829))
 (alias ITextTesselatorAddLeftAlignedText140 Rococo.Graphics.Native.ITextTesselatorAddLeftAlignedText)
 
 (function IEnginePollKeyState142  (Pointer hObject)(out MHost.OS.KeyState keys) ->  : (source "D:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1200))
@@ -1293,7 +1293,7 @@
 (function IRimTesselatorGetBottomTriangle419  (Pointer hObject)(Int32 index)(out Sys.Maths.Triangle pos)(out Sys.Maths.Triangle2d uv)(Float32 z) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 8950))
 (alias IRimTesselatorGetBottomTriangle419 Rococo.Graphics.Native.IRimTesselatorGetBottomTriangle)
 
-(function ITextTesselatorAddBlankQuad422  (Pointer hObject)(const Sys.Maths.Quadf positions)(Rococo.RGBAb paperColour) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10828))
+(function ITextTesselatorAddBlankQuad422  (Pointer hObject)(const Sys.Maths.Quadf positions)(Sys.Type.RGBAb paperColour) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10828))
 (alias ITextTesselatorAddBlankQuad422 Rococo.Graphics.Native.ITextTesselatorAddBlankQuad)
 
 (function IEngineReleaseMouse425  (Pointer hObject) ->  : (source "D:\work\rococo\source\rococo\rococo.mhost\code-gen\mhost.sxh.inl" 1215))
@@ -1773,7 +1773,7 @@
 (function IQuadStackTesselatorSplitThreeRows591  (Pointer hObject)(const Rococo.MaterialVertexData r1)(const Rococo.MaterialVertexData r2)(const Rococo.MaterialVertexData r3)(Float32 y0)(Float32 y1) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9921))
 (alias IQuadStackTesselatorSplitThreeRows591 Rococo.Graphics.Native.IQuadStackTesselatorSplitThreeRows)
 
-(function IQuadStackTesselatorSplitAcrossTangent592  (Pointer hObject)(Float32 v)(Rococo.RGBAb topColour)(Rococo.RGBAb middleColour)(Rococo.RGBAb lowColour)(const Rococo.MaterialVertexData topMat)(const Rococo.MaterialVertexData bottomMat) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9922))
+(function IQuadStackTesselatorSplitAcrossTangent592  (Pointer hObject)(Float32 v)(Sys.Type.RGBAb topColour)(Sys.Type.RGBAb middleColour)(Sys.Type.RGBAb lowColour)(const Rococo.MaterialVertexData topMat)(const Rococo.MaterialVertexData bottomMat) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 9922))
 (alias IQuadStackTesselatorSplitAcrossTangent592 Rococo.Graphics.Native.IQuadStackTesselatorSplitAcrossTangent)
 
 (function IRodTesselatorAddPrism593  (Pointer hObject)(Sys.SI.Metres length)(const Sys.Maths.Vec2 a)(const Sys.Maths.Vec2 b)(const Sys.Maths.Vec2 c) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 10453))
@@ -1890,7 +1890,7 @@
 (function IParticleSystemSetSpectrum630  (Pointer hObject)(const Sys.Maths.Vec4 colour)(Float32 relativeLifeTime) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7521))
 (alias IParticleSystemSetSpectrum630 Rococo.Entities.Native.IParticleSystemSetSpectrum)
 
-(function IParticleSystemAddDust631  (Pointer hObject)(Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Rococo.RGBAb colour)(Rococo.ROID id) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7522))
+(function IParticleSystemAddDust631  (Pointer hObject)(Int32 particles)(Sys.SI.Metres meanParticleSize)(Sys.SI.Metres range)(Sys.SI.Metres minHeight)(Sys.SI.Metres maxHeight)(Sys.Type.RGBAb colour)(Rococo.ROID id) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7522))
 (alias IParticleSystemAddDust631 Rococo.Entities.Native.IParticleSystemAddDust)
 
 (function IParticleSystemAddVerticalFlame632  (Pointer hObject)(const Rococo.FlameDef flameDef)(Rococo.ROID id) ->  : (source "D:\work\rococo\source\rococo\rococo.mplat\code-gen\rococo.sxh.inl" 7523))

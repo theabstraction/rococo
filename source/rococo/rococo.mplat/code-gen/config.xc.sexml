@@ -25,7 +25,7 @@
 (Primitive (Name Metres)             (SexyType Sys.SI.Metres)                         (CppType Metres))
 (Primitive (Name Kilograms)          (SexyType Sys.SI.Kilograms)                      (CppType Kilograms))
 
-(Primitive (Name RGBAb)              (SexyType Rococo.RGBAb)                          (CppType RGBAb))
+(Primitive (Name RGBAb)              (SexyType Sys.Type.RGBAb)                        (CppType RGBAb))
 (Primitive (Name IdFont)             (SexyType Rococo.IdFont)                         (CppType ID_FONT))
 (Primitive (Name EHQFont)            (SexyType Rococo.EHQFont)                        (CppType Rococo.Graphics.HQFont))
 (Primitive (Name IdSprite)           (SexyType Int64)                                 (CppType ID_SPRITE))

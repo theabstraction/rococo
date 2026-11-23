@@ -266,6 +266,7 @@ const char* s_MplatImplicitIncludes[] =
 	"!scripts/interop/rococo/components/body_sxh.sxy",
 	"!scripts/interop/rococo/components/config_sxh.sxy",
 	"!scripts/interop/rococo/components/skeleton_sxh.sxy",
+	"!scripts/interop/partial-compile.sxy"
 };
 
 struct MPlatImplicitIncludes : IScriptEnumerator

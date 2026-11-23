@@ -209,7 +209,9 @@ public:
 
     void WriteSubImage(size_t index, Vec2i span, IDDSTextureSupervisor* tx) override
     {
-
+        UNUSED(index);
+        UNUSED(span);
+        UNUSED(tx);
     }
 };
 
