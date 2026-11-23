@@ -102,7 +102,7 @@
 	(Vec2 position)
 	(Int32 alignment)
 	(Float32 scale)
-	(Int32 colour)
+	(RGBAb colour)
 	(RGBA baseColour)
 	(Vec2 velocity)
 )
@@ -180,8 +180,10 @@
 	(Int32 alignMirror = (#AlignmentFlagsMirror))
 	(Int32 alignFlip = (#AlignmentFlagsFlip))
 	
+	(RGBAb white = 0xFFFFFFF)
+	
 	(for (i = 0)(i < 150)(i += 1)
-		(Cloud cloud = (-1000 -1000) 0 0 0xFFFFFFFF (1 1 1 1)(0 0))
+		(Cloud cloud = (-1000 -1000) 0 0 white (1 1 1 1)(0 0))
 		
 		(cloud.alignment = 0)
 		
@@ -280,7 +282,7 @@
 	(rect.top += centre.y)
 )
 
-(function GetRowColour (Float32 z) -> (Int32 colour):
+(function GetRowColour (Float32 z) -> (RGBAb colour):
 	(Float32 f = (1 - (z / 1600)))
 	(RGBA c = 0 0.5 1.0 f)
 	(MHost.Graphics.ToRGBAb c -> colour)
@@ -290,8 +292,8 @@
 	(Vec2 s)
 	(gc.GetScreenSpan s)
 	
-	(Int32 topRowColour = (GetRowColour topLeftWorldPosition.y))
-	(Int32 bottomRowColour = (GetRowColour (topLeftWorldPosition.y - s.y)))
+	(RGBAb topRowColour = (GetRowColour topLeftWorldPosition.y))
+	(RGBAb bottomRowColour = (GetRowColour (topLeftWorldPosition.y - s.y)))
 	
 	(GuiQuad quad = 
 		((0     0)((0 0) 0)(1 0 0 0) topRowColour)
@@ -310,8 +312,8 @@
 	(Float32 y0 = (topLeftWorldPosition.y - 300))
 	(Float32 y1 = s.y)
 	
-	(Int32 horizonColour = 0xFF00FF00)
-	(Int32 nearColour = 0xFF006000)
+	(RGBAb horizonColour = 0xFF00FF00)
+	(RGBAb nearColour = 0xFF006000)
 	
 	(GuiQuad quad = 
 		((0   y0)((0 0) 0)(1 0 0 0) horizonColour)
@@ -378,7 +380,7 @@
 		(Float32 y = ((this.playerPosition.y - c.position.y) + this.player.screenPosition.y))
 		(Vec2 cloudPosition = x y)
 		
-		(Int32 colour)
+		(RGBAb colour)
 		
 		(if (c.position.y < 1056)
 			(Float32 alpha = (1056 - c.position.y) / 256)
@@ -426,7 +428,7 @@
 		(Float32 y = (this.playerPosition.y - c.position.y) + this.player.screenPosition.y)
 		(Vec2 cloudPosition = x y)
 		
-		(Int32 colour)
+		(RGBAb colour)
 		
 		(if (c.position.y < 1056)
 			(Float32 alpha = ((1056 - c.position.y) / 256))
