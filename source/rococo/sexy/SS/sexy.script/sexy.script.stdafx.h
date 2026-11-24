@@ -374,7 +374,7 @@ namespace Rococo
             void CompileNullObjects();
             void CompileNextClosures();
             void CompileLocalFunctions();
-            void ComputeEnum(Sex::cr_sex sEnum);
+            void ComputeEnum(Sex::cr_sex sEnum, bool isFlags);
             void ComputeEnumsAndConstants();
             void CompileJITStubs();
             void CompileVTables();
@@ -434,6 +434,10 @@ namespace Rococo
         SexyVarType GetAtomicValueAnyNumeric(CCompileEnvironment& ce, Sex::cr_sex parent, cstr id, int targetRegister);
         void AssignVariableToVariable(CCompileEnvironment& ce, Sex::cr_sex exceptionSource, cstr lhs, cstr rhs);
         CStringConstant* CreateStringConstant(CScript& script, int length, cstr s, const Sex::ISExpression* srcExpression);
+
+        // Parses text[0..length) as a value of the enum type: exactly one name, or for a flagger type a list of names delimited by commas and/or whitespace, ORed together
+        bool TryParseEnumText(const Compiler::IStructure& enumType, cstr text, int32 length, OUT int64& value);
+
         Compiler::IFunctionBuilder& DeclareFunctionForModule(Compiler::IModuleBuilder& module, Sex::cr_sex source, Compiler::FunctionPrototype& prototype);
         cstr GetContext(const CScript& script);
         const Sex::ISExpression* GetTryCatchExpression(CScript& script);

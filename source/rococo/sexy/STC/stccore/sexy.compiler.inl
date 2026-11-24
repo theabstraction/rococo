@@ -584,6 +584,8 @@ namespace Rococo { namespace Compiler { namespace Impl
 		mutable bool isPersistent = true;
 
 		stringmap<int64> enums;
+		TSexyVector<std::pair<cstr, int64>> orderedEnums; // The enums in declaration order. The names point to the persistent keys of the enums map
+		bool areEnumsBitwiseDistinct = true; // True while every pair of enum values satisfies (a & b) == 0
 	public:
 		Structure(cstr _name, const StructurePrototype& _prototype, IModuleBuilder& _module, SexyVarType type, const Sex::ISExpression* _definition);
 		virtual ~Structure();
@@ -601,7 +603,26 @@ namespace Rococo { namespace Compiler { namespace Impl
 				return;
 			}
 
-			enums.insert(name, value);
+			// Names are case sensitive, but two names that differ only by case are too easily confused, so they are rejected
+			for (auto& e : orderedEnums)
+			{
+				if (Rococo::Strings::EqI(e.first, name))
+				{
+					Rococo::Throw(0, "Cannot add an enum '%s' to '%s'. %s and %s differ only by case", name, this->name.c_str(), name, e.first);
+				}
+			}
+
+			for (auto& e : orderedEnums)
+			{
+				if ((e.second & value) != 0 || e.second == value)
+				{
+					areEnumsBitwiseDistinct = false;
+					break;
+				}
+			}
+
+			auto inserted = enums.insert(name, value);
+			orderedEnums.push_back(std::make_pair((cstr)inserted.first->first, value));
 		}
 
 		bool TryGetEnumValue(cstr name, OUT int64& value) const override
@@ -622,12 +643,17 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return IsStrongType() && !enums.empty();
 		}
 
+		bool IsFlagger() const override
+		{
+			return IsEnumType() && areEnumsBitwiseDistinct;
+		}
+
 		void EnumerateEnums(ICallback<const int64, cstr>& onEnum) const override
 		{
-			for (auto& i : enums)
+			for (auto& i : orderedEnums)
 			{
 				// The map key holds a persistent copy of the name, so the pointer is valid for the lifetime of the structure
-				if (onEnum(i.second, (cstr)i.first) == CALLBACK_CONTROL_BREAK)
+				if (onEnum(i.second, i.first) == CALLBACK_CONTROL_BREAK)
 				{
 					break;
 				}

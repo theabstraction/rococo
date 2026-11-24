@@ -1006,7 +1006,86 @@ namespace Rococo
 			registers[7].int32Value = text[index];
 		}
 
-		// D4 = an IString interface, D5 = the enum type (const IStructure*). Returns the value of the enum whose name equals the string in D7 and 1 in D8, or 0 in both if no name matches.
+		// Delimiters of the tokens in the string given to fromstring for a flagger enum type: commas and whitespace
+		static bool IsFlagDelimiter(char c)
+		{
+			return c == ',' || c == ' ' || c == '\t' || c == '\r' || c == '\n';
+		}
+
+		// Looks up the enum value of text[0..length). Enum names are identifiers, so a token of 256 chars or more cannot match
+		static bool TryGetEnumValueOfToken(const IStructure& enumType, cstr text, int32 length, OUT int64& value)
+		{
+			value = 0;
+
+			char name[256];
+			if (length <= 0 || length >= (int32)sizeof(name))
+			{
+				return false;
+			}
+
+			// Copy to a terminated buffer, so the compare covers exactly length chars
+			memcpy(name, text, length);
+			name[length] = 0;
+
+			return enumType.TryGetEnumValue(name, OUT value);
+		}
+
+		// Parses text[0..length) as the value of the enum type. For a type that is not a flagger the whole text must be one name.
+		// For a flagger type the text is a list of names delimited by commas and/or whitespace, e.g "Top Left" or "Top, Left", and the result is the OR of their values.
+		// Every token must be a name, and there must be at least one token. Repeated names are harmless. Returns false if the text does not parse
+		bool TryParseEnumText(const IStructure& enumType, cstr text, int32 length, OUT int64& value)
+		{
+			value = 0;
+
+			if (text == nullptr || length <= 0)
+			{
+				return false;
+			}
+
+			if (!enumType.IsFlagger())
+			{
+				return TryGetEnumValueOfToken(enumType, text, length, OUT value);
+			}
+
+			int64 result = 0;
+			int32 tokenCount = 0;
+
+			int32 i = 0;
+			while (i < length)
+			{
+				if (IsFlagDelimiter(text[i]))
+				{
+					i++;
+					continue;
+				}
+
+				int32 start = i;
+				while (i < length && !IsFlagDelimiter(text[i]))
+				{
+					i++;
+				}
+
+				int64 tokenValue;
+				if (!TryGetEnumValueOfToken(enumType, text + start, i - start, OUT tokenValue))
+				{
+					return false;
+				}
+
+				result |= tokenValue;
+				tokenCount++;
+			}
+
+			if (tokenCount == 0)
+			{
+				return false;
+			}
+
+			value = result;
+			return true;
+		}
+
+		// D4 = an IString interface, D5 = the enum type (const IStructure*). Returns the value that the string parses to in D7 and 1 in D8, or 0 in both if it does not parse.
+		// See TryParseEnumText: a flagger type accepts a delimited list of names, other types accept exactly one name.
 		// Like the other string callbacks, this reads the length and buffer in the common layout of the native string classes (InlineString)
 		VM_CALLBACK(EnumFromString)
 		{
@@ -1019,22 +1098,159 @@ namespace Rococo
 			registers[7].int64Value = 0;
 			registers[8].int64Value = 0;
 
-			// Copy to a terminated buffer, so the compare covers exactly length chars. Enum names are identifiers, so a string that does not fit cannot match
-			char name[256];
-			if (text->buffer == nullptr || text->length <= 0 || text->length >= (int32)sizeof(name))
-			{
-				return;
-			}
-
-			memcpy(name, text->buffer, text->length);
-			name[text->length] = 0;
-
 			int64 value;
-			if (enumType->TryGetEnumValue(name, OUT value))
+			if (TryParseEnumText(*enumType, text->buffer, text->length, OUT value))
 			{
 				registers[7].int64Value = value;
 				registers[8].int32Value = 1;
 			}
+		}
+
+		// Writes chars into a FastStringBuilder up to its capacity, truncating as the builder's own appends do. No intermediate string is made
+		struct EnumNameWriter
+		{
+			FastStringBuilder& sb;
+			int32 maxLength;
+
+			void Put(char c)
+			{
+				if (sb.length < maxLength)
+				{
+					sb.buffer[sb.length++] = c;
+				}
+			}
+
+			void Put(cstr text)
+			{
+				for (cstr p = text; *p != 0; p++)
+				{
+					Put(*p);
+				}
+			}
+		};
+
+		// Appends the name of the enum value to the builder: the first declared name whose value equals the value, or for a flagger type (IStructure::IsFlagger)
+		// the space-delimited names of the flags set in the value, in declaration order. Appends nothing if there is no name, if the value is 0 with no zero name,
+		// or if any bit of the value is not covered by a flag. Int32 enums compare in 32 bits.
+		static void AppendEnumName(IScriptSystem& ss, FastStringBuilder& sb, const IStructure& enumType, int64 value)
+		{
+			bool is32bit = enumType.VarType() == SexyVarType_Int32;
+
+			struct ANON : ICallback<const int64, cstr>
+			{
+				bool is32bit = true;
+				int64 value = 0;
+				cstr exactName = nullptr;
+				int64 remaining = 0;
+				int32 flagCount = 0;
+				int32 flagChars = 0;
+
+				CALLBACK_CONTROL operator()(const int64& enumValue, cstr name) override
+				{
+					int64 v = is32bit ? (int64)(uint32)(int32)enumValue : enumValue;
+
+					if (v == value && exactName == nullptr)
+					{
+						exactName = name;
+					}
+
+					if (v != 0 && (value & v) == v)
+					{
+						remaining &= ~v;
+						flagChars += (int32)StringLength(name);
+						flagCount++;
+					}
+
+					return CALLBACK_CONTROL_CONTINUE;
+				}
+			} scan;
+
+			scan.is32bit = is32bit;
+			scan.value = is32bit ? (int64)(uint32)(int32)value : value;
+			scan.remaining = scan.value;
+			enumType.EnumerateEnums(scan);
+
+			int32 total;
+			if (scan.exactName != nullptr)
+			{
+				total = (int32)StringLength(scan.exactName);
+			}
+			else if (enumType.IsFlagger() && scan.value != 0 && scan.remaining == 0 && scan.flagCount > 0)
+			{
+				total = scan.flagChars + scan.flagCount - 1; // names and the spaces between them
+			}
+			else
+			{
+				return; // No match: append nothing
+			}
+
+			int32 maxLength = sb.capacity - 1;
+			if (sb.length + total > maxLength && 0 != (sb.flags & (int32)StringBuilderFlags::ThrowIfWouldTruncate))
+			{
+				ss.ThrowFromNativeCodeF(0, "IStringBuilder.Append: Insufficient buffer capacity for append operation and truncation forbidden");
+				return;
+			}
+
+			EnumNameWriter writer{ sb, maxLength };
+
+			if (scan.exactName != nullptr)
+			{
+				writer.Put(scan.exactName);
+			}
+			else
+			{
+				struct ANON2 : ICallback<const int64, cstr>
+				{
+					EnumNameWriter* writer = nullptr;
+					bool is32bit = true;
+					int64 value = 0;
+					bool isFirst = true;
+
+					CALLBACK_CONTROL operator()(const int64& enumValue, cstr name) override
+					{
+						int64 v = is32bit ? (int64)(uint32)(int32)enumValue : enumValue;
+						if (v != 0 && (value & v) == v)
+						{
+							if (!isFirst)
+							{
+								writer->Put(' ');
+							}
+
+							writer->Put(name);
+							isFirst = false;
+						}
+
+						return CALLBACK_CONTROL_CONTINUE;
+					}
+				} lister;
+
+				lister.writer = &writer;
+				lister.is32bit = is32bit;
+				lister.value = scan.value;
+				enumType.EnumerateEnums(lister);
+			}
+
+			sb.buffer[sb.length] = 0;
+		}
+
+		// D4 = an IStringBuilder interface, D5 = the enum type (const IStructure*), D6 = the enum value. Appends the value's name or flag list, see AppendEnumName.
+		// As other C++ code does, this writes straight into the builder's FastStringBuilder fields, so the builder must be a FastStringBuilder (not the null builder)
+		VM_CALLBACK(AppendEnum)
+		{
+			auto& ss = *(IScriptSystem*)context;
+
+			auto interf = (InterfacePointer)registers[4].vPtrValue;
+			auto* enumType = (const IStructure*)registers[5].vPtrValue;
+			auto* stub = InterfaceToInstance(interf);
+
+			const IStructure* sbType = ss.GetStringBuilderType();
+			if (sbType == nullptr || stub->Desc->TypeInfo != sbType)
+			{
+				ss.ThrowFromNativeCodeF(0, "append: the string builder must be a FastStringBuilder, such as one made by NewStringBuilder. It was a %s", GetFriendlyName(*stub->Desc->TypeInfo));
+				return;
+			}
+
+			AppendEnumName(ss, *(FastStringBuilder*)stub, *enumType, registers[6].int64Value);
 		}
 
 		void CompileStringIndexToChar(CCompileEnvironment& ce, cr_sex s)

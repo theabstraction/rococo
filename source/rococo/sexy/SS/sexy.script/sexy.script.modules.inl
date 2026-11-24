@@ -4274,6 +4274,7 @@ namespace Rococo::Script
 		"$",
 		"strong",
 		"enum",
+		"flags",
 		NULL
 	};
 
@@ -4797,13 +4798,60 @@ namespace Rococo::Script
 		}
 	}
 
-	void CScript::ComputeEnum(cr_sex sEnum)
+	// (flags ...) requires every value to be bitwise distinct from every other value of the type, including values added by earlier enum or flags directives.
+	// A zero value is distinct from everything but another zero. Re-declaring an existing name with the same value is harmless, as it is for enum
+	static void ValidateFlagValue(cr_sex sName, const IStructure& type, cstr name, int64 value)
+	{
+		int64 existingValue;
+		if (type.TryGetEnumValue(name, OUT existingValue))
+		{
+			return; // AddEnum accepts the same value and rejects a different one
+		}
+
+		struct ANON : ICallback<const int64, cstr>
+		{
+			int64 value = 0;
+			cstr clashName = nullptr;
+			int64 clashValue = 0;
+
+			CALLBACK_CONTROL operator()(const int64& existing, cstr existingName) override
+			{
+				if (existing == value || (existing & value) != 0)
+				{
+					clashName = existingName;
+					clashValue = existing;
+					return CALLBACK_CONTROL_BREAK;
+				}
+
+				return CALLBACK_CONTROL_CONTINUE;
+			}
+		} clash;
+
+		clash.value = value;
+		type.EnumerateEnums(clash);
+
+		if (clash.clashName != nullptr)
+		{
+			if (clash.clashValue == value)
+			{
+				Throw(sName, "flags %s: %s (%lld / 0x%llX) has the same value as %s. Every flag must be bitwise distinct", type.Name(), name, value, value, clash.clashName);
+			}
+
+			Throw(sName, "flags %s: %s (%lld / 0x%llX) shares bits with %s (%lld / 0x%llX). Every flag must be bitwise distinct, so combinations cannot be declared", type.Name(), name, value, value, clash.clashName, clash.clashValue, clash.clashValue);
+		}
+	}
+
+	void CScript::ComputeEnum(cr_sex sEnum, bool isFlags)
 	{
 		// (enum <associated-type> <...items...>), e.g (enum Sys.Type.Days (Mon 1) Tue Wed Thu Fri Sat Sun)
+		// (flags <associated-type> <...items...>), e.g (flags Sys.Type.Alignment (None 0) (Top 1) (Left 2) (Bottom 4) (Right 8)). As enum, but the values must be bitwise distinct
+
+		cstr keyword = isFlags ? "flags" : "enum";
+		cstr article = isFlags ? "a" : "an";
 
 		if (sEnum.NumberOfElements() < 3)
 		{
-			Throw(sEnum, "Expecting at least three elements in an enum expression (enum <type> <...items...>)");
+			Throw(sEnum, "Expecting at least three elements in %s %s expression (%s <type> <...items...>)", article, keyword, keyword);
 		}
 
 		cr_sex sEnumType = sEnum[1];
@@ -4812,7 +4860,7 @@ namespace Rococo::Script
 
 		if (!IsCapital(fqTypeName.buffer[0]))
 		{
-			Throw(sEnum, "Expecting a fully qualified enum type name at least three elements in an enum expression (enum <type> <...items...>)");
+			Throw(sEnum, "Expecting a fully qualified enum type name at least three elements in %s %s expression (%s <type> <...items...>)", article, keyword, keyword);
 		}
 
 		IStructureBuilder* type = module.FindStructure(fqTypeName);
@@ -4823,7 +4871,7 @@ namespace Rococo::Script
 
 		if (type == nullptr)
 		{
-			Throw(sEnumType, "Could not identify underlying enumeration type. Ensure the type is defined and compiled before the (enum %s ...) statement.", fqTypeName.buffer);
+			Throw(sEnumType, "Could not identify underlying enumeration type. Ensure the type is defined and compiled before the (%s %s ...) statement.", keyword, fqTypeName.buffer);
 		}
 
 		int64 counter = 0;
@@ -4834,9 +4882,21 @@ namespace Rococo::Script
 			if (IsAtomic(sArg))
 			{
 				sexstring sArgStr = sArg.String();
-				ValidateConstantName(sArg, "enum", sArgStr);
+				ValidateConstantName(sArg, keyword, sArgStr);
 
-				type->AddEnum(sArgStr->Buffer, counter++);
+				if (isFlags)
+				{
+					ValidateFlagValue(sArg, *type, sArgStr->Buffer, counter);
+				}
+
+				try
+				{
+					type->AddEnum(sArgStr->Buffer, counter++);
+				}
+				catch (IException& ex)
+				{
+					Throw(sArg, "%s", ex.Message());
+				}
 			}
 			else if (IsCompound(sArg))
 			{
@@ -4852,7 +4912,7 @@ namespace Rococo::Script
 					Throw(sArgName, "Expecting an enum name");
 				}
 
-				ValidateConstantName(sArg, "enum", sArgName.String());
+				ValidateConstantName(sArg, keyword, sArgName.String());
 
 				cr_sex sArgValue = sArg[1];
 
@@ -4869,6 +4929,11 @@ namespace Rococo::Script
 				}
 
 				counter = v.int64Value;
+
+				if (isFlags)
+				{
+					ValidateFlagValue(sArgName, *type, sArgName.String()->Buffer, counter);
+				}
 
 				try
 				{
@@ -4898,7 +4963,11 @@ namespace Rococo::Script
 
 			if (AreEqual(elementName.String(), "enum"))
 			{
-				ComputeEnum(topLevelItem);
+				ComputeEnum(topLevelItem, false);
+			}
+			else if (AreEqual(elementName.String(), "flags"))
+			{
+				ComputeEnum(topLevelItem, true);
 			}
 		}
 	}

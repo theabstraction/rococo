@@ -461,7 +461,11 @@ namespace Rococo {
 			// True if this is a strong type that declares enum values, e.g. (strong Day (Int32)) with (enum Day ...). Plain strong types, e.g. (strong Joules (Float64)), return false
 			[[nodiscard]] virtual bool IsEnumType() const = 0;
 
-			// Invokes onEnum(value, name) for each enum value of the type, in no particular order. The name pointers persist for the lifetime of the structure
+			// True if this is an enum type (see IsEnumType) whose enum values are pairwise bitwise distinct, i.e (a & b) == 0 for every pair of names. A zero value is allowed.
+			// Types declared with (flags ...) are always flaggers. Types declared with (enum ...) are flaggers if their values happen to be distinct, e.g (Read 1) (Write 2) (Exec 4)
+			[[nodiscard]] virtual bool IsFlagger() const = 0;
+
+			// Invokes onEnum(value, name) for each enum value of the type, in declaration order. The name pointers persist for the lifetime of the structure
 			virtual void EnumerateEnums(ICallback<const int64, cstr>& onEnum) const = 0;
 		};
 

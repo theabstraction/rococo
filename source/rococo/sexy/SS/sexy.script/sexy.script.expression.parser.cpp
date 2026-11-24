@@ -2091,175 +2091,6 @@ namespace Rococo
 			ce.Builder.Assembler().Append_SetStackFrameImmediate(ptrDef.SFOffset, ptr, BITCOUNT_POINTER);		
 		}
 
-		bool IsToStringKeyword(cr_sex s)
-		{
-			return IsAtomic(s) && AreEqual(s.String(), "tostring");
-		}
-
-		// (tostring <enum-variable>) puts in D7 the IString naming the enum value that matches the variable's value, or the null IString if no enum value matches.
-		// One persistent string constant is made per enum value name at compile time; at run time an inline compare chain picks the matching one.
-		void CompileEnumToString(CCompileEnvironment& ce, cr_sex sValue)
-		{
-			if (!IsAtomic(sValue))
-			{
-				Throw(sValue, "Expecting (IString <name> = tostring <enum-variable>)");
-			}
-
-			cstr name = sValue.c_str();
-
-			MemberDef def;
-			if (!ce.Builder.TryGetVariableByName(OUT def, name))
-			{
-				Throw(sValue, "tostring: unknown variable %s. Expecting a variable or field of an enum type", name);
-			}
-
-			const IStructure& type = *def.ResolvedType;
-			if (!type.IsEnumType())
-			{
-				if (type.IsStrongType())
-				{
-					Throw(sValue, "tostring requires an enum type, but %s has no enum values", GetFriendlyName(type));
-				}
-
-				Throw(sValue, "tostring requires a variable or field of an enum type, but %s is of type %s", name, GetFriendlyName(type));
-			}
-
-			SexyVarType varType = type.VarType();
-			if (varType != SexyVarType_Int32 && varType != SexyVarType_Int64)
-			{
-				Throw(sValue, "tostring requires an integer enum type, but %s is based on %s", GetFriendlyName(type), GetTypeName(varType));
-			}
-
-			BITCOUNT bits = GetBitCount(varType);
-
-			struct EnumCollector : ICallback<const int64, cstr>
-			{
-				std::vector<std::pair<int64, cstr>> items;
-
-				CALLBACK_CONTROL operator()(const int64& value, cstr enumName) override
-				{
-					items.push_back(std::make_pair(value, enumName));
-					return CALLBACK_CONTROL_CONTINUE;
-				}
-			} collector;
-
-			type.EnumerateEnums(collector);
-
-			// Sort by value, then name, so that when two names share a value the alphabetically first one is chosen, whatever the hash order
-			std::sort(collector.items.begin(), collector.items.end(), [](const std::pair<int64, cstr>& a, const std::pair<int64, cstr>& b)
-				{
-					if (a.first != b.first) return a.first < b.first;
-					return strcmp(a.second, b.second) < 0;
-				});
-
-			auto& assembler = ce.Builder.Assembler();
-
-			ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D8); // D8 = the enum value
-
-			VariantValue nullString;
-			nullString.vPtrValue = ce.Object.Common().SysTypeIString().UniversalNullInstance()->pVTables;
-			assembler.Append_SetRegisterImmediate(VM::REGISTER_D7, nullString, BITCOUNT_POINTER); // D7 = the null string, unless a value matches
-
-			for (size_t i = 0; i < collector.items.size(); i++)
-			{
-				int64 value = collector.items[i].first;
-				cstr enumName = collector.items[i].second;
-
-				if (i > 0 && collector.items[i - 1].first == value)
-				{
-					continue; // Duplicate value, the first name wins
-				}
-
-				VariantValue v;
-				if (bits == BITCOUNT_32)
-				{
-					v.int32Value = (int32)value;
-				}
-				else
-				{
-					v.int64Value = value;
-				}
-
-				assembler.Append_SubtractImmediate(VM::REGISTER_D8, bits, VM::REGISTER_D9, v); // D9 = D8 - value
-				assembler.Append_Test(VM::REGISTER_D9, bits);
-
-				size_t branchPos = assembler.WritePosition();
-				assembler.Append_BranchIf(CONDITION_IF_NOT_EQUAL, 0);
-
-				CStringConstant* sc = CreateStringConstant(ce.Script, StringLength(enumName), enumName, &sValue);
-				VariantValue ptr;
-				ptr.vPtrValue = sc->header.pVTables;
-				assembler.Append_SetRegisterImmediate(VM::REGISTER_D7, ptr, BITCOUNT_POINTER);
-
-				size_t nextPos = assembler.WritePosition();
-				assembler.SetWriteModeToOverwrite(branchPos);
-				assembler.Append_BranchIf(CONDITION_IF_NOT_EQUAL, (int)(nextPos - branchPos));
-				assembler.SetWriteModeToAppend();
-			}
-		}
-
-		void ThrowIfNotIStringTargetOfToString(CCompileEnvironment& ce, cr_sex s, cstr targetName, const IStructure& targetType)
-		{
-			if (targetType != ce.Object.Common().SysTypeIString().NullObjectType())
-			{
-				Throw(s, "tostring produces an IString, but %s is of type %s", targetName, GetFriendlyName(targetType));
-			}
-		}
-
-		// (IString <id> = tostring <enum-variable>)
-		bool TryCompileAsToStringDeclaration(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
-		{
-			if (decl.NumberOfElements() < 4 || !IsToStringKeyword(decl[3]))
-			{
-				return false;
-			}
-
-			ThrowIfNotIStringTargetOfToString(ce, decl, id, type);
-
-			if (decl.NumberOfElements() != 5)
-			{
-				Throw(decl, "Expecting (IString <name> = tostring <enum-variable>)");
-			}
-
-			AddSymbol(ce.Builder, "IString %s = tostring %s", id, decl[4].c_str());
-			AddInterfaceVariable(ce, NameString::From(id), type);
-			CompileEnumToString(ce, decl[4]);
-			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, id);
-			return true;
-		}
-
-		// (<IString-variable> = tostring <enum-variable>)
-		bool TryCompileAsToStringAssignment(CCompileEnvironment& ce, cr_sex s)
-		{
-			if (s.NumberOfElements() < 3 || !IsAtomicMatch(s[1], "=") || !IsToStringKeyword(s[2]))
-			{
-				return false;
-			}
-
-			if (s.NumberOfElements() != 4 || !IsAtomic(s[0]))
-			{
-				Throw(s, "Expecting (<IString-variable> = tostring <enum-variable>)");
-			}
-
-			cstr target = s[0].c_str();
-
-			MemberDef targetDef;
-			if (!ce.Builder.TryGetVariableByName(OUT targetDef, target))
-			{
-				Throw(s[0], "tostring: unknown target variable %s", target);
-			}
-
-			ThrowIfNotIStringTargetOfToString(ce, s, target, *targetDef.ResolvedType);
-
-			AddSymbol(ce.Builder, "%s = tostring %s", target, s[3].c_str());
-			CompileEnumToString(ce, s[3]);
-			ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 = new string
-			ce.Builder.AssignVariableToRegister(target, VM::REGISTER_D5); // D5 = old string
-			ce.Builder.Append_UpdateRefsOnSourceAndTarget();
-			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4, target);
-			return true;
-		}
-
 		bool IsFromStringKeyword(cr_sex s)
 		{
 			return IsAtomic(s) && AreEqual(s.String(), "fromstring");
@@ -2305,7 +2136,9 @@ namespace Rococo
 		}
 
 		// Sets the enum target to the value whose name equals the string exactly, and the Bool to true. If no name matches, the Bool is set false and the target is unchanged.
+		// For a flagger type the string may be a list of names delimited by commas and/or whitespace, and the target is set to their OR. Every token must be a name.
 		// A string literal is resolved at compile time. A string variable is resolved at run time by the EnumFromString callback, which looks the text up in the enum's own table.
+		// Both use TryParseEnumText.
 		void CompileEnumFromString(CCompileEnvironment& ce, cstr target, const IStructure& targetType, cr_sex sString, cr_sex sBool)
 		{
 			if (!IsAtomic(sBool))
@@ -2333,7 +2166,7 @@ namespace Rococo
 				sexstring text = sString.String();
 
 				int64 value = 0;
-				bool isFound = text->Length > 0 && targetType.TryGetEnumValue(text->Buffer, OUT value);
+				bool isFound = TryParseEnumText(targetType, text->Buffer, text->Length, OUT value);
 				if (isFound)
 				{
 					VariantValue v;
@@ -2447,6 +2280,221 @@ namespace Rococo
 
 			AddSymbol(ce.Builder, "%s = fromstring %s -> %s", target, s[3].c_str(), s[5].c_str());
 			CompileEnumFromString(ce, target, *targetDef.ResolvedType, s[3], s[5]);
+			return true;
+		}
+
+		bool IsIsFlaggedKeyword(cr_sex s)
+		{
+			return IsAtomic(s) && AreEqual(s.String(), "isflagged");
+		}
+
+		// isflagged <enum-type> is true if the type is a flagger (IStructure::IsFlagger), i.e its enum values are pairwise bitwise distinct. It is resolved at compile time
+		bool IsFlaggedType(CCompileEnvironment& ce, cr_sex sType)
+		{
+			if (!IsAtomic(sType))
+			{
+				Throw(sType, "isflagged requires a type name, e.g. (Bool f = isflagged Alignment)");
+			}
+
+			cstr typeName = sType.c_str();
+
+			if (!IsCapital(typeName[0]))
+			{
+				MemberDef def;
+				if (ce.Builder.TryGetVariableByName(OUT def, typeName))
+				{
+					Throw(sType, "isflagged requires a type name, but %s is a variable", typeName);
+				}
+
+				Throw(sType, "isflagged requires a type name, e.g. (Bool f = isflagged Alignment), but found %s", typeName);
+			}
+
+			const IStructure* type = MatchStructure(sType, ce.Builder.Module());
+			if (type == nullptr)
+			{
+				Throw(sType, "isflagged: unknown type %s", typeName);
+			}
+
+			if (!type->IsEnumType())
+			{
+				if (type->IsStrongType())
+				{
+					Throw(sType, "isflagged requires an enum type, but %s has no enum values", GetFriendlyName(*type));
+				}
+
+				Throw(sType, "isflagged requires an enum type, but %s is not a strong type", GetFriendlyName(*type));
+			}
+
+			return type->IsFlagger();
+		}
+
+		void ThrowIfNotBoolTargetOfIsFlagged(cr_sex s, cstr targetName, const IStructure& targetType)
+		{
+			if (targetType.VarType() != SexyVarType_Bool)
+			{
+				Throw(s, "isflagged produces a Bool, but %s is of type %s", targetName, GetFriendlyName(targetType));
+			}
+		}
+
+		void AssignIsFlagged(CCompileEnvironment& ce, cstr target, bool isFlagged)
+		{
+			VariantValue b;
+			b.int64Value = 0;
+			b.int32Value = isFlagged ? 1 : 0;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, b, BITCOUNT_32);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, target);
+		}
+
+		// (Bool <id> = isflagged <enum-type>)
+		bool TryCompileAsIsFlaggedDeclaration(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
+		{
+			if (decl.NumberOfElements() < 4 || !IsIsFlaggedKeyword(decl[3]))
+			{
+				return false;
+			}
+
+			ThrowIfNotBoolTargetOfIsFlagged(decl, id, type);
+
+			if (decl.NumberOfElements() != 5)
+			{
+				Throw(decl, "Expecting (Bool <name> = isflagged <enum-type>)");
+			}
+
+			bool isFlagged = IsFlaggedType(ce, decl[4]);
+
+			AddSymbol(ce.Builder, "Bool %s = isflagged %s (%s)", id, decl[4].c_str(), isFlagged ? "true" : "false");
+			AddVariable(ce, NameString::From(id), type);
+			AssignIsFlagged(ce, id, isFlagged);
+			return true;
+		}
+
+		// (<Bool-variable> = isflagged <enum-type>)
+		bool TryCompileAsIsFlaggedAssignment(CCompileEnvironment& ce, cr_sex s)
+		{
+			if (s.NumberOfElements() < 3 || !IsAtomicMatch(s[1], "=") || !IsIsFlaggedKeyword(s[2]))
+			{
+				return false;
+			}
+
+			if (s.NumberOfElements() != 4 || !IsAtomic(s[0]))
+			{
+				Throw(s, "Expecting (<Bool-variable> = isflagged <enum-type>)");
+			}
+
+			cstr target = s[0].c_str();
+
+			MemberDef targetDef;
+			if (!ce.Builder.TryGetVariableByName(OUT targetDef, target))
+			{
+				Throw(s[0], "isflagged: unknown target variable %s", target);
+			}
+
+			ThrowIfNotBoolTargetOfIsFlagged(s, target, *targetDef.ResolvedType);
+
+			bool isFlagged = IsFlaggedType(ce, s[3]);
+
+			AddSymbol(ce.Builder, "%s = isflagged %s (%s)", target, s[3].c_str(), isFlagged ? "true" : "false");
+			AssignIsFlagged(ce, target, isFlagged);
+			return true;
+		}
+
+		// True if the type is Sys.Type.IStringBuilder, the interface of the native FastStringBuilder, or an interface that extends it
+		bool IsIStringBuilderInterface(CCompileEnvironment& ce, const IStructure& type)
+		{
+			if (!type.IsNullType() || type.InterfaceCount() == 0)
+			{
+				return false;
+			}
+
+			const IStructure* fsb = ce.SS.GetStringBuilderType();
+			if (fsb == nullptr || fsb->InterfaceCount() == 0)
+			{
+				return false;
+			}
+
+			const IObjectInterface& builder = fsb->GetInterface(0);
+			for (const IObjectInterface* i = &type.GetInterface(0); i != nullptr; i = i->Base())
+			{
+				if (i == &builder)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		// (append <string-builder> <enum-variable>) appends the name of the value to the builder, or for a flagger type the space-delimited names of the flags
+		// set in the value, in declaration order. With no match nothing is appended, so callers compare the builder's length before and after.
+		// The AppendEnum callback writes straight into the builder. The builder must be an IStringBuilder, the value a variable or field of an integer enum type
+		bool TryCompileAsAppendEnum(CCompileEnvironment& ce, cr_sex s)
+		{
+			if (s.NumberOfElements() < 1 || !IsAtomicMatch(s[0], "append"))
+			{
+				return false;
+			}
+
+			MemberDef appendDef;
+			if (ce.Builder.TryGetVariableByName(OUT appendDef, "append"))
+			{
+				return false; // A variable called append takes precedence over the keyword
+			}
+
+			if (s.NumberOfElements() != 3 || !IsAtomic(s[1]) || !IsAtomic(s[2]))
+			{
+				Throw(s, "Expecting (append <string-builder> <enum-variable>)");
+			}
+
+			cstr builderName = s[1].c_str();
+
+			MemberDef builderDef;
+			if (!ce.Builder.TryGetVariableByName(OUT builderDef, builderName))
+			{
+				Throw(s[1], "append: unknown string builder %s", builderName);
+			}
+
+			if (!IsIStringBuilderInterface(ce, *builderDef.ResolvedType))
+			{
+				Throw(s[1], "append requires an IStringBuilder, but %s is of type %s", builderName, GetFriendlyName(*builderDef.ResolvedType));
+			}
+
+			cstr name = s[2].c_str();
+
+			MemberDef def;
+			if (!ce.Builder.TryGetVariableByName(OUT def, name))
+			{
+				Throw(s[2], "append: unknown variable %s. Expecting a variable or field of an enum type", name);
+			}
+
+			const IStructure& type = *def.ResolvedType;
+			if (!type.IsEnumType())
+			{
+				if (type.IsStrongType())
+				{
+					Throw(s[2], "append requires an enum type, but %s has no enum values", GetFriendlyName(type));
+				}
+
+				Throw(s[2], "append requires a variable or field of an enum type, but %s is of type %s", name, GetFriendlyName(type));
+			}
+
+			SexyVarType varType = type.VarType();
+			if (varType != SexyVarType_Int32 && varType != SexyVarType_Int64)
+			{
+				Throw(s[2], "append requires an integer enum type, but %s is based on %s", GetFriendlyName(type), GetTypeName(varType));
+			}
+
+			AddSymbol(ce.Builder, "append %s %s", builderName, name);
+
+			auto& assembler = ce.Builder.Assembler();
+
+			ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D6); // D6 = the enum value
+			ce.Builder.AssignVariableToRegister(builderName, VM::REGISTER_D4); // D4 = the builder interface
+
+			VariantValue enumType;
+			enumType.vPtrValue = (void*)&type;
+			assembler.Append_SetRegisterImmediate(VM::REGISTER_D5, enumType, BITCOUNT_POINTER); // D5 = the enum type
+
+			assembler.Append_Invoke(ce.SS.GetScriptCallbacks().idAppendEnum);
 			return true;
 		}
 
@@ -2673,12 +2721,12 @@ namespace Rococo
 		{
 			// (<type> <id> = <...>)
 
-			if (TryCompileAsToStringDeclaration(ce, type, id, decl))
+			if (TryCompileAsFromStringDeclaration(ce, type, id, decl))
 			{
 				return;
 			}
 
-			if (TryCompileAsFromStringDeclaration(ce, type, id, decl))
+			if (TryCompileAsIsFlaggedDeclaration(ce, type, id, decl))
 			{
 				return;
 			}
@@ -4395,7 +4443,7 @@ namespace Rococo
 			}
 			else
 			{
-				if (TryCompileAsToStringAssignment(ce, s))
+				if (TryCompileAsAppendEnum(ce, s))
 					return;
 
 				if (TryCompileAsFromStringAssignment(ce, s))
@@ -4404,6 +4452,14 @@ namespace Rococo
 				if (IsFromStringKeyword(s[0]))
 				{
 					Throw(s, "fromstring is only valid as a directive of the form (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+				}
+
+				if (TryCompileAsIsFlaggedAssignment(ce, s))
+					return;
+
+				if (IsIsFlaggedKeyword(s[0]))
+				{
+					Throw(s, "isflagged is only valid as a directive of the form (<Bool-variable> = isflagged <enum-type>) or (Bool <name> = isflagged <enum-type>)");
 				}
 
 				if (TryCompileAsTrivialAssignment(ce, s))

@@ -7142,7 +7142,7 @@ R"((namespace EntryPoint)
 		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Cannot infer the enum type of .Read");
 	}
 
-	// Preamble shared by the array shorthand and tostring tests: Day (Monday 1 .. Friday 5), and an unrelated Other
+	// Preamble shared by the array shorthand, append and fromstring tests: Day (Monday 1 .. Friday 5), and an unrelated Other
 	static cstr ENUM_DAY_OTHER_PREAMBLE = R"(
 			(strong Day (Int32))
 			(alias Day Sys.Type.Day)
@@ -7254,26 +7254,29 @@ R"((namespace EntryPoint)
 		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 421);
 	}
 
-	void TestEnumToStringNamed(IPublicScriptSystem& ss)
+	// (append <string-builder> <enum-variable>) appends the name of the enum value, or for a flagger type the space-delimited names of its flags. No match appends nothing
+	void TestEnumAppendNamed(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(Day day = .Friday)
-				(IString s = tostring day)
-				(Int32 diff = (Sys.Type.Strings.Compare s "Friday"))
-				(if (diff == 0) (result = s.Length) else (result = -1))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb day)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Friday"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
 			)
 		)";
 
 		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 6);
 	}
 
-	void TestEnumToStringAllValues(IPublicScriptSystem& ss)
+	void TestEnumAppendAllValues(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Matches (Day day) (IString expected) -> (Int32 n):
-				(IString s = tostring day)
-				(Int32 diff = (Sys.Type.Strings.Compare s expected))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb day)
+				(Int32 diff = (Sys.Type.Strings.Compare sb expected))
 				(if (diff == 0) (n = 1) else (n = 0))
 			)
 
@@ -7291,54 +7294,45 @@ R"((namespace EntryPoint)
 		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 5);
 	}
 
-	void TestEnumToStringNoName(IPublicScriptSystem& ss)
+	void TestEnumAppendNoName(IPublicScriptSystem& ss)
 	{
+		// Day is not a flagger, so a value with no name appends nothing
 		cstr body = R"(
 			(function Main -> (Int32 result):
-				(Access a = (Access@Read | Access@Write))
-				(IString s = tostring a)
-				(result = s.Length)
-				(if (s ?) (result = (result + 100)))
-				(IString n)
-				(Int32 diff = (Sys.Type.Strings.Compare s n))
-				(if (diff != 0) (result = (result + 1000)))
+				(Day a = (Day@Tuesday | Day@Friday))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(sb "abc")
+				(Int32 before = sb.Length)
+				(append sb a)
+				(Int32 after = sb.Length)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "abc"))
+				(result = ((10 * before) + after))
+				(if (diff != 0) (result = -1))
 			)
 		)";
 
-		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 0);
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 33);
 	}
 
-	void TestEnumToStringNamedIsNotNull(IPublicScriptSystem& ss)
-	{
-		cstr body = R"(
-			(function Main -> (Int32 result):
-				(Access a = .Exec)
-				(IString s = tostring a)
-				(result = s.Length)
-				(if (s ?) (result = (result + 100)))
-			)
-		)";
-
-		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 104);
-	}
-
-	void TestEnumToStringSignBit(IPublicScriptSystem& ss)
+	void TestEnumAppendSignBit(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(Access a = .Sign)
-				(IString s = tostring a)
-				(Int32 diff = (Sys.Type.Strings.Compare s "Sign"))
-				(if (diff == 0) (result = s.Length) else (result = -1))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb a)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Sign"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
 			)
 		)";
 
 		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 4);
 	}
 
-	void TestEnumToStringInt64(IPublicScriptSystem& ss)
+	void TestEnumAppendInt64(IPublicScriptSystem& ss)
 	{
 		// Huge shares its low 32 bits with Zero, so a 32-bit compare would wrongly give "Zero", and One|Huge, which has no name, shares its low 32 bits with One
+		// Three overlaps One, so Big is not a flagger and One|Huge appends nothing (a flagger would append "One Huge")
 		cstr body = R"(
 			(strong Big (Int64))
 			(alias Big Sys.Type.Big)
@@ -7346,21 +7340,25 @@ R"((namespace EntryPoint)
 				(Zero 0)
 				(One 1)
 				(Huge 4294967296)
+				(Three 3)
 			)
 
 			(function Main -> (Int32 result):
 				(Big b = .Huge)
-				(IString s = tostring b)
+				(IStringBuilder s = (Sys.Type.NewStringBuilder 64))
+				(append s b)
 				(Int32 diff = (Sys.Type.Strings.Compare s "Huge"))
 				(if (diff == 0) (result = s.Length) else (result = -1))
 
 				(Big z = .Zero)
-				(IString t = tostring z)
+				(IStringBuilder t = (Sys.Type.NewStringBuilder 64))
+				(append t z)
 				(Int32 diff2 = (Sys.Type.Strings.Compare t "Zero"))
 				(if (diff2 == 0) (result = (result + (10 * t.Length))) else (result = -1))
 
 				(Big none = (Big@One | Big@Huge))
-				(IString u = tostring none)
+				(IStringBuilder u = (Sys.Type.NewStringBuilder 64))
+				(append u none)
 				(result = (result + (100 * u.Length)))
 			)
 		)";
@@ -7368,7 +7366,7 @@ R"((namespace EntryPoint)
 		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 44);
 	}
 
-	void TestEnumToStringField(IPublicScriptSystem& ss)
+	void TestEnumAppendField(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(struct Meeting
@@ -7378,162 +7376,264 @@ R"((namespace EntryPoint)
 
 			(function Main -> (Int32 result):
 				(Meeting m = 7 Day@Wednesday)
-				(IString s = tostring m.day)
-				(Int32 diff = (Sys.Type.Strings.Compare s "Wednesday"))
-				(if (diff == 0) (result = s.Length) else (result = -1))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb m.day)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Wednesday"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
 			)
 		)";
 
 		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 9);
 	}
 
-	void TestEnumToStringAssign(IPublicScriptSystem& ss)
+	void TestEnumAppendToExisting(IPublicScriptSystem& ss)
 	{
+		// append adds to what the builder holds, and mixes with the builder's own (sb <value>) appends
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(Day day = .Monday)
-				(IString s = "placeholder")
-				(s = tostring day)
-				(Int32 diff = (Sys.Type.Strings.Compare s "Monday"))
-				(if (diff == 0) (result = s.Length) else (result = -1))
-
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(sb "Days: ")
+				(append sb day)
+				(sb " and ")
 				(day = .Thursday)
-				(s = tostring day)
-				(Int32 diff2 = (Sys.Type.Strings.Compare s "Thursday"))
-				(if (diff2 == 0) (result = (result + (10 * s.Length))) else (result = -1))
+				(append sb day)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Days: Monday and Thursday"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
 
-				(Access a = (Access@Read | Access@Exec))
-				(s = tostring a)
-				(result = (result + (100 * s.Length)))
-				(if (s ?) (result = -1))
+				(Day a = (Day@Tuesday | Day@Friday))
+				(append sb a)
+				(result = (result + (100 * sb.Length)))
 			)
 		)";
 
-		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 86);
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 2525);
 	}
 
-	void TestEnumToStringPlainStrongRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendBuilderParameter(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function AppendDay (IStringBuilder sb) (Day d) -> :
+				(append sb d)
+			)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(AppendDay sb Day@Tuesday)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Tuesday"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 7);
+	}
+
+	void TestEnumAppendNullBuilderThrows(IPublicScriptSystem& ss)
+	{
+		// The null IStringBuilder is not a FastStringBuilder, so append throws a script exception rather than writing through it
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(IStringBuilder sb)
+				(result = 1)
+				(try
+					(append sb day)
+				catch e
+					(result = 7)
+				)
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 7);
+	}
+
+	void TestEnumAppendPlainStrongRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(strong Id (Int32))
 			(function Main -> (Int32 result):
 				(Id id = 3)
-				(IString s = tostring id)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb id)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires an enum type, but Id has no enum values");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append requires an enum type, but Id has no enum values");
 	}
 
-	void TestEnumToStringJoulesRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendJoulesRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(strong Joules (Float64))
 			(function Main -> (Int32 result):
 				(Joules j = 1000)
-				(IString s = tostring j)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb j)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires an enum type, but Joules has no enum values");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append requires an enum type, but Joules has no enum values");
 	}
 
-	void TestEnumToStringIntRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendIntRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(Int32 i = 3)
-				(IString s = tostring i)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb i)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires a variable or field of an enum type, but i is of type Int32");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append requires a variable or field of an enum type, but i is of type Int32");
 	}
 
-	void TestEnumToStringFloatRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendFloatRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(Float32 f = 3)
-				(IString s = tostring f)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb f)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires a variable or field of an enum type, but f is of type Float32");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append requires a variable or field of an enum type, but f is of type Float32");
 	}
 
-	void TestEnumToStringUnknownRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendUnknownRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
-				(IString s = tostring nosuchday)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb nosuchday)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring: unknown variable nosuchday");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append: unknown variable nosuchday");
 	}
 
-	void TestEnumToStringConstantRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendConstantRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
-				(IString s = tostring Day@Friday)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb Day@Friday)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring: unknown variable Day@Friday");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append: unknown variable Day@Friday");
 	}
 
-	void TestEnumToStringTargetRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendIStringTargetRejected(IPublicScriptSystem& ss)
+	{
+		// An IString is not a builder
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(IString s = "abc")
+				(append s day)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append requires an IStringBuilder, but s is of type IString");
+	}
+
+	void TestEnumAppendIntTargetRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(Day day = .Friday)
-				(Int32 x = tostring day)
+				(Int32 x = 0)
+				(append x day)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring produces an IString, but x is of type Int32");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append requires an IStringBuilder, but x is of type Int32");
 	}
 
-	void TestEnumToStringAssignTargetRejected(IPublicScriptSystem& ss)
+	void TestEnumAppendUnknownTargetRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(Day day = .Friday)
-				(Day other = .Monday)
-				(other = tostring day)
+				(append nosb day)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring produces an IString, but other is of type Day");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "append: unknown string builder nosb");
 	}
 
-	void TestEnumToStringMissingOperand(IPublicScriptSystem& ss)
+	void TestEnumAppendMissingOperandRejected(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function Main -> (Int32 result):
-				(IString s = tostring)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb)
 				(result = 0)
 			)
 		)";
 
-		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (IString <name> = tostring <enum-variable>)");
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (append <string-builder> <enum-variable>)");
+	}
+
+	void TestEnumAppendTooManyOperandsRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb day day)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (append <string-builder> <enum-variable>)");
+	}
+
+	void TestEnumAppendCompoundOperandRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb (day))
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (append <string-builder> <enum-variable>)");
+	}
+
+	void TestEnumToStringRemoved(IPublicScriptSystem& ss)
+	{
+		// tostring was replaced by append
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(IString s = tostring day)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring may be the problem");
 	}
 
 	void TestEnumFromStringRoundTrip(IPublicScriptSystem& ss)
 	{
 		cstr body = R"(
 			(function RoundTrip (Day d) -> (Int32 n):
-				(IString s = tostring d)
+				(IStringBuilder s = (Sys.Type.NewStringBuilder 64))
+				(append s d)
 				(Bool ok = false)
 				(Day e = fromstring s -> ok)
 				(Int32 a = d.Value)
@@ -7930,6 +8030,918 @@ R"((namespace EntryPoint)
 		)";
 
 		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (<enum-type> <name> = fromstring <string> -> <Bool-variable>)");
+	}
+
+	// Flags: (flags <type> ...) is (enum <type> ...) with every value bitwise distinct from every other.
+	// A type is a flagger (IStructure::IsFlagger) if its enum values are pairwise bitwise distinct, whether declared with enum or flags.
+	// Alignment: None 0, Top 1, Left 2, Bottom 4, Right 8. Edge: North 1, South 2 (no zero name). Wide: Lo 3, Hi 12 (multi-bit flags). BigFlags (Int64): Low 1, High 2^32
+	static cstr ENUM_FLAGS_PREAMBLE = R"(
+			(strong Alignment (Int32))
+			(alias Alignment Sys.Type.Alignment)
+			(flags Sys.Type.Alignment
+				(None 0)
+				(Top 1)
+				(Left 2)
+				(Bottom 4)
+				(Right 8)
+			)
+
+			(strong Edge (Int32))
+			(alias Edge Sys.Type.Edge)
+			(flags Sys.Type.Edge
+				(North 1)
+				(South 2)
+			)
+
+			(strong Wide (Int32))
+			(alias Wide Sys.Type.Wide)
+			(flags Sys.Type.Wide
+				(Lo 3)
+				(Hi 12)
+			)
+
+			(strong BigFlags (Int64))
+			(alias BigFlags Sys.Type.BigFlags)
+			(flags Sys.Type.BigFlags
+				(Low 1)
+				(High 4294967296)
+			)
+		)";
+
+	static int32 RunEnumFlagsTest(IPublicScriptSystem& ss, cstr body, cstr name)
+	{
+		char full[16384];
+		SafeFormat(full, sizeof(full), "%s%s%s\n(namespace EntryPoint)(alias Main EntryPoint.Main)", ENUM_DAY_OTHER_PREAMBLE, ENUM_FLAGS_PREAMBLE, body);
+		return RunEnumQualifiedTest(ss, full, name);
+	}
+
+	static void RunEnumFlagsFailTest(IPublicScriptSystem& ss, cstr body, cstr name, cstr expectedFragment)
+	{
+		char full[16384];
+		SafeFormat(full, sizeof(full), "%s%s%s\n(namespace EntryPoint)(alias Main EntryPoint.Main)", ENUM_DAY_OTHER_PREAMBLE, ENUM_FLAGS_PREAMBLE, body);
+		RunEnumQualifiedFailTest(ss, full, name, expectedFragment);
+	}
+
+	static void ValidateMessageHas(cstr message, cstr expectedFragment)
+	{
+		if (strstr(message, expectedFragment) == nullptr)
+		{
+			printf("Expected '%s' in: %s\n", expectedFragment, message);
+			validate(false);
+		}
+	}
+
+	// Expects a bad enum or flags declaration to fail. The declaration is processed when the module compiles, so the error may surface from Compile or from Execute
+	static void RunEnumDeclarationFailTest(IPublicScriptSystem& ss, cstr declarations, cstr name, cstr expectedFragment)
+	{
+		char full[8192];
+		SafeFormat(full, sizeof(full), "%s\n(function Main -> (Int32 result): (result = 0))\n(namespace EntryPoint)(alias Main EntryPoint.Main)", declarations);
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(full, -1, Vec2i{ 0,0 }, name);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		bool compiled = false;
+		try
+		{
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+			compiled = true;
+			vm.Push(0);
+			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+			validate(result == EXECUTERESULT_THROWN);
+			ParseException ex;
+			validate(s_logger.TryGetNextException(ex));
+			ValidateMessageHas(ex.Message(), expectedFragment);
+			s_logger.Clear();
+		}
+		catch (ParseException& ex)
+		{
+			validate(!compiled);
+			ValidateMessageHas(ex.Message(), expectedFragment);
+			s_logger.Clear();
+		}
+	}
+
+	void TestEnumFlagsDeclaration(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment a = (Alignment@Top | Alignment@Right))
+				(Alignment n = .None)
+				(Int32 v = a.Value)
+				(Int32 z = n.Value)
+				(result = ((v * 10) + z))
+				(if (a & .Right) (result += 1000))
+				(if (a & .Left) (result += 100000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 1090);
+	}
+
+	void TestEnumFlagsSequential(IPublicScriptSystem& ss)
+	{
+		// Same syntax as enum: unvalued names count up from the previous value. 0, 1, 2 are pairwise distinct
+		cstr body = R"(
+			(strong Tri (Int32))
+			(alias Tri Sys.Type.Tri)
+			(flags Sys.Type.Tri Zero One Two)
+
+			(function Main -> (Int32 result):
+				(Tri t = Tri@Two)
+				(result = t.Value)
+				(Bool f = isflagged Tri)
+				(if f (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 12);
+	}
+
+	void TestEnumFlagsMultiBit(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Wide w = (Wide@Lo | Wide@Hi))
+				(result = w.Value)
+				(Bool f = isflagged Wide)
+				(if f (result += 100))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 115);
+	}
+
+	void TestEnumFlagsPlainEnumDuplicatesStillAllowed(IPublicScriptSystem& ss)
+	{
+		// enum still permits duplicate and overlapping values; such a type is not a flagger
+		cstr body = R"(
+			(strong Dup (Int32))
+			(alias Dup Sys.Type.Dup)
+			(enum Sys.Type.Dup (A 1) (B 1) (C 3))
+
+			(function Main -> (Int32 result):
+				(Dup d = Dup@B)
+				(result = d.Value)
+				(Bool f = isflagged Dup)
+				(if f (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 1);
+	}
+
+	void TestEnumIsFlaggedFlags(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool a = isflagged Alignment)
+				(Bool e = isflagged Edge)
+				(Bool b = isflagged BigFlags)
+				(Bool q = isflagged Sys.Type.Alignment)
+				(result = 0)
+				(if a (result += 1))
+				(if e (result += 10))
+				(if b (result += 100))
+				(if q (result += 1000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 1111);
+	}
+
+	void TestEnumIsFlaggedEnum(IPublicScriptSystem& ss)
+	{
+		// Day is 1..5, so Wednesday (3) overlaps Monday and Tuesday: not a flagger. Access (1, 2, 4, sign bit) is declared with enum but is pairwise distinct: a flagger
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool d = true)
+				(d = isflagged Day)
+				(Bool a = false)
+				(a = isflagged Access)
+				(result = 0)
+				(if d (result += 1))
+				(if a (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 10);
+	}
+
+	void TestEnumIsFlaggedField(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(struct Info
+				(Int32 id)
+				(Bool flagged)
+			)
+
+			(function Main -> (Int32 result):
+				(Info info = 7 false)
+				(info.flagged = isflagged Edge)
+				(result = info.id)
+				(Bool g = info.flagged)
+				(if g (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 17);
+	}
+
+	void TestEnumFlagsAppendList(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Matches (Alignment a) (IString expected) -> (Int32 n):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb a)
+				(Int32 diff = (Sys.Type.Strings.Compare sb expected))
+				(if (diff == 0) (n = 1) else (n = 0))
+			)
+
+			(function Main -> (Int32 result):
+				(result = 0)
+				(result += (Matches (Alignment@Top | Alignment@Left) "Top Left"))
+				(result += (Matches (Alignment@Left | Alignment@Top) "Top Left"))
+				(result += (Matches (Alignment@Right | Alignment@Top | Alignment@Bottom) "Top Bottom Right"))
+				(result += (Matches ((Alignment@Top | Alignment@Left) | (Alignment@Bottom | Alignment@Right)) "Top Left Bottom Right"))
+				(result += (Matches Alignment@Bottom "Bottom"))
+				(result += (Matches Alignment@None "None"))
+				(result += (Matches (Alignment@Top | Alignment@None) "Top"))
+				(result += (Matches (Alignment@Top | Alignment@Left) "Left Top"))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 7);
+	}
+
+	void TestEnumFlagsAppendToExisting(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment a = (Alignment@Bottom | Alignment@Left))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(sb "[")
+				(append sb a)
+				(sb "] [")
+				(append sb a)
+				(sb "]")
+				(Int32 diff = (Sys.Type.Strings.Compare sb "[Left Bottom] [Left Bottom]"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 27);
+	}
+
+	void TestEnumFlagsAppendZeroNoName(IPublicScriptSystem& ss)
+	{
+		// Edge has no zero name, so 0 appends nothing
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Edge e)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(sb "x")
+				(append sb e)
+				(result = sb.Length)
+				(Edge both = (Edge@North | Edge@South))
+				(IStringBuilder t = (Sys.Type.NewStringBuilder 64))
+				(append t both)
+				(Int32 diff = (Sys.Type.Strings.Compare t "North South"))
+				(if (diff == 0) (result += 1000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 1001);
+	}
+
+	void TestEnumFlagsAppendUncoveredBits(IPublicScriptSystem& ss)
+	{
+		// Bits that no flag covers append nothing, rather than a partial list
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(sb "ab")
+				(Alignment a = 18)
+				(append sb a)
+				(Alignment b = 16)
+				(append sb b)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "ab"))
+				(result = sb.Length)
+				(if (diff != 0) (result = -1))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 2);
+	}
+
+	void TestEnumFlagsAppendMultiBitPartial(IPublicScriptSystem& ss)
+	{
+		// Lo is 3: the value 13 sets Hi and only part of Lo, so it is not covered
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Wide w = (Wide@Hi | Wide@Lo))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(append sb w)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Lo Hi"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
+				(Wide p = 13)
+				(append sb p)
+				(result += (100 * sb.Length))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 505);
+	}
+
+	void TestEnumFlagsAppendInt64(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(BigFlags b = (BigFlags@High | BigFlags@Low))
+				(IStringBuilder s = (Sys.Type.NewStringBuilder 64))
+				(append s b)
+				(Int32 diff = (Sys.Type.Strings.Compare s "Low High"))
+				(if (diff == 0) (result = s.Length) else (result = -1))
+				(BigFlags h = .High)
+				(IStringBuilder t = (Sys.Type.NewStringBuilder 64))
+				(append t h)
+				(Int32 diff2 = (Sys.Type.Strings.Compare t "High"))
+				(if (diff2 == 0) (result += 100) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 108);
+	}
+
+	void TestEnumFlaggerEnumAppend(IPublicScriptSystem& ss)
+	{
+		// Access is declared with enum but is a flagger, so combinations append a list; Day is not a flagger, so a nameless Day appends nothing
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Access a = (Access@Write | Access@Read))
+				(IStringBuilder s = (Sys.Type.NewStringBuilder 64))
+				(append s a)
+				(Int32 diff = (Sys.Type.Strings.Compare s "Read Write"))
+				(if (diff == 0) (result = s.Length) else (result = -1))
+				(Day d = (Day@Tuesday | Day@Friday))
+				(IStringBuilder t = (Sys.Type.NewStringBuilder 64))
+				(append t d)
+				(result += (100 * t.Length))
+				(Day w = (Day@Monday | Day@Tuesday))
+				(append t w)
+				(Int32 diff3 = (Sys.Type.Strings.Compare t "Wednesday"))
+				(if (diff3 == 0) (result += 1000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 1010);
+	}
+
+	void TestEnumFlagsAppendTruncates(IPublicScriptSystem& ss)
+	{
+		// Like the builder's other appends, text beyond the capacity is truncated
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 8))
+				(Alignment a = ((Alignment@Top | Alignment@Left) | Alignment@Bottom))
+				(append sb a)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Top Lef"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 7);
+	}
+
+	void TestEnumFlagsFromStringLiteral(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment a = .None)
+				(Bool ok = false)
+				(a = fromstring "Top Left" -> ok)
+				(Int32 v = a.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 31);
+	}
+
+	void TestEnumFlagsFromStringDelimiters(IPublicScriptSystem& ss)
+	{
+		// Commas and/or whitespace (space, tab, newline) delimit tokens, leading and trailing delimiters included
+		cstr body = R"(
+			(function Parse (IString s) -> (Int32 n):
+				(Bool ok = false)
+				(Alignment a = .None)
+				(a = fromstring s -> ok)
+				(n = a.Value)
+				(if (not ok) (n = -1))
+			)
+
+			(function Main -> (Int32 result):
+				(Bool ok1 = false)
+				(Bool ok2 = false)
+				(Bool ok3 = false)
+				(Alignment a = fromstring "Top,Left" -> ok1)
+				(Alignment b = fromstring " , Bottom ,&tRight,, " -> ok2)
+				(Alignment c = fromstring "Top,&nRight" -> ok3)
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(Int32 vc = c.Value)
+				(Int32 p = (Parse "Left, Bottom"))
+				(result = (va * 10000))
+				(result += (vb * 100))
+				(result += vc)
+				(result += (p * 1000000))
+				(if (not ok1) (result = -1))
+				(if (not ok2) (result = -1))
+				(if (not ok3) (result = -1))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 6031209);
+	}
+
+	void TestEnumFlagsFromStringVariable(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IString s = "Bottom, Right")
+				(Bool ok = false)
+				(Alignment a = fromstring s -> ok)
+				(Int32 v = a.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(sb "&tTop  Left,")
+				(Bool ok2 = false)
+				(Alignment b = fromstring sb -> ok2)
+				(Int32 w = b.Value)
+				(result += (w * 1000))
+				(if ok2 (result += 100))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 3221);
+	}
+
+	void TestEnumFlagsFromStringBadTokenUnchanged(IPublicScriptSystem& ss)
+	{
+		// One bad token fails the lot: ok is false and the target keeps its value, for literals and variables
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment a = .Bottom)
+				(Bool ok1 = true)
+				(a = fromstring "Top Lfet" -> ok1)
+				(IString s = "Left Top Rihgt")
+				(Bool ok2 = true)
+				(a = fromstring s -> ok2)
+				(Bool ok3 = true)
+				(a = fromstring "Top left" -> ok3)
+				(Bool ok4 = true)
+				(IString t = "Top|Left")
+				(a = fromstring t -> ok4)
+				(Int32 v = a.Value)
+				(result = (v * 10000))
+				(if ok1 (result += 1))
+				(if ok2 (result += 10))
+				(if ok3 (result += 100))
+				(if ok4 (result += 1000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 40000);
+	}
+
+	void TestEnumFlagsFromStringEmpty(IPublicScriptSystem& ss)
+	{
+		// Empty, null, or only delimiters: no match
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment a = .Right)
+				(Bool ok1 = true)
+				(Bool ok2 = true)
+				(Bool ok3 = true)
+				(Bool ok4 = true)
+				(Bool ok5 = true)
+				(IString e = "")
+				(IString n)
+				(IString d = " ,&t, ")
+				(a = fromstring e -> ok1)
+				(a = fromstring n -> ok2)
+				(a = fromstring d -> ok3)
+				(a = fromstring "" -> ok4)
+				(a = fromstring " , , " -> ok5)
+				(Int32 v = a.Value)
+				(result = (v * 100000))
+				(if ok1 (result += 1))
+				(if ok2 (result += 10))
+				(if ok3 (result += 100))
+				(if ok4 (result += 1000))
+				(if ok5 (result += 10000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 800000);
+	}
+
+	void TestEnumFlagsFromStringRepeated(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool ok1 = false)
+				(Bool ok2 = false)
+				(Alignment a = fromstring "Top Top,Top" -> ok1)
+				(IString s = "None Left None Left")
+				(Alignment b = fromstring s -> ok2)
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(result = ((va * 10) + vb))
+				(if ok1 (result += 100))
+				(if ok2 (result += 1000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 1112);
+	}
+
+	void TestEnumFlagsFromStringZeroName(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment a = .Right)
+				(Bool ok = false)
+				(a = fromstring "None" -> ok)
+				(result = a.Value)
+				(if ok (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 10);
+	}
+
+	void TestEnumFlagsFromStringInt64(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IString s = "High Low")
+				(Bool ok = false)
+				(BigFlags b = fromstring s -> ok)
+				(BigFlags expected = (BigFlags@High | BigFlags@Low))
+				(result = 0)
+				(if (b == expected) (result = 1))
+				(if ok (result += 10))
+				(Bool ok2 = false)
+				(BigFlags c = fromstring "High" -> ok2)
+				(if (c == BigFlags@High) (result += 100))
+				(if ok2 (result += 1000))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 1111);
+	}
+
+	void TestEnumFlagsFromStringLongList(IPublicScriptSystem& ss)
+	{
+		// The 256-char limit is per token: a 600-char list of short names still matches
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 1024))
+				(Int32 i = 0)
+				(while (i < 100)
+					(sb "Top, ")
+					(i += 1)
+				)
+				(sb "Right")
+				(Int32 len = sb.Length)
+				(Bool ok = false)
+				(Alignment a = fromstring sb -> ok)
+				(Int32 v = a.Value)
+				(result = (v * 10000))
+				(if ok (result += len))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 90505);
+	}
+
+	void TestEnumFlagsFromStringLongToken(IPublicScriptSystem& ss)
+	{
+		// A token of 256 or more chars never matches, and fails the whole string
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 1024))
+				(sb "Top ")
+				(Int32 i = 0)
+				(while (i < 300)
+					(sb "A")
+					(i += 1)
+				)
+				(Alignment a = .Left)
+				(Bool ok = true)
+				(a = fromstring sb -> ok)
+				(result = a.Value)
+				(if ok (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 2);
+	}
+
+	void TestEnumFlagsFromStringRoundTrip(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function RoundTrip (Alignment a) -> (Int32 n):
+				(IStringBuilder s = (Sys.Type.NewStringBuilder 64))
+				(append s a)
+				(Bool ok = false)
+				(Alignment b = fromstring s -> ok)
+				(n = 0)
+				(if ok (if (a == b) (n = 1)))
+			)
+
+			(function Main -> (Int32 result):
+				(result = 0)
+				(result += (RoundTrip Alignment@None))
+				(result += (RoundTrip Alignment@Top))
+				(result += (RoundTrip (Alignment@Top | Alignment@Left)))
+				(result += (RoundTrip (Alignment@Bottom | Alignment@Right | Alignment@Left)))
+				(result += (RoundTrip ((Alignment@Top | Alignment@Left) | (Alignment@Bottom | Alignment@Right))))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 5);
+	}
+
+	void TestEnumFromStringNonFlaggerListRejected(IPublicScriptSystem& ss)
+	{
+		// Day is not a flagger, so a list is not split: "Monday Tuesday" is one name that does not exist
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(Bool ok1 = true)
+				(day = fromstring "Monday Tuesday" -> ok1)
+				(IString s = "Monday,Tuesday")
+				(Bool ok2 = true)
+				(day = fromstring s -> ok2)
+				(Bool ok3 = true)
+				(IString t = " Monday")
+				(day = fromstring t -> ok3)
+				(Int32 v = day.Value)
+				(result = (v * 1000))
+				(if ok1 (result += 1))
+				(if ok2 (result += 10))
+				(if ok3 (result += 100))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 5000);
+	}
+
+	void TestEnumCaseCollisionEnumRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(enum Sys.Type.Pos (Top 1) (Left 2) (TOP 4))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "TOP and Top differ only by case");
+	}
+
+	void TestEnumCaseCollisionFlagsRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(flags Sys.Type.Pos (Top 1) (LEFT 2) (Left 4))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "Left and LEFT differ only by case");
+	}
+
+	void TestEnumCaseCollisionAcrossDeclarationsRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(enum Sys.Type.Pos (Top 1) (Left 2))
+			(enum Sys.Type.Pos (TOp 1))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "TOp and Top differ only by case");
+	}
+
+	void TestEnumCaseDistinctNamesAllowed(IPublicScriptSystem& ss)
+	{
+		// Names that differ by more than case are fine, and re-declaring the same name with the same value is still harmless
+		cstr body = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(enum Sys.Type.Pos (Top 1) (Tops 2) (OTop 4))
+			(enum Sys.Type.Pos (Top 1))
+
+			(function Main -> (Int32 result):
+				(Pos p = Pos@OTop)
+				(result = p.Value)
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 4);
+	}
+
+	void TestEnumFlagsCombinationRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(flags Sys.Type.Pos (Top 1) (Left 2) (All 3))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "flags Pos: All (3 / 0x3) shares bits with Top (1 / 0x1)");
+	}
+
+	void TestEnumFlagsDuplicateRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(flags Sys.Type.Pos (Top 1) (Left 2) (Up 1))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "flags Pos: Up (1 / 0x1) has the same value as Top");
+	}
+
+	void TestEnumFlagsDuplicateZeroRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(flags Sys.Type.Pos (None 0) (Top 1) (Zero 0))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "flags Pos: Zero (0 / 0x0) has the same value as None");
+	}
+
+	void TestEnumFlagsSequentialOverlapRejected(IPublicScriptSystem& ss)
+	{
+		// Unvalued names count up, so the third name gets 3, which overlaps 1 and 2
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(flags Sys.Type.Pos (Top 1) Left Bottom)
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "flags Pos: Bottom (3 / 0x3) shares bits with Top (1 / 0x1)");
+	}
+
+	void TestEnumFlagsNegativeRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(flags Sys.Type.Pos (Top 1) (Everything -1))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "flags Pos: Everything (-1 / 0xFFFFFFFFFFFFFFFF) shares bits with Top");
+	}
+
+	void TestEnumFlagsAfterEnumRejected(IPublicScriptSystem& ss)
+	{
+		// flags checks its values against values the type already has
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(enum Sys.Type.Pos (Top 1) (Left 2))
+			(flags Sys.Type.Pos (Corner 6))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "flags Pos: Corner (6 / 0x6) shares bits with Left (2 / 0x2)");
+	}
+
+	void TestEnumFlagsTooFewElementsRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(strong Pos (Int32))
+			(alias Pos Sys.Type.Pos)
+			(flags Sys.Type.Pos)
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "Expecting at least three elements in a flags expression");
+	}
+
+	void TestEnumFlagsUnknownTypeRejected(IPublicScriptSystem& ss)
+	{
+		cstr decls = R"(
+			(flags Sys.Type.Nowhere (Top 1))
+		)";
+
+		RunEnumDeclarationFailTest(ss, decls, __FUNCTION__, "(flags Sys.Type.Nowhere ...)");
+	}
+
+	void TestEnumIsFlaggedPlainStrongRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(strong Joules (Float64))
+			(alias Joules Sys.Type.Joules)
+
+			(function Main -> (Int32 result):
+				(Bool f = isflagged Joules)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "isflagged requires an enum type, but Joules has no enum values");
+	}
+
+	void TestEnumIsFlaggedIntRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool f = false)
+				(f = isflagged Int32)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "isflagged requires an enum type, but Int32 is not a strong type");
+	}
+
+	void TestEnumIsFlaggedUnknownTypeRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool f = isflagged Alignmnet)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "isflagged: unknown type Alignmnet");
+	}
+
+	void TestEnumIsFlaggedVariableOperandRejected(IPublicScriptSystem& ss)
+	{
+		// The operand is a type name, not a variable
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment a = .Top)
+				(Bool f = isflagged a)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "isflagged requires a type name");
+	}
+
+	void TestEnumIsFlaggedTargetRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int32 f = isflagged Alignment)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "isflagged produces a Bool, but f is of type Int32");
+	}
+
+	void TestEnumIsFlaggedAssignTargetRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Alignment f = .Top)
+				(f = isflagged Alignment)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "isflagged produces a Bool, but f is of type Alignment");
+	}
+
+	void TestEnumIsFlaggedMissingOperandRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool f = isflagged)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "Expecting (Bool <name> = isflagged <enum-type>)");
+	}
+
+	void TestEnumIsFlaggedStandaloneRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(isflagged Alignment)
+				(result = 0)
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "isflagged is only valid as a directive");
 	}
 
 	static int64 TestNativeHandle_globalHandle = 0;
@@ -24071,23 +25083,28 @@ R"(
 		TEST(TestEnumArrayShorthandQualified);
 		TEST(TestEnumArrayShorthandWrongEnum);
 		TEST(TestArrayShorthandSetInt32);
-		TEST(TestEnumToStringNamed);
-		TEST(TestEnumToStringAllValues);
-		TEST(TestEnumToStringNoName);
-		TEST(TestEnumToStringNamedIsNotNull);
-		TEST(TestEnumToStringSignBit);
-		TEST(TestEnumToStringInt64);
-		TEST(TestEnumToStringField);
-		TEST(TestEnumToStringAssign);
-		TEST(TestEnumToStringPlainStrongRejected);
-		TEST(TestEnumToStringJoulesRejected);
-		TEST(TestEnumToStringIntRejected);
-		TEST(TestEnumToStringFloatRejected);
-		TEST(TestEnumToStringUnknownRejected);
-		TEST(TestEnumToStringConstantRejected);
-		TEST(TestEnumToStringTargetRejected);
-		TEST(TestEnumToStringAssignTargetRejected);
-		TEST(TestEnumToStringMissingOperand);
+		TEST(TestEnumAppendNamed);
+		TEST(TestEnumAppendAllValues);
+		TEST(TestEnumAppendNoName);
+		TEST(TestEnumAppendSignBit);
+		TEST(TestEnumAppendInt64);
+		TEST(TestEnumAppendField);
+		TEST(TestEnumAppendToExisting);
+		TEST(TestEnumAppendBuilderParameter);
+		TEST(TestEnumAppendNullBuilderThrows);
+		TEST(TestEnumAppendPlainStrongRejected);
+		TEST(TestEnumAppendJoulesRejected);
+		TEST(TestEnumAppendIntRejected);
+		TEST(TestEnumAppendFloatRejected);
+		TEST(TestEnumAppendUnknownRejected);
+		TEST(TestEnumAppendConstantRejected);
+		TEST(TestEnumAppendIStringTargetRejected);
+		TEST(TestEnumAppendIntTargetRejected);
+		TEST(TestEnumAppendUnknownTargetRejected);
+		TEST(TestEnumAppendMissingOperandRejected);
+		TEST(TestEnumAppendTooManyOperandsRejected);
+		TEST(TestEnumAppendCompoundOperandRejected);
+		TEST(TestEnumToStringRemoved);
 		TEST(TestEnumFromStringRoundTrip);
 		TEST(TestEnumFromStringLiteral);
 		TEST(TestEnumFromStringVariable);
@@ -24112,6 +25129,53 @@ R"(
 		TEST(TestEnumFromStringMissingBoolRejected);
 		TEST(TestEnumFromStringNoArrowNoBoolRejected);
 		TEST(TestEnumFromStringDeclarationNoBoolRejected);
+		TEST(TestEnumFlagsDeclaration);
+		TEST(TestEnumFlagsSequential);
+		TEST(TestEnumFlagsMultiBit);
+		TEST(TestEnumFlagsPlainEnumDuplicatesStillAllowed);
+		TEST(TestEnumIsFlaggedFlags);
+		TEST(TestEnumIsFlaggedEnum);
+		TEST(TestEnumIsFlaggedField);
+		TEST(TestEnumFlagsAppendList);
+		TEST(TestEnumFlagsAppendToExisting);
+		TEST(TestEnumFlagsAppendZeroNoName);
+		TEST(TestEnumFlagsAppendUncoveredBits);
+		TEST(TestEnumFlagsAppendMultiBitPartial);
+		TEST(TestEnumFlagsAppendInt64);
+		TEST(TestEnumFlaggerEnumAppend);
+		TEST(TestEnumFlagsAppendTruncates);
+		TEST(TestEnumFlagsFromStringLiteral);
+		TEST(TestEnumFlagsFromStringDelimiters);
+		TEST(TestEnumFlagsFromStringVariable);
+		TEST(TestEnumFlagsFromStringBadTokenUnchanged);
+		TEST(TestEnumFlagsFromStringEmpty);
+		TEST(TestEnumFlagsFromStringRepeated);
+		TEST(TestEnumFlagsFromStringZeroName);
+		TEST(TestEnumFlagsFromStringInt64);
+		TEST(TestEnumFlagsFromStringLongList);
+		TEST(TestEnumFlagsFromStringLongToken);
+		TEST(TestEnumFlagsFromStringRoundTrip);
+		TEST(TestEnumFromStringNonFlaggerListRejected);
+		TEST(TestEnumCaseCollisionEnumRejected);
+		TEST(TestEnumCaseCollisionFlagsRejected);
+		TEST(TestEnumCaseCollisionAcrossDeclarationsRejected);
+		TEST(TestEnumCaseDistinctNamesAllowed);
+		TEST(TestEnumFlagsCombinationRejected);
+		TEST(TestEnumFlagsDuplicateRejected);
+		TEST(TestEnumFlagsDuplicateZeroRejected);
+		TEST(TestEnumFlagsSequentialOverlapRejected);
+		TEST(TestEnumFlagsNegativeRejected);
+		TEST(TestEnumFlagsAfterEnumRejected);
+		TEST(TestEnumFlagsTooFewElementsRejected);
+		TEST(TestEnumFlagsUnknownTypeRejected);
+		TEST(TestEnumIsFlaggedPlainStrongRejected);
+		TEST(TestEnumIsFlaggedIntRejected);
+		TEST(TestEnumIsFlaggedUnknownTypeRejected);
+		TEST(TestEnumIsFlaggedVariableOperandRejected);
+		TEST(TestEnumIsFlaggedTargetRejected);
+		TEST(TestEnumIsFlaggedAssignTargetRejected);
+		TEST(TestEnumIsFlaggedMissingOperandRejected);
+		TEST(TestEnumIsFlaggedStandaloneRejected);
 
 		TEST(TestEnumByCPP);
 
