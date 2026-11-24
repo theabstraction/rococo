@@ -9171,9 +9171,8 @@ R"(
 
 		auto stackBytes = [&]() -> int64 { return (int64)(vm.Cpu().StackEnd - vm.Cpu().StackStart); };
 
-		auto mentionsOverflow = [](cstr msg) -> bool
+		auto contains = [](cstr msg, cstr needle) -> bool
 		{
-			cstr needle = "stack overflow";
 			if (msg)
 			{
 				for (cstr p = msg; *p; p++)
@@ -9188,7 +9187,7 @@ R"(
 		};
 
 		// The scheduler error either escapes Execute as an IException or is logged and ends Main with EXECUTERESULT_THROWN
-		bool overflowReported = false;
+		HString report;
 		s_logger.lastWritten = HString();
 		try
 		{
@@ -9199,15 +9198,21 @@ R"(
 				printf(", victimOk = %d", vm.PopInt32());
 			}
 			printf("\n");
-			overflowReported = result == EXECUTERESULT_THROWN && mentionsOverflow(s_logger.lastWritten.c_str());
+			if (result == EXECUTERESULT_THROWN) report = s_logger.lastWritten;
 		}
 		catch (IException& e)
 		{
 			printf("TestCoroutineStackOverflow: %s\n", e.Message());
-			overflowReported = mentionsOverflow(e.Message());
+			report = e.Message() ? e.Message() : "";
 		}
 
-		validate(overflowReported);
+		validate(contains(report.c_str(), "stack overflow"));
+
+		// The report names the concrete class behind the ICoroutine interface, its id and the function that was running
+		validate(contains(report.c_str(), "Coroutine Deep crashed"));
+		validate(contains(report.c_str(), "class Deep of "));
+		validate(contains(report.c_str(), "coroutine id "));
+		validate(contains(report.c_str(), "executing Recurse"));
 		validate(stackBytes() == 65536);
 		vm.SetStatus(EXECUTERESULT_RUNNING);
 		vm.Push((int32)123);
@@ -9222,6 +9227,66 @@ R"(
 		EXECUTERESULT resumeResult = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(resumeResult);
 		validate(vm.PopInt32() == 1);
+	}
+
+	// Non-coroutine script code that recurses without limit. Main's 64K VM stack must end in a clean EXECUTERESULT_SEH with SP at or
+	// past StackEnd (a guard page was hit), and the VM must stay usable: another entry point runs, and a second overflow behaves the same.
+	void TestVMStackOverflow(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(alias Second EntryPoint.Second)"
+			"(function Recurse (Int32 n) -> (Int32 depth):"
+			"	(Int32 pad1 = n)"
+			"	(Int32 pad2 = n)"
+			"	(if (n > 0) (depth = (Recurse (n - 1))) else (depth = 0))"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(result = (Recurse 100000))"
+			")"
+			"(function Second -> (Int32 result):"
+			"	(result = 42)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+
+		for (int pass = 0; pass < 2; pass++)
+		{
+			validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
+			vm.Push(0);
+
+			EXECUTERESULT result = EXECUTERESULT_RUNNING;
+			try
+			{
+				result = vm.Execute(VM::ExecutionFlags(false, true));
+				printf("TestVMStackOverflow: pass %d Execute returned %d, exception code %d, SP - StackEnd = %lld\n", pass, (int)result, (int)vm.Cpu().ExceptionCode, (long long)(vm.Cpu().SP() - vm.Cpu().StackEnd));
+			}
+			catch (IException& e)
+			{
+				printf("TestVMStackOverflow: pass %d %s\n", pass, e.Message());
+			}
+
+			validate(result == EXECUTERESULT_SEH);
+			validate(vm.Cpu().ExceptionCode == VM::EXCEPTIONCODE_BAD_ADDRESS);
+			validate(vm.Cpu().SP() >= vm.Cpu().StackEnd);
+			validate(vm.Cpu().SP() - vm.Cpu().StackEnd <= 4096); // stopped at the end of the stack, not somewhere in the memory beyond it
+			validate(vm.Cpu().StackEnd - vm.Cpu().StackStart == 65536);
+
+			vm.SetStatus(EXECUTERESULT_RUNNING);
+			s_logger.Clear();
+
+			validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Second"));
+			vm.Push(0);
+			EXECUTERESULT secondResult = vm.Execute(VM::ExecutionFlags(false, true));
+			ValidateExecution(secondResult);
+			validate(vm.PopInt32() == 42);
+		}
 	}
 
 	void TestTypenames(IPublicScriptSystem& ss)
@@ -20685,6 +20750,7 @@ R"(
 		TEST2(TestCoroutineNestedContinue);
 		TEST2(TestCoroutineYieldZero);
 		TEST2(TestCoroutineStackOverflow);
+		TEST(TestVMStackOverflow);
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
 		TEST(TestRock);
