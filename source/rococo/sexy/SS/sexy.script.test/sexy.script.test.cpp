@@ -24535,6 +24535,525 @@ R"(
 	   TEST(TestLimitsFloat64);
    }
 
+	// (foreach-enum <name> <value> in <enum-type>: <body>) runs the body once per enum value in declaration order.
+	// <name> is an IString referencing a string constant of the value's name, <value> an Int64 of the value
+	void TestForEachEnumNamesInOrder(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 256))
+				(foreach-enum name value in Day:
+					(sb name)
+					(sb ",")
+				)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Monday,Tuesday,Wednesday,Thursday,Friday,"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 41);
+	}
+
+	void TestForEachEnumValuesInOrder(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(foreach-enum name value in Day:
+					(acc = ((acc * 10) + value))
+				)
+				(if (acc == 12345) (result = 1) else (result = 0))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 1);
+	}
+
+	void TestForEachEnumNameBuilderRoundTrip(IPublicScriptSystem& ss)
+	{
+		// The name IString can be appended to a builder and compared back with the name
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(result = 0)
+				(foreach-enum name value in Day:
+					(IStringBuilder a = (Sys.Type.NewStringBuilder 64))
+					(a name)
+					(Int32 diff = (Sys.Type.Strings.Compare a name))
+					(if (diff == 0) (result += 1))
+				)
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 5);
+	}
+
+	void TestForEachEnumInt64Values(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(foreach-enum name value in BigFlags:
+					(acc = (acc + value))
+					(sb name)
+					(sb " ")
+				)
+				(result = 0)
+				(Int64 expected = 0x100000001)
+				(if (acc == expected) (result += 1))
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Low High "))
+				(if (diff == 0) (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 11);
+	}
+
+	void TestForEachEnumInt32Widened(IPublicScriptSystem& ss)
+	{
+		// Access@Sign is -2147483648 in an Int32 enum; it is sign-extended to Int64
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(foreach-enum name value in Access:
+					(acc = (acc + value))
+				)
+				(if (acc == -2147483641) (result = 1) else (result = 0))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 1);
+	}
+
+	void TestForEachEnumFlags(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(Int32 count = 0)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+				(foreach-enum flag bits in Alignment:
+					(acc = (acc + bits))
+					(count += 1)
+					(sb flag)
+					(sb " ")
+				)
+				(result = count)
+				(if (acc == 15) (result += 10))
+				(Int32 diff = (Sys.Type.Strings.Compare sb "None Top Left Bottom Right "))
+				(if (diff == 0) (result += 100))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 115);
+	}
+
+	void TestForEachEnumNested(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 128))
+				(foreach-enum a av in Edge:
+					(foreach-enum b bv in Edge:
+						(acc = (acc + ((av * 10) + bv)))
+						(sb a)
+						(sb b)
+						(sb ",")
+					)
+				)
+				(result = 0)
+				(if (acc == 66) (result += 1))
+				(Int32 diff = (Sys.Type.Strings.Compare sb "NorthNorth,NorthSouth,SouthNorth,SouthSouth,"))
+				(if (diff == 0) (result += 10))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 11);
+	}
+
+	void TestForEachEnumNameComparedWithLiteral(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(result = 0)
+				(foreach-enum name value in Day:
+					(IStringBuilder sb = (Sys.Type.NewStringBuilder 32))
+					(sb "[")
+					(sb name)
+					(sb "]")
+					(Int32 d = (Sys.Type.Strings.Compare name "Wednesday"))
+					(Int32 e = (Sys.Type.Strings.Compare sb "[Wednesday]"))
+					(if ((d == 0) and (e == 0)) (result = 1000))
+					(if (d == 0) (result += 3))
+					(if (e == 0) (result += 30))
+				)
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 1033);
+	}
+
+	void TestForEachEnumBreak(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(foreach-enum name value in Day:
+					(IStringBuilder local = (Sys.Type.NewStringBuilder 16))
+					(local name)
+					(if (value == 3) (break))
+					(acc = (acc + value))
+				)
+				(result = 100)
+				(if (acc == 3) (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 101);
+	}
+
+	void TestForEachEnumContinue(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(foreach-enum name value in Day:
+					(IStringBuilder local = (Sys.Type.NewStringBuilder 16))
+					(local name)
+					(if (value == 3) (continue))
+					(acc = (acc + value))
+				)
+				(result = 100)
+				(if (acc == 12) (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 101);
+	}
+
+	void TestForEachEnumBreakInnerOnly(IPublicScriptSystem& ss)
+	{
+		// break in the inner loop leaves only the inner loop; continue in the outer loop skips the rest of the outer body
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(foreach-enum a av in Day:
+					(if (av == 4) (continue))
+					(foreach-enum b bv in Day:
+						(if (bv > av) (break))
+						(acc = (acc + 1))
+					)
+					(acc = (acc + 100))
+				)
+				(if (acc == 411) (result = 1) else (result = 0))
+			)
+		)";
+
+		// av = 1,2,3,5 contribute 1+2+3+5 inner counts = 11 and 4 x 100
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 1);
+	}
+
+	void TestForEachEnumBreakInsideWhile(IPublicScriptSystem& ss)
+	{
+		// break inside foreach-enum leaves the foreach-enum, not the enclosing while; break after it leaves the while
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int32 i = 0)
+				(Int64 acc = 0)
+				(while (i < 3)
+					(i += 1)
+					(foreach-enum name value in Day:
+						(if (value == 2) (break))
+						(acc = (acc + value))
+					)
+					(if (i == 2) (break))
+				)
+				(result = i)
+				(if (acc == 2) (result += 10))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 12);
+	}
+
+	void TestForEachEnumInsideWhileContinue(IPublicScriptSystem& ss)
+	{
+		// A while loop inside the foreach-enum body has its own break and continue
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int64 acc = 0)
+				(foreach-enum name value in Day:
+					(Int64 j = 0)
+					(while (j < value)
+						(j = (j + 1))
+						(if (j == 2) (continue))
+						(acc = (acc + 1))
+					)
+				)
+				(if (acc == 11) (result = 1) else (result = 0))
+			)
+		)";
+
+		// Inner counts per value 1..5 excluding j == 2: 1,1,2,3,4
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 1);
+	}
+
+	void TestForEachEnumEmptyBody(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value in Day:)
+				(result = 7)
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 7);
+	}
+
+	void TestForEachEnumSeparateColon(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(result = 0)
+				(foreach-enum name value in Day :
+					(result += 1)
+				)
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 5);
+	}
+
+	void TestForEachEnumQualifiedType(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(result = 0)
+				(foreach-enum name value in Sys.Type.Edge:
+					(result += 1)
+				)
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 2);
+	}
+
+	void TestForEachEnumNamesReusedAfterLoop(IPublicScriptSystem& ss)
+	{
+		// The loop variables are scoped to the loop, so the same names can be used by a later loop or declaration
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(result = 0)
+				(foreach-enum name value in Day: (result += 1))
+				(foreach-enum name value in Edge: (result += 10))
+				(Int32 value = 100)
+				(result += value)
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 125);
+	}
+
+	void TestForEachEnumReturnFromBody(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Find (IString target) -> (Int32 r):
+				(r = -1)
+				(foreach-enum name value in Day:
+					(IStringBuilder local = (Sys.Type.NewStringBuilder 16))
+					(Int32 d = (Sys.Type.Strings.Compare name target))
+					(if (d == 0)
+						(r = (local.Length + 30))
+						(return)
+					)
+				)
+			)
+
+			(function Main -> (Int32 result):
+				(result = ((Find "Wednesday") + (Find "Sunday")))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 29);
+	}
+
+	void TestForEachEnumNoValuesRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(strong Bare (Int32))
+			(alias Bare Sys.Type.Bare)
+
+			(function Main -> (Int32 result):
+				(foreach-enum name value in Bare: (result = 1))
+			)
+		)";
+
+		RunEnumFlagsFailTest(ss, body, __FUNCTION__, "foreach-enum requires an enum type, but Bare has no enum values");
+	}
+
+	void TestForEachEnumNotStrongRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value in Int32: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "is not a strong type");
+	}
+
+	void TestForEachEnumUnknownTypeRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value in Nowhere: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: unknown type Nowhere");
+	}
+
+	void TestForEachEnumLowerCaseTypeRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(foreach-enum name value in day: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: unknown type day");
+	}
+
+	void TestForEachEnumMissingInRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value of Day: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: expecting 'in'");
+	}
+
+	void TestForEachEnumMissingColonRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value in Day (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: expecting ':'");
+	}
+
+	void TestForEachEnumTooShortRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value in)
+				(result = 1)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: expecting (foreach-enum <name> <value> in <enum-type>: <body>)");
+	}
+
+	void TestForEachEnumCompoundNameRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum (name) value in Day: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: expecting the name variable to be a plain identifier");
+	}
+
+	void TestForEachEnumCapitalValueRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name Value in Day: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: expecting the value variable to be a plain identifier beginning with a lower case letter");
+	}
+
+	void TestForEachEnumDottedNameRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name.x value in Day: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: expecting the name variable to be a plain identifier of alphanumerics");
+	}
+
+	void TestForEachEnumSameNamesRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum n n in Day: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: the name and value variables must differ, but both are n");
+	}
+
+	void TestForEachEnumNameClashRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int32 name = 0)
+				(foreach-enum name value in Day: (result = 1))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: the name variable name is already defined in this scope");
+	}
+
+	void TestForEachEnumValueClashRejected(IPublicScriptSystem& ss)
+	{
+		// result is the function's output, which is in scope
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name result in Day:)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: the value variable result is already defined in this scope");
+	}
+
+	void TestForEachEnumNestedClashRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value in Day:
+					(foreach-enum other value in Day: (result = 1))
+				)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "foreach-enum: the value variable value is already defined in this scope");
+	}
+
+	void TestForEachEnumVariablesOutOfScopeAfterLoop(IPublicScriptSystem& ss)
+	{
+		// value is not visible after the loop
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(foreach-enum name value in Day:)
+				(Int64 v = value)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "The RHS of the assignment was unrecognized");
+	}
+
 	void RunPositiveSuccesses()
 	{
 		validate(true);
@@ -25176,6 +25695,39 @@ R"(
 		TEST(TestEnumIsFlaggedAssignTargetRejected);
 		TEST(TestEnumIsFlaggedMissingOperandRejected);
 		TEST(TestEnumIsFlaggedStandaloneRejected);
+		TEST(TestForEachEnumNamesInOrder);
+		TEST(TestForEachEnumValuesInOrder);
+		TEST(TestForEachEnumNameBuilderRoundTrip);
+		TEST(TestForEachEnumInt64Values);
+		TEST(TestForEachEnumInt32Widened);
+		TEST(TestForEachEnumFlags);
+		TEST(TestForEachEnumNested);
+		TEST(TestForEachEnumNameComparedWithLiteral);
+		TEST(TestForEachEnumBreak);
+		TEST(TestForEachEnumContinue);
+		TEST(TestForEachEnumBreakInnerOnly);
+		TEST(TestForEachEnumBreakInsideWhile);
+		TEST(TestForEachEnumInsideWhileContinue);
+		TEST(TestForEachEnumEmptyBody);
+		TEST(TestForEachEnumSeparateColon);
+		TEST(TestForEachEnumQualifiedType);
+		TEST(TestForEachEnumNamesReusedAfterLoop);
+		TEST(TestForEachEnumReturnFromBody);
+		TEST(TestForEachEnumNoValuesRejected);
+		TEST(TestForEachEnumNotStrongRejected);
+		TEST(TestForEachEnumUnknownTypeRejected);
+		TEST(TestForEachEnumLowerCaseTypeRejected);
+		TEST(TestForEachEnumMissingInRejected);
+		TEST(TestForEachEnumMissingColonRejected);
+		TEST(TestForEachEnumTooShortRejected);
+		TEST(TestForEachEnumCompoundNameRejected);
+		TEST(TestForEachEnumCapitalValueRejected);
+		TEST(TestForEachEnumDottedNameRejected);
+		TEST(TestForEachEnumSameNamesRejected);
+		TEST(TestForEachEnumNameClashRejected);
+		TEST(TestForEachEnumValueClashRejected);
+		TEST(TestForEachEnumNestedClashRejected);
+		TEST(TestForEachEnumVariablesOutOfScopeAfterLoop);
 
 		TEST(TestEnumByCPP);
 

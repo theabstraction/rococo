@@ -41,6 +41,7 @@
 #include <stdarg.h>
 #include <algorithm>
 #include <unordered_map>
+#include <vector>
 #include <sexy.stdstrings.h>
 
 using namespace Rococo;
@@ -2424,6 +2425,235 @@ namespace Rococo
 			return false;
 		}
 
+		bool IsForEachEnumKeyword(cr_sex s)
+		{
+			return IsAtomic(s) && AreEqual(s.String(), "foreach-enum");
+		}
+
+		void AssertForEachEnumIdentifier(CCompileEnvironment& ce, cr_sex sId, cstr role)
+		{
+			if (!IsAtomic(sId))
+			{
+				Throw(sId, "foreach-enum: expecting the %s variable to be a plain identifier, e.g. (foreach-enum name value in Day: ...)", role);
+			}
+
+			cstr id = sId.c_str();
+
+			if (!IsLowerCase(id[0]))
+			{
+				Throw(sId, "foreach-enum: expecting the %s variable to be a plain identifier beginning with a lower case letter, but found %s", role, id);
+			}
+
+			for (cstr p = id + 1; *p != 0; p++)
+			{
+				if (!IsAlphaNumeric(*p))
+				{
+					Throw(sId, "foreach-enum: expecting the %s variable to be a plain identifier of alphanumerics, but found %s", role, id);
+				}
+			}
+
+			MemberDef def;
+			if (ce.Builder.TryGetVariableByName(OUT def, id))
+			{
+				Throw(sId, "foreach-enum: the %s variable %s is already defined in this scope", role, id);
+			}
+		}
+
+		// (foreach-enum <name> <value> in <enum-type>: <body>) runs the body once per enum value of the type, in declaration order. Each iteration declares
+		// <name>, an IString referencing a string constant of the value's name, and <value>, an Int64 of the value (Int32 enums are sign-extended).
+		// The body is unrolled at compile time, one copy per value, each in its own section. break and continue are supported: a preamble holds one continue
+		// trampoline per copy and a shared break trampoline, branched over on entry and patched once the copies are compiled, as AppendWhileDo does for while loops
+		void CompileForEachEnum(CCompileEnvironment& ce, cr_sex s)
+		{
+			// (foreach-enum x y in Type: body...) or (foreach-enum x y in Type : body...)
+			int nElements = s.NumberOfElements();
+			if (nElements < 5)
+			{
+				Throw(s, "foreach-enum: expecting (foreach-enum <name> <value> in <enum-type>: <body>)");
+			}
+
+			cr_sex sName = s[1];
+			cr_sex sValue = s[2];
+			cr_sex sIn = s[3];
+			cr_sex sType = s[4];
+
+			if (!IsAtomicMatch(sIn, "in"))
+			{
+				Throw(sIn, "foreach-enum: expecting 'in' after the name and value variables, e.g. (foreach-enum name value in Day: ...)");
+			}
+
+			if (!IsAtomic(sType))
+			{
+				Throw(sType, "foreach-enum: expecting an enum type name after 'in'");
+			}
+
+			char typeName[256];
+			int bodyStart;
+
+			cstr typeToken = sType.c_str();
+			int typeLen = sType.String()->Length;
+			if (typeLen > 1 && typeToken[typeLen - 1] == ':')
+			{
+				if (typeLen >= (int) sizeof(typeName))
+				{
+					Throw(sType, "foreach-enum: type name too long");
+				}
+				SafeFormat(typeName, sizeof(typeName), "%.*s", typeLen - 1, typeToken);
+				bodyStart = 5;
+			}
+			else
+			{
+				if (nElements < 6 || !IsAtomicMatch(s[5], ":"))
+				{
+					Throw(sType, "foreach-enum: expecting ':' after the enum type, e.g. (foreach-enum name value in Day: ...)");
+				}
+				SafeFormat(typeName, sizeof(typeName), "%s", typeToken);
+				bodyStart = 6;
+			}
+
+			AssertForEachEnumIdentifier(ce, sName, "name");
+			AssertForEachEnumIdentifier(ce, sValue, "value");
+
+			cstr nameId = sName.c_str();
+			cstr valueId = sValue.c_str();
+
+			if (AreEqual(nameId, valueId))
+			{
+				Throw(sValue, "foreach-enum: the name and value variables must differ, but both are %s", nameId);
+			}
+
+			const IStructure* type = IsCapital(typeName[0]) ? MatchStructure(sType, typeName, ce.Builder.Module()) : nullptr;
+			if (type == nullptr)
+			{
+				Throw(sType, "foreach-enum: unknown type %s", typeName);
+			}
+
+			if (!type->IsEnumType())
+			{
+				if (type->IsStrongType())
+				{
+					Throw(sType, "foreach-enum requires an enum type, but %s has no enum values", GetFriendlyName(*type));
+				}
+
+				Throw(sType, "foreach-enum requires an enum type, but %s is not a strong type", GetFriendlyName(*type));
+			}
+
+			struct ANON : ICallback<const int64, cstr>
+			{
+				std::vector<std::pair<int64, cstr>> items;
+				bool is32bit = false;
+
+				CALLBACK_CONTROL operator()(const int64& enumValue, cstr name) override
+				{
+					int64 v = is32bit ? (int64)(int32)enumValue : enumValue;
+					items.push_back(std::make_pair(v, name));
+					return CALLBACK_CONTROL_CONTINUE;
+				}
+			} enums;
+
+			enums.is32bit = type->VarType() == SexyVarType_Int32;
+			type->EnumerateEnums(enums);
+
+			if (enums.items.empty())
+			{
+				Throw(sType, "foreach-enum requires an enum type, but %s has no enum values", GetFriendlyName(*type));
+			}
+
+			auto& assembler = ce.Builder.Assembler();
+
+			// Preamble: [branch over preamble] [continue trampoline per copy] [break trampoline]. Branches have a fixed length, so placeholders can be overwritten
+			size_t entryPos = assembler.WritePosition();
+			assembler.Append_Branch(0);
+
+			std::vector<size_t> continuePositions;
+			continuePositions.reserve(enums.items.size());
+			for (size_t i = 0; i < enums.items.size(); i++)
+			{
+				continuePositions.push_back(assembler.WritePosition());
+				assembler.Append_Branch(0);
+			}
+
+			size_t breakPos = assembler.WritePosition();
+			assembler.Append_Branch(0);
+
+			size_t firstCopyPos = assembler.WritePosition();
+
+			std::vector<size_t> copyEndPositions;
+			copyEndPositions.reserve(enums.items.size());
+
+			const IStructure& int64Type = ce.Object.Common().TypeInt64();
+
+			for (size_t i = 0; i < enums.items.size(); i++)
+			{
+				int64 value = enums.items[i].first;
+				cstr name = enums.items[i].second;
+
+				ControlFlowData cfd;
+				cfd.BreakPosition = breakPos;
+				cfd.ContinuePosition = continuePositions[i];
+
+				// Pushed before the section is entered, so break and continue deconstruct the name and value variables along with the body's variables
+				ce.Builder.PushControlFlowPoint(cfd);
+				ce.Builder.EnterSection();
+
+				CStringConstant* sc = CreateStringConstant(ce.Script, StringLength(name), name, &sType);
+
+				AddSymbol(ce.Builder, "foreach-enum %s = %s", nameId, name);
+				AddInterfaceVariable(ce, NameString::From(nameId), ce.Object.Common().SysTypeIString().NullObjectType());
+
+				MemberDef nameDef;
+				if (!ce.Builder.TryGetVariableByName(OUT nameDef, nameId))
+				{
+					Throw(sName, "foreach-enum: algorithmic error, could not find %s", nameId);
+				}
+
+				VariantValue ptr;
+				ptr.vPtrValue = (void*)&sc->header.pVTables[0];
+				assembler.Append_SetStackFrameImmediate(nameDef.SFOffset, ptr, BITCOUNT_POINTER);
+
+				AddSymbol(ce.Builder, "foreach-enum %s = %lld", valueId, value);
+				AddVariable(ce, NameString::From(valueId), int64Type);
+
+				MemberDef valueDef;
+				if (!ce.Builder.TryGetVariableByName(OUT valueDef, valueId))
+				{
+					Throw(sValue, "foreach-enum: algorithmic error, could not find %s", valueId);
+				}
+
+				VariantValue v;
+				v.int64Value = value;
+				assembler.Append_SetStackFrameImmediate(valueDef.SFOffset, v, BITCOUNT_64);
+
+				if (bodyStart < nElements)
+				{
+					CompileExpressionSequence(ce, bodyStart, nElements - 1, s);
+				}
+
+				AppendDeconstruct(ce, s, true);
+				ce.Builder.LeaveSection();
+				ce.Builder.PopControlFlowPoint();
+
+				copyEndPositions.push_back(assembler.WritePosition());
+			}
+
+			size_t exitPos = assembler.WritePosition();
+
+			assembler.SetWriteModeToOverwrite(entryPos);
+			assembler.Append_Branch((int32)(firstCopyPos - entryPos));
+			assembler.SetWriteModeToAppend();
+
+			for (size_t i = 0; i < continuePositions.size(); i++)
+			{
+				assembler.SetWriteModeToOverwrite(continuePositions[i]);
+				assembler.Append_Branch((int32)(copyEndPositions[i] - continuePositions[i]));
+				assembler.SetWriteModeToAppend();
+			}
+
+			assembler.SetWriteModeToOverwrite(breakPos);
+			assembler.Append_Branch((int32)(exitPos - breakPos));
+			assembler.SetWriteModeToAppend();
+		}
+
 		// (append <string-builder> <enum-variable>) appends the name of the value to the builder, or for a flagger type the space-delimited names of the flags
 		// set in the value, in declaration order. With no match nothing is appended, so callers compare the builder's length before and after.
 		// The AppendEnum callback writes straight into the builder. The builder must be an IStringBuilder, the value a variable or field of an integer enum type
@@ -4443,6 +4673,12 @@ namespace Rococo
 			}
 			else
 			{
+				if (IsForEachEnumKeyword(s[0]))
+				{
+					CompileForEachEnum(ce, s);
+					return;
+				}
+
 				if (TryCompileAsAppendEnum(ce, s))
 					return;
 
