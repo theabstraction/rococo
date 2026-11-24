@@ -2177,6 +2177,9 @@ namespace ANON
 				}
 			}
 
+			// Resolve public types and functions to their local definitions now, rather than waiting for the IDE to call Sort.
+			// When SexyStudio.Defaults selected the project during IDE construction, the property sheets never ran SyncContent,
+			// so without this LocalType() and LocalFunction() stayed null: no struct fields, no function call tips, no goto definition.
 			Sort();
 		}
 

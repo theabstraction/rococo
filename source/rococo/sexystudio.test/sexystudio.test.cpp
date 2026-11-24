@@ -29,6 +29,87 @@ cstr ErrorCaption = "SexyStudio Standalone App - error!";
 #include "..\sexystudio-lib\sexystudio.database.h"
 
 #include <cstdio>
+#include <vector>
+
+// Records what the code-complete system emits, one line per event, so each test can assert on it:
+//   "Field: <name>" and "Hint: <text>" from ISexyFieldEnumerator, "Item: <text>", "Hint: <text>" and "Show" (ShowAndClearItems)
+//   from IAutoCompleteBuilder, "CallTip: <tip>", "List: <items>" and "Replace: (<start>, <end>) <text>" from ISexyEditor
+struct EmitLog
+{
+	std::vector<HString> lines;
+
+	void Add(cstr prefix, cr_substring text)
+	{
+		char buffer[1024];
+		text.CopyWithTruncate(buffer, sizeof buffer);
+		Add(prefix, buffer);
+	}
+
+	void Add(cstr prefix, cstr text)
+	{
+		HString line;
+		Format(line, "%s%s", prefix, text);
+
+		// Some member lookups report the same hint twice in a row. Notepad++ shows each hint as a call tip that replaces the last one,
+		// so a repeat is invisible to the user. Collapse repeats so the expectations do not depend on them
+		if (StartsWith(prefix, "Hint") && !lines.empty() && lines.back() == line)
+		{
+			return;
+		}
+
+		lines.push_back(line);
+	}
+};
+
+// Asserts that the log matches the expected text exactly and in order. The expected text has one entry per line.
+// Leading tabs and blank lines are ignored, so the expectation can be indented with the code.
+// Exact order is safe: the database emits from sorted maps or fixed lists, and the order is the same on every run
+void ValidateEmitted(cstr testName, const EmitLog& log, cstr expectedText)
+{
+	std::vector<HString> expected;
+
+	cstr p = expectedText;
+	while (*p != 0)
+	{
+		while (*p == '\t') p++;
+
+		cstr lineEnd = p;
+		while (*lineEnd != 0 && *lineEnd != '\n') lineEnd++;
+
+		cstr finish = lineEnd;
+		if (finish > p && finish[-1] == '\r') finish--;
+
+		if (finish > p)
+		{
+			char buffer[1024];
+			Substring{ p, finish }.CopyWithTruncate(buffer, sizeof buffer);
+			expected.push_back(HString(buffer));
+		}
+
+		p = (*lineEnd == '\n') ? lineEnd + 1 : lineEnd;
+	}
+
+	size_t firstDifference = 0;
+	while (firstDifference < expected.size() && firstDifference < log.lines.size() && expected[firstDifference] == log.lines[firstDifference])
+	{
+		firstDifference++;
+	}
+
+	if (firstDifference == expected.size() && firstDifference == log.lines.size())
+	{
+		return;
+	}
+
+	printf("!!! %s: emitted output differs from expected\n--- expected (%llu lines) ---\n", testName, (unsigned long long)expected.size());
+	for (auto& line : expected) printf("%s\n", line.c_str());
+	printf("--- actual (%llu lines) ---\n", (unsigned long long)log.lines.size());
+	for (auto& line : log.lines) printf("%s\n", line.c_str());
+	printf("---\n");
+
+	cstr expectedLine = firstDifference < expected.size() ? expected[firstDifference].c_str() : "<nothing>";
+	cstr actualLine = firstDifference < log.lines.size() ? log.lines[firstDifference].c_str() : "<nothing>";
+	Throw(0, "%s: emitted output differs at line %llu. Expected '%s', got '%s'", testName, (unsigned long long)(firstDifference + 1), expectedLine, actualLine);
+}
 
 void TestDeduceVec2Fields(ISexyDatabase& database)
 {
@@ -53,10 +134,13 @@ R"<CODE>(
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		void OnField(cstr fieldName, cr_substring memberSearch) override
 		{
 			UNUSED(memberSearch);
 			printf("Field: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 		}
 
 		void OnHintFound(cr_substring hint) override
@@ -64,6 +148,7 @@ R"<CODE>(
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 		}
 
 		void OnFieldType(cr_substring fieldName, cr_substring searchRoot) override
@@ -83,6 +168,12 @@ R"<CODE>(
 	}
 
 	database.EnumerateVariableAndFieldList(v, type.declarationType, fieldEnumerator);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, fieldEnumerator.log, R"EXPECT(
+		Hint: Vec2
+		Field: .x
+		Field: .y
+	)EXPECT");
 
 	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
@@ -110,6 +201,8 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		int fieldCount = 0;
 		int hintCount = 0;
 
@@ -117,6 +210,7 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 		{
 			UNUSED(memberSearch);
 			printf("Field: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 			fieldCount++;
 		}
 
@@ -125,6 +219,7 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 
 			hintCount++;
 		}
@@ -149,6 +244,12 @@ void TestDeduceVec2Fields2(ISexyDatabase& database)
 
 	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
 	if (fieldEnumerator.fieldCount != 2) Throw(0, "Bad field count: %s", __ROCOCO_FUNCTION__);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, fieldEnumerator.log, R"EXPECT(
+		Hint: Vec2
+		Field: x
+		Field: y
+	)EXPECT");
 
 	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
@@ -176,6 +277,8 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		int fieldCount = 0;
 		int hintCount = 0;
 
@@ -183,6 +286,7 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 		{
 			UNUSED(memberSearch);
 			printf("Field: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 			fieldCount++;
 		}
 
@@ -191,6 +295,7 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 			hintCount++;
 		}
 
@@ -214,6 +319,15 @@ void TestDeduceMatrix4x4Fields(ISexyDatabase& database)
 
 	if (fieldEnumerator.fieldCount != 4) Throw(0, "Bad fieldCount: %s", __ROCOCO_FUNCTION__);
 	if (fieldEnumerator.hintCount == 0) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, fieldEnumerator.log, R"EXPECT(
+		Hint: Matrix4x4
+		Hint: Vec4f
+		Field: .x
+		Field: .y
+		Field: .z
+		Field: .w
+	)EXPECT");
 
 	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
@@ -241,6 +355,8 @@ void TestHintVec2(ISexyDatabase& database)
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		int fieldCount = 0;
 		int hintCount = 0;
 
@@ -254,6 +370,7 @@ void TestHintVec2(ISexyDatabase& database)
 				found = true;
 			}
 			printf("Field: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 			fieldCount++;
 		}
 
@@ -262,6 +379,7 @@ void TestHintVec2(ISexyDatabase& database)
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 			hintCount++;
 		}
 
@@ -278,6 +396,41 @@ void TestHintVec2(ISexyDatabase& database)
 	{
 		Throw(0, "Could not find Vec2 in Sys.Maths.");
 	}
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, fieldEnumerator.log, R"EXPECT(
+		Field: Sys.Maths.F32
+		Field: Sys.Maths.F64
+		Field: Sys.Maths.FPSAngles
+		Field: Sys.Maths.GetCentre
+		Field: Sys.Maths.GetCentredRect
+		Field: Sys.Maths.GetSpan
+		Field: Sys.Maths.I32
+		Field: Sys.Maths.I64
+		Field: Sys.Maths.InflateRect
+		Field: Sys.Maths.Linef
+		Field: Sys.Maths.Linelf
+		Field: Sys.Maths.Matrix4x4
+		Field: Sys.Maths.Quadf
+		Field: Sys.Maths.Quadlf
+		Field: Sys.Maths.Quat
+		Field: Sys.Maths.Quatlf
+		Field: Sys.Maths.Rectf
+		Field: Sys.Maths.Recti
+		Field: Sys.Maths.Rectlf
+		Field: Sys.Maths.SeedRandom
+		Field: Sys.Maths.Triangle
+		Field: Sys.Maths.Triangle2d
+		Field: Sys.Maths.Trianglef
+		Field: Sys.Maths.Trianglelf
+		Field: Sys.Maths.Vec2
+		Field: Sys.Maths.Vec2i
+		Field: Sys.Maths.Vec2lf
+		Field: Sys.Maths.Vec3
+		Field: Sys.Maths.Vec3i
+		Field: Sys.Maths.Vec3lf
+		Field: Sys.Maths.Vec4
+		Field: Sys.Maths.Vec4lf
+	)EXPECT");
 
 	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
@@ -306,6 +459,8 @@ void TestDeduceMethods(ISexyDatabase& database)
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		int fieldCount = 0;
 		int hintCount = 0;
 
@@ -313,6 +468,7 @@ void TestDeduceMethods(ISexyDatabase& database)
 		{
 			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 			fieldCount++;
 		}
 
@@ -321,6 +477,7 @@ void TestDeduceMethods(ISexyDatabase& database)
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 			hintCount++;
 		}
 
@@ -345,6 +502,36 @@ void TestDeduceMethods(ISexyDatabase& database)
 	// We give a bit of range on this method in the case that IStringBuilder is modified in the future
 	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __ROCOCO_FUNCTION__);
 	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, fieldEnumerator.log, R"EXPECT(
+		Hint: IStringBuilder
+		Field: AppendAsDecimal
+		Field: AppendAsHex
+		Field: AppendAsNewLine
+		Field: AppendAsSpecE
+		Field: AppendAsSpecF
+		Field: AppendAsSpecG
+		Field: AppendBool
+		Field: AppendChar
+		Field: AppendFloat32
+		Field: AppendFloat64
+		Field: AppendIString
+		Field: AppendIStringBuilder
+		Field: AppendInt32
+		Field: AppendInt64
+		Field: AppendPointer
+		Field: AppendSubstring
+		Field: Clear
+		Field: Replace
+		Field: SetFormat
+		Field: SetLength
+		Field: StripLeft
+		Field: ThrowIfAppendWouldTruncate
+		Field: ToLower
+		Field: ToUpper
+		Field: Buffer
+		Field: Length
+	)EXPECT");
 
 	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
@@ -373,6 +560,8 @@ void TestDeduceMethods2(ISexyDatabase& database)
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		int fieldCount = 0;
 		int hintCount = 0;
 
@@ -380,6 +569,7 @@ void TestDeduceMethods2(ISexyDatabase& database)
 		{
 			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 			fieldCount++;
 		}
 
@@ -388,6 +578,7 @@ void TestDeduceMethods2(ISexyDatabase& database)
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 			hintCount++;
 		}
 
@@ -412,6 +603,36 @@ void TestDeduceMethods2(ISexyDatabase& database)
 	// We give a bit of range on this method in the case that IStringBuilder is modified in the future
 	if (fieldEnumerator.fieldCount < 15 || fieldEnumerator.fieldCount > 30) Throw(0, "Bad fieldCount: %s", __ROCOCO_FUNCTION__);
 	if (fieldEnumerator.hintCount != 1) Throw(0, "Bad hint count: %s", __ROCOCO_FUNCTION__);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, fieldEnumerator.log, R"EXPECT(
+		Hint: Sys.Type.IStringBuilder
+		Field: AppendAsDecimal
+		Field: AppendAsHex
+		Field: AppendAsNewLine
+		Field: AppendAsSpecE
+		Field: AppendAsSpecF
+		Field: AppendAsSpecG
+		Field: AppendBool
+		Field: AppendChar
+		Field: AppendFloat32
+		Field: AppendFloat64
+		Field: AppendIString
+		Field: AppendIStringBuilder
+		Field: AppendInt32
+		Field: AppendInt64
+		Field: AppendPointer
+		Field: AppendSubstring
+		Field: Clear
+		Field: Replace
+		Field: SetFormat
+		Field: SetLength
+		Field: StripLeft
+		Field: ThrowIfAppendWouldTruncate
+		Field: ToLower
+		Field: ToUpper
+		Field: Buffer
+		Field: Length
+	)EXPECT");
 
 	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
@@ -452,6 +673,8 @@ void TestLocalStruct(ISexyDatabase&)
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		int fieldCount = 0;
 		int hintCount = 0;
 
@@ -459,6 +682,7 @@ void TestLocalStruct(ISexyDatabase&)
 		{
 			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 
 			if (!StartsWith(fieldName, "maJig"))
 			{
@@ -473,6 +697,7 @@ void TestLocalStruct(ISexyDatabase&)
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 			hintCount++;
 		}
 
@@ -487,22 +712,25 @@ void TestLocalStruct(ISexyDatabase&)
 	bool isThis;
 	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, sb, sfile);
 
-	if (!type.declarationType)
+	if (!Eq(type.declarationType, "Thing"))
 	{
-		if (!Eq(type.declarationType, "Thing"))
-		{
-			char typeStr[128];
-			type.declarationType.CopyWithTruncate(typeStr, sizeof typeStr);
-			Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
-		}
+		char typeStr[128];
+		type.declarationType.CopyWithTruncate(typeStr, sizeof typeStr);
+		Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
 	}
 
 	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type.declarationType, sfile);
 
 	if (fieldEnumerator.fieldCount != 3)
 	{
-		Throw(0, "Bad inference '%d' - expecting one field of Thing", fieldEnumerator.fieldCount);
+		Throw(0, "Bad inference '%d' - expecting 3 fields of Thing", fieldEnumerator.fieldCount);
 	}
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, fieldEnumerator.log, R"EXPECT(
+		Field: maJig
+		Field: maJigEx
+		Field: maJigArgs
+	)EXPECT");
 
 	printf("*** End of %s ***\n", __ROCOCO_FUNCTION__);
 }
@@ -543,6 +771,8 @@ void TestLocalStruct2(ISexyDatabase&)
 
 	struct ANON : ISexyFieldEnumerator
 	{
+		EmitLog log;
+
 		int fieldCount = 0;
 		int hintCount = 0;
 		int typeCount = 0;
@@ -551,6 +781,7 @@ void TestLocalStruct2(ISexyDatabase&)
 		{
 			UNUSED(memberSearch);
 			printf("Method: %s\n", fieldName);
+			log.Add("Field: ", fieldName);
 
 			if (!StartsWith(fieldName, "maJig"))
 			{
@@ -565,6 +796,7 @@ void TestLocalStruct2(ISexyDatabase&)
 			fputs("Hint: ", stdout);
 			fwrite(hint.start, 1, hint.Length(), stdout);
 			fputs("\n", stdout);
+			log.Add("Hint: ", hint);
 			hintCount++;
 		}
 
@@ -586,14 +818,11 @@ void TestLocalStruct2(ISexyDatabase&)
 	bool isThis;
 	type = Rococo::Sex::Inference::GetLocalTypeFromCurrentDocument(OUT isThis, sb, sfile);
 
-	if (!type.declarationType)
+	if (!Eq(type.declarationType, "Thing"))
 	{
-		if (!Eq(type.declarationType, "Thing"))
-		{
-			char typeStr[128];
-			type.declarationType.CopyWithTruncate(typeStr, sizeof typeStr);
-			Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
-		}
+		char typeStr[128];
+		type.declarationType.CopyWithTruncate(typeStr, sizeof typeStr);
+		Throw(0, "Bad inference '%s' - type should be Thing", typeStr);
 	}
 
 	Rococo::Sex::Inference::EnumerateLocalFields(fieldEnumerator, sb, type.declarationType, sfile);
@@ -728,6 +957,9 @@ public:
 	Substring doc;
 	int64 caretPos;
 
+	// Everything the code-complete system emitted through this editor, see EmitLog
+	mutable EmitLog log;
+
 	HString lastDefinedPath;
 	int lastDefinitionLineNumber = 0;
 
@@ -799,6 +1031,7 @@ public:
 
 	void ShowCallTipAtCaretPos(cstr tip) const
 	{
+		log.Add("CallTip: ", tip);
 		printf("\tCallTip %s\n", tip);
 	}
 
@@ -809,6 +1042,8 @@ public:
 
 	void ShowAutoCompleteList(cstr spaceSeparatedItems) override
 	{
+		log.Add("List: ", spaceSeparatedItems);
+
 		for (cstr p = spaceSeparatedItems; *p != 0; p++)
 		{
 			if (*p <= 32)
@@ -883,6 +1118,10 @@ public:
 	void ReplaceText(int64 startPos, int64 endPos, cstr item) const override
 	{
 		printf("Replace (%lld, %lld) with %s\n", startPos, endPos, item);
+
+		HString replacement;
+		Format(replacement, "(%lld, %lld) %s", startPos, endPos, item);
+		log.Add("Replace: ", replacement.c_str());
 	}
 
 	IAutoCompleteBuilder& AutoCompleteBuilder() override
@@ -895,16 +1134,19 @@ public:
 		char hintBuffer[1024];
 		item.CopyWithTruncate(hintBuffer, sizeof hintBuffer);
 		printf("Hint: %s\n", hintBuffer);
+		log.Add("Hint: ", hintBuffer);
 	}
 
 	void AddItem(cstr item) override
 	{
 		printf("Item: %s\n", item);
+		log.Add("Item: ", item);
 	}
 
 	void ShowAndClearItems() override
 	{
 		printf("<--- ShowAndClearItems --->\n");
+		log.Add("Show", "");
 	}
 
 	ISexyStudioInstance1* sexyStudio = nullptr;
@@ -997,6 +1239,13 @@ void TestFullEditor_SearchLocalStructForInterface()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: IString
+		Item: cat.Buffer
+		Item: cat.Length
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchLocalStructForInterfaceMethod()
@@ -1030,6 +1279,10 @@ void TestFullEditor_SearchLocalStructForInterfaceMethod()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		CallTip:  -> (Int32 length))
+	)EXPECT");
 }
 
 void TestFullEditor_SearchLocalStructForM4x4()
@@ -1056,6 +1309,15 @@ void TestFullEditor_SearchLocalStructForM4x4()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Matrix4x4
+		Item: obj.m.r0
+		Item: obj.m.r1
+		Item: obj.m.r2
+		Item: obj.m.r3
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchLocalStructForIString()
@@ -1082,6 +1344,11 @@ void TestFullEditor_SearchLocalStructForIString()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: obj.name
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchLocalStructForIStringAndDot()
@@ -1108,6 +1375,13 @@ void TestFullEditor_SearchLocalStructForIStringAndDot()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: IString
+		Item: obj.name.Buffer
+		Item: obj.name.Length
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStruct()
@@ -1137,6 +1411,11 @@ cstr file =
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: obj.dog.bark
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
@@ -1166,6 +1445,13 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: IString
+		Item: obj.dog.bark.Buffer
+		Item: obj.dog.bark.Length
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue()
@@ -1195,6 +1481,10 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		CallTip:  -> (Int32 length))
+	)EXPECT");
 }
 
 void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
@@ -1216,6 +1506,10 @@ void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		CallTip:  -> (Int32 length))
+	)EXPECT");
 }
 
 void TestFullEditor_SearchFQType()
@@ -1235,6 +1529,15 @@ void TestFullEditor_SearchFQType()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Sys.Maths.Matrix4x4
+		Item: m.r0
+		Item: m.r1
+		Item: m.r2
+		Item: m.r3
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchForFactories()
@@ -1253,6 +1556,10 @@ void TestFullEditor_SearchForFactories()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		CallTip: (Sys.Type.NewException(Int32 errorCode)(IString message)))
+	)EXPECT");
 }
 
 void TestFullEditor_SearchForFactories2()
@@ -1272,6 +1579,10 @@ void TestFullEditor_SearchForFactories2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		CallTip: (Sys.Type.NewException(Int32 errorCode)(IString message)))
+	)EXPECT");
 }
 
 void TestFullEditor_GotoDefinitionFail()
@@ -1293,6 +1604,16 @@ void TestFullEditor_GotoDefinitionFail()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+
+	if (!Eq(editor.LastDefinitionFile(), ""))
+	{
+		Throw(0, "Expecting no definition, got '%s'", editor.LastDefinitionFile());
+	}
+
+	if (editor.LastDefintionLineNumber() != 0)
+	{
+		Throw(0, "Expecting line 0, got %d", editor.LastDefintionLineNumber());
+	}
 }
 
 void TestFullEditor_GotoDefinitionAtFunction()
@@ -1370,12 +1691,12 @@ void TestFullEditor_GotoDefinitionOfInterface()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
-		Throw(0, "Expecting blank");
+		Throw(0, "Expecting Sys.Type.sxy, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() < 0)
+	if (editor.LastDefintionLineNumber() != 4)
 	{
-		Throw(0, "Expecting line 0");
+		Throw(0, "Expecting line 4, got %d", editor.LastDefintionLineNumber());
 	}
 }
 
@@ -1397,12 +1718,12 @@ void TestFullEditor_GotoDefinitionOfInterface2()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
-		Throw(0, "Expecting Sys.Type.sxy");
+		Throw(0, "Expecting Sys.Type.sxy, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() < 0)
+	if (editor.LastDefintionLineNumber() != 4)
 	{
-		Throw(0, "Expecting line > 0");
+		Throw(0, "Expecting line 4, got %d", editor.LastDefintionLineNumber());
 	}
 }
 
@@ -1426,12 +1747,12 @@ void TestFullEditor_GotoDefinitionOfInterface3()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
-		Throw(0, "Expecting Sys.Type.sxy");
+		Throw(0, "Expecting Sys.Type.sxy, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() < 1)
+	if (editor.LastDefintionLineNumber() != 4)
 	{
-		Throw(0, "Expecting line > 0");
+		Throw(0, "Expecting line 4, got %d", editor.LastDefintionLineNumber());
 	}
 }
 
@@ -1455,14 +1776,17 @@ void TestFullEditor_GotoDefinitionOfStruct()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
-		Throw(0, "Expecting Sys.Maths.sxy");
+		Throw(0, "Expecting Sys.Maths.sxy, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() <= 0)
+	if (editor.LastDefintionLineNumber() != 13)
 	{
-		Throw(0, "Expecting line > 0");
+		Throw(0, "Expecting line 13, got %d", editor.LastDefintionLineNumber());
 	}
 }
+
+// Manual/visual test, not part of the automated run. It attaches the IDE as host window, so a successful goto opens the modal
+// preview popup (PopupPreview) and waits until someone confirms it appeared and closes it. Call it by hand to check the preview
 
 void TestFullEditor_GotoDefinitionOfFunction()
 {
@@ -1515,12 +1839,12 @@ void TestFullEditor_GotoDefinitionOfFunction2()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
 	{
-		Throw(0, "Expecting sys.maths.f32.inl");
+		Throw(0, "Expecting sys.maths.f64.inl, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() <= 0)
+	if (editor.LastDefintionLineNumber() != 483)
 	{
-		Throw(0, "Expecting line > 0");
+		Throw(0, "Expecting line 483, got %d", editor.LastDefintionLineNumber());
 	}
 }
 
@@ -1544,12 +1868,12 @@ void TestFullEditor_GotoDefinitionOfFunction3()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
 	{
-		Throw(0, "Expecting sys.maths.f32.inl");
+		Throw(0, "Expecting sys.maths.f64.inl, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() <= 0)
+	if (editor.LastDefintionLineNumber() != 483)
 	{
-		Throw(0, "Expecting line > 0");
+		Throw(0, "Expecting line 483, got %d", editor.LastDefintionLineNumber());
 	}
 }
 
@@ -1573,12 +1897,12 @@ void TestFullEditor_GotoDefinitionOfStruct2()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
-		Throw(0, "Expecting Sys.Maths.sxy");
+		Throw(0, "Expecting Sys.Maths.sxy, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() <= 0)
+	if (editor.LastDefintionLineNumber() != 13)
 	{
-		Throw(0, "Expecting line > 0");
+		Throw(0, "Expecting line 13, got %d", editor.LastDefintionLineNumber());
 	}
 }
 
@@ -1602,12 +1926,12 @@ void TestFullEditor_GotoDefinitionOfStruct3()
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
-		Throw(0, "Expecting Sys.Maths.sxy");
+		Throw(0, "Expecting Sys.Maths.sxy, got '%s'", editor.LastDefinitionFile());
 	}
 
-	if (editor.LastDefintionLineNumber() <= 0)
+	if (editor.LastDefintionLineNumber() != 13)
 	{
-		Throw(0, "Expecting line > 0");
+		Throw(0, "Expecting line 13, got %d", editor.LastDefintionLineNumber());
 	}
 }
 
@@ -1628,6 +1952,11 @@ void TestFullEditor_SearchForMacro()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: #EntryPoint
+		Show
+	)EXPECT");
 }
 
 void TestComplexCase1()
@@ -1660,6 +1989,37 @@ void TestComplexCase1()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Sys.Type.IStringBuilder
+		Item: methodName.AppendAsDecimal
+		Item: methodName.AppendAsHex
+		Item: methodName.AppendAsNewLine
+		Item: methodName.AppendAsSpecE
+		Item: methodName.AppendAsSpecF
+		Item: methodName.AppendAsSpecG
+		Item: methodName.AppendBool
+		Item: methodName.AppendChar
+		Item: methodName.AppendFloat32
+		Item: methodName.AppendFloat64
+		Item: methodName.AppendIString
+		Item: methodName.AppendIStringBuilder
+		Item: methodName.AppendInt32
+		Item: methodName.AppendInt64
+		Item: methodName.AppendPointer
+		Item: methodName.AppendSubstring
+		Item: methodName.Clear
+		Item: methodName.Replace
+		Item: methodName.SetFormat
+		Item: methodName.SetLength
+		Item: methodName.StripLeft
+		Item: methodName.ThrowIfAppendWouldTruncate
+		Item: methodName.ToLower
+		Item: methodName.ToUpper
+		Item: methodName.Buffer
+		Item: methodName.Length
+		Show
+	)EXPECT");
 }
 
 void TestSuggestAtDot()
@@ -1678,6 +2038,36 @@ void TestSuggestAtDot()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Rococo.Graphics.IQuadStackTesselator
+		Item: qst.AddCuboid
+		Item: qst.AddCuboidAbs
+		Item: qst.Clear
+		Item: qst.ClearInput
+		Item: qst.ClearOutput
+		Item: qst.CopyInputToOutput
+		Item: qst.Destruct
+		Item: qst.Intrude
+		Item: qst.MoveInputToOutput
+		Item: qst.MoveInputToOutputWithNormalDotRange
+		Item: qst.MoveOutputToInput
+		Item: qst.MoveOutputToInputWithMat
+		Item: qst.MoveOutputToInputWithNormalDotRange
+		Item: qst.PopOutputAsTriangles
+		Item: qst.PushQuad
+		Item: qst.ScaleEdges
+		Item: qst.SetBasis
+		Item: qst.SetMaterial
+		Item: qst.SetTextureRect
+		Item: qst.Shrink
+		Item: qst.SplitAcrossTangent
+		Item: qst.SplitThreeColumns
+		Item: qst.SplitThreeRows
+		Item: qst.TileMosaic
+		Item: qst.Translate
+		Show
+	)EXPECT");
 }
 
 void TestSuggestBeyondDot()
@@ -1696,6 +2086,16 @@ void TestSuggestBeyondDot()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Rococo.Graphics.IQuadStackTesselator
+		Item: qst.MoveInputToOutput
+		Item: qst.MoveInputToOutputWithNormalDotRange
+		Item: qst.MoveOutputToInput
+		Item: qst.MoveOutputToInputWithMat
+		Item: qst.MoveOutputToInputWithNormalDotRange
+		Show
+	)EXPECT");
 }
 
 void TestThisArrayInference()
@@ -1723,6 +2123,18 @@ R"<CODE>(
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: this.berries.Capacity
+		Item: this.berries.Length
+		Item: this.berries.Push
+		Item: this.berries.Pop
+		Item: this.berries.PopOut
+		Item: this.berries.Clear
+		Item: this.berries.Set
+		Item: this.berries.Null
+		Show
+	)EXPECT");
 }
 
 void TestLocalArrayInference()
@@ -1743,6 +2155,18 @@ void TestLocalArrayInference()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: berries.Capacity
+		Item: berries.Length
+		Item: berries.Push
+		Item: berries.Pop
+		Item: berries.PopOut
+		Item: berries.Clear
+		Item: berries.Set
+		Item: berries.Null
+		Show
+	)EXPECT");
 }
 
 void TestLocalArrayInference2()
@@ -1763,6 +2187,18 @@ void TestLocalArrayInference2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: berries.Capacity
+		Item: berries.Length
+		Item: berries.Push
+		Item: berries.Pop
+		Item: berries.PopOut
+		Item: berries.Clear
+		Item: berries.Set
+		Item: berries.Null
+		Show
+	)EXPECT");
 }
 
 void TestLocalListInference()
@@ -1783,6 +2219,14 @@ void TestLocalListInference()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: berries.Append
+		Item: berries.Prepend
+		Item: berries.Clear
+		Item: berries.Length
+		Show
+	)EXPECT");
 }
 
 void TestLocalListInference2()
@@ -1803,6 +2247,14 @@ void TestLocalListInference2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: berries.Append
+		Item: berries.Prepend
+		Item: berries.Clear
+		Item: berries.Length
+		Show
+	)EXPECT");
 }
 
 void TestLocalMapInference()
@@ -1823,6 +2275,12 @@ void TestLocalMapInference()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: berries.Insert
+		Item: berries.Length
+		Show
+	)EXPECT");
 }
 
 void TestLocalMapInference2()
@@ -1843,6 +2301,12 @@ void TestLocalMapInference2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: berries.Insert
+		Item: berries.Length
+		Show
+	)EXPECT");
 }
 
 
@@ -1872,6 +2336,13 @@ R"<CODE>(
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: this.sexmlRoot
+		Item: this.rootDirectives
+		Item: this.nDirectives
+		Show
+	)EXPECT");
 }
 
 void TestThisMapInference()
@@ -1899,6 +2370,12 @@ void TestThisMapInference()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: this.berries.Insert
+		Item: this.berries.Length
+		Show
+	)EXPECT");
 }
 
 void TestThisMapInference2()
@@ -1926,6 +2403,12 @@ void TestThisMapInference2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: this.berries.Insert
+		Item: this.berries.Length
+		Show
+	)EXPECT");
 }
 
 void TestThisListInference()
@@ -1953,6 +2436,14 @@ void TestThisListInference()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: this.berries.Append
+		Item: this.berries.Prepend
+		Item: this.berries.Clear
+		Item: this.berries.Length
+		Show
+	)EXPECT");
 }
 
 void TestThisListInference2()
@@ -1981,6 +2472,13 @@ void TestThisListInference2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: this.sexmlRoot
+		Item: this.rootDirectives
+		Item: this.nDirectives
+		Show
+	)EXPECT");
 }
 
 void TestFullEditor_SearchFQType2()
@@ -2002,6 +2500,15 @@ void TestFullEditor_SearchFQType2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Sys.Maths.Matrix4x4
+		Item: m.r0
+		Item: m.r1
+		Item: m.r2
+		Item: m.r3
+		Show
+	)EXPECT");
 }
 
 void TestDeepMemberInference()
@@ -2026,6 +2533,16 @@ void TestDeepMemberInference()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Rococo.QuadVertices
+		Hint: Sys.Maths.Quadf
+		Hint: Vec3f
+		Item: topQuad.positions.a.x
+		Item: topQuad.positions.a.y
+		Item: topQuad.positions.a.z
+		Show
+	)EXPECT");
 }
 
 void TestDeepMemberInference2()
@@ -2050,6 +2567,16 @@ void TestDeepMemberInference2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Rococo.QuadVertices
+		Hint: Sys.Maths.Quadf
+		Item: topQuad.positions.a
+		Item: topQuad.positions.b
+		Item: topQuad.positions.c
+		Item: topQuad.positions.d
+		Show
+	)EXPECT");
 }
 
 void TestFQStruct()
@@ -2068,6 +2595,15 @@ R"<CODE>(
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: Rococo.Graphics.SoftBoxVertex
+		Item: v.position
+		Item: v.normal
+		Item: v.uv
+		Item: v.purpose
+		Show
+	)EXPECT");
 }
 
 
@@ -2086,6 +2622,49 @@ void TestNamespaceAppendsStruct()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Rococo.Graphics.Camera
+		Item: Rococo.Graphics.ESoftBoxVertexPurpose
+		Item: Rococo.Graphics.FieldTesselator
+		Item: Rococo.Graphics.FontMetrics
+		Item: Rococo.Graphics.GetSoftBoxBuilder
+		Item: Rococo.Graphics.HQFonts
+		Item: Rococo.Graphics.ICamera
+		Item: Rococo.Graphics.IFieldTesselator
+		Item: Rococo.Graphics.IHQFonts
+		Item: Rococo.Graphics.ILandscapeTesselator
+		Item: Rococo.Graphics.IMaterialBuilder
+		Item: Rococo.Graphics.IMeshBuilder
+		Item: Rococo.Graphics.IMessaging
+		Item: Rococo.Graphics.IQuadStackTesselator
+		Item: Rococo.Graphics.IRendererConfig
+		Item: Rococo.Graphics.IRimTesselator
+		Item: Rococo.Graphics.IRodTesselator
+		Item: Rococo.Graphics.ISceneBuilder
+		Item: Rococo.Graphics.IShaderOptionsConfig
+		Item: Rococo.Graphics.ISoftBoxBuilder
+		Item: Rococo.Graphics.ISpriteBuilder
+		Item: Rococo.Graphics.ITextTesselator
+		Item: Rococo.Graphics.LandscapeTesselator
+		Item: Rococo.Graphics.MaterialBuilder
+		Item: Rococo.Graphics.MeshBuilder
+		Item: Rococo.Graphics.Messaging
+		Item: Rococo.Graphics.QuadStackTesselator
+		Item: Rococo.Graphics.RendererConfig
+		Item: Rococo.Graphics.RimTesselator
+		Item: Rococo.Graphics.RodTesselator
+		Item: Rococo.Graphics.RoundCornersShelfSpec
+		Item: Rococo.Graphics.SceneBuilder
+		Item: Rococo.Graphics.ShaderOptions
+		Item: Rococo.Graphics.SoftBoxQuad
+		Item: Rococo.Graphics.SoftBoxTopSpec
+		Item: Rococo.Graphics.SoftBoxTriangle
+		Item: Rococo.Graphics.SoftBoxVertex
+		Item: Rococo.Graphics.SpriteBuilder
+		Item: Rococo.Graphics.TextTesselator
+		Show
+	)EXPECT");
 }
 
 void TestPromptForMacro()
@@ -2103,6 +2682,11 @@ void TestPromptForMacro()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: #Sys
+		Show
+	)EXPECT");
 }
 
 void TestPromptForMacro2()
@@ -2120,6 +2704,11 @@ void TestPromptForMacro2()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: #Sys
+		Show
+	)EXPECT");
 }
 
 void TestPromptForMacro3()
@@ -2137,6 +2726,22 @@ void TestPromptForMacro3()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: #Sys.Geometry
+		Item: #Sys.IO
+		Item: #Sys.Maths
+		Item: #Sys.Native
+		Item: #Sys.PushStructArray
+		Item: #Sys.Random
+		Item: #Sys.Reflection
+		Item: #Sys.SI
+		Item: #Sys.Strings
+		Item: #Sys.Time
+		Item: #Sys.Type
+		Item: #Sys.optional
+		Show
+	)EXPECT");
 }
 
 void TestPromptForMacro4()
@@ -2154,6 +2759,58 @@ void TestPromptForMacro4()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeCentreBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeCentreTop
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeEastBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeEastTop
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeNEBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeNECorner
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeNWBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeNWCorner
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeNone
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeNorthBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeNorthTop
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeSEBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeSECorner
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeSWBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeSWCorner
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeSouthBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeSouthTop
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeWestBottom
+		Item: #Rococo.Graphics.ESoftBoxVertexPurposeWestTop
+		Item: #Rococo.Graphics.HQFontDebuggerFont
+		Item: #Rococo.Graphics.HQFontEditorFont
+		Item: #Rococo.Graphics.HQFontEmperorFont
+		Item: #Rococo.Graphics.HQFontInfoFont
+		Item: #Rococo.Graphics.HQFontMenuFont
+		Item: #Rococo.Graphics.HQFontTitleFont
+		Item: #Rococo.Graphics.MaterialCategoryMarble
+		Item: #Rococo.Graphics.MaterialCategoryMetal
+		Item: #Rococo.Graphics.MaterialCategoryRock
+		Item: #Rococo.Graphics.MaterialCategoryStone
+		Item: #Rococo.Graphics.MaterialCategoryWood
+		Item: #Rococo.Graphics.Native
+		Item: #Rococo.Graphics.OrientationFlagsElevation
+		Item: #Rococo.Graphics.OrientationFlagsHeading
+		Item: #Rococo.Graphics.OrientationFlagsNone
+		Item: #Rococo.Graphics.OrientationFlagsTilt
+		Item: #Rococo.Graphics.SampleFilterBorder
+		Item: #Rococo.Graphics.SampleFilterClamp
+		Item: #Rococo.Graphics.SampleFilterMirror
+		Item: #Rococo.Graphics.SampleFilterWrap
+		Item: #Rococo.Graphics.SampleIndexEnvironmentalMap
+		Item: #Rococo.Graphics.SampleIndexFonts
+		Item: #Rococo.Graphics.SampleIndexHQFontGlyphs
+		Item: #Rococo.Graphics.SampleIndexMaterials
+		Item: #Rococo.Graphics.SampleIndexShadowMap
+		Item: #Rococo.Graphics.SampleIndexSprites
+		Item: #Rococo.Graphics.SampleIndexTextureSelector
+		Item: #Rococo.Graphics.SampleMethodLinear
+		Item: #Rococo.Graphics.SampleMethodPoint
+		Show
+	)EXPECT");
 }
 
 void TestPromptForMacro5()
@@ -2171,6 +2828,20 @@ void TestPromptForMacro5()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: #Sys.Type.FiveMacro
+		Item: #Sys.Type.Formatters
+		Item: #Sys.Type.FridayMacro
+		Item: #Sys.Type.Macros
+		Item: #Sys.Type.Strings
+		Item: #Sys.Type.build
+		Item: #Sys.Type.paragraph
+		Item: #Sys.Type.path
+		Item: #Sys.Type.string
+		Item: #Sys.Type.token
+		Show
+	)EXPECT");
 }
 
 void TestPromptForMacro6()
@@ -2188,12 +2859,18 @@ void TestPromptForMacro6()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint:  Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
+	)EXPECT");
 }
 
 void TestShowTipForFunction()
 {
+	Intro(__ROCOCO_FUNCTION__);
+
 	cstr file =
-		R"<CODE>("
+		R"<CODE>(
 	(function Main -> :
 		(Sys.IO.GetCmdArgCount 
 	)
@@ -2203,10 +2880,16 @@ void TestShowTipForFunction()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		CallTip:  -> (Int32 argCount))
+	)EXPECT");
 }
 
 void TestShowCompletionsForStruct()
 {
+	Intro(__ROCOCO_FUNCTION__);
+
 	cstr file = 
 R"<CODE>(
 (struct DommeContext
@@ -2224,6 +2907,13 @@ R"<CODE>(
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: dc.cppBuilder
+		Item: dc.headerBuilder
+		Item: dc.factoryPrefix
+		Show
+	)EXPECT");
 }
 
 void TestShowCompletionsForEnum()
@@ -2234,18 +2924,31 @@ void TestShowCompletionsForEnum()
 		R"<CODE>(
 (function Meow -> :
 	(Sys.Time.Day day)
-	(day = ."
+	(day = .
 )<CODE>";
 
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: .Sunday
+		Item: .Monday
+		Item: .Tuesday
+		Item: .Wednesday
+		Item: .Thursday
+		Item: .Friday
+		Item: .Saturday
+		Show
+	)EXPECT");
 }
 
 
 void TestShowCompletionsForeachReferenceVariable()
 {
+	Intro(__ROCOCO_FUNCTION__);
+
 	cstr file =
 		R"<CODE>(
 
@@ -2259,13 +2962,20 @@ void TestShowCompletionsForeachReferenceVariable()
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
 	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Hint: IString
+		Item: name.Buffer
+		Item: name.Length
+		Show
+	)EXPECT");
 }
 
 void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(HANDLE{ 0 });
 
-//	TestFullEditor_GotoDefinitionOfFunction();
+	// TestFullEditor_GotoDefinitionOfFunction(); Manual/visual test: it opens the modal goto preview, see the comment on the function
 
 	TestFullEditor_GotoDefinitionOfFunction2();
 	TestFullEditor_GotoDefinitionOfFunction3();
