@@ -1152,6 +1152,73 @@ namespace Rococo
          Throw(opExpr, "Cannot interpret as a binary logical operation");
       }
 
+      // Flag test, e.g. (access & .Read) or (access & Access@Read), which is true if (access & key) != 0, so a key with several bits tests if any of them is set.
+      // The lhs is a variable or member of the enum type E. With a qualified key, E@Key, it may instead be a plain integer of E's underlying type.
+      // Leaves the Bool result in D7
+      void CompileEnumFlagTest(CCompileEnvironment& ce, cr_sex s, cr_sex left, cr_sex right, CONDITION op)
+      {
+          if (!IsEnumConstantSyntax(right))
+          {
+              Throw(right, "Expecting an enum key on the right of &, e.g. (v & .Key) or (v & EnumType@Key)");
+          }
+
+          cstr leftName = left.c_str();
+
+          MemberDef leftDef;
+          if (!IsAtomic(left) || !ce.Builder.TryGetVariableByName(OUT leftDef, leftName))
+          {
+              Throw(left, "Expecting a variable on the left of &, e.g. (v & .Key) or (v & EnumType@Key)");
+          }
+
+          const IStructure& leftType = *leftDef.ResolvedType;
+
+          const IStructure* keyType;
+          cstr key;
+          TryParseEnumConstant(ce, right, OUT keyType, OUT key);
+
+          if (keyType == nullptr)
+          {
+              // .Key takes its type from the lhs
+              if (leftType.IsEnumType())
+              {
+                  keyType = &leftType;
+              }
+              else if (leftType.IsStrongType())
+              {
+                  Throw(right, "%s is of type %s, which has no enum values", leftName, GetFriendlyName(leftType));
+              }
+              else
+              {
+                  Throw(right, "Cannot infer the enum type of %s from %s %s. Qualify it, e.g. <EnumType>@%s", right.c_str(), GetFriendlyName(leftType), leftName, key);
+              }
+          }
+          else if (&leftType != keyType)
+          {
+              if (leftType.IsStrongType())
+              {
+                  Throw(right, "Type mismatch: %s is of type %s, but %s is of type %s", right.c_str(), GetFriendlyName(*keyType), leftName, GetFriendlyName(leftType));
+              }
+
+              if (leftType.VarType() != keyType->VarType())
+              {
+                  Throw(right, "%s is %s, but %s is of type %s, which is based on %s", leftName, GetFriendlyName(leftType), right.c_str(), GetFriendlyName(*keyType), GetTypeName(keyType->VarType()));
+              }
+          }
+
+          SexyVarType type = keyType->VarType();
+          if (type != SexyVarType_Int32 && type != SexyVarType_Int64)
+          {
+              Throw(right, "& requires an integer enum type, but %s is based on %s", GetFriendlyName(*keyType), GetTypeName(type));
+          }
+
+          BITCOUNT bits = GetBitCount(type);
+
+          TryCompileEnumLiteralToRegister(ce, right, *keyType, VM::REGISTER_D9);
+          ce.Builder.AssignVariableToRegister(leftName, VM::REGISTER_D8);
+          ce.Builder.Assembler().Append_LogicalAND(VM::REGISTER_D8, bits, VM::REGISTER_D9); // D7 = D8 & D9
+          ce.Builder.Assembler().Append_SetIf(op, VM::REGISTER_D7, bits);
+      }
+
       bool TryCompileBooleanExpression(CCompileEnvironment& ce, cr_sex s, bool expected, bool& negate)
       {
           if (IsCompound(s))
@@ -1205,6 +1272,13 @@ namespace Rococo
                   {
                       LOGICAL_OP op = GetBinaryLogicalOp(opExpr);
                       CompileBinaryBooleanExpression(ce, s, left, op, right);
+                      return true;
+                  }
+                  else if (IsAtomic(opExpr) && AreEqual(opExpr.String(), "&"))
+                  {
+                      // Flag test, (v & .Key)
+                      CompileEnumFlagTest(ce, s, left, right, negate ? CONDITION_IF_EQUAL : CONDITION_IF_NOT_EQUAL);
+                      negate = false;
                       return true;
                   }
                   else
