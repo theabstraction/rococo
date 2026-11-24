@@ -441,10 +441,11 @@ namespace Rococo
 			AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, VM::REGISTER_D7);
 		}
 
-		// If s is (a OP b) and the target is a strong type, compiles s as an enum expression to D7 and returns true. Only | is accepted for OP.
+		// If s is (a OP b) and the target is an enum type, compiles s as an enum expression to D7 and returns true. Only | is accepted for OP.
+		// Strong types without enum values, e.g. (strong Joules (Float64)), return false, and follow the arithmetic of their underlying type
 		bool TryCompileEnumArithmeticExpression(CCompileEnvironment& ce, cr_sex s, const IStructure& targetType)
 		{
-			if (!targetType.IsStrongType() || !IsCompound(s) || s.NumberOfElements() != 3 || !IsArithmeticOperator(s[1]))
+			if (!targetType.IsEnumType() || !IsCompound(s) || s.NumberOfElements() != 3 || !IsArithmeticOperator(s[1]))
 			{
 				return false;
 			}
@@ -453,7 +454,7 @@ namespace Rococo
 			return true;
 		}
 
-		// Returns the enum type named by the first E@X constant or strong typed variable found in s, which may be nested (a | b) expressions, or nullptr if there is none
+		// Returns the enum type named by the first E@X constant or enum typed variable found in s, which may be nested (a | b) expressions, or nullptr if there is none
 		const IStructure* GetEnumTypeOfExpression(CCompileEnvironment& ce, cr_sex s)
 		{
 			if (IsAtomic(s))
@@ -468,7 +469,7 @@ namespace Rococo
 				}
 
 				MemberDef def;
-				if (ce.Builder.TryGetVariableByName(OUT def, token) && def.ResolvedType->IsStrongType())
+				if (ce.Builder.TryGetVariableByName(OUT def, token) && def.ResolvedType->IsEnumType())
 				{
 					return def.ResolvedType;
 				}

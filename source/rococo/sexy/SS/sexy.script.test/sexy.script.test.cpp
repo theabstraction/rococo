@@ -5563,6 +5563,525 @@ R"((namespace EntryPoint)
 		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Only | is defined for enum type Access");
 	}
 
+	// Delta flag operators: (x |= y) is x = x | y, and (x &~= y) is x = x & ~y
+
+	void TestDeltaOrInt32(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(function Main -> (Int32 result):
+				(Int32 a = 1)
+				(a |= 6)
+				(Int32 b = 0x10)
+				(Int32 c = 3)
+				(b |= c)
+				(Int32 d = 8)
+				(d |= (c | 0x20))
+				(result = ((a * 10000) + ((b * 100) + d)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 71943);
+	}
+
+	void TestDeltaClearInt32(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(function Main -> (Int32 result):
+				(Int32 a = 7)
+				(a &~= 2)
+				(Int32 b = 0x1F)
+				(Int32 c = 0x11)
+				(b &~= c)
+				(Int32 d = 0x3F)
+				(d &~= (c | 0x20))
+				(Int32 e = 4)
+				(e &~= 1)
+				(result = ((a * 1000000) + ((b * 10000) + ((d * 100) + e))))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		// a = 5, b = 0x0E = 14, d = 0x0E = 14, e = 4 (clearing an unset bit is a no-op)
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 5141404);
+	}
+
+	void TestDeltaInt32SignBit(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(function Main -> (Int32 result):
+				(Int32 a = 1)
+				(a |= -2)
+				(Int32 b = -1)
+				(b &~= 1)
+				(Int32 c = 0)
+				(c |= 0x80000000)
+				(Int32 d = -1)
+				(d &~= 0x80000000)
+				(if (a == -1) (result += 1))
+				(if (b == -2) (result += 10))
+				(if (c == -2147483648) (result += 100))
+				(if (d == 2147483647) (result += 1000))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 1111);
+	}
+
+	void TestDeltaInt64(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(function Main -> (Int32 result):
+				(Int64 a = 1)
+				(a |= 0x100000000)
+				(Int64 hi = 0x200000000)
+				(Int64 b = 5)
+				(b |= hi)
+				(Int64 c = 0x300000003)
+				(c &~= 0x100000001)
+				(Int64 d = 0x300000003)
+				(d &~= hi)
+				(Int64 e = 0)
+				(e |= (hi | 1))
+				(Int64 f = -1)
+				(f &~= 0x8000000000000000)
+				(Int64 ea = 0x100000001)
+				(Int64 eb = 0x200000005)
+				(Int64 ec = 0x200000002)
+				(Int64 ed = 0x100000003)
+				(Int64 ee = 0x200000001)
+				(Int64 ef = 0x7FFFFFFFFFFFFFFF)
+				(if (a == ea) (result += 1))
+				(if (b == eb) (result += 10))
+				(if (c == ec) (result += 100))
+				(if (d == ed) (result += 1000))
+				(if (e == ee) (result += 10000))
+				(if (f == ef) (result += 100000))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 111111);
+	}
+
+	void TestDeltaOrEnum(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Share 8)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = .Read)
+				(a |= Access@Write)
+				(Access b = .Read)
+				(b |= .Exec)
+				(Access c = .Share)
+				(c |= (.Read | .Write))
+				(Access d = .Share)
+				(d |= (Sys.Type.Access@Exec | Access@Read))
+				(Access e = .Read)
+				(e |= (.Exec))
+				(Access f = .Share)
+				(f |= b)
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(Int32 vc = c.Value)
+				(Int32 vd = d.Value)
+				(Int32 ve = e.Value)
+				(Int32 vf = f.Value)
+				(result = ((va * 100000) + ((vb * 10000) + ((vc * 1000) + ((vd * 100) + ((ve * 10) + vf))))))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		// a = 3, b = 5, c = 11, d = 13, e = 5, f = 13
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == (3 * 100000 + 5 * 10000 + 11 * 1000 + 13 * 100 + 5 * 10 + 13));
+	}
+
+	void TestDeltaClearEnum(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = (.Read | (.Write | .Exec)))
+				(a &~= .Write)
+				(Access w = .Exec)
+				(Access b = (.Read | .Exec))
+				(b &~= w)
+				(Access c = .Read)
+				(c &~= Access@Exec)
+				(Access d = (.Read | (.Write | .Exec)))
+				(d &~= (.Read | .Exec))
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(Int32 vc = c.Value)
+				(Int32 vd = d.Value)
+				(result = ((va * 1000) + ((vb * 100) + ((vc * 10) + vd))))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		// a = 5, b = 1, c = 1 (Exec was not set, so no change), d = 2
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 5112);
+	}
+
+	void TestDeltaEnumRoundTrip(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+			)
+
+			(struct Perm
+				(Access access)
+				(Int32 n)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = .Read)
+				(a |= .Exec)
+				(if (a == (.Read | .Exec)) (result += 1))
+				(a &~= .Exec)
+				(if (a == .Read) (result += 10))
+				(Perm p = .Read 7)
+				(p.access |= .Write)
+				(p.access &~= .Read)
+				(Access q = p.access)
+				(if (q == .Write) (result += 100))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 111);
+	}
+
+	void TestEnumConstantExponentLikeName(IPublicScriptSystem& ss)
+	{
+		// .Exec begins like the exponent of a float literal, but is an enum constant
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Exec 4)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = .Exec)
+				(result = a.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 4);
+	}
+
+	void TestDeltaOrFloatRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(function Main -> (Int32 result):
+				(Float32 f = 1)
+				(f |= 2)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Delta operator '|=' requires an Int32, Int64 or strong enum lhs, but f is Float32");
+	}
+
+	void TestDeltaClearFloatRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(function Main -> (Int32 result):
+				(Float64 f = 1)
+				(f &~= 2)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Delta operator '&~=' requires an Int32, Int64 or strong enum lhs, but f is Float64");
+	}
+
+	void TestDeltaOrEnumIntRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = .Read)
+				(a |= 2)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "2 is a literal, which does not convert to enum type Access");
+	}
+
+	void TestDeltaOrEnumOtherTypeRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+			)
+
+			(strong Colour (Int32))
+
+			(alias Colour Sys.Type.Colour)
+
+			(enum Sys.Type.Colour
+				(Red 1)
+				(Green 2)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = .Read)
+				(a |= Colour@Red)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Type mismatch: Colour@Red is of type Colour, but the target type is Access");
+	}
+
+	void TestDeltaClearEnumOtherTypeRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+			)
+
+			(strong Colour (Int32))
+
+			(alias Colour Sys.Type.Colour)
+
+			(enum Sys.Type.Colour
+				(Red 1)
+				(Green 2)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = .Read)
+				(Colour c = .Red)
+				(a &~= c)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "c is of type Colour, but the enum expression is of type Access");
+	}
+
+	void TestDeltaAddEnumRejected(IPublicScriptSystem& ss)
+	{
+		// Only the flag operators apply to enums
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+			)
+
+			(function Main -> (Int32 result):
+				(Access a = .Read)
+				(a += 1)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Only |= and &~= apply to enum type Access");
+	}
+
+	// Strong types that are not enums, e.g. (strong Joules (Float64)), follow the arithmetic rules of their underlying type
+
+	void TestStrongMathFloat(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Joules (Float64))
+
+			(function Main -> (Int32 result):
+				(Joules j = 1000)
+				(j *= 2)
+				(j += 500)
+				(j -= 100)
+				(j /= 2)
+				(Joules k = 50)
+				(j += k)
+				(j -= k)
+				(Joules s = (j + j))
+				(Joules t = (j * 2))
+				(Float64 vj = j.Value)
+				(Float64 vs = s.Value)
+				(Float64 ej = 1200)
+				(Float64 es = 2400)
+				(if (vj == ej) (result += 1))
+				(if (vs == es) (result += 10))
+				(if (s == t) (result += 100))
+				(if (s == (j * 2)) (result += 1000))
+				(if (k != (j + j)) (result += 10000))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 11111);
+	}
+
+	void TestStrongMathInt(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Count (Int32))
+			(strong Ticks (Int64))
+
+			(function Main -> (Int32 result):
+				(Count c = 10)
+				(c += 5)
+				(c -= 3)
+				(c *= 4)
+				(c /= 6)
+				(Count two = 2)
+				(c *= two)
+				(c -= two)
+				(Count d = (c + c))
+				(Count e = (c * 2))
+				(Count f = (c + 1))
+				(Ticks t = 0x100000000)
+				(t *= 2)
+				(Int64 vt = t.Value)
+				(Int64 et = 0x200000000)
+				(Int32 vc = c.Value)
+				(Int32 vd = d.Value)
+				(Int32 vf = f.Value)
+				(if (vc == 14) (result += 1))
+				(if (vd == 28) (result += 10))
+				(if (d == e) (result += 100))
+				(if (d == (c * 2)) (result += 1000))
+				(if (vf == 15) (result += 10000))
+				(if (vt == et) (result += 100000))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 111111);
+	}
+
+	void TestStrongMathExpressions(IPublicScriptSystem& ss)
+	{
+		// Arithmetic into a non-enum strong target, and a comparison with an arithmetic expression, without delta operators
+		cstr srcCode = R"(
+			(strong Joules (Float64))
+			(strong Count (Int32))
+
+			(function Main -> (Int32 result):
+				(Joules j = 3)
+				(Joules k = (j + j))
+				(Joules m = (j * 2))
+				(Count c = 4)
+				(Count d = (c - 1))
+				(Count e = (c / 2))
+				(Int32 vd = d.Value)
+				(Int32 ve = e.Value)
+				(if (k == m) (result += 1))
+				(if (k == (j * 2)) (result += 10))
+				(if (d == (c - 1)) (result += 100))
+				(if (vd == 3) (result += 1000))
+				(if (ve == 2) (result += 10000))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 11111);
+	}
+
+	void TestStrongFlagsInt(IPublicScriptSystem& ss)
+	{
+		// |= and &~= apply to an integer-based strong type that is not an enum, as they do to its underlying type
+		cstr srcCode = R"(
+			(strong Mask (Int32))
+
+			(function Main -> (Int32 result):
+				(Mask m = 1)
+				(m |= 6)
+				(m &~= 2)
+				(Int32 a = m.Value)
+				(Mask x = 8)
+				(m |= x)
+				(Int32 b = m.Value)
+				(m &~= (x | 1))
+				(Int32 c = m.Value)
+				(result = ((a * 10000) + ((b * 100) + c)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 51304);
+	}
+
+	void TestStrongFlagsFloatRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Joules (Float64))
+
+			(function Main -> (Int32 result):
+				(Joules j = 1000)
+				(j |= 1)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Delta operator '|=' requires an Int32, Int64 or strong enum lhs, but j is Float64");
+	}
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -21641,6 +22160,25 @@ R"(
 		TEST(TestEnumOrFloatEnum);
 		TEST(TestEnumOrOtherOperators);
 		TEST(TestEnumOrOtherOperatorsVariable);
+		TEST(TestDeltaOrInt32);
+		TEST(TestDeltaClearInt32);
+		TEST(TestDeltaInt32SignBit);
+		TEST(TestDeltaInt64);
+		TEST(TestDeltaOrEnum);
+		TEST(TestDeltaClearEnum);
+		TEST(TestDeltaEnumRoundTrip);
+		TEST(TestEnumConstantExponentLikeName);
+		TEST(TestDeltaOrFloatRejected);
+		TEST(TestDeltaClearFloatRejected);
+		TEST(TestDeltaOrEnumIntRejected);
+		TEST(TestDeltaOrEnumOtherTypeRejected);
+		TEST(TestDeltaClearEnumOtherTypeRejected);
+		TEST(TestDeltaAddEnumRejected);
+		TEST(TestStrongMathFloat);
+		TEST(TestStrongMathInt);
+		TEST(TestStrongMathExpressions);
+		TEST(TestStrongFlagsInt);
+		TEST(TestStrongFlagsFloatRejected);
 
 		TEST(TestEnumByCPP);
 

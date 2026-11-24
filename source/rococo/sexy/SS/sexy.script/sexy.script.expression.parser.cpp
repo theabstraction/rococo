@@ -3726,10 +3726,26 @@ namespace Rococo
 			DELTA_SUBTRACT,
 			DELTA_ADD,
 			DELTA_MULTIPLY,
-			DELTA_DIVIDE
+			DELTA_DIVIDE,
+			DELTA_BITWISE_OR,	// x |= y, x = x | y
+			DELTA_BITWISE_CLEAR	// x &~= y, x = x & ~y
 		};
 
-		static const char* deltaOps[]  = { "-=", "+=", "*=", "/=" };
+		static const char* deltaOps[]  = { "-=", "+=", "*=", "/=", "|=", "&~=" };
+
+		// Assume delta value is in D4 and aggregate is in D5. The result goes to D4
+		void Append_BitwiseDeltaOp(CCompileEnvironment& ce, DeltaFunction opIndex, BITCOUNT bc)
+		{
+			if (opIndex == DELTA_BITWISE_CLEAR)
+			{
+				ce.Builder.Assembler().Append_LogicalNOT(VM::REGISTER_D4, bc, VM::REGISTER_D4); // D4 = ~D4
+				ce.Builder.Assembler().Append_LogicalAND(VM::REGISTER_D5, bc, VM::REGISTER_D4); // D4 = D5 & D4
+			}
+			else
+			{
+				ce.Builder.Assembler().Append_LogicalOR(VM::REGISTER_D5, bc, VM::REGISTER_D4); // D4 = D5 | D4
+			}
+		}
 
 		// Assume delta value is in D4, aggregate is in D5, and target will be D4
 		void Append_FloatDeltaOp(CCompileEnvironment& ce, DeltaFunction opIndex, BITCOUNT bc)
@@ -3776,7 +3792,7 @@ namespace Rococo
 
 			int opIndex = -1;
 
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < (int)(sizeof(deltaOps) / sizeof(deltaOps[0])); i++)
 			{
 				if (AreEqual(deltaOps[i], op))
 				{
@@ -3792,12 +3808,41 @@ namespace Rococo
 
 			auto type = def.ResolvedType->VarType();
 
+			bool isBitwise = opIndex == DELTA_BITWISE_OR || opIndex == DELTA_BITWISE_CLEAR;
+
+			if (def.ResolvedType->IsEnumType())
+			{
+				// Enum flags, e.g. (access |= .Write) or (access &~= Access@Write). The rhs is a value of the same enum type.
+				// Strong types without enum values, e.g. (strong Joules (Float64)), fall through and follow the rules of their underlying type
+				if (!isBitwise)
+				{
+					Throw(ops, "Only |= and &~= apply to enum type %s", GetFriendlyName(*def.ResolvedType));
+				}
+
+				if (type != SexyVarType_Int32 && type != SexyVarType_Int64)
+				{
+					Throw(ops, "Delta operator '%s' requires an integer enum type, but %s is based on %s", deltaOps[opIndex], GetFriendlyName(*def.ResolvedType), GetTypeName(type));
+				}
+
+				CompileEnumOperand(ce, rhs, *def.ResolvedType); // D7 = rhs
+				ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D5);
+				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, GetBitCount(type));
+				Append_BitwiseDeltaOp(ce, (DeltaFunction)opIndex, GetBitCount(type));
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4, name);
+				return true;
+			}
+
 			switch (type)
 			{
 			case SexyVarType_Int32:
 			case SexyVarType_Int64:
+				break;
 			case SexyVarType_Float32:
 			case SexyVarType_Float64:
+				if (isBitwise)
+				{
+					Throw(ops, "Delta operator '%s' requires an Int32, Int64 or strong enum lhs, but %s is %s", deltaOps[opIndex], name, GetTypeName(type));
+				}
 				break;
 			default:
 				Throw(lhs, "Delta operator '%s' requires lhs is a numeric variable: Int32, Int64, Float32 or Float64", deltaOps[opIndex]);
@@ -3827,6 +3872,11 @@ namespace Rococo
 					case DELTA_DIVIDE:
 						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, bc);
 						ce.Builder.Assembler().Append_IntDivide(VM::REGISTER_D5, bc, VM::REGISTER_D4); // result ends in D4
+						break;
+					case DELTA_BITWISE_OR:
+					case DELTA_BITWISE_CLEAR:
+						ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D4, value, bc);
+						Append_BitwiseDeltaOp(ce, (DeltaFunction)opIndex, bc); // result ends in D4
 						break;
 					}
 				}
@@ -3882,6 +3932,10 @@ namespace Rococo
 						break;
 					case DELTA_DIVIDE:
 						ce.Builder.Assembler().Append_IntDivide(VM::REGISTER_D5, bc, VM::REGISTER_D4); // result ends in D4
+						break;
+					case DELTA_BITWISE_OR:
+					case DELTA_BITWISE_CLEAR:
+						Append_BitwiseDeltaOp(ce, (DeltaFunction)opIndex, bc); // result ends in D4
 						break;
 					}
 				}

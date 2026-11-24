@@ -457,6 +457,9 @@ namespace Rococo {
 
 			// Retrieve the enum value, and return true, any problems and it returns false
 			[[nodiscard]] virtual bool TryGetEnumValue(cstr name, OUT int64& value) const = 0;
+
+			// True if this is a strong type that declares enum values, e.g. (strong Day (Int32)) with (enum Day ...). Plain strong types, e.g. (strong Joules (Float64)), return false
+			[[nodiscard]] virtual bool IsEnumType() const = 0;
 		};
 
 		inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; }

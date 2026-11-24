@@ -160,6 +160,12 @@ namespace Rococo { namespace Parse
 {
 	SEXYUTIL_API SexyVarType GetLiteralType(cstr candidate)
 	{
+		if (candidate[0] == '.' && ((candidate[1] >= 'A' && candidate[1] <= 'Z') || (candidate[1] >= 'a' && candidate[1] <= 'z')))
+		{
+			// A leading-dot enum constant, such as .Exec, is not a literal, even though the float parser reads .E as the start of an exponent
+			return SexyVarType_Bad;
+		}
+
 		int32 iValue;
 		if (TryParseDecimal(iValue, candidate) == PARSERESULT_GOOD)
 		{

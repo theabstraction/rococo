@@ -617,6 +617,11 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return true;
 		}
 
+		bool IsEnumType() const override
+		{
+			return IsStrongType() && !enums.empty();
+		}
+
 		bool IsNullType() const override
 		{
 			return isNullType;
