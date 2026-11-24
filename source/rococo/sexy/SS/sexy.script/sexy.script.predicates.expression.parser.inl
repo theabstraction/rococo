@@ -784,7 +784,13 @@ namespace Rococo
          }
 
 		 AddArchiveRegister(ce, VM::REGISTER_D7 + A, VM::REGISTER_D7 + A, GetBitCount(type));
-		 TryCompileArithmeticExpression(ce, s, true, type);
+
+		 // An enum variable compared with an enum expression, e.g. (a == (Access@Read | .Write)), takes the expression's enum type from the variable
+		 MemberDef def;
+		 if (!ce.Builder.TryGetVariableByName(OUT def, varName) || !TryCompileEnumArithmeticExpression(ce, s, *def.ResolvedType))
+		 {
+			 TryCompileArithmeticExpression(ce, s, true, type);
+		 }
 		 ce.Builder.PopLastVariables(1,true);
 
          ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + B, GetBitCount(type));

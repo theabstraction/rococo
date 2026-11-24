@@ -467,6 +467,7 @@ namespace Rococo
 
         bool TryCompileAssignArchetype(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& elementType, bool allowClosures);
         bool TryCompileArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool expected, SexyVarType type);
+        bool TryCompileEnumArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& targetType);
 
         void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, Compiler::IFunction& callee, SexyVarType returnType, const Compiler::IArchetype* returnArchetype, const Compiler::IStructure* returnTypeStruct);
         Compiler::IProgramObject& GetProgramObject(CScript& script);

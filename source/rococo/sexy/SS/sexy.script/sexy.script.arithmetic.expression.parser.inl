@@ -364,8 +364,163 @@ namespace Rococo
 			Throw(src, "Unhandled operator in arithmetic expression");
 		}
 
+		// Bitwise OR on strong enums. In (a | b) both operands are of the same enum type E, and so is the result, which need not be a named member of E,
+		// as enums do not restrict assignment. Operands are E variables and members, E@X constants, .X constants (which take the type E), and nested (a | b).
+		void CompileEnumBinaryExpression(CCompileEnvironment& ce, cr_sex s, const IStructure& enumType);
+
+		void CompileEnumOperand(CCompileEnvironment& ce, cr_sex s, const IStructure& enumType)
+		{
+			if (IsAtomic(s))
+			{
+				if (TryCompileEnumLiteralToRegister(ce, s, enumType, VM::REGISTER_D7))
+				{
+					return;
+				}
+
+				cstr token = s.c_str();
+
+				MemberDef def;
+				if (ce.Builder.TryGetVariableByName(OUT def, token))
+				{
+					if (def.ResolvedType != &enumType)
+					{
+						Throw(s, "%s is of type %s, but the enum expression is of type %s", token, GetFriendlyName(*def.ResolvedType), GetFriendlyName(enumType));
+					}
+
+					ce.Builder.AssignVariableToRegister(token, VM::REGISTER_D7);
+					return;
+				}
+
+				if (IsPrimitiveType(Parse::GetLiteralType(token)))
+				{
+					Throw(s, "%s is a literal, which does not convert to enum type %s. Use a constant such as %s@<Value>", token, GetFriendlyName(enumType), GetFriendlyName(enumType));
+				}
+
+				ThrowTokenNotFound(s, token, ce.Builder.Owner().Name(), "variable");
+			}
+			else if (IsCompound(s))
+			{
+				if (s.NumberOfElements() == 1)
+				{
+					CompileEnumOperand(ce, s[0], enumType);
+					return;
+				}
+
+				if (s.NumberOfElements() == 3 && IsArithmeticOperator(s[1]))
+				{
+					CompileEnumBinaryExpression(ce, s, enumType);
+					return;
+				}
+			}
+
+			Throw(s, "Expecting a constant or variable of enum type %s, or a nested (a | b) expression", GetFriendlyName(enumType));
+		}
+
+		// Compiles (a | b) of enum type E to D7
+		void CompileEnumBinaryExpression(CCompileEnvironment& ce, cr_sex s, const IStructure& enumType)
+		{
+			ARITHMETIC_OP op = GetArithmeticOp(s[1]);
+			if (op != ARITHMETIC_OP_BITWISE_OR)
+			{
+				Throw(s[1], "Only | is defined for enum type %s", GetFriendlyName(enumType));
+			}
+
+			SexyVarType type = enumType.VarType();
+			if (type != SexyVarType_Int32 && type != SexyVarType_Int64)
+			{
+				Throw(s, "| requires an integer enum type, but %s is based on %s", GetFriendlyName(enumType), GetTypeName(type));
+			}
+
+			BITCOUNT bits = GetBitCount(type);
+
+			CompileEnumOperand(ce, s[0], enumType);
+			AddArchiveRegister(ce, VM::REGISTER_D7, VM::REGISTER_D8, bits);
+			CompileEnumOperand(ce, s[2], enumType);
+			ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D7 + 2, bits);
+			ce.Builder.PopLastVariables(1, true);
+			AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, VM::REGISTER_D7);
+		}
+
+		// If s is (a OP b) and the target is a strong type, compiles s as an enum expression to D7 and returns true. Only | is accepted for OP.
+		bool TryCompileEnumArithmeticExpression(CCompileEnvironment& ce, cr_sex s, const IStructure& targetType)
+		{
+			if (!targetType.IsStrongType() || !IsCompound(s) || s.NumberOfElements() != 3 || !IsArithmeticOperator(s[1]))
+			{
+				return false;
+			}
+
+			CompileEnumBinaryExpression(ce, s, targetType);
+			return true;
+		}
+
+		// Returns the enum type named by the first E@X constant or strong typed variable found in s, which may be nested (a | b) expressions, or nullptr if there is none
+		const IStructure* GetEnumTypeOfExpression(CCompileEnvironment& ce, cr_sex s)
+		{
+			if (IsAtomic(s))
+			{
+				cstr token = s.c_str();
+				if (FindChar(token, '@') != nullptr)
+				{
+					const IStructure* enumType;
+					cstr enumKey;
+					TryParseEnumConstantText(ce, s, token, OUT enumType, OUT enumKey);
+					return enumType;
+				}
+
+				MemberDef def;
+				if (ce.Builder.TryGetVariableByName(OUT def, token) && def.ResolvedType->IsStrongType())
+				{
+					return def.ResolvedType;
+				}
+			}
+			else if (IsCompound(s))
+			{
+				if (s.NumberOfElements() == 1)
+				{
+					return GetEnumTypeOfExpression(ce, s[0]);
+				}
+
+				if (s.NumberOfElements() == 3 && IsArithmeticOperator(s[1]))
+				{
+					const IStructure* enumType = GetEnumTypeOfExpression(ce, s[0]);
+					return enumType != nullptr ? enumType : GetEnumTypeOfExpression(ce, s[2]);
+				}
+			}
+
+			return nullptr;
+		}
+
+		// An enum (a | b) assigned to a plain integer yields its underlying value. An Int32 enum widens to Int64, but an Int64 enum does not narrow to Int32
+		void CompileEnumBitwiseOrToPrimitive(CCompileEnvironment& ce, cr_sex s, const IStructure& enumType, SexyVarType type)
+		{
+			CompileEnumBinaryExpression(ce, s, enumType);
+
+			SexyVarType enumVarType = enumType.VarType();
+			if (enumVarType == type)
+			{
+				return;
+			}
+
+			if (enumVarType == SexyVarType_Int32 && type == SexyVarType_Int64)
+			{
+				// Sign extend D7 from 32 to 64 bits via D5 and D6
+				AddSymbol(ce.Builder, "sign extend D7 to 64 bits");
+				ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D5, BITCOUNT_32);
+				ce.Builder.Assembler().Append_ShiftLeft(VM::REGISTER_D5, BITCOUNT_64, 32);
+				ce.Builder.Assembler().Append_ShiftRight(VM::REGISTER_D6, BITCOUNT_64, 32);
+				return;
+			}
+
+			Throw(s, "The | expression is of enum type %s, based on %s, which does not convert to %s", GetFriendlyName(enumType), GetTypeName(enumVarType), GetTypeName(type));
+		}
+
 		void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, SexyVarType type)
 		{
+			if (*id == '.')
+			{
+				Throw(parent, "Cannot infer the enum type of %s here. Qualify it, e.g. <EnumType>@%s", id, id + 1);
+			}
+
 			if (FindChar(id, '@') != nullptr)
 			{
 				// A qualified enum constant, e.g. Day@Friday. Parsing it reports a malformed constant, an unknown type or an unknown value
@@ -939,6 +1094,18 @@ namespace Rococo
 				if (IsArithmeticOperator(opExpr))
 				{
 					ARITHMETIC_OP op = GetArithmeticOp(opExpr);
+
+					if (op == ARITHMETIC_OP_BITWISE_OR)
+					{
+						// (a | b) of an enum type, assigned to a plain integer
+						const IStructure* enumType = GetEnumTypeOfExpression(ce, s);
+						if (enumType != nullptr)
+						{
+							CompileEnumBitwiseOrToPrimitive(ce, s, *enumType, type);
+							return true;
+						}
+					}
+
 					// Add code to evaluate an expression and copy the result to the tempIndex
 					CompileBinaryArithmeticExpression(ce, s, left, op, right, type);
 					return true;

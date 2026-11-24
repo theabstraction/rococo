@@ -840,6 +840,14 @@ namespace Rococo
 				return;
 			}
 
+			// An enum expression, e.g. (Access a = (Access@Read | .Write))
+			if (TryCompileEnumArithmeticExpression(ce, sourceValue, varStruct))
+			{
+				ce.Builder.AddSymbol(symbol);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, targetVariable);
+				return;
+			}
+
 			bool negate = false;
 
 			switch(targetType)
@@ -1092,6 +1100,11 @@ namespace Rococo
 					{
 						Throw(src, "Cannot assign %s to %s. The member is not a strong enum type", src[0].c_str(), variableName);
 					}
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, variableName);
+				}
+				else if (TryCompileEnumArithmeticExpression(ce, src, memberType))
+				{
+					// Enum expression, e.g. (Perm p = (Access@Read | Access@Write) 9)
 					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, variableName);
 				}
 				else
