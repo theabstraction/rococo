@@ -3211,6 +3211,13 @@ namespace Rococo
 
 				if (type == &ce.StructArray())
 				{
+					if (s.NumberOfElements() == 3)
+					{
+						// Shorthand for (a.Set <index> <value>), e.g. (days 0 .Friday)
+						CompileArraySet(ce, s, fname);
+						return true;
+					}
+
 					Throw(s, "A directive that consists of an array name followed by optional arguments is illegal");
 				}
 

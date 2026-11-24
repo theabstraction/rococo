@@ -622,6 +622,18 @@ namespace Rococo { namespace Compiler { namespace Impl
 			return IsStrongType() && !enums.empty();
 		}
 
+		void EnumerateEnums(ICallback<const int64, cstr>& onEnum) const override
+		{
+			for (auto& i : enums)
+			{
+				// The map key holds a persistent copy of the name, so the pointer is valid for the lifetime of the structure
+				if (onEnum(i.second, (cstr)i.first) == CALLBACK_CONTROL_BREAK)
+				{
+					break;
+				}
+			}
+		}
+
 		bool IsNullType() const override
 		{
 			return isNullType;

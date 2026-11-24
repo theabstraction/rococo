@@ -2091,6 +2091,175 @@ namespace Rococo
 			ce.Builder.Assembler().Append_SetStackFrameImmediate(ptrDef.SFOffset, ptr, BITCOUNT_POINTER);		
 		}
 
+		bool IsToStringKeyword(cr_sex s)
+		{
+			return IsAtomic(s) && AreEqual(s.String(), "tostring");
+		}
+
+		// (tostring <enum-variable>) puts in D7 the IString naming the enum value that matches the variable's value, or the null IString if no enum value matches.
+		// One persistent string constant is made per enum value name at compile time; at run time an inline compare chain picks the matching one.
+		void CompileEnumToString(CCompileEnvironment& ce, cr_sex sValue)
+		{
+			if (!IsAtomic(sValue))
+			{
+				Throw(sValue, "Expecting (IString <name> = tostring <enum-variable>)");
+			}
+
+			cstr name = sValue.c_str();
+
+			MemberDef def;
+			if (!ce.Builder.TryGetVariableByName(OUT def, name))
+			{
+				Throw(sValue, "tostring: unknown variable %s. Expecting a variable or field of an enum type", name);
+			}
+
+			const IStructure& type = *def.ResolvedType;
+			if (!type.IsEnumType())
+			{
+				if (type.IsStrongType())
+				{
+					Throw(sValue, "tostring requires an enum type, but %s has no enum values", GetFriendlyName(type));
+				}
+
+				Throw(sValue, "tostring requires a variable or field of an enum type, but %s is of type %s", name, GetFriendlyName(type));
+			}
+
+			SexyVarType varType = type.VarType();
+			if (varType != SexyVarType_Int32 && varType != SexyVarType_Int64)
+			{
+				Throw(sValue, "tostring requires an integer enum type, but %s is based on %s", GetFriendlyName(type), GetTypeName(varType));
+			}
+
+			BITCOUNT bits = GetBitCount(varType);
+
+			struct EnumCollector : ICallback<const int64, cstr>
+			{
+				std::vector<std::pair<int64, cstr>> items;
+
+				CALLBACK_CONTROL operator()(const int64& value, cstr enumName) override
+				{
+					items.push_back(std::make_pair(value, enumName));
+					return CALLBACK_CONTROL_CONTINUE;
+				}
+			} collector;
+
+			type.EnumerateEnums(collector);
+
+			// Sort by value, then name, so that when two names share a value the alphabetically first one is chosen, whatever the hash order
+			std::sort(collector.items.begin(), collector.items.end(), [](const std::pair<int64, cstr>& a, const std::pair<int64, cstr>& b)
+				{
+					if (a.first != b.first) return a.first < b.first;
+					return strcmp(a.second, b.second) < 0;
+				});
+
+			auto& assembler = ce.Builder.Assembler();
+
+			ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D8); // D8 = the enum value
+
+			VariantValue nullString;
+			nullString.vPtrValue = ce.Object.Common().SysTypeIString().UniversalNullInstance()->pVTables;
+			assembler.Append_SetRegisterImmediate(VM::REGISTER_D7, nullString, BITCOUNT_POINTER); // D7 = the null string, unless a value matches
+
+			for (size_t i = 0; i < collector.items.size(); i++)
+			{
+				int64 value = collector.items[i].first;
+				cstr enumName = collector.items[i].second;
+
+				if (i > 0 && collector.items[i - 1].first == value)
+				{
+					continue; // Duplicate value, the first name wins
+				}
+
+				VariantValue v;
+				if (bits == BITCOUNT_32)
+				{
+					v.int32Value = (int32)value;
+				}
+				else
+				{
+					v.int64Value = value;
+				}
+
+				assembler.Append_SubtractImmediate(VM::REGISTER_D8, bits, VM::REGISTER_D9, v); // D9 = D8 - value
+				assembler.Append_Test(VM::REGISTER_D9, bits);
+
+				size_t branchPos = assembler.WritePosition();
+				assembler.Append_BranchIf(CONDITION_IF_NOT_EQUAL, 0);
+
+				CStringConstant* sc = CreateStringConstant(ce.Script, StringLength(enumName), enumName, &sValue);
+				VariantValue ptr;
+				ptr.vPtrValue = sc->header.pVTables;
+				assembler.Append_SetRegisterImmediate(VM::REGISTER_D7, ptr, BITCOUNT_POINTER);
+
+				size_t nextPos = assembler.WritePosition();
+				assembler.SetWriteModeToOverwrite(branchPos);
+				assembler.Append_BranchIf(CONDITION_IF_NOT_EQUAL, (int)(nextPos - branchPos));
+				assembler.SetWriteModeToAppend();
+			}
+		}
+
+		void ThrowIfNotIStringTargetOfToString(CCompileEnvironment& ce, cr_sex s, cstr targetName, const IStructure& targetType)
+		{
+			if (targetType != ce.Object.Common().SysTypeIString().NullObjectType())
+			{
+				Throw(s, "tostring produces an IString, but %s is of type %s", targetName, GetFriendlyName(targetType));
+			}
+		}
+
+		// (IString <id> = tostring <enum-variable>)
+		bool TryCompileAsToStringDeclaration(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
+		{
+			if (decl.NumberOfElements() < 4 || !IsToStringKeyword(decl[3]))
+			{
+				return false;
+			}
+
+			ThrowIfNotIStringTargetOfToString(ce, decl, id, type);
+
+			if (decl.NumberOfElements() != 5)
+			{
+				Throw(decl, "Expecting (IString <name> = tostring <enum-variable>)");
+			}
+
+			AddSymbol(ce.Builder, "IString %s = tostring %s", id, decl[4].c_str());
+			AddInterfaceVariable(ce, NameString::From(id), type);
+			CompileEnumToString(ce, decl[4]);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, id);
+			return true;
+		}
+
+		// (<IString-variable> = tostring <enum-variable>)
+		bool TryCompileAsToStringAssignment(CCompileEnvironment& ce, cr_sex s)
+		{
+			if (s.NumberOfElements() < 3 || !IsAtomicMatch(s[1], "=") || !IsToStringKeyword(s[2]))
+			{
+				return false;
+			}
+
+			if (s.NumberOfElements() != 4 || !IsAtomic(s[0]))
+			{
+				Throw(s, "Expecting (<IString-variable> = tostring <enum-variable>)");
+			}
+
+			cstr target = s[0].c_str();
+
+			MemberDef targetDef;
+			if (!ce.Builder.TryGetVariableByName(OUT targetDef, target))
+			{
+				Throw(s[0], "tostring: unknown target variable %s", target);
+			}
+
+			ThrowIfNotIStringTargetOfToString(ce, s, target, *targetDef.ResolvedType);
+
+			AddSymbol(ce.Builder, "%s = tostring %s", target, s[3].c_str());
+			CompileEnumToString(ce, s[3]);
+			ce.Builder.Assembler().Append_MoveRegister(VM::REGISTER_D7, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 = new string
+			ce.Builder.AssignVariableToRegister(target, VM::REGISTER_D5); // D5 = old string
+			ce.Builder.Append_UpdateRefsOnSourceAndTarget();
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4, target);
+			return true;
+		}
+
 		bool TryCompileAsStringConstantAssignment(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			if (ce.Object.Common().SysTypeIString().NullObjectType() != type)  return false;
@@ -2313,6 +2482,11 @@ namespace Rococo
 		void CompileAsVariableDeclarationWithAssignment(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			// (<type> <id> = <...>)
+
+			if (TryCompileAsToStringDeclaration(ce, type, id, decl))
+			{
+				return;
+			}
 
 
 			if (type.Prototype().IsClass)
@@ -4026,6 +4200,9 @@ namespace Rococo
 			}
 			else
 			{
+				if (TryCompileAsToStringAssignment(ce, s))
+					return;
+
 				if (TryCompileAsTrivialAssignment(ce, s))
 					return;
 

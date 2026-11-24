@@ -460,6 +460,9 @@ namespace Rococo {
 
 			// True if this is a strong type that declares enum values, e.g. (strong Day (Int32)) with (enum Day ...). Plain strong types, e.g. (strong Joules (Float64)), return false
 			[[nodiscard]] virtual bool IsEnumType() const = 0;
+
+			// Invokes onEnum(value, name) for each enum value of the type, in no particular order. The name pointers persist for the lifetime of the structure
+			virtual void EnumerateEnums(ICallback<const int64, cstr>& onEnum) const = 0;
 		};
 
 		inline bool operator == (const IStructure& a, const IStructure& b) { return &a == &b; }

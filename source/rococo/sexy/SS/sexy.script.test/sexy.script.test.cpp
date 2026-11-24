@@ -7142,6 +7142,393 @@ R"((namespace EntryPoint)
 		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Cannot infer the enum type of .Read");
 	}
 
+	// Preamble shared by the array shorthand and tostring tests: Day (Monday 1 .. Friday 5), and an unrelated Other
+	static cstr ENUM_DAY_OTHER_PREAMBLE = R"(
+			(strong Day (Int32))
+			(alias Day Sys.Type.Day)
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(strong Other (Int32))
+			(alias Other Sys.Type.Other)
+			(enum Sys.Type.Other
+				(X 1)
+			)
+
+			(strong Access (Int32))
+			(alias Access Sys.Type.Access)
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+		)";
+
+	static int32 RunEnumPreambleTest(IPublicScriptSystem& ss, cstr body, cstr name)
+	{
+		char full[8192];
+		SafeFormat(full, sizeof(full), "%s%s\n(namespace EntryPoint)(alias Main EntryPoint.Main)", ENUM_DAY_OTHER_PREAMBLE, body);
+		return RunEnumQualifiedTest(ss, full, name);
+	}
+
+	static void RunEnumPreambleFailTest(IPublicScriptSystem& ss, cstr body, cstr name, cstr expectedFragment)
+	{
+		char full[8192];
+		SafeFormat(full, sizeof(full), "%s%s\n(namespace EntryPoint)(alias Main EntryPoint.Main)", ENUM_DAY_OTHER_PREAMBLE, body);
+		RunEnumQualifiedFailTest(ss, full, name, expectedFragment);
+	}
+
+	void TestEnumArrayShorthandDot(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(array Day days 4)
+				(days.Push Day@Monday)
+				(days.Push Day@Monday)
+				(days 0 .Friday)
+				(days 1 .Wednesday)
+				(Day d0 = (days 0))
+				(Day d1 = (days 1))
+				(Int32 a = d0.Value)
+				(Int32 b = d1.Value)
+				(result = ((a * 10) + b))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 53);
+	}
+
+	void TestEnumArrayShorthandQualified(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(array Day days 4)
+				(days.Push Day@Monday)
+				(days.Push Day@Monday)
+				(days 0 Day@Friday)
+				(days 1 Sys.Type.Day@Tuesday)
+				(Day d0 = (days 0))
+				(Day d1 = (days 1))
+				(Int32 a = d0.Value)
+				(Int32 b = d1.Value)
+				(result = ((a * 10) + b))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 52);
+	}
+
+	void TestEnumArrayShorthandWrongEnum(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(array Day days 4)
+				(days.Push Day@Monday)
+				(days 0 Other@X)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Type mismatch: Other@X is of type");
+	}
+
+	void TestArrayShorthandSetInt32(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(array Int32 a 4)
+				(a.Push 1)
+				(a.Push 2)
+				(a 1 (3 * 7))
+				(a 0 4)
+				(result = (((a 0) * 100) + (a 1)))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 421);
+	}
+
+	void TestEnumToStringNamed(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(IString s = tostring day)
+				(Int32 diff = (Sys.Type.Strings.Compare s "Friday"))
+				(if (diff == 0) (result = s.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 6);
+	}
+
+	void TestEnumToStringAllValues(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Matches (Day day) (IString expected) -> (Int32 n):
+				(IString s = tostring day)
+				(Int32 diff = (Sys.Type.Strings.Compare s expected))
+				(if (diff == 0) (n = 1) else (n = 0))
+			)
+
+			(function Main -> (Int32 result):
+				(result = 0)
+				(result += (Matches Day@Monday "Monday"))
+				(result += (Matches Day@Tuesday "Tuesday"))
+				(result += (Matches Day@Wednesday "Wednesday"))
+				(result += (Matches Day@Thursday "Thursday"))
+				(result += (Matches Day@Friday "Friday"))
+				(result += (Matches Day@Friday "Monday"))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 5);
+	}
+
+	void TestEnumToStringNoName(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Access a = (Access@Read | Access@Write))
+				(IString s = tostring a)
+				(result = s.Length)
+				(if (s ?) (result = (result + 100)))
+				(IString n)
+				(Int32 diff = (Sys.Type.Strings.Compare s n))
+				(if (diff != 0) (result = (result + 1000)))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 0);
+	}
+
+	void TestEnumToStringNamedIsNotNull(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Access a = .Exec)
+				(IString s = tostring a)
+				(result = s.Length)
+				(if (s ?) (result = (result + 100)))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 104);
+	}
+
+	void TestEnumToStringSignBit(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Access a = .Sign)
+				(IString s = tostring a)
+				(Int32 diff = (Sys.Type.Strings.Compare s "Sign"))
+				(if (diff == 0) (result = s.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 4);
+	}
+
+	void TestEnumToStringInt64(IPublicScriptSystem& ss)
+	{
+		// Huge shares its low 32 bits with Zero, so a 32-bit compare would wrongly give "Zero", and One|Huge, which has no name, shares its low 32 bits with One
+		cstr body = R"(
+			(strong Big (Int64))
+			(alias Big Sys.Type.Big)
+			(enum Sys.Type.Big
+				(Zero 0)
+				(One 1)
+				(Huge 4294967296)
+			)
+
+			(function Main -> (Int32 result):
+				(Big b = .Huge)
+				(IString s = tostring b)
+				(Int32 diff = (Sys.Type.Strings.Compare s "Huge"))
+				(if (diff == 0) (result = s.Length) else (result = -1))
+
+				(Big z = .Zero)
+				(IString t = tostring z)
+				(Int32 diff2 = (Sys.Type.Strings.Compare t "Zero"))
+				(if (diff2 == 0) (result = (result + (10 * t.Length))) else (result = -1))
+
+				(Big none = (Big@One | Big@Huge))
+				(IString u = tostring none)
+				(result = (result + (100 * u.Length)))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 44);
+	}
+
+	void TestEnumToStringField(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(struct Meeting
+				(Int32 id)
+				(Day day)
+			)
+
+			(function Main -> (Int32 result):
+				(Meeting m = 7 Day@Wednesday)
+				(IString s = tostring m.day)
+				(Int32 diff = (Sys.Type.Strings.Compare s "Wednesday"))
+				(if (diff == 0) (result = s.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 9);
+	}
+
+	void TestEnumToStringAssign(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(IString s = "placeholder")
+				(s = tostring day)
+				(Int32 diff = (Sys.Type.Strings.Compare s "Monday"))
+				(if (diff == 0) (result = s.Length) else (result = -1))
+
+				(day = .Thursday)
+				(s = tostring day)
+				(Int32 diff2 = (Sys.Type.Strings.Compare s "Thursday"))
+				(if (diff2 == 0) (result = (result + (10 * s.Length))) else (result = -1))
+
+				(Access a = (Access@Read | Access@Exec))
+				(s = tostring a)
+				(result = (result + (100 * s.Length)))
+				(if (s ?) (result = -1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 86);
+	}
+
+	void TestEnumToStringPlainStrongRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(strong Id (Int32))
+			(function Main -> (Int32 result):
+				(Id id = 3)
+				(IString s = tostring id)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires an enum type, but Id has no enum values");
+	}
+
+	void TestEnumToStringJoulesRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(strong Joules (Float64))
+			(function Main -> (Int32 result):
+				(Joules j = 1000)
+				(IString s = tostring j)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires an enum type, but Joules has no enum values");
+	}
+
+	void TestEnumToStringIntRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int32 i = 3)
+				(IString s = tostring i)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires a variable or field of an enum type, but i is of type Int32");
+	}
+
+	void TestEnumToStringFloatRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Float32 f = 3)
+				(IString s = tostring f)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring requires a variable or field of an enum type, but f is of type Float32");
+	}
+
+	void TestEnumToStringUnknownRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IString s = tostring nosuchday)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring: unknown variable nosuchday");
+	}
+
+	void TestEnumToStringConstantRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IString s = tostring Day@Friday)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring: unknown variable Day@Friday");
+	}
+
+	void TestEnumToStringTargetRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(Int32 x = tostring day)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring produces an IString, but x is of type Int32");
+	}
+
+	void TestEnumToStringAssignTargetRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(Day other = .Monday)
+				(other = tostring day)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "tostring produces an IString, but other is of type Day");
+	}
+
+	void TestEnumToStringMissingOperand(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IString s = tostring)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (IString <name> = tostring <enum-variable>)");
+	}
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -23277,6 +23664,27 @@ R"(
 		TEST(TestEnumTernaryLiteral);
 		TEST(TestEnumTernaryIntVariable);
 		TEST(TestEnumTernaryUnqualifiedToInt);
+		TEST(TestEnumArrayShorthandDot);
+		TEST(TestEnumArrayShorthandQualified);
+		TEST(TestEnumArrayShorthandWrongEnum);
+		TEST(TestArrayShorthandSetInt32);
+		TEST(TestEnumToStringNamed);
+		TEST(TestEnumToStringAllValues);
+		TEST(TestEnumToStringNoName);
+		TEST(TestEnumToStringNamedIsNotNull);
+		TEST(TestEnumToStringSignBit);
+		TEST(TestEnumToStringInt64);
+		TEST(TestEnumToStringField);
+		TEST(TestEnumToStringAssign);
+		TEST(TestEnumToStringPlainStrongRejected);
+		TEST(TestEnumToStringJoulesRejected);
+		TEST(TestEnumToStringIntRejected);
+		TEST(TestEnumToStringFloatRejected);
+		TEST(TestEnumToStringUnknownRejected);
+		TEST(TestEnumToStringConstantRejected);
+		TEST(TestEnumToStringTargetRejected);
+		TEST(TestEnumToStringAssignTargetRejected);
+		TEST(TestEnumToStringMissingOperand);
 
 		TEST(TestEnumByCPP);
 
