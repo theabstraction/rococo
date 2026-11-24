@@ -157,7 +157,7 @@ namespace
 
 		typedef std::vector<ParseException> TExceptions;
 		TExceptions exceptions;
-		std::string lastWritten; // The last message the VM logged, e.g. an exception that ended Execute with EXECUTERESULT_THROWN
+		HString lastWritten; // The last message the VM logged, e.g. an exception that ended Execute with EXECUTERESULT_THROWN
 	} s_logger;
 
 	void Abort()
@@ -8560,8 +8560,8 @@ R"(
 		};
 
 		// The scheduler error either escapes Execute as an IException or is logged and ends Main with EXECUTERESULT_THROWN
-		std::string report;
-		s_logger.lastWritten.clear();
+		HString report;
+		s_logger.lastWritten = HString();
 		try
 		{
 			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
