@@ -3477,6 +3477,324 @@ void MainProtected3(HMODULE hLib)
 	}
 }
 
+// Package tests. These build a throwaway project, <temp>\sexystudio.test.packages\, with its own sexystudio.config.sexml that selects one package,
+// !packages/sexystudio_test_1000.sxyz. The package is written here in the Rococo.Package v1.0.0.0 format that rococo.packager produces,
+// so no binary fixture is needed (and *.sxyz is git-ignored). Everything the package declares is only reachable through the package
+static cstr PACKAGE_TEST_PING_PATH = "!packages/sexystudio_test_1000.sxyz";
+
+static void WriteBinaryFile(crwstr path, const char* data, size_t length)
+{
+	FILE* fp = nullptr;
+	if (_wfopen_s(&fp, path, L"wb") != 0 || !fp)
+	{
+		Throw(0, "%s: could not create %ls", __ROCOCO_FUNCTION__, path);
+	}
+
+	size_t written = fwrite(data, 1, length, fp);
+	fclose(fp);
+
+	if (written != length)
+	{
+		Throw(0, "%s: could not write %ls", __ROCOCO_FUNCTION__, path);
+	}
+}
+
+static void MakePackageTestProject(WideFilePath& contentDir)
+{
+	WideFilePath tempDir;
+	if (!GetTempPathW(tempDir.CAPACITY, tempDir.buf))
+	{
+		Throw(GetLastError(), "%s: GetTempPathW failed", __ROCOCO_FUNCTION__);
+	}
+
+	Format(contentDir, L"%lssexystudio.test.packages\\", tempDir.buf);
+	CreateDirectoryW(contentDir, NULL);
+
+	WideFilePath packagesDir;
+	Format(packagesDir, L"%lspackages\\", contentDir.buf);
+	CreateDirectoryW(packagesDir, NULL);
+
+	cstr config =
+		R"<CONFIG>((Directories
+	(content "$HERE$")
+	(project "--any--")
+)
+(Packages
+	(#List selected-packages
+		"!packages/sexystudio_test_1000.sxyz"
+	)
+)
+)<CONFIG>";
+
+	WideFilePath configPath;
+	Format(configPath, L"%lssexystudio.config.sexml", contentDir.buf);
+	WriteBinaryFile(configPath, config, strlen(config));
+
+	cstr packagedSource =
+		R"<CODE>((namespace Sys.SexyStudio.PackageTest)
+
+(strong Shade (Int32))
+
+(alias Shade Sys.SexyStudio.PackageTest.Shade)
+
+(enum Shade
+	Light
+	Dark
+	Twilight
+)
+
+(function PackagedOnlyFunction (Int32 x) -> (Int32 y):
+	(y = x)
+)
+
+(alias PackagedOnlyFunction Sys.SexyStudio.PackageTest.PackagedOnlyFunction)
+)<CODE>";
+
+	// Files in the root of a package are not enumerated by the database, so the source goes into a sub-directory, which rococo.packager requires to be capitalized
+	cstr packagedFile = "SexyStudioTest/package_test.sxy";
+	size_t sourceLength = strlen(packagedSource);
+
+	char header[512];
+	int headerLength = SafeFormat(header, sizeof header, "Rococo.Package:v1.0.0.0\nHeaderLength:%8u\nStringFormat:UTF8\nByteOrder:AGEM\nFiles:1\n\n%s\t%llu\n\n", 0u, packagedFile, (unsigned long long) sourceLength);
+	headerLength = SafeFormat(header, sizeof header, "Rococo.Package:v1.0.0.0\nHeaderLength:%8u\nStringFormat:UTF8\nByteOrder:AGEM\nFiles:1\n\n%s\t%llu\n\n", (uint32) headerLength, packagedFile, (unsigned long long) sourceLength);
+
+	std::vector<char> package;
+	package.insert(package.end(), header, header + headerLength);
+	package.insert(package.end(), packagedSource, packagedSource + sourceLength);
+	package.push_back(0); // Each packaged file is followed by a null and a newline
+	package.push_back('\n');
+
+	WideFilePath packagePath;
+	Format(packagePath, L"%lssexystudio_test_1000.sxyz", packagesDir.buf);
+	WriteBinaryFile(packagePath, package.data(), package.size());
+}
+
+static void ValidatePackageContent(cstr testName, const ISexyDatabase& database, bool expectPresent)
+{
+	auto* e = database.FindEnum("Sys.SexyStudio.PackageTest.Shade");
+	auto* f = database.FindFunction("Sys.SexyStudio.PackageTest.PackagedOnlyFunction");
+
+	if (expectPresent)
+	{
+		if (!e)
+		{
+			Throw(0, "%s: expected the packaged enum Sys.SexyStudio.PackageTest.Shade to be in the database", testName);
+		}
+
+		if (e->NumberOfEntries() != 3)
+		{
+			Throw(0, "%s: expected 3 values in Sys.SexyStudio.PackageTest.Shade, found %llu", testName, (unsigned long long) e->NumberOfEntries());
+		}
+
+		if (!f)
+		{
+			Throw(0, "%s: expected the packaged function Sys.SexyStudio.PackageTest.PackagedOnlyFunction to be in the database", testName);
+		}
+
+		if (!f->LocalFunction())
+		{
+			Throw(0, "%s: Sys.SexyStudio.PackageTest.PackagedOnlyFunction was not resolved to its local definition", testName);
+		}
+	}
+	else
+	{
+		if (e || f)
+		{
+			Throw(0, "%s: expected no packaged content in the database, found %s%s", testName, e ? "the enum Shade " : "", f ? "the function PackagedOnlyFunction" : "");
+		}
+	}
+}
+
+// A config, as the IDE's project config would be, that selects the test package (or nothing)
+struct PackageTestConfig : IFactoryConfig
+{
+	HString package;
+	bool isSelected = true;
+
+	SearchPathDescAtom GetSearchPath(size_t index) const override
+	{
+		UNUSED(index);
+		return { nullptr, false };
+	}
+
+	cstr GetPackage(size_t index) const override
+	{
+		return (index == 0 && isSelected) ? package.c_str() : nullptr;
+	}
+
+	cstr GetProjectPath() const override
+	{
+		return "";
+	}
+
+	crwstr ConfigPath() const override
+	{
+		return nullptr;
+	}
+
+	void SetSearchPathActivity(size_t index, bool isActive) override
+	{
+		UNUSED(index);
+		UNUSED(isActive);
+	}
+
+	void SetPackageSelected(cstr pingPath, bool _isSelected) override
+	{
+		if (Eq(pingPath, package.c_str()))
+		{
+			isSelected = _isSelected;
+		}
+	}
+};
+
+// The database, with no IDE, no GUI and no package widget, loads the packages its config selects
+void TestHeadlessDatabaseLoadsConfiguredPackages()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	WideFilePath contentDir;
+	MakePackageTestProject(contentDir);
+
+	U8FilePath content;
+	Assign(content, contentDir);
+
+	PackageTestConfig config;
+	config.package = PACKAGE_TEST_PING_PATH;
+
+	AutoFree<ISexyDatabaseSupervisor> database = CreateSexyDatabase(config);
+	database->SetContentPath(content);
+
+	ValidatePackageContent(__ROCOCO_FUNCTION__, *database, true);
+
+	// Populating again without a Clear must not load the package a second time
+	database->PopulateViaSearchPaths();
+	ValidatePackageContent(__ROCOCO_FUNCTION__, *database, true);
+
+	// A package the config does not select is not loaded
+	config.isSelected = false;
+	database->Clear();
+	database->PopulateViaSearchPaths();
+	ValidatePackageContent(__ROCOCO_FUNCTION__, *database, false);
+}
+
+struct PackageTestEventHandler : ISexyStudioEventHandler
+{
+	bool TryOpenEditor(cstr filename, int lineNumber) override
+	{
+		UNUSED(filename);
+		UNUSED(lineNumber);
+		return false;
+	}
+
+	EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
+	{
+		UNUSED(topLevelParent);
+		return EIDECloseResponse::Shutdown;
+	}
+};
+
+// The IDE, on the first sync of a project whose config selects a package, loads that package, and completion sees it
+void TestIDELoadsConfiguredPackages()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	if (!factory)
+	{
+		Throw(0, "%s: no factory. pluginInit must run first", __ROCOCO_FUNCTION__);
+	}
+
+	WideFilePath contentDir;
+	MakePackageTestProject(contentDir);
+
+	U8FilePath content;
+	Assign(content, contentDir);
+
+	PackageTestEventHandler eventHandler;
+	AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+	instance->SetDirectoryContainingConfigFile(content);
+
+	ValidatePackageContent(__ROCOCO_FUNCTION__, instance->GetDatabase(), true);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Sys.SexyStudio.PackageTest.Shade shade = Sys.SexyStudio.PackageTest.Shade@
+)<CODE>";
+
+	FileDesc desc(file, '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	instance->Gaffer().UpdateAutoComplete(editor);
+
+	// Hand the IDE back to the content project before checking, so that closing it records the usual project in SexyStudio.Defaults
+	instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Light
+		Item: Dark
+		Item: Twilight
+		Show
+	)EXPECT");
+}
+
+// The IDE's project config is what selects packages: deselecting through it (as the package ticks now do) removes the package on the next populate,
+// and selecting it again brings it back. The widget plays no part, so this works without any GUI interaction
+void TestIDEPackageSelectionComesFromConfig()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	if (!factory)
+	{
+		Throw(0, "%s: no factory. pluginInit must run first", __ROCOCO_FUNCTION__);
+	}
+
+	WideFilePath contentDir;
+	MakePackageTestProject(contentDir);
+
+	U8FilePath content;
+	Assign(content, contentDir);
+
+	PackageTestEventHandler eventHandler;
+	AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+	instance->SetDirectoryContainingConfigFile(content);
+
+	auto& database = instance->GetDatabase();
+	ValidatePackageContent(__ROCOCO_FUNCTION__, database, true);
+
+	database.Config().SetPackageSelected(PACKAGE_TEST_PING_PATH, false);
+	database.Clear();
+	database.PopulateViaSearchPaths();
+
+	bool deselectedIsAbsent = database.FindEnum("Sys.SexyStudio.PackageTest.Shade") == nullptr;
+
+	database.Config().SetPackageSelected(PACKAGE_TEST_PING_PATH, true);
+	database.Clear();
+	database.PopulateViaSearchPaths();
+
+	bool reselectedIsPresent = database.FindEnum("Sys.SexyStudio.PackageTest.Shade") != nullptr;
+
+	// Leave the throwaway project's config as it was written, then hand the IDE back to the content project, so that closing it records the usual project in SexyStudio.Defaults
+	instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+
+	if (!deselectedIsAbsent)
+	{
+		Throw(0, "%s: a package deselected in the project config was still loaded", __ROCOCO_FUNCTION__);
+	}
+
+	if (!reselectedIsPresent)
+	{
+		Throw(0, "%s: a package selected again in the project config was not loaded", __ROCOCO_FUNCTION__);
+	}
+}
+
+void MainProtected4()
+{
+	TestHeadlessDatabaseLoadsConfiguredPackages();
+	TestIDELoadsConfiguredPackages();
+	TestIDEPackageSelectionComesFromConfig();
+}
+
+
 #include <rococo.debugging.h>
 
 int main()
@@ -3505,6 +3823,7 @@ int main()
 		MainProtected(hLib);
 		MainProtected2(hLib);
 		MainProtected3(hLib);
+		MainProtected4();
 		Rococo::Debugging::ValidateCriticalLog();
 	}
 	catch (IException& ex)

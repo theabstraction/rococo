@@ -133,6 +133,38 @@ namespace Rococo::SexyStudio
 		}
 	}
 
+	SEXYSTUDIO_API void PopulateWithConfiguredPackages(ISexyDatabase& database, IPackageErrorHandler* onError)
+	{
+		for (size_t i = 0;; i++)
+		{
+			cstr pingPath = database.Config().GetPackage(i);
+			if (!pingPath)
+			{
+				break;
+			}
+
+			if (*pingPath != '!')
+			{
+				// Packages are named by ping path, as the IDE's package view lists them. Anything else is not a package
+				continue;
+			}
+
+			try
+			{
+				U8FilePath sysPath;
+				database.PingPathResolver().PingPathToSysPath(pingPath, sysPath);
+				PopulateTreeWithPackage(sysPath, database); // Skips a package already marked as loaded, so there is no double-loading
+			}
+			catch (IException& ex)
+			{
+				if (onError)
+				{
+					onError->OnPackageError(pingPath, ex);
+				}
+			}
+		}
+	}
+
 	void BuildDatabaseFromProject(ISexyDatabase& database, cr_sex sProjectRoot, cstr projectPath, bool addNativeDeclarations)
 	{
 		database.UpdateFile_SXY(projectPath);

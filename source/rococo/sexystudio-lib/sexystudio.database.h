@@ -36,10 +36,15 @@ namespace Rococo::SexyStudio
 
 	ROCOCO_INTERFACE IFactoryConfig : ISearchPaths
 	{
+		// The ping paths of the packages the project selects, e.g. !packages/mhost_1000.sxyz. Returns nullptr when index is beyond the last.
+		// The database loads exactly these packages, see PopulateWithConfiguredPackages
 		virtual cstr GetPackage(size_t index) const = 0;
 		virtual cstr GetProjectPath() const = 0;
 		virtual crwstr ConfigPath() const = 0;
 		virtual void SetSearchPathActivity(size_t index, bool isActive) = 0;
+
+		// Adds the package with the given ping path to the selection, or removes it. The IDE's package ticks edit the selection through this
+		virtual void SetPackageSelected(cstr pingPath, bool isSelected) = 0;
 	};
 
 	ROCOCO_INTERFACE ISXYFile
@@ -247,6 +252,16 @@ namespace Rococo::SexyStudio
 	void BuildDatabaseFromProject(ISexyDatabase& database, Sex::cr_sex sProjectRoot, cstr projectPath, bool addDeclarations);
 
 	SEXYSTUDIO_API void PopulateTreeWithPackage(cstr packageFolder, ISexyDatabase& database);
+
+	ROCOCO_INTERFACE IPackageErrorHandler
+	{
+		virtual void OnPackageError(cstr pingPath, IException& ex) = 0;
+	};
+
+	// Loads every package that database.Config() selects (IFactoryConfig::GetPackage) into the database. A package already loaded since the last Clear() is
+	// not loaded again. A package that cannot be loaded is skipped, and onError, if not null, is told why. Call Sort() afterwards to resolve what was loaded.
+	// ISexyDatabase::PopulateViaSearchPaths calls this, so a database populated without the IDE has the same packages the IDE would load
+	SEXYSTUDIO_API void PopulateWithConfiguredPackages(ISexyDatabase& database, IPackageErrorHandler* onError);
 
 	ROCOCO_INTERFACE ISexyDatabaseSupervisor : ISexyDatabase
 	{

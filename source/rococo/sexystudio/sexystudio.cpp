@@ -419,6 +419,13 @@ struct DefaulConfig: IFactoryConfig
 		return nullptr;
 	}
 
+	void SetPackageSelected(cstr pingPath, bool isSelected) override
+	{
+		// The blank database has no project, so nothing to select
+		UNUSED(pingPath);
+		UNUSED(isSelected);
+	}
+
 	void CreateLayoutFile()
 	{
 		Rococo::OS::SaveUserSEXML(nullptr, "sexystudio.layout", true,
@@ -604,21 +611,19 @@ private:
 		PopulateTreeWithSXYFiles(*fileBrowser, databaseSet.GetDatabase(), ideFrame, *idToSourceMap);
 		ideFrame.SetProgress(100.0f, "Populated file browser");
 
-		int nPackages = packageView->GetNumberOfRows();
-		for (int i = 0; i < nPackages; i++)
+		// The project config decides which packages load, not the package view. Its ticks are an edit of the config, see OnPackageSelectionChanged
+		struct PackageErrorBox : IPackageErrorHandler
 		{
-			if (1 == packageView->GetImageIndex(i, 0))
+			IWindow* parent = nullptr;
+
+			void OnPackageError(cstr pingPath, IException& ex) override
 			{
-				U8FilePath pingPath;
-				packageView->GetText(pingPath, i, 0);
-				if (pingPath.buf[0] == '!')
-				{
-					U8FilePath sysPath;
-					databaseSet.GetDatabase().PingPathResolver().PingPathToSysPath(pingPath, sysPath);
-					PopulateTreeWithPackage(sysPath, databaseSet.GetDatabase());
-				}
+				ShowErrorBox(*parent, ex, "SexyStudio could not load package %s", pingPath);
 			}
-		}
+		} onPackageError;
+		onPackageError.parent = &ideFrame.Window();
+
+		PopulateWithConfiguredPackages(databaseSet.GetDatabase(), &onPackageError);
 
 		databaseSet.GetDatabase().Sort();
 
@@ -718,6 +723,17 @@ private:
 
 	void OnPackageSelectionChanged()
 	{
+		// Write the ticks back to the project config, which SyncContent then loads packages from
+		auto& config = databaseSet.GetDatabase().Config();
+
+		int nPackages = packageView->GetNumberOfRows();
+		for (int i = 0; i < nPackages; i++)
+		{
+			U8FilePath pingPath;
+			packageView->GetText(pingPath, i, 0);
+			config.SetPackageSelected(pingPath, 1 == packageView->GetImageIndex(i, 0));
+		}
+
 		SyncContent();
 	}
 
@@ -3371,6 +3387,19 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 			}
 
 			return packages[index].c_str();
+		}
+
+		void SetPackageSelected(cstr pingPath, bool isSelected) override
+		{
+			auto i = std::find_if(packages.begin(), packages.end(), [pingPath](const HString& p) { return Eq(p.c_str(), pingPath); });
+			if (isSelected && i == packages.end())
+			{
+				packages.push_back(pingPath);
+			}
+			else if (!isSelected && i != packages.end())
+			{
+				packages.erase(i);
+			}
 		}
 
 		void SaveProtected()
