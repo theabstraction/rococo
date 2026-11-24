@@ -183,6 +183,10 @@ namespace Rococo::OS
 	ROCOCO_API void AddThreadError(int errorCode, cstr format, ...);
 	ROCOCO_API void ThrowOnThreadError();
 
+	// Allocates nBytes of read/write memory that is bounded by inaccessible memory on both sides, so that reading or writing
+	// past either end raises an access violation rather than corrupting a neighbour. Windows guarantees at least one page below the block
+	// and at least one page above the block, where the block is nBytes rounded up to whole pages; pass a multiple of the page size for an exact bound.
+	// Other platforms choose their own implementation. Release with FreeBoundedMemory.
 	[[nodiscard]] ROCOCO_API void* AllocBoundedMemory(size_t nBytes);
 	ROCOCO_API void FreeBoundedMemory(void* pMemory);
 

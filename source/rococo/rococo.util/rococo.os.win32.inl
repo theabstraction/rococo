@@ -1264,19 +1264,62 @@ namespace Rococo::OS
 		return IsDebuggerPresent() ? true : false;
 	}
 
+	// Bounded memory is one VirtualAlloc reservation, rounded up to the allocation granularity (64K):
+	//   [lower guard: 1 page, reserved][usable: nBytes rounded up to whole pages, committed read/write][upper guard: rest of the reservation, reserved]
+	// Reserved but uncommitted pages fault on any access (EXCEPTION_ACCESS_VIOLATION), so they act as PAGE_NOACCESS guards.
+	// We do not use PAGE_GUARD, which only fires once and is meant for growing thread stacks.
+	static size_t BoundedMemoryPageSize()
+	{
+		static size_t pageSize = 0;
+		if (pageSize == 0)
+		{
+			SYSTEM_INFO si;
+			GetSystemInfo(&si);
+			pageSize = si.dwPageSize;
+		}
+		return pageSize;
+	}
+
 	ROCOCO_API void* AllocBoundedMemory(size_t nBytes)
 	{
-		auto* pMem = malloc(nBytes);
-		if (pMem == nullptr)
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+
+		const size_t pageSize = BoundedMemoryPageSize();
+		const size_t granularity = si.dwAllocationGranularity;
+
+		size_t usableBytes = ((nBytes + pageSize - 1) / pageSize) * pageSize;
+		if (usableBytes == 0) usableBytes = pageSize;
+
+		const size_t minimumReservation = usableBytes + 2 * pageSize;
+		const size_t reservation = ((minimumReservation + granularity - 1) / granularity) * granularity;
+
+		uint8* base = (uint8*) VirtualAlloc(nullptr, reservation, MEM_RESERVE, PAGE_NOACCESS);
+		if (base == nullptr)
 		{
-			Throw(0, "Could not allocate %ull bytes of memory", nBytes);
+			Throw((int32) GetLastError(), "Could not reserve %llu bytes of address space for %llu bytes of bounded memory", (unsigned long long) reservation, (unsigned long long) nBytes);
 		}
-		return pMem;
+
+		uint8* usable = base + pageSize;
+		if (VirtualAlloc(usable, usableBytes, MEM_COMMIT, PAGE_READWRITE) == nullptr)
+		{
+			DWORD err = GetLastError();
+			VirtualFree(base, 0, MEM_RELEASE);
+			Throw((int32) err, "Could not commit %llu bytes of bounded memory", (unsigned long long) usableBytes);
+		}
+
+		return usable;
 	}
 
 	ROCOCO_API void FreeBoundedMemory(void* pMemory)
 	{
-		free(pMemory);
+		if (pMemory == nullptr)
+		{
+			return;
+		}
+
+		uint8* base = ((uint8*)pMemory) - BoundedMemoryPageSize();
+		VirtualFree(base, 0, MEM_RELEASE);
 	}
 } // Rococo::OS
 

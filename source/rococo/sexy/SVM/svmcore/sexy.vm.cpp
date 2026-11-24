@@ -1337,6 +1337,12 @@ namespace Anon
 			int32 nBytes = *(int32*) (cpu.PC()+1);
 			cpu.D[REGISTER_SP].charPtrValue += nBytes;
 			cpu.AdvancePC(5);
+
+			// A frame bigger than the guard region above a bounded stack could otherwise jump clean over it, so check big allocations explicitly
+			if (cpu.SP() > cpu.StackEnd)
+			{
+				TerminateByIllegal(-1);
+			}
 		}
 
 		OPCODE_CALLBACK(AddQuick32)

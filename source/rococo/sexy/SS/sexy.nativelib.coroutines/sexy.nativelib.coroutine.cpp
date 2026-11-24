@@ -644,9 +644,15 @@ struct Coroutines : public Sys::ICoroutineControl
 			}
 		} // Spec unlocked
 
-		if (cpu.SP() < cpu.StackStart || cpu.SP() > cpu.StackEnd)
+		// Coroutine stacks come from AllocBoundedMemory, so on Windows running off either end of the stack faults on a guard page
+		// and the slice ends with EXECUTERESULT_SEH. The stack grows upward and Push writes at SP before advancing it, so a push
+		// that hits the upper guard leaves SP == StackEnd, while a StackAlloc that crosses it leaves SP > StackEnd.
+		bool sehAtStackEnd = result == EXECUTERESULT_SEH && cpu.SP() >= cpu.StackEnd;
+		if (sehAtStackEnd || cpu.SP() < cpu.StackStart || cpu.SP() > cpu.StackEnd)
 		{
-			FailSlice(spec, "stack overflow");
+			char overflowMessage[128];
+			Strings::SafeFormat(overflowMessage, sizeof overflowMessage, "stack overflow. Coroutine stacks are %d bytes", (int)StackPool::StackSize);
+			FailSlice(spec, overflowMessage);
 		}
 
 		if (result == EXECUTERESULT_THROWN || result == EXECUTERESULT_SEH || result == EXECUTERESULT_ILLEGAL)

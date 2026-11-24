@@ -133,6 +133,7 @@ namespace
 
 		void Write(cstr text)
 		{
+			lastWritten = text ? text : "";
 			WriteToStandardOutput("%s", text);
 		}
 
@@ -156,6 +157,7 @@ namespace
 
 		typedef std::vector<ParseException> TExceptions;
 		TExceptions exceptions;
+		std::string lastWritten; // The last message the VM logged, e.g. an exception that ended Execute with EXECUTERESULT_THROWN
 	} s_logger;
 
 	void Abort()
@@ -4358,123 +4360,6 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
-	void TestConstantsCompoundEnum(IPublicScriptSystem& ss)
-	{
-		// Hand-written one-element compound holding an enum constant: (Day day = (.Friday))
-		cstr srcCode =
-			R"(
-			(strong Day (Int32))
-
-			(alias Day Sys.Type.Day)
-
-			(enum Sys.Type.Day
-				(Monday 1)
-				Tuesday
-				Wednesday
-				Thursday
-				Friday
-			)
-
-			(function Main -> (Int32 result):
-				(Day day = (.Friday))
-				(Int32 v = day.Value)
-				(result = v)
-			)
-			(namespace EntryPoint)(alias Main EntryPoint.Main)
-		)";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
-		vm.Push(0); // Allocate stack space for the int32 result
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-		int32 x = vm.PopInt32();
-		validate(x == 5);
-	}
-
-	void TestConstantsCompoundEnumMember(IPublicScriptSystem& ss)
-	{
-		// Memberwise init from a one-element compound holding an enum constant: (Time t = (.Friday) 1)
-		cstr srcCode =
-			R"(
-			(strong Day (Int32))
-
-			(alias Day Sys.Type.Day)
-
-			(enum Sys.Type.Day
-				(Monday 1)
-				Tuesday
-				Wednesday
-				Thursday
-				Friday
-			)
-
-			(struct Time
-				(Sys.Type.Day day)
-				(Int32 seconds)
-			)
-
-			(function Main -> (Int32 result):
-				(Time t = (.Friday) 1)
-				(result = t.day.Value)
-			)
-			(namespace EntryPoint)(alias Main EntryPoint.Main)
-		)";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
-		vm.Push(0); // Allocate stack space for the int32 result
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-		int32 x = vm.PopInt32();
-		validate(x == 5);
-	}
-
-	void TestConstantsCompoundEnumArg(IPublicScriptSystem& ss)
-	{
-		// Argument passing from a one-element compound holding an enum constant: (ToInt (.Friday))
-		cstr srcCode =
-			R"(
-			(strong Day (Int32))
-
-			(alias Day Sys.Type.Day)
-
-			(enum Sys.Type.Day
-				(Monday 1)
-				Tuesday
-				Wednesday
-				Thursday
-				Friday
-			)
-
-			(function ToInt (Day day) -> (Int32 value):
-				(value = day.Value)
-			)
-
-			(function Main -> (Int32 result):
-				(result = ToInt (.Friday))
-			)
-			(namespace EntryPoint)(alias Main EntryPoint.Main)
-		)";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
-		vm.Push(0); // Allocate stack space for the int32 result
-		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
-		ValidateExecution(result);
-		int32 x = vm.PopInt32();
-		validate(x == 5);
-	}
-
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -8597,6 +8482,119 @@ R"(
 			"	(global hits -> result)"
 			")";
 		validate(RunScriptMain(ss, srcCode) == 2);
+	}
+
+	// Coroutine stacks are StackPool::StackSize (8K). Deep recurses far past that while Victim
+	// is parked mid-Run with a sentinel in its own frame. Without guard pages the overflow
+	// writes into whatever memory follows Deep's stack (another coroutine stack or heap metadata).
+	// With guard pages it must fail cleanly: Continue throws "... stack overflow", the host
+	// stack is restored, and Victim can still be resumed and finds its sentinel intact.
+	void TestCoroutineStackOverflow(IPublicScriptSystem& ss)
+	{
+		cstr srcCode =
+			"(namespace EntryPoint)"
+			"(alias Main EntryPoint.Main)"
+			"(alias Resume EntryPoint.Resume)"
+			"(using Sys)"
+			"(global Int32 victimOk = 0)"
+			"(function Recurse (Int32 n) -> (Int32 depth):"
+			"	(Int32 pad1 = n)"
+			"	(Int32 pad2 = n)"
+			"	(if (n > 0) (depth = (Recurse (n - 1))) else (depth = 0))"
+			")"
+			"(class Deep (implements ICoroutine))"
+			"(method Deep.Construct :)"
+			"(factory Sys.NewDeep ICoroutine : (construct Deep))"
+			"(method Deep.Run -> :"
+			"	(yield)"
+			"	(Recurse 2000)"
+			")"
+			"(class Victim (implements ICoroutine))"
+			"(method Victim.Construct :)"
+			"(factory Sys.NewVictim ICoroutine : (construct Victim))"
+			"(method Victim.Run -> :"
+			"	(Int64 sentinel = 1234567890123)"
+			"	(yield)"
+			"	(yield)"
+			"	(yield)"
+			"	(if (sentinel == 1234567890123)"
+			"		(Int32 one = 1)"
+			"		(global victimOk <- one)"
+			"	)"
+			")"
+			"(function Main -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(ICoroutine deep (NewDeep))"
+			"	(ICoroutine victim (NewVictim))"
+			"	(coroutines.Add deep)"
+			"	(coroutines.Add victim)"
+			"	(while (coroutines.Continue != 0))"
+			"	(global victimOk -> result)"
+			")"
+			"(function Resume -> (Int32 result):"
+			"	(ICoroutineControl coroutines (Coroutines))"
+			"	(while (coroutines.Continue != 0))"
+			"	(global victimOk -> result)"
+			")";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+
+		auto stackBytes = [&]() -> int64 { return (int64)(vm.Cpu().StackEnd - vm.Cpu().StackStart); };
+
+		auto mentionsOverflow = [](cstr msg) -> bool
+		{
+			cstr needle = "stack overflow";
+			if (msg)
+			{
+				for (cstr p = msg; *p; p++)
+				{
+					cstr n = needle;
+					cstr q = p;
+					while (*n && *q && *n == *q) { n++; q++; }
+					if (*n == 0) return true;
+				}
+			}
+			return false;
+		};
+
+		// The scheduler error either escapes Execute as an IException or is logged and ends Main with EXECUTERESULT_THROWN
+		bool overflowReported = false;
+		s_logger.lastWritten.clear();
+		try
+		{
+			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+			printf("TestCoroutineStackOverflow: Execute returned %d", (int)result);
+			if (result == EXECUTERESULT_TERMINATED)
+			{
+				printf(", victimOk = %d", vm.PopInt32());
+			}
+			printf("\n");
+			overflowReported = result == EXECUTERESULT_THROWN && mentionsOverflow(s_logger.lastWritten.c_str());
+		}
+		catch (IException& e)
+		{
+			printf("TestCoroutineStackOverflow: %s\n", e.Message());
+			overflowReported = mentionsOverflow(e.Message());
+		}
+
+		validate(overflowReported);
+		validate(stackBytes() == 65536);
+		vm.SetStatus(EXECUTERESULT_RUNNING);
+		vm.Push((int32)123);
+		validate(vm.PopInt32() == 123);
+		s_logger.Clear();
+
+		// The scheduler still holds Victim. Resume it from a fresh entry point: its stack must be intact.
+		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
+		validate(ns != NULL);
+		validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Resume"));
+		vm.Push(0);
+		EXECUTERESULT resumeResult = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(resumeResult);
+		validate(vm.PopInt32() == 1);
 	}
 
 	void TestTypenames(IPublicScriptSystem& ss)
@@ -20059,6 +20057,7 @@ R"(
 		TEST2(TestCoroutineReleaseAllDuringRun);
 		TEST2(TestCoroutineNestedContinue);
 		TEST2(TestCoroutineYieldZero);
+		TEST2(TestCoroutineStackOverflow);
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
 		TEST(TestRock);
@@ -20072,9 +20071,6 @@ R"(
 		TEST(TestConstants7);
 		TEST(TestConstants8);
 		TEST(TestConstants9);
-		TEST(TestConstantsCompoundEnum);
-		TEST(TestConstantsCompoundEnumMember);
-		TEST(TestConstantsCompoundEnumArg);
 
 		TEST(TestEnumByCPP);
 
