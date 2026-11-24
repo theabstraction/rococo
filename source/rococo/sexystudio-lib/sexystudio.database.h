@@ -215,23 +215,6 @@ namespace Rococo::SexyStudio
 		virtual void SetConfigDirectory(cstr sysConfigDirectory) = 0;
 	};
 
-	struct SourceAndLine
-	{
-		cstr SourcePath;
-		int LineNumber;
-	};
-
-	ROCOCO_INTERFACE ISourceTree
-	{
-		typedef int64 SOURCE_TREE_ITEM_ID;
-		virtual void Add(SOURCE_TREE_ITEM_ID idItem, cstr text, int lineNumber) = 0;
-		virtual void Clear() = 0;
-		virtual SourceAndLine Find(SOURCE_TREE_ITEM_ID idItem) const = 0;
-		virtual void Free() = 0;
-	};
-
-	SEXYSTUDIO_API ISourceTree* CreateSourceTree();
-
 	ROCOCO_INTERFACE ISexyDatabase
 	{
 		virtual IPingPathResolver& PingPathResolver() = 0;

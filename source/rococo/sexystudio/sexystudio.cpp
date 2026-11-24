@@ -32,6 +32,7 @@
 #include <rococo.api.qualifiers.h>
 #include "sexystudio.theme.h"
 #include "../sexystudio-lib/sexystudio.database.h"
+#include <rococo.hashtable.h>
 
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "ComCtl32.lib")
@@ -63,6 +64,62 @@ bool IsAComparison(cr_substring token)
 	};
 
 	return std::any_of(comparisonOperators.begin(), comparisonOperators.end(), [token](cstr s) { return Eq(s, token); });
+}
+
+namespace Rococo::SexyStudio
+{
+	namespace
+	{
+		struct SourceTree final : ISourceTree
+		{
+			struct Item
+			{
+				HString path;
+				int lineNumber;
+			};
+			std::unordered_map<SOURCE_TREE_ITEM_ID, Item> items;
+
+			stringmap<int> mapSrcToCount;
+
+			void Add(SOURCE_TREE_ITEM_ID item, cstr text, int lineNumber) override
+			{
+				U8FilePath nameAndLineNumber;
+				Format(nameAndLineNumber, "%s#%d", text, lineNumber);
+				auto i = mapSrcToCount.insert(nameAndLineNumber, 1);
+				if (!i.second)
+				{
+					// Already existed
+					i.first->second++;
+				}
+				else
+				{
+					items[item] = { text, lineNumber };
+				}
+			}
+
+			void Clear() override
+			{
+				items.clear();
+				mapSrcToCount.clear();
+			}
+
+			SourceAndLine Find(SOURCE_TREE_ITEM_ID item) const override
+			{
+				auto i = items.find(item);
+				return i != items.end() ? SourceAndLine { i->second.path.c_str(), i->second.lineNumber } : SourceAndLine { nullptr, 0 };
+			}
+
+			void Free() override
+			{
+				delete this;
+			}
+		};
+	} // anon
+
+	ISourceTree* CreateSourceTree()
+	{
+		return new SourceTree();
+	}
 }
 
 namespace Rococo::SexyStudio

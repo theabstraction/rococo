@@ -184,6 +184,24 @@ namespace Rococo::SexyStudio
 
 	IGuiTree* CreateTree(IWidgetSet& widgets, const TreeStyle& style, IGuiTreeEvents& eventHandler, IGuiTreeRenderer* customRenderer = nullptr);
 
+	struct SourceAndLine
+	{
+		cstr SourcePath;
+		int LineNumber;
+	};
+
+	// Maps GUI tree items (such as the file browser's) to the source file and line they represent. Moved here from sexystudio-lib, as it is an IDE concern
+	ROCOCO_INTERFACE ISourceTree
+	{
+		typedef ID_TREE_ITEM SOURCE_TREE_ITEM_ID;
+		virtual void Add(SOURCE_TREE_ITEM_ID idItem, cstr text, int lineNumber) = 0;
+		virtual void Clear() = 0;
+		virtual SourceAndLine Find(SOURCE_TREE_ITEM_ID idItem) const = 0;
+		virtual void Free() = 0;
+	};
+
+	ISourceTree* CreateSourceTree();
+
 	ROCOCO_INTERFACE IGuiWidgetEditor : IGuiWidget
 	{
 		virtual cstr Name() const = 0;

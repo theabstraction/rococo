@@ -1,20 +1,12 @@
 #pragma once
 
-// The SexyStudio Widget API. This file should be kept free of OS dependent data structures and functions
-// Widgets ineract with OS windows via Windows::IWindow interface on their Window method
+// SexyStudio database S-expression parse helpers (ParseKeyword, AtomicArg, match_compound), used by sexystudio-lib.
+// This header is part of the GUI-free database layer: it must not include or forward declare window, widget or IDE types.
 
-#include <rococo.api.h>
-#include <rococo.events.h>
-#include <rococo.time.h>
+#include <rococo.types.h>
 
 namespace Rococo
 {
-	namespace Events
-	{
-		struct EventIdRef;
-		class IPublisher;
-	}
-
 	namespace Sex
 	{
 		bool IsCompound(Sex::cr_sex s);
@@ -23,10 +15,6 @@ namespace Rococo
 
 namespace Rococo::SexyStudio
 {
-	struct IGuiWidget;
-	struct IWidgetSet;
-	struct ISexyStudioEventHandler;
-
 	struct AtomicArg
 	{
 		bool Matches(Sex::cr_sex s, int index) const;

@@ -15,7 +15,6 @@
 #include <rococo.io.h>
 #include <rococo.os.h>
 
-#include "rococo.sexystudio.api.h"
 #include "rococo.api.qualifiers.h"
 
 #include "rococo.sxytype-inference.h"
