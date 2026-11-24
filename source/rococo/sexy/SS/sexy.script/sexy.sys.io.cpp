@@ -1137,7 +1137,19 @@ namespace ANON_NS
 		int32 maxKB;
 		ReadInput(2, maxKB, e);
 
-		uint64 maxKBll = maxKB;
+		if (maxKB <= 0)
+		{
+			ss.ThrowFromNativeCodeF(0, "LoadAndAppendToStringBuilder: maxKB must be positive. %d was specified", maxKB);
+			return;
+		}
+
+		if (sb.buffer == nullptr || sb.length < 0 || sb.length >= sb.capacity)
+		{
+			ss.ThrowFromNativeCodeF(0, "LoadAndAppendToStringBuilder: the builder was corrupt (length %d, capacity %d)", sb.length, sb.capacity);
+			return;
+		}
+
+		uint64 maxKBll = (uint64) maxKB;
 
 		struct Loader : Rococo::IO::IBinaryFileLoader
 		{
@@ -1152,14 +1164,27 @@ namespace ANON_NS
 				{
 					Throw(0, "File length %llu KB was greater than the specified limit of %llu KB", length >> 10, maxLength >> 10);
 				}
+
+				uint64 required = (uint64)sb.length + (uint64)length + 1; // + 1 for the nul terminator
+				if (required > (uint64)sb.capacity)
+				{
+					if ((sb.flags & (int32) Rococo::Compiler::StringBuilderFlags::Expandable) == 0)
+					{
+						Throw(0, "File length %llu bytes does not fit in the string builder. %d of %d chars are free, and the builder is not expandable", (uint64)length, sb.capacity - sb.length - 1, sb.capacity);
+					}
+
+					sb.control->ExpandStringBuilder(sb, length + 1); // Throws on failure, leaving the builder unchanged
+				}
+
 				lockLength = length;
-				sb.control->ExpandStringBuilder(sb, length + 1);
-				return (uint8*) sb.buffer;
+
+				// Append after the existing content. Returning sb.buffer overwrote it, and Unlock then claimed the old length plus the file length
+				return (uint8*) (sb.buffer + sb.length);
 			}
 			
 			void Unlock() override
 			{
-				int32 newLength = sb.length + (int32) lockLength; // N.B this is guaranteed to work by sb.Expand
+				int32 newLength = sb.length + (int32) lockLength; // N.B LockWriter guaranteed sb.length + lockLength < sb.capacity
 				sb.buffer[newLength] = 0;
 				sb.length = newLength;
 			}

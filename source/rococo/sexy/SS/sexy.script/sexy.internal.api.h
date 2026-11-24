@@ -162,8 +162,8 @@ namespace Rococo::Script
 	{
 	private:
 		typedef TSexyVector<T*> TItems;
-		TItems items;
-		TItems freeItems;
+		TItems items; // Every item ever allocated, live or free. Each appears exactly once, so clear() frees each exactly once
+		TItems freeItems; // Items available for reuse. Always a subset of items
 
 	public:
 		~TFastAllocator()
@@ -181,13 +181,7 @@ namespace Rococo::Script
 			}
 
 			items.clear();
-
-			for (auto i = freeItems.begin(); i != freeItems.end(); ++i)
-			{
-				Rococo::Memory::FreeSexyUnknownMemory(*i);
-			}
-
-			freeItems.clear();
+			freeItems.clear(); // Not freed here: every free item is also in items
 		}
 
 		T* alloc()
@@ -197,11 +191,25 @@ namespace Rococo::Script
 			if (freeItems.empty())
 			{
 				item = (T*)Rococo::Memory::AllocateSexyMemory(sizeof(T));
+				if (item == nullptr)
+				{
+					Rococo::Throw(0, "TFastAllocator: failed to allocate %llu bytes", (uint64) sizeof(T));
+				}
+
+				try
+				{
+					items.push_back(item);
+				}
+				catch (...)
+				{
+					Rococo::Memory::FreeSexyUnknownMemory(item);
+					throw;
+				}
 			}
 			else
 			{
+				// Reused items are already in items. Pushing them again was the cause of the double free in clear()
 				item = freeItems.back();
-				items.push_back(item);
 				freeItems.pop_back();
 			}
 
@@ -210,7 +218,10 @@ namespace Rococo::Script
 
 		void free(T* item)
 		{
-			freeItems.push_back(item);
+			if (item != nullptr)
+			{
+				freeItems.push_back(item);
+			}
 		}
 	};
 

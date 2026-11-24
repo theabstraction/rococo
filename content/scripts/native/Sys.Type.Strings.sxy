@@ -89,6 +89,8 @@
 	(Int32 capacity)
 )
 
+// NewTokenBuilder, NewPathBuilder and NewParagraphBuilder have fixed capacity (including the terminating nul char). Appends that do not fit are truncated,
+// or throw if ThrowIfAppendWouldTruncate has been called
 (function NewTokenBuilder -> (IStringBuilder sb):
 	(Sys.Strings.Native.NewStringBuilder 64 -> sb)
 )
@@ -101,8 +103,9 @@
 	(Sys.Strings.Native.NewStringBuilder 1024 -> sb)
 )
 
+// NewStringBuilder builders are expandable: capacity is only the initial capacity, and appends grow the buffer as required, up to 1GB
 (function NewStringBuilder (Int32 capacity) -> (IStringBuilder sb):
-	(Sys.Strings.Native.NewStringBuilder capacity -> sb)
+	(Sys.Strings.Native.NewExpandableStringBuilder capacity -> sb)
 )
 
 (alias NewTokenBuilder     Sys.Type.NewTokenBuilder)

@@ -280,8 +280,12 @@ namespace Rococo {
 		enum class StringBuilderFlags
 		{
 			None = 0, // Default
-			ThrowIfWouldTruncate = 1, // If set then attempting to write past the capacity of the builder throws an exception
-			Expandable = 2 // If set then the build algorithms may attempt to increase the buffer capacity when required
+			ThrowIfWouldTruncate = 1, // If set then attempting to write past the capacity of the builder throws an exception. Ignored by expandable builders until they reach the 1GB cap
+			Expandable = 2, // If set then appends grow the buffer (up to 1GB) rather than truncating. Set for builders made by NewStringBuilder
+			Pool64 = 4, // The header came from the string pool's 64 char free list, and its inline buffer follows the header. Set at creation, never changed
+			Pool260 = 8, // As Pool64, for the 260 char free list
+			Pool1024 = 16, // As Pool64, for the 1024 char free list
+			PoolMask = Pool64 | Pool260 | Pool1024
 		};
 
 
@@ -289,6 +293,8 @@ namespace Rococo {
 
 		struct IFastStringBuilderControl
 		{
+			// Ensures the capacity is at least sb.length + deltaLength, where deltaLength includes the nul terminator. Throws if the builder is not expandable,
+			// if the result would exceed 1GB, or if allocation fails. On failure the builder is left unchanged. The buffer pointer may change, so callers must not cache it
 			virtual void ExpandStringBuilder(struct FastStringBuilder& sb, size_t deltaLength) = 0;
 		};
 

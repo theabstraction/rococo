@@ -1184,8 +1184,29 @@ namespace Rococo
 				return; // No match: append nothing
 			}
 
-			int32 maxLength = sb.capacity - 1;
-			if (sb.length + total > maxLength && 0 != (sb.flags & (int32)StringBuilderFlags::ThrowIfWouldTruncate))
+			if (sb.buffer == nullptr || sb.length < 0 || sb.length >= sb.capacity)
+			{
+				ss.ThrowFromNativeCodeF(0, "IStringBuilder.Append: the builder was corrupt (length %d, capacity %d)", sb.length, sb.capacity);
+				return;
+			}
+
+			bool isExpandable = 0 != (sb.flags & (int32)StringBuilderFlags::Expandable);
+			if (isExpandable && (int64)sb.length + (int64)total >= (int64)sb.capacity)
+			{
+				// Builders made by NewStringBuilder grow rather than truncate, as their other appends do
+				try
+				{
+					sb.control->ExpandStringBuilder(sb, (size_t)total + 1);
+				}
+				catch (IException& ex)
+				{
+					ss.ThrowFromNativeCodeF(ex.ErrorCode(), "IStringBuilder.Append: %s", ex.Message());
+					return;
+				}
+			}
+
+			int32 maxLength = sb.capacity - 1; // Read after any expansion
+			if ((int64)sb.length + (int64)total > (int64)maxLength && 0 != (sb.flags & (int32)StringBuilderFlags::ThrowIfWouldTruncate))
 			{
 				ss.ThrowFromNativeCodeF(0, "IStringBuilder.Append: Insufficient buffer capacity for append operation and truncation forbidden");
 				return;

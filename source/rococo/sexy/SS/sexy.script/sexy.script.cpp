@@ -57,6 +57,8 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
+#include <errno.h> // STRUNCATE, returned by strncpy_s with _TRUNCATE
 #include <algorithm>
 
 using namespace Rococo;
@@ -347,18 +349,17 @@ void NativeAppendCTime(NativeCallEnvironment& _nce)
 	char timestamp[26];
 	Rococo::Time::GetTimestamp(timestamp);
 
-	int32 nMax = sb.capacity - sb.length;
+	// Format into a local buffer, then append with the builder's own rules. Formatting straight into the builder added SafeFormat's -1 to the length when the
+	// timestamp did not fit, and ignored expandability. Fixed builders now truncate, or throw with ThrowIfAppendWouldTruncate, and expandable builders grow
+	char text[25];
+	int nText = SafeFormat(text, sizeof text, "%.24s", timestamp);
+	if (nText < 0)
+	{
+		nText = 0;
+	}
 
-	int32 chars;
-	if (nMax > 0)
-	{
-		chars = SafeFormat(sb.buffer + sb.length, (size_t)nMax, "%.24s", timestamp);
-		sb.length += chars;
-	}
-	else
-	{
-		chars = 0;
-	}
+	auto& pool = *(IStringPool*)_nce.context;
+	int32 chars = pool.AppendToBuilder(_nce.ss, sb, text, nText);
 
 	WriteOutput(0, chars, _nce);
 	
@@ -2140,7 +2141,9 @@ namespace Rococo::Script
 				Throw(0, "CreateAndPopulateFastStringBuilder(..., %d,%d): must range from 0 to capacity - 1", text.length, capacity);
 			}
 
-			auto* sb = stringPool->CreateAndInitFields(capacity);
+			// Host builders keep their historic behaviour: the pooled sizes (64, 260 and 1024) are fixed, other capacities are expandable
+			bool isExpandable = capacity != 64 && capacity != 260 && capacity != 1024;
+			auto* sb = stringPool->CreateAndInitFields(capacity, isExpandable);
 			memcpy_s(sb->buffer, sb->capacity, text, text.length);
 			sb->buffer[text.length] = 0;
 			sb->length = text.length;
@@ -2624,7 +2627,7 @@ namespace Rococo::Script
 			RegisterRocks();
 
 			INamespaceBuilder& sysTime = progObjProxy->GetRootNamespace().AddNamespace("Sys.Time", ADDNAMESPACEFLAGS_CREATE_ROOTS);
-			AddNativeCall(sysTime, NativeAppendCTime, NULL, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);
+			AddNativeCall(sysTime, NativeAppendCTime, stringPool, "AppendCTime (Sys.Type.IStringBuilder sb)->(Int32 nChars)", __FILE__, __LINE__, false, 0);
 
 			INamespaceBuilder& sysTypes = progObjProxy->GetRootNamespace().AddNamespace("Sys.Type", ADDNAMESPACEFLAGS_CREATE_ROOTS);
 			DefinePrimitives(sysTypes);
@@ -3341,13 +3344,32 @@ namespace Rococo::Script
 			Throw(0, "CClassSysTypeStringBuilder had length > capacity");
 		}
 
-		if (text.length > 0 && bufferLeft > 1)
-		{
-			CopyString(buffer + length, bufferLeft, text, text.length);
+		// Note that this does not expand expandable builders: it writes at most capacity - length - 1 chars
+		int32 room = bufferLeft - 1; // Leave space for the nul terminator
 
-			length += text.length;
-			length = min(capacity - 1, length);
-			buffer[length] = 0;
+		if (text.length > 0 && text.buffer != nullptr && room > 0)
+		{
+			char* dst = buffer + length;
+
+			// strncpy_s with a count that does not fit raises the invalid parameter handler (by default terminating the process) and empties the destination.
+			// _TRUNCATE copies as much as fits and returns STRUNCATE instead
+			errno_t err;
+			if (text.length > room)
+			{
+				err = strncpy_s(dst, (size_t)bufferLeft, text.buffer, _TRUNCATE);
+			}
+			else
+			{
+				err = strncpy_s(dst, (size_t)bufferLeft, text.buffer, (size_t)text.length);
+			}
+
+			if (err != 0 && err != STRUNCATE)
+			{
+				buffer[length] = 0;
+				Throw(0, "AppendAndTruncate: strncpy_s failed with error %d", (int) err);
+			}
+
+			length += (int32)strnlen(dst, (size_t)bufferLeft);
 		}
 	}
 

@@ -41,6 +41,10 @@
 # include <intrin.h>
 #endif
 
+#ifdef _MSC_VER
+# include <crtdbg.h> // _CrtSetReportMode, used by TestFsbAuditAppendAndTruncateTruncates
+#endif
+
 #include <memory.h>
 #include <vector>
 #include <string.h>
@@ -8398,18 +8402,35 @@ R"((namespace EntryPoint)
 
 	void TestEnumFlagsAppendTruncates(IPublicScriptSystem& ss)
 	{
-		// Like the builder's other appends, text beyond the capacity is truncated
+		// Like the builder's other appends, text beyond the capacity of a fixed builder is truncated. 56 chars of padding leave 7 free in a token builder
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewTokenBuilder))
+				(sb "01234567890123456789012345678901234567890123456789012345")
+				(Alignment a = ((Alignment@Top | Alignment@Left) | Alignment@Bottom))
+				(append sb a)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "01234567890123456789012345678901234567890123456789012345Top Lef"))
+				(if (diff == 0) (result = sb.Length) else (result = -1))
+			)
+		)";
+
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 63);
+	}
+
+	void TestEnumFlagsAppendExpands(IPublicScriptSystem& ss)
+	{
+		// Builders made by NewStringBuilder are expandable, so append grows them as their other appends do
 		cstr body = R"(
 			(function Main -> (Int32 result):
 				(IStringBuilder sb = (Sys.Type.NewStringBuilder 8))
 				(Alignment a = ((Alignment@Top | Alignment@Left) | Alignment@Bottom))
 				(append sb a)
-				(Int32 diff = (Sys.Type.Strings.Compare sb "Top Lef"))
+				(Int32 diff = (Sys.Type.Strings.Compare sb "Top Left Bottom"))
 				(if (diff == 0) (result = sb.Length) else (result = -1))
 			)
 		)";
 
-		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 7);
+		validate(RunEnumFlagsTest(ss, body, __FUNCTION__) == 15);
 	}
 
 	void TestEnumFlagsFromStringLiteral(IPublicScriptSystem& ss)
@@ -25054,6 +25075,841 @@ R"(
 		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "The RHS of the assignment was unrecognized");
 	}
 
+	// ---- FastStringBuilder / string factory audit (2026-11-24). Each of these fails on 398cc72d1 and demonstrates one finding in faststringbuilder-audit.md ----
+
+	namespace FsbAudit
+	{
+		// FsbAudit.Probe (IStringBuilder sb) -> (Int32 flags)(Int32 capacity)
+		void ProbeBuilder(NativeCallEnvironment& e)
+		{
+			InterfacePointer ip;
+			ReadInput(0, ip, e);
+			auto* sb = (FastStringBuilder*)InterfaceToInstance(ip);
+			WriteOutput(0, sb->flags, e);
+			WriteOutput(1, sb->capacity, e);
+		}
+
+		void AddProbe(IPublicScriptSystem& ss)
+		{
+			const INamespace& ns = ss.AddNativeNamespace("FsbAudit");
+			ss.AddNativeCall(ns, ProbeBuilder, nullptr, "Probe (Sys.Type.IStringBuilder sb) -> (Int32 flags)(Int32 capacity)", __FILE__, __LINE__, false, 0);
+		}
+
+		// Runs (function Main -> (Int32 result): ...) and returns the result. Writes the VM result to [execResult]
+		int32 Run(IPublicScriptSystem& ss, cstr srcCode, cstr name, EXECUTERESULT& execResult)
+		{
+			Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, name);
+			Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+			AddTestSecurity(ss);
+
+			vm.Push(-1000); // Allocate stack space for the int32 result
+			execResult = vm.Execute(VM::ExecutionFlags(false, true));
+			return vm.PopInt32();
+		}
+
+		int32 RunAndValidate(IPublicScriptSystem& ss, cstr srcCode, cstr name)
+		{
+			EXECUTERESULT execResult;
+			int32 result = Run(ss, srcCode, name, execResult);
+			ValidateExecution(execResult);
+			return result;
+		}
+	}
+
+	// Finding 1: an expandable builder (NewStringBuilder 32) grows to capacity 64, so DestructStringBuilder files it in freeList_64 by capacity.
+	// The next NewTokenBuilder then hands out a plain FastStringBuilder header whose 'inline' 64 byte buffer lies past the end of its allocation.
+	// The probe shows the recycled token builder still carries the Expandable flag. A token builder must never be expandable.
+	void TestFsbAuditExpandedBuilderRecycledAsTokenBuilder(IPublicScriptSystem& ss)
+	{
+		FsbAudit::AddProbe(ss);
+
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function WriteFortyChars (IString path) -> :
+				(Sys.IO.IFileWriter f = (Sys.IO.WriteToFile path))
+				(f "0123456789012345678901234567890123456789")
+				(Sys.IO.CloseWriter f)
+			)
+
+			(function GrowAndDrop (IString path) -> :
+				(IStringBuilder a = (NewStringBuilder 32))
+				(Sys.IO.LoadAndAppendToStringBuilder a path 1)
+			)
+
+			(function Main -> (Int32 result):
+				(IString path = "..\..\gen\temp\fsb.audit.40.txt")
+				(WriteFortyChars path)
+				(GrowAndDrop path)
+				(IStringBuilder t = (NewTokenBuilder))
+				(Int32 flags)
+				(Int32 capacity)
+				(FsbAudit.Probe t -> flags capacity)
+				(result = flags)
+			)
+		)";
+
+		int32 flags = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("Recycled token builder flags: %d\n", flags);
+		validate((flags & (int32)StringBuilderFlags::Expandable) == 0);
+	}
+
+	// Finding 5: flags are not reset when a pooled builder is recycled, so ThrowIfAppendWouldTruncate leaks into the next NewTokenBuilder
+	void TestFsbAuditRecycledBuilderKeepsThrowFlag(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Poison -> :
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb.ThrowIfAppendWouldTruncate)
+			)
+
+			(function Main -> (Int32 result):
+				(Poison)
+				(IStringBuilder t = (NewTokenBuilder))
+				(result = 0)
+				(try
+					(
+						(for (Int32 i = 0)(i < 70)(i += 1)
+							(t "x")
+						)
+					)
+				catch e
+					(
+						(result = 1)
+					)
+				)
+			)
+		)";
+
+		int32 threw = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("Fresh token builder threw on truncation: %d\n", threw);
+		validate(threw == 0); // A fresh token builder truncates by default
+	}
+
+	// Finding 3: Loader::LockWriter returns sb.buffer rather than sb.buffer + sb.length, so the file overwrites the start of the builder
+	// while Unlock sets length = old length + file length. The tail is stale memory
+	void TestFsbAuditLoadAndAppendAppends(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IString path = "..\..\gen\temp\fsb.audit.xyz.txt")
+				(Sys.IO.IFileWriter f = (Sys.IO.WriteToFile path))
+				(f "xyz")
+				(Sys.IO.CloseWriter f)
+
+				(IStringBuilder sb = (NewStringBuilder 100))
+				(sb "ABC")
+				(Sys.IO.LoadAndAppendToStringBuilder sb path 1)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "ABCxyz"))
+				(result = (sb.Length * 10))
+				(if (diff == 0) (result += 1))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("Length*10 + matched: %d\n", result);
+		validate(result == 61); // Length 6, content "ABCxyz"
+	}
+
+	// Finding 4: StripLeft with leftPos >= length zeroes the length but does not return, then subtracts leftPos again,
+	// leaving a negative length and writing a nul at buffer[-leftPos]
+	void TestFsbAuditStripLeftEverything(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb "abc")
+				(sb.StripLeft 3)
+				(result = sb.Length)
+			)
+		)";
+
+		int32 length = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length: %d\n", length);
+		validate(length == 0);
+	}
+
+	// Finding 6: NativeAppendCTime adds SafeFormat's -1 (truncation) to the length, so a builder with fewer than 25 free chars gets length - 1.
+	// After the fix an expandable builder (NewStringBuilder) grows to take the 24 char timestamp, and a fixed builder truncates
+	void TestFsbAuditAppendCTimeSmallBuilder(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewStringBuilder 16))
+				(Int32 nChars = (Sys.Time.AppendCTime sb))
+				(result = sb.Length)
+				(if (nChars < 0) (result -= 100)) // -101 means length -1 and nChars -1
+			)
+		)";
+
+		int32 length = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length: %d\n", length);
+		validate(length == 24); // -101 on 398cc72d1: length -1 and nChars -1
+	}
+
+	// Finding 6, fixed builder: 50 chars in a token builder leave 13 free, so the timestamp is truncated to 13 chars
+	void TestFsbAuditAppendCTimeTokenBuilderTruncates(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb "01234567890123456789012345678901234567890123456789")
+				(Int32 nChars = (Sys.Time.AppendCTime sb))
+				(result = ((sb.Length * 100) + nChars))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length * 100 + nChars: %d\n", result);
+		validate(result == 6313);
+	}
+
+	// Finding 2: the append natives trust IString.Length from any implementation. A Length near INT32_MAX overflowed nextLength and defeated the truncation check.
+	// Per the policy that a malicious script may cause a heap error, the fix does not scan for the terminator: it keeps only cheap checks, so a negative length
+	// appends nothing and a huge length hits the 1GB expansion cap in 64-bit arithmetic rather than overflowing
+	namespace FsbAudit
+	{
+		cstr LiarSource(cstr lie, cstr factory, cstr mainBody, char* buffer, size_t capacity)
+		{
+			SafeFormat(buffer, capacity, R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(class Liar (implements Sys.Type.IString) (Int32 length) (Pointer buffer))
+			(method Liar.Construct -> :
+				(IString s = "ab")
+				(this.buffer = s.Buffer)
+				(this.length = %s)
+			)
+			(method Liar.Length -> (Int32 len): (len = this.length))
+			(method Liar.Buffer -> (Pointer buffer): (buffer = this.buffer))
+			(factory EntryPoint.NewLiar Sys.Type.IString : (construct Liar))
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (%s))
+				(IString liar (EntryPoint.NewLiar))
+				%s
+			)
+			)", lie, factory, mainBody);
+			return buffer;
+		}
+	}
+
+	void TestFsbAuditLyingIStringLength(IPublicScriptSystem& ss)
+	{
+		char src[2048];
+		cstr srcCode = FsbAudit::LiarSource("-40", "NewParagraphBuilder", "(sb.AppendIString liar) (sb.AppendSubstring liar 0 -1) (result = sb.Length)", src, sizeof src);
+		int32 length = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length: %d\n", length);
+		validate(length == 0); // A negative length is treated as empty
+	}
+
+	void TestFsbAuditHugeIStringLengthHitsCap(IPublicScriptSystem& ss)
+	{
+		char src[2048];
+		cstr srcCode = FsbAudit::LiarSource("2147483632", "NewStringBuilder 16", R"(
+				(sb "x")
+				(result = 0)
+				(try
+					(
+						(sb.AppendIString liar)
+					)
+				catch e
+					(
+						(result = 1000)
+					)
+				)
+				(result += sb.Length))", src, sizeof src);
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("threw * 1000 + sb.Length: %d\n", result);
+		validate(result == 1001); // The expansion is refused, and the builder is unchanged
+	}
+
+	// Finding 7: AppendSubstring computes startPos + charsToAppend in int, which overflows, so the overspill clamp is skipped and
+	// AppendString reads from s + 2147483640
+	void TestFsbAuditAppendSubstringOverflow(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb.AppendSubstring "abc" 2147483640 20)
+				(result = sb.Length)
+			)
+		)";
+
+		EXECUTERESULT execResult;
+		int32 length = FsbAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__, execResult);
+		printf("Execution result: %d (TERMINATED=%d, SEH=%d), sb.Length: %d\n", (int)execResult, (int)EXECUTERESULT_TERMINATED, (int)EXECUTERESULT_SEH, length);
+		validate(execResult == EXECUTERESULT_TERMINATED); // With the bug the read faults and the VM returns EXECUTERESULT_SEH
+		validate(length == 0);
+	}
+
+	// Finding 8: CClassSysTypeStringBuilder/FastStringBuilder::AppendAndTruncate call strncpy_s without _TRUNCATE, so text that does not fit
+	// raises the CRT invalid parameter handler (process termination by default on MSVC) instead of truncating
+	namespace FsbAudit
+	{
+		static bool s_invalidParameterRaised = false;
+		void __cdecl OnInvalidParameter(const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t)
+		{
+			s_invalidParameterRaised = true;
+		}
+	}
+
+	void TestFsbAuditAppendAndTruncateTruncates(IPublicScriptSystem& ss)
+	{
+		// The string pool is created by compilation
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer("(namespace EntryPoint)", -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		ss.AddTree(tree());
+		ss.Compile();
+
+		FastStringBuilder* sb = ss.CreateAndPopulateFastStringBuilder(to_fstring("ab"), 16);
+
+		FsbAudit::s_invalidParameterRaised = false;
+#if defined(_MSC_VER) && defined(_DEBUG)
+		int oldReportMode = _CrtSetReportMode(_CRT_ASSERT, 0);
+#endif
+		_invalid_parameter_handler old = _set_invalid_parameter_handler(FsbAudit::OnInvalidParameter);
+
+		sb->AppendAndTruncate(to_fstring("0123456789012345678901234567890123456789"));
+
+		_set_invalid_parameter_handler(old);
+#if defined(_MSC_VER) && defined(_DEBUG)
+		_CrtSetReportMode(_CRT_ASSERT, oldReportMode);
+#endif
+
+		printf("Invalid parameter raised: %s, length: %d, strlen: %d\n", FsbAudit::s_invalidParameterRaised ? "yes" : "no", sb->length, (int)StringLength(sb->buffer));
+		validate(!FsbAudit::s_invalidParameterRaised);
+		validate(sb->length == 15);
+		validate(StringLength(sb->buffer) == 15);
+		validate(StartsWith(sb->buffer, "ab0123456789012"));
+	}
+
+	// Finding 9: TFastAllocator<TMemo>::alloc never records a fresh item in 'items', but records every reused one, and free() never removes it.
+	// So a memo freed, reused and freed again sits in both 'items' and 'freeItems' and clear() frees it twice when the script system is destroyed.
+	namespace FsbAudit
+	{
+		// Wraps the current sexy allocator, quarantines everything it frees, and counts frees of blocks it has already freed
+		struct DoubleFreeDetector : IAllocator
+		{
+			IAllocator& inner;
+			std::vector<void*> live;
+			std::vector<void*> quarantined;
+			int doubleFrees = 0;
+
+			DoubleFreeDetector(IAllocator& _inner) : inner(_inner) {}
+
+			static bool Remove(std::vector<void*>& v, void* p)
+			{
+				for (size_t i = 0; i < v.size(); ++i)
+				{
+					if (v[i] == p)
+					{
+						v[i] = v.back();
+						v.pop_back();
+						return true;
+					}
+				}
+				return false;
+			}
+
+			static bool Contains(const std::vector<void*>& v, void* p)
+			{
+				for (auto* q : v) if (q == p) return true;
+				return false;
+			}
+
+			void* Allocate(size_t capacity) override
+			{
+				void* p = inner.Allocate(capacity);
+				live.push_back(p);
+				return p;
+			}
+
+			void FreeData(void* data) override
+			{
+				if (data == nullptr) return;
+				if (Remove(live, data))
+				{
+					quarantined.push_back(data); // Do not release it yet, so the address cannot be reused and hide a second free
+					return;
+				}
+
+				if (Contains(quarantined, data))
+				{
+					doubleFrees++;
+					return;
+				}
+
+				inner.FreeData(data); // Allocated before the detector was installed
+			}
+
+			void* Reallocate(void* ptr, size_t capacity) override
+			{
+				void* p = inner.Reallocate(ptr, capacity);
+				if (p != ptr)
+				{
+					Remove(live, ptr);
+					live.push_back(p);
+				}
+				return p;
+			}
+
+			void AtRelease(FN_AllocatorReleaseFunction fn) override
+			{
+				inner.AtRelease(fn);
+			}
+
+			size_t EvaluateHeapSize() override
+			{
+				return inner.EvaluateHeapSize();
+			}
+
+			void ReleaseQuarantine()
+			{
+				for (auto* p : quarantined) inner.FreeData(p);
+				quarantined.clear();
+			}
+		};
+	}
+
+	void TestFsbAuditMemoReuseDoubleFree(IPublicScriptSystem& ss)
+	{
+		UNUSED(ss);
+
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function MakeMemo -> (Int32 len):
+				(IString s (Sys.Type.Memo "Hello"))
+				(len = s.Length)
+			)
+
+			(function Main -> (Int32 result):
+				(result = 0)
+				(result += (MakeMemo))
+				(result += (MakeMemo))
+				(result += (MakeMemo))
+			)
+		)";
+
+		IAllocator& original = Rococo::Memory::GetSexyAllocator();
+		FsbAudit::DoubleFreeDetector detector(original);
+		Rococo::Memory::SetSexyAllocator(&detector);
+
+		int32 result = 0;
+
+		try
+		{
+			ProgramInitParameters pip;
+			pip.MaxProgramBytes = 32768;
+#ifdef _DEBUG
+			pip.useDebugLibs = true;
+#else
+			pip.useDebugLibs = false;
+#endif
+			CScriptSystemProxy ssp(pip, s_logger);
+			auto& ss2 = ssp();
+			Secure(ss2);
+			result = FsbAudit::RunAndValidate(ss2, srcCode, __ROCOCO_FUNCTION__);
+			ss2.PublicProgramObject().FreeLeakedObjects();
+		} // the script system and its memo allocator are destroyed here
+		catch (...)
+		{
+			Rococo::Memory::SetSexyAllocator(&original);
+			detector.ReleaseQuarantine();
+			throw;
+		}
+
+		Rococo::Memory::SetSexyAllocator(&original);
+		int doubleFrees = detector.doubleFrees;
+		detector.ReleaseQuarantine();
+
+		printf("Memo lengths: %d, double frees at script system teardown: %d\n", result, doubleFrees);
+		validate(result == 15);
+		validate(doubleFrees == 0);
+	}
+
+	// Finding 10: the numeric appends format into rep[32] / rep[64]. A width over 31 (allowed up to 255) makes SafeFormat return -1 and the append silently does nothing,
+	// even when ThrowIfAppendWouldTruncate is set
+	void TestFsbAuditWideFormatAppendsNothing(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewParagraphBuilder))
+				(sb.SetFormat 0 40 false true)
+				(sb.AppendInt32 7)
+				(result = sb.Length)
+			)
+		)";
+
+		int32 length = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length: %d\n", length);
+		validate(length == 40);
+	}
+
+	// Finding 11: StringFindRight clamps a negative leftPos to 0 in an if/else-if chain whose final else holds the search, so a negative leftPos never searches
+	void TestFsbAuditFindRightNegativeLeft(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(result = (Sys.Type.Strings.FindRightWithCase "1245BILL6789" -1 11 "BILL"))
+			)
+		)";
+
+		int32 pos = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("FindRight position: %d\n", pos);
+		validate(pos == 4);
+	}
+
+	// Finding 1, pooled expandable case: NewStringBuilder 64 takes a pooled header, grows onto a heap buffer, and must go back to the 64 list with its inline buffer restored
+	void TestFsbAuditPooledExpandableRecycled(IPublicScriptSystem& ss)
+	{
+		FsbAudit::AddProbe(ss);
+
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function GrowAndDrop -> (Int32 capacity):
+				(IStringBuilder a = (NewStringBuilder 64))
+				(for (Int32 i = 0)(i < 10)(i += 1)
+					(a "0123456789")
+				)
+				(Int32 flags)
+				(FsbAudit.Probe a -> flags capacity)
+				(if (a.Length != 100) (capacity = -1))
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 grownCapacity = (GrowAndDrop))
+				(IStringBuilder t = (NewTokenBuilder))
+				(for (Int32 i = 0)(i < 10)(i += 1)
+					(t "0123456789")
+				)
+				(Int32 flags)
+				(Int32 capacity)
+				(FsbAudit.Probe t -> flags capacity)
+				(result = 0)
+				(if (grownCapacity > 100) (result += 1))
+				(if (flags == 4) (result += 10)) // Pool64 only: not expandable, no throw flag
+				(if (capacity == 64) (result += 100))
+				(if (t.Length == 63) (result += 1000))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("Checks passed: %d\n", result);
+		validate(result == 1111);
+	}
+
+	// Finding 12: Replace with the builder itself as the replacement text. The old in-place algorithm read the replacement while overwriting it
+	void TestFsbAuditReplaceSelfAliased(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewStringBuilder 64))
+				(sb "a-a")
+				(sb.Replace 0 "a" sb)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "a-a-a-a"))
+				(result = sb.Length)
+				(if (diff != 0) (result = -1))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length: %d\n", result);
+		validate(result == 7); // Each of the two a's in "a-a" becomes "a-a"
+	}
+
+	// Finding 12: a Replace that does not fit a fixed builder throws and leaves the builder as it was, rather than half replaced
+	void TestFsbAuditReplaceFixedIsAtomic(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") // 40 chars
+				(result = 0)
+				(try
+					(
+						(sb.Replace 0 "a" "bb")
+					)
+				catch e
+					(
+						(result = 1000)
+					)
+				)
+				(Int32 diff = (Sys.Type.Strings.Compare sb "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
+				(result += sb.Length)
+				(if (diff != 0) (result = -1))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("threw * 1000 + sb.Length: %d\n", result);
+		validate(result == 1040);
+	}
+
+	// Replace on an expandable builder grows it
+	void TestFsbAuditReplaceExpands(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewStringBuilder 8))
+				(sb "a.b.c")
+				(sb.Replace 0 "." "<--->")
+				(Int32 diff = (Sys.Type.Strings.Compare sb "a<--->b<--->c"))
+				(result = sb.Length)
+				(if (diff != 0) (result = -1))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length: %d\n", result);
+		validate(result == 13);
+	}
+
+	// Low severity: AppendChar truncated values above 255 to a char. They are now ignored, as 0 is
+	void TestFsbAuditAppendCharOutOfRange(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb.AppendChar 256)
+				(sb.AppendChar 65)
+				(sb.AppendChar 0)
+				(sb.AppendChar -1)
+				(result = sb.Length)
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length: %d\n", result);
+		validate(result == 1);
+	}
+
+	// Low severity: SetLength beyond the current length wrote to output 0 of a method that has no outputs. It is now a no-op
+	void TestFsbAuditSetLengthLongerIsNoOp(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(Int32 sentinel = 77)
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb "abc")
+				(sb.SetLength 10)
+				(result = ((sb.Length * 100) + sentinel))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("sb.Length * 100 + sentinel: %d\n", result);
+		validate(result == 377);
+	}
+
+	// Low severity: MakeSysSlashes called ToSysPath on the whole buffer once per char. One pass gives the same result
+	void TestFsbAuditMakeSysSlashes(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewTokenBuilder))
+				(sb "a/b/c")
+				(Sys.Type.Strings.MakeSysSlashes sb)
+				(result = (Sys.Type.Strings.FindLeftWithCase sb 0 "/"))
+				(if (result == -1) (result = sb.Length))
+			)
+		)";
+
+		int32 result = FsbAudit::RunAndValidate(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("Position of / or length: %d\n", result);
+		validate(result == 5); // No forward slashes remain
+	}
+
+	// Finding 9: ExpandStringBuilder set the new capacity before allocating, so a failed allocation left a builder claiming capacity it did not have.
+	// The allocator below fails one request size, which the doubling of a 17 char builder reaches at 17 * 512 bytes
+	namespace FsbAudit
+	{
+		struct FailingAllocator : IAllocator
+		{
+			IAllocator& inner;
+			size_t failSize;
+			int failures = 0;
+
+			FailingAllocator(IAllocator& _inner, size_t _failSize) : inner(_inner), failSize(_failSize) {}
+
+			void* Allocate(size_t capacity) override
+			{
+				if (capacity == failSize)
+				{
+					failures++;
+					return nullptr; // As the default sexy allocator does when malloc fails
+				}
+				return inner.Allocate(capacity);
+			}
+
+			void FreeData(void* data) override { inner.FreeData(data); }
+			void* Reallocate(void* ptr, size_t capacity) override { return inner.Reallocate(ptr, capacity); }
+			void AtRelease(FN_AllocatorReleaseFunction fn) override { inner.AtRelease(fn); }
+			size_t EvaluateHeapSize() override { return inner.EvaluateHeapSize(); }
+		};
+	}
+
+	void TestFsbAuditExpansionFailureLeavesBuilderIntact(IPublicScriptSystem& ss)
+	{
+		UNUSED(ss);
+
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (NewStringBuilder 17))
+				(sb "x")
+				(result = 0)
+				(try
+					(
+						(for (Int32 i = 0)(i < 20)(i += 1)
+							(sb.AppendIString sb) // Doubles the length each time
+						)
+					)
+				catch e
+					(
+						(result = 1000000)
+					)
+				)
+				(Int32 flags)
+				(Int32 capacity)
+				(FsbAudit.Probe sb -> flags capacity)
+				(result += (capacity * 100))
+				(Int32 pos = (Sys.Type.Strings.FindLeftWithCase sb 0 "y"))
+				(if (pos == -1) (result += 1))
+				(result += (sb.Length - 4096))
+			)
+		)";
+
+		IAllocator& original = Rococo::Memory::GetSexyAllocator();
+		FsbAudit::FailingAllocator failing(original, 17 * 512);
+		Rococo::Memory::SetSexyAllocator(&failing);
+
+		int32 result = 0;
+
+		try
+		{
+			ProgramInitParameters pip;
+			pip.MaxProgramBytes = 32768;
+#ifdef _DEBUG
+			pip.useDebugLibs = true;
+#else
+			pip.useDebugLibs = false;
+#endif
+			CScriptSystemProxy ssp(pip, s_logger);
+			auto& ss2 = ssp();
+			Secure(ss2);
+			FsbAudit::AddProbe(ss2);
+			result = FsbAudit::RunAndValidate(ss2, srcCode, __ROCOCO_FUNCTION__);
+		}
+		catch (...)
+		{
+			Rococo::Memory::SetSexyAllocator(&original);
+			throw;
+		}
+
+		Rococo::Memory::SetSexyAllocator(&original);
+
+		printf("Result: %d, failed allocations: %d\n", result, failing.failures);
+		validate(failing.failures >= 1);
+		validate(result == 1000000 + 4352 * 100 + 1); // Threw; capacity still 17 * 256 = 4352; length 4096 of x's, unchanged
+	}
+
+	void RunFsbAuditTests()
+	{
+		TEST3(TestFsbAuditExpandedBuilderRecycledAsTokenBuilder);
+		TEST(TestFsbAuditRecycledBuilderKeepsThrowFlag);
+		TEST3(TestFsbAuditLoadAndAppendAppends);
+		TEST(TestFsbAuditStripLeftEverything);
+		TEST(TestFsbAuditAppendCTimeSmallBuilder);
+		TEST(TestFsbAuditAppendCTimeTokenBuilderTruncates);
+		TEST(TestFsbAuditLyingIStringLength);
+		TEST(TestFsbAuditHugeIStringLengthHitsCap);
+		TEST(TestFsbAuditAppendSubstringOverflow);
+		TEST(TestFsbAuditAppendAndTruncateTruncates);
+		TEST(TestFsbAuditMemoReuseDoubleFree);
+		TEST(TestFsbAuditWideFormatAppendsNothing);
+		TEST(TestFsbAuditFindRightNegativeLeft);
+		TEST(TestFsbAuditPooledExpandableRecycled);
+		TEST(TestFsbAuditReplaceSelfAliased);
+		TEST(TestFsbAuditReplaceFixedIsAtomic);
+		TEST(TestFsbAuditReplaceExpands);
+		TEST(TestFsbAuditAppendCharOutOfRange);
+		TEST(TestFsbAuditSetLengthLongerIsNoOp);
+		TEST(TestFsbAuditMakeSysSlashes);
+		TEST(TestFsbAuditExpansionFailureLeavesBuilderIntact);
+	}
+
 	void RunPositiveSuccesses()
 	{
 		validate(true);
@@ -25663,6 +26519,7 @@ R"(
 		TEST(TestEnumFlagsAppendInt64);
 		TEST(TestEnumFlaggerEnumAppend);
 		TEST(TestEnumFlagsAppendTruncates);
+		TEST(TestEnumFlagsAppendExpands);
 		TEST(TestEnumFlagsFromStringLiteral);
 		TEST(TestEnumFlagsFromStringDelimiters);
 		TEST(TestEnumFlagsFromStringVariable);
@@ -25741,6 +26598,8 @@ R"(
 		TEST(TestStructureAssignToCompoundMethodCallReturn2);
 		TEST(TestStructureAssignToSingleArgumentCompoundCallReturn);
 		TEST(TestStructureAssignToSingleArgumentCompoundCallReturn2);
+
+		RunFsbAuditTests(); // FastStringBuilder audit and fixes
 	}
 
 	void RunPositiveFailures()

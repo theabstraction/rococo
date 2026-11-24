@@ -105,7 +105,13 @@ namespace Rococo
             virtual Compiler::AllocatorBinding* GetBinding() = 0;
             virtual void SetStringBuilderType(const Compiler::IStructure* typeFastStringBuilder) = 0;
             virtual const Compiler::IStructure* FastStringBuilderType() const = 0;
-            virtual Compiler::FastStringBuilder* CreateAndInitFields(int32 capacity) = 0;
+            // Creates a builder. Capacities of 64, 260 and 1024 use the pooled headers with inline buffers, anything else gets a heap header and buffer.
+            // If [isExpandable] the builder grows on append (up to 1GB); otherwise appends truncate or, with ThrowIfWouldTruncate, throw
+            virtual Compiler::FastStringBuilder* CreateAndInitFields(int32 capacity, bool isExpandable) = 0;
+
+            // Appends [length] chars of [text] (clamped to its nul terminator) using the builder's truncation or expansion rules. Returns the number of chars appended.
+            // Errors are raised through ss.ThrowFromNativeCodeF, so only call this from a native call
+            virtual int32 AppendToBuilder(IPublicScriptSystem& ss, Compiler::FastStringBuilder& sb, cstr text, int32 length) = 0;
         };
 
         IStringPool* NewStringPool();

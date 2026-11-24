@@ -105,6 +105,8 @@ namespace Rococo
 }
 
 #include <sexy.compiler.public.h>
+#include <string.h>
+#include <errno.h>
 
 namespace Rococo::Compiler
 {
@@ -122,13 +124,32 @@ namespace Rococo::Compiler
 			Rococo::Throw(0, "FastStringBuilder had length > capacity");
 		}
 
-		if (text.length > 0 && bufferLeft > 1)
-		{
-			CopyString(buffer + length, bufferLeft, text, text.length);
+		// Note that this does not expand expandable builders: it writes at most capacity - length - 1 chars
+		int32 room = bufferLeft - 1; // Leave space for the nul terminator
 
-			length += text.length;
-			length = min(capacity - 1, length);
-			buffer[length] = 0;
+		if (text.length > 0 && text.buffer != nullptr && room > 0)
+		{
+			char* dst = buffer + length;
+
+			// strncpy_s with a count that does not fit raises the invalid parameter handler (by default terminating the process) and empties the destination.
+			// _TRUNCATE copies as much as fits and returns STRUNCATE instead
+			errno_t err;
+			if (text.length > room)
+			{
+				err = strncpy_s(dst, (size_t)bufferLeft, text.buffer, _TRUNCATE);
+			}
+			else
+			{
+				err = strncpy_s(dst, (size_t)bufferLeft, text.buffer, (size_t)text.length);
+			}
+
+			if (err != 0 && err != STRUNCATE)
+			{
+				buffer[length] = 0;
+				Rococo::Throw(0, "AppendAndTruncate: strncpy_s failed with error %d", (int) err);
+			}
+
+			length += (int32)strnlen(dst, (size_t)bufferLeft);
 		}
 	}
 }
