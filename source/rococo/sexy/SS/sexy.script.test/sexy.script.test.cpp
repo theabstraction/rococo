@@ -17769,19 +17769,16 @@ R"(
 	void TestBitwiseOr(IPublicScriptSystem& ss)
 	{
 		cstr srcCode =
-			"(macro Sys.Seventeen in out (out.AddAtomic \"0x11\"))"
-
-			"(function PassThrough (Int32 x)->(Int32 y) : (y = x))"
 			"(namespace EntryPoint)"
 			"(function Main -> (Int32 exitCode):"
 			"	(Int32 i = 6)"
-			"	(Int32 j = (i | 3))"	
+			"	(Int32 j = (i | 3))"
 			"   (exitCode = j)"
 			")"
 			"(alias Main EntryPoint.Main)"
 			;
 
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestMacroAssignBinary");
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestBitwiseOr");
 		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
 
 		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
@@ -17796,6 +17793,261 @@ R"(
 		validate(result == Rococo::EXECUTERESULT_TERMINATED);
 	}
 
+	static int32 RunBitwiseOrInt32(IPublicScriptSystem& ss, cstr srcCode, cstr name)
+	{
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, name);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		return vm.PopInt32();
+	}
+
+	static int64 RunBitwiseOrInt64(IPublicScriptSystem& ss, cstr srcCode, cstr name)
+	{
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, name);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push((int64)0);
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		return vm.PopInt64();
+	}
+
+	static void RunBitwiseOrFail(IPublicScriptSystem& ss, cstr srcCode, cstr name, cstr expectedFragment)
+	{
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, name);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		try
+		{
+			VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+			vm.Push(0);
+			EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+			validate(result == EXECUTERESULT_THROWN);
+			ParseException ex;
+			validate(s_logger.TryGetNextException(ex));
+			if (strstr(ex.Message(), expectedFragment) == nullptr)
+			{
+				printf("Expected '%s' in: %s\n", expectedFragment, ex.Message());
+				validate(false);
+			}
+			s_logger.Clear();
+		}
+		catch (ParseException& e)
+		{
+			if (strstr(e.Message(), expectedFragment) == nullptr)
+			{
+				printf("Expected '%s' in: %s\n", expectedFragment, e.Message());
+				validate(false);
+			}
+		}
+	}
+
+	void TestBitwiseOrInt64VarLiteral(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int64 exitCode):
+				(Int64 i = 0x100000000)
+				(Int64 j = (i | 5))
+				(exitCode = j)
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunBitwiseOrInt64(ss, srcCode, "TestBitwiseOrInt64VarLiteral") == 0x100000005LL);
+	}
+
+	void TestBitwiseOrLiteralFold(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 j32)(Int64 j64):
+				(j32 = (6 | 3))
+				(j64 = (0x100000000 | 5))
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestBitwiseOrLiteralFold");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+		vm.Push((int64)0);
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int64 j64 = vm.PopInt64();
+		int32 j32 = vm.PopInt32();
+		validate(j32 == 7);
+		validate(j64 == 0x100000005LL);
+	}
+
+	void TestBitwiseOrVariables(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 j32)(Int64 j64):
+				(Int32 a32 = 6)
+				(Int32 b32 = 3)
+				(j32 = (a32 | b32))
+				(Int64 a64 = 0x100000000)
+				(Int64 b64 = 5)
+				(j64 = (a64 | b64))
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestBitwiseOrVariables");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+		vm.Push((int64)0);
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int64 j64 = vm.PopInt64();
+		int32 j32 = vm.PopInt32();
+		validate(j32 == 7);
+		validate(j64 == 0x100000005LL);
+	}
+
+	void TestBitwiseOrNegative(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 lit32)(Int32 var32)(Int64 lit64)(Int64 sign64):
+				(lit32 = (-8 | 1))
+				(Int32 i = -8)
+				(var32 = (i | 1))
+				(lit64 = (-8 | 1))
+				(Int64 s = 0x8000000000000000)
+				(sign64 = (s | 1))
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestBitwiseOrNegative");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+		vm.Push(0);
+		vm.Push((int64)0);
+		vm.Push((int64)0);
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int64 sign64 = vm.PopInt64();
+		int64 lit64 = vm.PopInt64();
+		int32 var32 = vm.PopInt32();
+		int32 lit32 = vm.PopInt32();
+		validate(lit32 == -7);
+		validate(var32 == -7);
+		validate(lit64 == -7);
+		validate(sign64 == (int64)0x8000000000000001ULL);
+	}
+
+	void TestBitwiseOrNested(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 nested)(Int32 orThenAdd)(Int32 orOfAdd):
+				(Int32 a = 6)
+				(Int32 b = 3)
+				(Int32 c = 8)
+				(nested = ((a | b) | c))
+				(orThenAdd = ((a | b) + 1))
+				(orOfAdd = (a | (b + 1)))
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, "TestBitwiseOrNested");
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+		vm.Push(0);
+		vm.Push(0);
+		vm.Push(0);
+		ValidateExecution(vm.Execute(VM::ExecutionFlags(false, true)));
+		int32 orOfAdd = vm.PopInt32();
+		int32 orThenAdd = vm.PopInt32();
+		int32 nested = vm.PopInt32();
+		validate(nested == 15);     // (6|3)|8 = 7|8 = 15, not 17
+		validate(orThenAdd == 8);   // (6|3)+1 = 8
+		validate(orOfAdd == 6);     // 6|(3+1) = 6|4 = 6, not 10
+	}
+
+	void TestBitwiseOrFloat32LiteralRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 exitCode):
+				(Float32 j = (1.0 | 2.0))
+				(exitCode = 0)
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		RunBitwiseOrFail(ss, srcCode, "TestBitwiseOrFloat32LiteralRejected", "Unsupported operator in literal arithmetic");
+	}
+
+	void TestBitwiseOrFloat32VarRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 exitCode):
+				(Float32 a = 1.0)
+				(Float32 b = 2.0)
+				(Float32 j = (a | b))
+				(exitCode = 0)
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		RunBitwiseOrFail(ss, srcCode, "TestBitwiseOrFloat32VarRejected", "Unhandled operator in arithmetic expression");
+	}
+
+	void TestBitwiseOrFloat64LiteralRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 exitCode):
+				(Float64 j = (1.0e50 | 2.0e50))
+				(exitCode = 0)
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		RunBitwiseOrFail(ss, srcCode, "TestBitwiseOrFloat64LiteralRejected", "Unsupported operator in literal arithmetic");
+	}
+
+	void TestBitwiseOrFloat64VarRejected(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(function Main -> (Int32 exitCode):
+				(Float64 a = 1.0)
+				(Float64 b = 2.0)
+				(Float64 j = (a | b))
+				(exitCode = 0)
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		RunBitwiseOrFail(ss, srcCode, "TestBitwiseOrFloat64VarRejected", "Unhandled operator in arithmetic expression");
+	}
+
+	void TestBitwiseOrAssignAndArg(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(function PassOr (Int32 x)->(Int32 y) : (y = x))
+			(namespace EntryPoint)
+			(function Main -> (Int32 exitCode):
+				(Int32 i = 6)
+				(Int32 j = 0)
+				(j = (i | 3))
+				(Int32 k = (PassOr (i | 3)))
+				(exitCode = (j + k))
+			)
+			(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunBitwiseOrInt32(ss, srcCode, "TestBitwiseOrAssignAndArg") == 14);
+	}
 
 	void TestCompareStruct(IPublicScriptSystem& ss)
 	{
@@ -20465,6 +20717,16 @@ R"(
 		TEST(TestConstructor);
 		TEST(TestAssignDerivatives);
 		TEST(TestBitwiseOr);
+		TEST(TestBitwiseOrInt64VarLiteral);
+		TEST(TestBitwiseOrLiteralFold);
+		TEST(TestBitwiseOrVariables);
+		TEST(TestBitwiseOrNegative);
+		TEST(TestBitwiseOrNested);
+		TEST(TestBitwiseOrFloat32LiteralRejected);
+		TEST(TestBitwiseOrFloat32VarRejected);
+		TEST(TestBitwiseOrFloat64LiteralRejected);
+		TEST(TestBitwiseOrFloat64VarRejected);
+		TEST(TestBitwiseOrAssignAndArg);
 		TEST(TestOperatorOverload2);
 		TEST(TestStructWithVec4f);
 		TEST(TestBooleanVarCompare);
