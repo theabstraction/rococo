@@ -1497,7 +1497,7 @@ namespace Rococo
             conf.AddPublicDependency<RococoSexyStudioLibProject>(target);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.AddPublicDependency<RococoWindowsProject>(target);
-            ImportSexyScriptProject(conf,target);
+            // No sexy.script: SexyStudio parses with sexy.s-parser and infers types itself. It calls nothing in sexy.script
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.AddPublicDependency<RococoSEXMLProject>(target);
@@ -1673,7 +1673,9 @@ namespace Rococo
         public void ConfigureAll(Configuration conf, Target target)
         {
             StandardInit(conf, target, Configuration.OutputType.Exe);
-            conf.AddPublicDependency<RococoSexyStudioProject>(target);
+            // The headless tests link the GUI-free sexystudio-lib. The IDE tests load sexystudio.dll at run time, as Notepad++ does, so it is built first but not linked
+            conf.AddPublicDependency<RococoSexyStudioLibProject>(target);
+            conf.AddPrivateDependency<RococoSexyStudioProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPublicDependency<RococoWindowsProject>(target);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
             conf.SolutionFolder = " - SexyStudio";

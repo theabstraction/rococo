@@ -20,14 +20,13 @@ using namespace Rococo::SexyStudio;
 using namespace Rococo::AutoComplete;
 using namespace Rococo::Windows;
 
-auto DLL_NAME = L"sexystudio.dll";
-
 cstr ErrorCaption = "SexyStudio Standalone App - error!";
 
 #include <rococo.sexystudio.api.h>
 #include "..\sexystudio-lib\sexystudio.api.h"
 #include "..\sexystudio-lib\sexystudio.database.h"
 #include "..\sexystudio-lib\sexystudio.workspace.h"
+#include "..\sexystudio-lib\sexystudio.engine.h"
 #include <rococo.sexml.h>
 
 #include <cstdio>
@@ -861,8 +860,55 @@ struct SexyStudioEventHandler : ISexyStudioEventHandler
 
 static SexyStudioEventHandler static_SexyStudioEventHandler;
 
+// The IDE, created by pluginInit through the DLL as Notepad++ does. Only the IDE tests use it
 ISexyStudioFactory1* factory = nullptr;
 ISexyStudioInstance1* sexyIDE = nullptr;
+
+// The code-complete tests drive a windowless SexyStudio from sexystudio-lib: no IDE, no window, no DLL lookup. See HeadlessInit
+ISexyStudioHeadless* headless = nullptr;
+
+// Engine errors fail the test that caused them, rather than being shown in a box as the IDE does
+struct ThrowingEngineHost : IEngineHost
+{
+	void OnEditorFileChanged(crwstr fullPath) override
+	{
+		UNUSED(fullPath);
+	}
+
+	void OnEngineError(IException& ex) override
+	{
+		Throw(ex.ErrorCode(), "Completion engine error: %s", ex.Message());
+	}
+};
+
+static ThrowingEngineHost static_throwingEngineHost;
+
+// Creates the headless studio for the code-complete tests, on the content project. Its defaults section is not the IDE's, and it loads none
+void HeadlessInit()
+{
+	if (headless)
+	{
+		return;
+	}
+
+	HeadlessSexyStudioSpec spec;
+	spec.defaultsSection = "SexyStudio.Test.Defaults";
+	spec.loadDefaults = false;
+	spec.host = &static_throwingEngineHost;
+
+	headless = CreateHeadlessSexyStudio(spec);
+	headless->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
+}
+
+ISexyStudioCompletionGaffer& CodeCompleter()
+{
+	if (!headless)
+	{
+		Throw(0, "%s: HeadlessInit must run first", __ROCOCO_FUNCTION__);
+	}
+
+	return headless->Gaffer();
+}
 
 void GetDllPath(WideFilePath& pathToDLL)
 {
@@ -1257,7 +1303,7 @@ void TestFullEditor_SearchLocalStructForInterface()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: IString
@@ -1297,7 +1343,7 @@ void TestFullEditor_SearchLocalStructForInterfaceMethod()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		CallTip:  -> (Int32 length))
@@ -1327,7 +1373,7 @@ void TestFullEditor_SearchLocalStructForM4x4()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Matrix4x4
@@ -1362,7 +1408,7 @@ void TestFullEditor_SearchLocalStructForIString()
 	FileDesc desc(file, 'n');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: obj.name
@@ -1393,7 +1439,7 @@ void TestFullEditor_SearchLocalStructForIStringAndDot()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: IString
@@ -1429,7 +1475,7 @@ cstr file =
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: obj.dog.bark
@@ -1463,7 +1509,7 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCue()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: IString
@@ -1499,7 +1545,7 @@ void TestFullEditor_SearchIStringInLocalStructInLocalStructWithMethodCompleteCue
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		CallTip:  -> (Int32 length))
@@ -1524,7 +1570,7 @@ void TestFullEditor_ReturnIStringCompleteCue_FromIStringBuilder()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		CallTip:  -> (Int32 length))
@@ -1547,7 +1593,7 @@ void TestFullEditor_SearchFQType()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Sys.Maths.Matrix4x4
@@ -1574,7 +1620,7 @@ void TestFullEditor_SearchForFactories()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		CallTip: (Sys.Type.NewException(Int32 errorCode)(IString message)))
@@ -1597,7 +1643,7 @@ void TestFullEditor_SearchForFactories2()
 	FileDesc desc(file, ' ');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		CallTip: (Sys.Type.NewException(Int32 errorCode)(IString message)))
@@ -1622,7 +1668,7 @@ void TestFullEditor_GotoDefinitionFail()
 	FileDesc desc(file, 'x');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!Eq(editor.LastDefinitionFile(), ""))
 	{
@@ -1652,7 +1698,7 @@ void TestFullEditor_GotoDefinitionAtFunction()
 	FileDesc desc(file, 'x');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!Eq(editor.LastDefinitionFile(), "<this>"))
 	{
@@ -1679,7 +1725,7 @@ void TestFullEditor_GotoDefinitionFail2()
 	FileDesc desc(file, 'x');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!Eq(editor.LastDefinitionFile(), ""))
 	{
@@ -1706,7 +1752,7 @@ void TestFullEditor_GotoDefinitionOfInterface()
 	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
@@ -1733,7 +1779,7 @@ void TestFullEditor_GotoDefinitionOfInterface2()
 	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
@@ -1762,7 +1808,7 @@ void TestFullEditor_GotoDefinitionOfInterface3()
 	FileDesc desc(file, 'o'); // This should match IException and goto the definition of Sys.Type.IException
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Type.sxy"))
 	{
@@ -1791,7 +1837,7 @@ void TestFullEditor_GotoDefinitionOfStruct()
 	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
@@ -1822,6 +1868,12 @@ void TestFullEditor_GotoDefinitionOfFunction()
 
 	FileDesc desc(file, 'i'); // This should match Sin and goto the definition of Sin
 	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	// The preview popup needs the IDE, so this manual test creates it if the run has not
+	if (!sexyIDE)
+	{
+		pluginInit(HANDLE{ 0 });
+	}
 
 	editor.SetHostWindow(sexyIDE);
 
@@ -1854,7 +1906,7 @@ void TestFullEditor_GotoDefinitionOfFunction2()
 	FileDesc desc(file, 'i'); // This should match Sin and goto the definition of F64.Sin
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
 	{
@@ -1883,7 +1935,7 @@ void TestFullEditor_GotoDefinitionOfFunction3()
 	FileDesc desc(file, 'i'); // This should match Sys.Maths.F64.Sin and goto the definition of Sys.Maths.F32.Sin
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "sys.maths.f64.inl"))
 	{
@@ -1912,7 +1964,7 @@ void TestFullEditor_GotoDefinitionOfStruct2()
 	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
@@ -1941,7 +1993,7 @@ void TestFullEditor_GotoDefinitionOfStruct3()
 	FileDesc desc(file, '3'); // This should match Vec3 and goto the definition of Sys.Maths.Vec3
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().GotoDefinitionOfSelectedToken(editor);
+	CodeCompleter().GotoDefinitionOfSelectedToken(editor);
 
 	if (!EndsWith(editor.LastDefinitionFile(), "Sys.Maths.sxy"))
 	{
@@ -1970,7 +2022,7 @@ void TestFullEditor_SearchForMacro()
 	FileDesc desc(file, 'E');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: #EntryPoint
@@ -2007,7 +2059,7 @@ void TestComplexCase1()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Sys.Type.IStringBuilder
@@ -2056,7 +2108,7 @@ void TestSuggestAtDot()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Rococo.Graphics.IQuadStackTesselator
@@ -2104,7 +2156,7 @@ void TestSuggestBeyondDot()
 	FileDesc desc(file, 'e');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Rococo.Graphics.IQuadStackTesselator
@@ -2141,7 +2193,7 @@ R"<CODE>(
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: this.berries.Capacity
@@ -2173,7 +2225,7 @@ void TestLocalArrayInference()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: berries.Capacity
@@ -2205,7 +2257,7 @@ void TestLocalArrayInference2()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: berries.Capacity
@@ -2237,7 +2289,7 @@ void TestLocalListInference()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: berries.Append
@@ -2265,7 +2317,7 @@ void TestLocalListInference2()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: berries.Append
@@ -2293,7 +2345,7 @@ void TestLocalMapInference()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: berries.Insert
@@ -2319,7 +2371,7 @@ void TestLocalMapInference2()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: berries.Insert
@@ -2354,7 +2406,7 @@ R"<CODE>(
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: this.sexmlRoot
@@ -2388,7 +2440,7 @@ void TestThisMapInference()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: this.berries.Insert
@@ -2421,7 +2473,7 @@ void TestThisMapInference2()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: this.berries.Insert
@@ -2454,7 +2506,7 @@ void TestThisListInference()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: this.berries.Append
@@ -2490,7 +2542,7 @@ void TestThisListInference2()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: this.sexmlRoot
@@ -2518,7 +2570,7 @@ void TestFullEditor_SearchFQType2()
 	FileDesc desc(file, 'r');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Sys.Maths.Matrix4x4
@@ -2551,7 +2603,7 @@ void TestDeepMemberInference()
 	FileDesc desc(file, 'a');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Rococo.QuadVertices
@@ -2585,7 +2637,7 @@ void TestDeepMemberInference2()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Rococo.QuadVertices
@@ -2613,7 +2665,7 @@ R"<CODE>(
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: Rococo.Graphics.SoftBoxVertex
@@ -2640,7 +2692,7 @@ void TestNamespaceAppendsStruct()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Rococo.Graphics.Camera
@@ -2700,7 +2752,7 @@ void TestPromptForMacro()
 	FileDesc desc(file, 'S');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: #Sys
@@ -2722,7 +2774,7 @@ void TestPromptForMacro2()
 	FileDesc desc(file, 's');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: #Sys
@@ -2744,7 +2796,7 @@ void TestPromptForMacro3()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: #Sys.Geometry
@@ -2777,7 +2829,7 @@ void TestPromptForMacro4()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: #Rococo.Graphics.ESoftBoxVertexPurposeCentreBottom
@@ -2846,7 +2898,7 @@ void TestPromptForMacro5()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: #Sys.Type.FiveMacro
@@ -2877,7 +2929,7 @@ void TestPromptForMacro6()
 	FileDesc desc(file, ' '); // Ensure the <CODE> section has space after the build token but not after the build token's parenthesis
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint:  Example (#build s 1 2 3 4) maps to (s 1)(s 2)(s 3)(s 4), used with such as stringbuilders and serializers
@@ -2898,7 +2950,7 @@ void TestShowTipForFunction()
 	FileDesc desc(file, ' '); // Ensure the <CODE> section has space after the GetCmdArgCount token but not after the build token's parenthesis
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		CallTip:  -> (Int32 argCount))
@@ -2925,7 +2977,7 @@ R"<CODE>(
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: dc.cppBuilder
@@ -2949,7 +3001,7 @@ void TestShowCompletionsForEnum()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: .Sunday
@@ -2980,7 +3032,7 @@ void TestQualifiedEnumShortName()
 	FileDesc desc(file, '@');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Sunday
@@ -3007,7 +3059,7 @@ void TestQualifiedEnumFullyQualified()
 	FileDesc desc(file, '@');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Sunday
@@ -3035,7 +3087,7 @@ void TestQualifiedEnumPrefix()
 	FileDesc desc(file, 'T');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Tuesday
@@ -3057,7 +3109,7 @@ void TestQualifiedEnumFullyQualifiedPrefix()
 	FileDesc desc(file, 'S');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Sunday
@@ -3080,7 +3132,7 @@ void TestQualifiedEnumPrefixNoMatch()
 	FileDesc desc(file, 'X');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
 }
@@ -3099,7 +3151,7 @@ void TestQualifiedEnumCompleteValue()
 	FileDesc desc(file, 'y');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
 }
@@ -3118,8 +3170,8 @@ void TestQualifiedEnumInsertsValueName()
 	FileDesc desc(file, '@');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
-	sexyIDE->Gaffer().ReplaceSelectedText(editor, "Monday");
+	CodeCompleter().UpdateAutoComplete(editor);
+	CodeCompleter().ReplaceSelectedText(editor, "Monday");
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Sunday
@@ -3153,8 +3205,8 @@ void TestQualifiedEnumInsertsValueNameAfterPrefix()
 	FileDesc desc(file, 'T');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
-	sexyIDE->Gaffer().ReplaceSelectedText(editor, "Thursday");
+	CodeCompleter().UpdateAutoComplete(editor);
+	CodeCompleter().ReplaceSelectedText(editor, "Thursday");
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Tuesday
@@ -3187,7 +3239,7 @@ void TestQualifiedEnumUnknownType()
 		FileDesc desc(file, '\n');
 		TestEditor editor(desc.Text(), desc.CaretPos() - 1);
 
-		sexyIDE->Gaffer().UpdateAutoComplete(editor);
+		CodeCompleter().UpdateAutoComplete(editor);
 
 		ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
 	}
@@ -3212,7 +3264,7 @@ void TestQualifiedEnumNoValues()
 		FileDesc desc(file, '\n');
 		TestEditor editor(desc.Text(), desc.CaretPos() - 1);
 
-		sexyIDE->Gaffer().UpdateAutoComplete(editor);
+		CodeCompleter().UpdateAutoComplete(editor);
 
 		ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
 	}
@@ -3238,7 +3290,7 @@ void TestQualifiedEnumNotInCode()
 		FileDesc desc(file, '\n');
 		TestEditor editor(desc.Text(), desc.CaretPos() - 1);
 
-		sexyIDE->Gaffer().UpdateAutoComplete(editor);
+		CodeCompleter().UpdateAutoComplete(editor);
 
 		ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
 	}
@@ -3258,7 +3310,7 @@ void TestQualifiedEnumAfterString()
 	FileDesc desc(file, 'W');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Item: Wednesday
@@ -3283,7 +3335,7 @@ void TestShowCompletionsForeachReferenceVariable()
 	FileDesc desc(file, '.');
 	TestEditor editor(desc.Text(), desc.CaretPos());
 
-	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	CodeCompleter().UpdateAutoComplete(editor);
 
 	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
 		Hint: IString
@@ -3293,9 +3345,10 @@ void TestShowCompletionsForeachReferenceVariable()
 	)EXPECT");
 }
 
-void MainProtected2(HMODULE /* hLib */)
+// The code-complete tests, on the headless studio
+void MainProtected2()
 {
-	pluginInit(HANDLE{ 0 });
+	HeadlessInit();
 
 	// TestFullEditor_GotoDefinitionOfFunction(); Manual/visual test: it opens the modal goto preview, see the comment on the function
 
@@ -3385,98 +3438,22 @@ void MainProtected2(HMODULE /* hLib */)
 	TestQualifiedEnumAfterString();
 }
 
-void MainProtected(HMODULE hLib)
+// The database tests, on the headless studio's database
+void MainProtected()
 {
-	FARPROC proc = GetProcAddress(hLib, "CreateSexyStudioFactory");
-	if (proc == nullptr)
-	{
-		Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", DLL_NAME);
-	}
-
-	auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;
-
-	cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";
-
-	AutoFree<ISexyStudioFactory1> lfactory;
-	int nErr = CreateSexyStudioFactory((void**)&lfactory, interfaceURL);
-	if (nErr == 0)
-	{
-		struct ANON : ISexyStudioEventHandler
-		{
-			bool TryOpenEditor(cstr filename, int lineNumber) override
-			{
-				UNUSED(filename);
-				UNUSED(lineNumber);
-				return false;
-			}
-
-			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
-			{
-				UNUSED(topLevelParent);
-				return EIDECloseResponse::Shutdown;
-			}
-		} eventHandler;
-
-		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
-		instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
-		instance->GetDatabase().PopulateViaSearchPaths();
-
-		ISexyDatabase& database = instance->GetDatabase();
-
-		RunTests(database);
-	}
-	else
-	{
-		Throw(nErr, "CreateSexyStudioFactory did not recognize interface %s", interfaceURL);
-	}
+	HeadlessInit();
+	RunTests(headless->GetDatabase());
 }
 
-void MainProtected3(HMODULE hLib)
+// The hint lookup, on the headless studio's gaffer
+void MainProtected3()
 {
-	FARPROC proc = GetProcAddress(hLib, "CreateSexyStudioFactory");
-	if (proc == nullptr)
-	{
-		Throw(GetLastError(), "Could not find CreateSexyStudioFactory in %ls", DLL_NAME);
-	}
+	HeadlessInit();
 
-	auto CreateSexyStudioFactory = (Rococo::SexyStudio::FN_CreateSexyStudioFactory)proc;
+	char hint[1024];
+	CodeCompleter().GetHintForCandidate(Substring::ToSubstring("UE"), hint);
 
-	cstr interfaceURL = "Rococo.SexyStudio.ISexyStudioFactory1";
-
-	AutoFree<ISexyStudioFactory1> lfactory;
-	int nErr = CreateSexyStudioFactory((void**)&lfactory, interfaceURL);
-	if (nErr == 0)
-	{
-		struct ANON : ISexyStudioEventHandler
-		{
-			bool TryOpenEditor(cstr filename, int lineNumber) override
-			{
-				UNUSED(filename);
-				UNUSED(lineNumber);
-				return false;
-			}
-
-			EIDECloseResponse OnIDEClose(IWindow& topLevelParent) override
-			{
-				UNUSED(topLevelParent);
-				return EIDECloseResponse::Shutdown;
-			}
-		} eventHandler;
-
-		AutoFree<ISexyStudioInstance1> instance = lfactory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
-
-		instance->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\)");
-		instance->GetDatabase().PopulateViaSearchPaths();
-
-		char hint[1024];
-		instance->Gaffer().GetHintForCandidate(Substring::ToSubstring("UE"), hint);
-
-		printf("Hint: %s\n", hint);
-	}
-	else
-	{
-		Throw(nErr, "CreateSexyStudioFactory did not recognize interface %s", interfaceURL);
-	}
+	printf("Hint: %s\n", hint);
 }
 
 // Package tests. These build a throwaway project, <temp>\sexystudio.test.packages\, with its own sexystudio.config.sexml that selects one package,
@@ -4291,6 +4268,348 @@ void MainProtected0()
 	TestWorkspaceSavesProjectConfigs();
 }
 
+// Headless engine tests. A windowless SexyStudio (CreateHeadlessSexyStudio): workspace + completion engine, a fake editor, no IDE, no window, no DLL lookup
+struct RecordingEngineHost : IEngineHost
+{
+	int fileChanges = 0;
+	HString lastFile;
+	int errors = 0;
+	HString lastError;
+	bool throwOnFileChange = false;
+
+	void OnEditorFileChanged(crwstr fullPath) override
+	{
+		fileChanges++;
+		U8FilePath u8Path;
+		Assign(u8Path, fullPath);
+		lastFile = u8Path.buf;
+
+		if (throwOnFileChange)
+		{
+			Throw(0, "RecordingEngineHost: told to throw on a file change");
+		}
+	}
+
+	void OnEngineError(IException& ex) override
+	{
+		errors++;
+		lastError = ex.Message();
+	}
+};
+
+static AutoFree<ISexyStudioHeadless> MakeHeadlessForTest(IEngineHost* host, bool selectContentProject)
+{
+	HeadlessSexyStudioSpec spec;
+	spec.defaultsSection = WORKSPACE_TEST_DEFAULTS;
+	spec.loadDefaults = false;
+	spec.host = host;
+
+	AutoFree<ISexyStudioHeadless> studio = CreateHeadlessSexyStudio(spec);
+	if (selectContentProject)
+	{
+		studio->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+	}
+	return studio;
+}
+
+// The windowless factory gives a workspace, a database set and a gaffer, with nothing selected until asked
+void TestHeadlessStudioStartsBlank()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	RecordingEngineHost host;
+	AutoFree<ISexyStudioHeadless> studio = MakeHeadlessForTest(&host, false);
+
+	if (studio->Workspace().HasProject())
+	{
+		Throw(0, "%s: with loadDefaults false there should be no project", __ROCOCO_FUNCTION__);
+	}
+
+	if (&studio->GetDatabase() != &studio->Workspace().GetDatabase())
+	{
+		Throw(0, "%s: the database set should present the workspace's database", __ROCOCO_FUNCTION__);
+	}
+
+	// Completing against the blank database emits nothing and reports nothing
+	FileDesc desc("\n(function Meow -> :\n\t(Day day = Day@\n)", '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+	studio->Gaffer().UpdateAutoComplete(editor);
+
+	if (!editor.log.lines.empty() || host.errors != 0)
+	{
+		Throw(0, "%s: expected no completions and no errors against the blank database", __ROCOCO_FUNCTION__);
+	}
+}
+
+// spec.loadDefaults decides whether the headless studio opens the project recorded in its defaults section
+void TestHeadlessStudioHonoursLoadDefaults()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	DeleteWorkspaceTestDefaults();
+
+	{
+		// Record the content project in the test defaults section
+		AutoFree<ISexyStudioHeadless> recorder = MakeHeadlessForTest(nullptr, true);
+		recorder->Workspace().SaveDefaults();
+	}
+
+	HeadlessSexyStudioSpec spec;
+	spec.defaultsSection = WORKSPACE_TEST_DEFAULTS;
+
+	spec.loadDefaults = false;
+	AutoFree<ISexyStudioHeadless> blank = CreateHeadlessSexyStudio(spec);
+	bool blankHasProject = blank->Workspace().HasProject();
+
+	spec.loadDefaults = true;
+	AutoFree<ISexyStudioHeadless> loaded = CreateHeadlessSexyStudio(spec);
+	bool loadedHasProject = loaded->Workspace().HasProject();
+	bool loadedHasContent = loaded->GetDatabase().FindEnum("Sys.Time.Day") != nullptr;
+
+	DeleteWorkspaceTestDefaults();
+
+	if (blankHasProject)
+	{
+		Throw(0, "%s: with loadDefaults false the recorded project should not be opened", __ROCOCO_FUNCTION__);
+	}
+
+	if (!loadedHasProject || !loadedHasContent)
+	{
+		Throw(0, "%s: with loadDefaults true the recorded content project should be opened and populated", __ROCOCO_FUNCTION__);
+	}
+}
+
+// The engine completes from the workspace's current database through nothing but ISexyEditor
+void TestHeadlessEngineCompletesQualifiedEnum()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	RecordingEngineHost host;
+	AutoFree<ISexyStudioHeadless> studio = MakeHeadlessForTest(&host, true);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Day day = Day@
+)<CODE>";
+
+	FileDesc desc(file, '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	studio->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Sunday
+		Item: Monday
+		Item: Tuesday
+		Item: Wednesday
+		Item: Thursday
+		Item: Friday
+		Item: Saturday
+		Show
+	)EXPECT");
+
+	// Choosing an item replaces the typed text through the editor, then completion runs again on the new text
+	studio->Gaffer().ReplaceSelectedText(editor, "Monday");
+	if (!strstr(editor.DocText(), "Day@Monday"))
+	{
+		Throw(0, "%s: expected ReplaceSelectedText to insert Monday after Day@, the doc is: %s", __ROCOCO_FUNCTION__, editor.DocText());
+	}
+
+	if (host.errors != 0 || host.fileChanges != 0)
+	{
+		Throw(0, "%s: expected no host calls, found %d errors and %d file changes", __ROCOCO_FUNCTION__, host.errors, host.fileChanges);
+	}
+}
+
+// Given a file path, the engine rebases the workspace to the file's project and tells the host, once per new path
+void TestHeadlessEngineRebasesByFilePath()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	WideFilePath localFile;
+	Format(localFile, L"%hsscripts\\pkgtest\\pkgtest_local.sxy", content.buf);
+
+	RecordingEngineHost host;
+	AutoFree<ISexyStudioHeadless> studio = MakeHeadlessForTest(&host, true);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Sys.SexyStudio.PackageTest.Shade shade = Sys.SexyStudio.PackageTest.Shade@
+)<CODE>";
+
+	FileDesc desc(file, '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	studio->Gaffer().UpdateAutoComplete(editor, localFile);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Light
+		Item: Dark
+		Item: Twilight
+		Show
+	)EXPECT");
+
+	if (host.fileChanges != 1 || !EndsWith(host.lastFile.c_str(), "pkgtest_local.sxy"))
+	{
+		Throw(0, "%s: expected one file change for pkgtest_local.sxy, found %d (%s)", __ROCOCO_FUNCTION__, host.fileChanges, host.lastFile.c_str());
+	}
+
+	// The same path again is not a change
+	TestEditor editor2(desc.Text(), desc.CaretPos());
+	studio->Gaffer().UpdateAutoComplete(editor2, localFile);
+	if (host.fileChanges != 1)
+	{
+		Throw(0, "%s: the same path should not be reported again, found %d file changes", __ROCOCO_FUNCTION__, host.fileChanges);
+	}
+
+	// A file in the content project switches back
+	studio->Gaffer().UpdateAutoComplete(editor2, LR"(D:\work\rococo\content\scripts\test\enums_test.sxy)");
+	if (host.fileChanges != 2 || !studio->GetDatabase().FindEnum("Sys.Time.Day"))
+	{
+		Throw(0, "%s: expected the content project after its file path, with 2 file changes, found %d", __ROCOCO_FUNCTION__, host.fileChanges);
+	}
+
+	if (host.errors != 0)
+	{
+		Throw(0, "%s: unexpected engine error: %s", __ROCOCO_FUNCTION__, host.lastError.c_str());
+	}
+}
+
+// An error during completion goes to the host and abandons the completion. Without a host it is thrown to the caller
+void TestHeadlessEngineReportsErrorsToHost()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	RecordingEngineHost host;
+	host.throwOnFileChange = true;
+
+	AutoFree<ISexyStudioHeadless> studio = MakeHeadlessForTest(&host, true);
+
+	FileDesc desc("\n(function Meow -> :\n\t(Day day = Day@\n)", '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+	studio->Gaffer().UpdateAutoComplete(editor, LR"(D:\work\rococo\content\scripts\test\enums_test.sxy)");
+
+	if (host.errors != 1 || !strstr(host.lastError.c_str(), "told to throw"))
+	{
+		Throw(0, "%s: expected the host to receive 1 error, found %d (%s)", __ROCOCO_FUNCTION__, host.errors, host.lastError.c_str());
+	}
+
+	if (!editor.log.lines.empty())
+	{
+		Throw(0, "%s: the completion should be abandoned after an error", __ROCOCO_FUNCTION__);
+	}
+
+	// A studio created without a host ignores file changes and completes as normal
+	AutoFree<ISexyStudioHeadless> bare = MakeHeadlessForTest(nullptr, true);
+	TestEditor editor2(desc.Text(), desc.CaretPos());
+	bare->Gaffer().UpdateAutoComplete(editor2, LR"(D:\work\rococo\content\scripts\test\enums_test.sxy)");
+	if (editor2.log.lines.size() != 8)
+	{
+		Throw(0, "%s: a host-less studio should complete Day@ with 7 items and Show, found %llu lines", __ROCOCO_FUNCTION__, (unsigned long long) editor2.log.lines.size());
+	}
+}
+
+// The low level factory: an engine on a workspace the caller owns
+void TestCompletionEngineOnOwnWorkspace()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+	workspace->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+
+	RecordingEngineHost host;
+	AutoFree<ISexyCompletionEngine> engine = CreateSexyCompletionEngine(*workspace, host);
+
+	char hint[1024] = { 0 };
+	engine->GetHintForCandidate(Substring::ToSubstring("Sys.Maths.F64.Sin"), hint);
+	if (*hint == 0)
+	{
+		Throw(0, "%s: expected a hint for Sys.Maths.F64.Sin", __ROCOCO_FUNCTION__);
+	}
+
+	FileDesc desc("\n(function Meow -> :\n\t(Sys.Time.Day day = Sys.Time.Day@\n)", '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+	engine->UpdateAutoComplete(editor);
+	if (editor.log.lines.size() != 8)
+	{
+		Throw(0, "%s: expected 7 days and Show, found %llu lines", __ROCOCO_FUNCTION__, (unsigned long long) editor.log.lines.size());
+	}
+}
+
+void MainProtectedHeadless()
+{
+	TestHeadlessStudioStartsBlank();
+	TestHeadlessStudioHonoursLoadDefaults();
+	TestHeadlessEngineCompletesQualifiedEnum();
+	TestHeadlessEngineRebasesByFilePath();
+	TestHeadlessEngineReportsErrorsToHost();
+	TestCompletionEngineOnOwnWorkspace();
+}
+
+// The IDE's gaffer is the engine, with the IDE as host: a file path switches the IDE's project
+void TestIDEGafferRebasesByFilePath()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	if (!factory)
+	{
+		Throw(0, "%s: no factory. pluginInit must run first", __ROCOCO_FUNCTION__);
+	}
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	WideFilePath localFile;
+	Format(localFile, L"%hsscripts\\pkgtest\\pkgtest_local.sxy", content.buf);
+
+	PackageTestEventHandler eventHandler;
+	AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+	instance->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Sys.SexyStudio.PackageTest.Shade shade = Sys.SexyStudio.PackageTest.Shade@
+)<CODE>";
+
+	// The IDE hides its frame when completion moves to another file, as it always has. Show it first so that the hiding can be seen
+	HWND hFrame = instance->Gui().GetIDEFrame();
+	ShowWindow(hFrame, SW_SHOWNOACTIVATE);
+	bool wasVisible = IsWindowVisible(hFrame) != FALSE;
+
+	FileDesc desc(file, '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+	instance->Gaffer().UpdateAutoComplete(editor, localFile);
+
+	bool switched = instance->GetDatabase().FindEnum("Sys.SexyStudio.PackageTest.Shade") != nullptr;
+	bool hidden = IsWindowVisible(hFrame) == FALSE;
+
+	// Hand the IDE back to the content project, so that closing it records the usual project in SexyStudio.Defaults
+	instance->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+
+	if (!switched)
+	{
+		Throw(0, "%s: the IDE's gaffer did not switch to the project of the file path", __ROCOCO_FUNCTION__);
+	}
+
+	if (!wasVisible || !hidden)
+	{
+		Throw(0, "%s: expected the IDE frame to be hidden by the change of file. Visible before: %s. Hidden after: %s", __ROCOCO_FUNCTION__, wasVisible ? "yes" : "no", hidden ? "yes" : "no");
+	}
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Light
+		Item: Dark
+		Item: Twilight
+		Show
+	)EXPECT");
+}
+
 // The IDE populates a project once when it is selected. It used to parse it twice: once when the project was created and again when the property sheets synced
 void TestIDEParsesEachFileOnce()
 {
@@ -4338,8 +4657,16 @@ void TestIDEParsesEachFileOnce()
 
 void MainProtected4()
 {
-	TestIDEParsesEachFileOnce();
 	TestHeadlessDatabaseLoadsConfiguredPackages();
+}
+
+// The tests that need the IDE: a window, the DLL found as Notepad++ finds it (see GetDllPath), and a display. Skipped by --headless
+void MainProtectedIDE()
+{
+	pluginInit(HANDLE{ 0 });
+
+	TestIDEGafferRebasesByFilePath();
+	TestIDEParsesEachFileOnce();
 	TestIDELoadsConfiguredPackages();
 	TestIDEPackageSelectionComesFromConfig();
 }
@@ -4347,43 +4674,49 @@ void MainProtected4()
 
 #include <rococo.debugging.h>
 
+// sexystudio.test.exe [--headless]
+// --headless runs only the tests that need no window, no IDE and no sexystudio.dll: the workspace, engine, database and code-complete tests.
+// Errors are then printed rather than shown in a message box, so the run needs no display at all
 int main()
 {
-	WideFilePath directory;
-	if (!GetModuleFileNameW(NULL, directory.buf, directory.CAPACITY)) return GetLastError();
-	Rococo::IO::StripLastSubpath(directory.buf);
-
-	// path now contains the directory
-	WideFilePath pathToDLL;
-	Format(pathToDLL, L"%ls%ls", directory.buf, DLL_NAME);
-
-	auto hLib = LoadLibraryW(pathToDLL);
-	if (!hLib)
-	{
-		U8FilePath msg;
-		Format(msg, "Could not load library: %ls", pathToDLL.buf);
-		MessageBoxA(NULL, msg, ErrorCaption, MB_ICONERROR);
-		return GetLastError();
-	}
+	bool headlessOnly = wcsstr(GetCommandLineW(), L"--headless") != nullptr;
 
 	int errorCode = 0;
 
 	try
 	{
 		MainProtected0();
-		MainProtected(hLib);
-		MainProtected2(hLib);
-		MainProtected3(hLib);
+		MainProtectedHeadless();
+		MainProtected();
+		MainProtected2();
+		MainProtected3();
 		MainProtected4();
+
+		if (!headlessOnly)
+		{
+			MainProtectedIDE();
+		}
+
 		Rococo::Debugging::ValidateCriticalLog();
 	}
 	catch (IException& ex)
 	{
-		Rococo::Windows::ShowErrorBox(Rococo::Windows::NoParent(), ex, "SexyStudio Standalone App error");
-		errorCode = ex.ErrorCode();
+		if (headlessOnly)
+		{
+			fprintf(stderr, "SexyStudio Standalone App error %d: %s\n", ex.ErrorCode(), ex.Message());
+		}
+		else
+		{
+			Rococo::Windows::ShowErrorBox(Rococo::Windows::NoParent(), ex, "SexyStudio Standalone App error");
+		}
+		errorCode = ex.ErrorCode() != 0 ? ex.ErrorCode() : -1;
 	}
 
-	FreeLibrary(hLib);
+	if (headless)
+	{
+		headless->Free();
+		headless = nullptr;
+	}
 
 	return errorCode;
 }

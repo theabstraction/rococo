@@ -3,15 +3,8 @@
 
 #include <rococo.api.h>
 
-namespace Rococo::AutoComplete
-{
-	struct ISexyEditor;
-}
-
-namespace Rococo::SexyStudio
-{
-	struct ISexyDatabase;
-}
+// ICalltip, ISexyStudioCompletionGaffer and ISexyDatabaseSet are GUI-free and live there. This header adds the IDE
+#include <rococo.sexystudio.engine.h>
 
 namespace Rococo::SexyStudio
 {
@@ -21,11 +14,6 @@ namespace Rococo::SexyStudio
 		Copyright = 1,
 		Author = 2,
 		Email = 3
-	};
-
-	ROCOCO_INTERFACE ICalltip
-	{
-		virtual void SetCalltipForReplacement(cstr tip) = 0;
 	};
 
 	ROCOCO_INTERFACE ISexyStudioBase
@@ -62,33 +50,6 @@ namespace Rococo::SexyStudio
 		virtual Windows::IWindow& GetIDEFrame() = 0;
 		virtual void PopupPreview(Windows::IWindow& hParent, cstr token, const char* path, int lineNumber, IPreviewEventHandler& eventHandler) = 0;
 		virtual void SetTitle(cstr title) = 0;
-	};
-
-	ROCOCO_INTERFACE ISexyStudioCompletionGaffer
-	{
-		virtual void ReplaceCurrentSelectionWithCallTip(AutoComplete::ISexyEditor& editor) = 0;
-
-		/*
-		cr_substring candidate - some substring in .sxy source text
-		char args[1024] - output buffer
-		*/
-		virtual void GetHintForCandidate(Strings::cr_substring candidate, char args[1024]) = 0;
-
-		// Tells the Sexy IDE to compute the definition of the selected token and invoke ISexyEditor::GotoDefinition with the result
-		virtual void GotoDefinitionOfSelectedToken(AutoComplete::ISexyEditor& editor) = 0;
-
-		virtual void ReplaceSelectedText(AutoComplete::ISexyEditor& editor, cstr item) = 0;
-
-		virtual void UpdateAutoComplete(AutoComplete::ISexyEditor& editor, crwstr filepath = nullptr) = 0;
-	};
-
-	ROCOCO_INTERFACE ISexyDatabaseSet
-	{
-		virtual Rococo::SexyStudio::ISexyDatabase& GetDatabase() = 0;
-		virtual const Rococo::SexyStudio::ISexyDatabase& GetDatabase() const = 0;
-
-		// Finds sexystudio.config.sexml
-		virtual void SetDirectoryContainingConfigFile(cstr sysPathToConfigDirectory) = 0;
 	};
 
 	ROCOCO_INTERFACE ISexyStudioInstance1: ISexyDatabaseSet

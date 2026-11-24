@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sex.inference.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;sexystudio-lib.lib;sexystudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sex.inference.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.util.lib;sexystudio-lib.lib;sexystudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -225,7 +225,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sex.inference.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.script.lib;sexy.util.lib;sexystudio-lib.lib;sexystudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.ecs.lib;rococo.graphics.lib;rococo.sex.inference.lib;rococo.sexml.lib;rococo.util.lib;rococo.windows.lib;sexy.util.lib;sexystudio-lib.lib;sexystudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -284,11 +284,6 @@
     </ProjectReference>
     <ProjectReference Include="sexystudio_vs2026_win64.vcxproj">
       <Project>{9D9DC810-DD66-37BB-4CE5-D23C1D776C9B}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="sexy.script_vs2026_win64.vcxproj">
-      <Project>{B1BF6681-3044-FEA3-F280-F42E02D81C73}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
