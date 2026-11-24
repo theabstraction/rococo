@@ -2265,8 +2265,7 @@ void MainProtected2(HMODULE /* hLib */)
 {
 	pluginInit(HANDLE{ 0 });
 
-	goto skip;
-	TestFullEditor_GotoDefinitionOfFunction();
+//	TestFullEditor_GotoDefinitionOfFunction();
 
 	TestFullEditor_GotoDefinitionOfFunction2();
 	TestFullEditor_GotoDefinitionOfFunction3();
@@ -2338,7 +2337,6 @@ void MainProtected2(HMODULE /* hLib */)
 	TestShowCompletionsForStruct();
 	TestShowCompletionsForeachReferenceVariable();
 
-skip:
 	TestShowCompletionsForEnum();
 }
 
@@ -2461,9 +2459,9 @@ int main()
 
 	try
 	{
-	//	MainProtected(hLib);
+		MainProtected(hLib);
 		MainProtected2(hLib);
-	//	MainProtected3(hLib);
+		MainProtected3(hLib);
 		Rococo::Debugging::ValidateCriticalLog();
 	}
 	catch (IException& ex)

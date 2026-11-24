@@ -793,6 +793,12 @@ public:
 		SyncContent();
 	}
 
+	// Repopulates the file browser, search paths and packages for the current project, even if configDirectory has not changed
+	void Resync()
+	{
+		SyncContent();
+	}
+
 
 	void CollapseTree()
 	{
@@ -2470,6 +2476,14 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		sheets->SelectProjectTab();
 		explorer->SelectClassTreeTab();
+
+		// If SexyStudio.Defaults selected a project above, SetDirectoryContainingConfigFile ran before the sheets existed, and the sheets
+		// were then constructed with that content directory already set, so SetContent would early-out and SyncContent would never run.
+		// Sync now so the IDE matches a first launch (file browser, search paths, packages, class view)
+		if (currentProjectIndex >= 0)
+		{
+			sheets->Resync();
+		}
 
 	//	TEventArgs<bool> nullArgs;
 	//	publisher->Publish(nullArgs, evConfigPathChange);

@@ -2176,6 +2176,8 @@ namespace ANON
 					Rococo::IO::ForEachFileInDirectory(wPath, databaseViewBuilder.AppendFile(), true, nullptr);
 				}
 			}
+
+			Sort();
 		}
 
 		void SetContentPath(cstr contentFolder) override
@@ -2278,6 +2280,8 @@ namespace ANON
 			AutoRelease<ISourceCode> src = sparser->LoadSource(wPath, { 1,1 });
 			AutoRelease<ISParserTree> tree = sparser->CreateTree(*src);
 			BuildDatabaseFromProject(*this, tree->Root(), projectFilePath, true);
+
+			Sort();
 		}
 
 		void ResolveRecursive(SxyNamespace& ns)
@@ -2286,20 +2290,14 @@ namespace ANON
 			{
 				File_SXY& source = static_cast<File_SXY&>(s.file);
 				auto i = source.structures.find(s.localName.c_str());
-				if (i != source.structures.end())
-				{
-					s.localType = &i->second;
-				}
+				s.localType = (i != source.structures.end()) ? &i->second : nullptr;
 			}
 
 			for (auto& f : ns.functions)
 			{
 				File_SXY& source = static_cast<File_SXY&>(*f.file);
 				auto i = source.functions.find(f.localName.c_str());
-				if (i != source.functions.end())
-				{
-					f.localFunction = &i->second;
-				}
+				f.localFunction = (i != source.functions.end()) ? &i->second : nullptr;
 			}
 
 			for (auto& subspace: ns.subspaces)
@@ -2310,6 +2308,7 @@ namespace ANON
 
 		void Sort() override
 		{
+			mapTypeToEnum.clear(); // Rebuilt lazily by FindEnumDirect, the enums may have changed since it was cached
 			rootNS.SortRecursive();
 			ResolveRecursive(rootNS);
 		}
@@ -2443,6 +2442,7 @@ namespace ANON
 		void Clear() override
 		{
 			enums.clear();
+			mapTypeToEnum.clear(); // It caches pointers into enums
 			mapCppCodeToUsage.clear();
 			resourceCount.clear();
 			filenameToFile.clear();
