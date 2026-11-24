@@ -170,8 +170,13 @@ namespace Rococo
          if (!IsAtomic(typeExpr))
             return NULL;
 
-         cstr type = typeExpr.c_str();
+         return MatchStructure(typeExpr, typeExpr.c_str(), module);
+      }
 
+      // As MatchStructure(typeExpr, module), but the type name is given separately from the expression used for error reports,
+      // e.g. the Day in Day@Friday
+      IStructureBuilder* MatchStructure(cr_sex typeExpr, cstr type, IModuleBuilder& module)
+      {
          if (!IsCapital(type[0]))
          {
             if (AreEqual(type, ("array")))
@@ -217,7 +222,7 @@ namespace Rococo
                   }
                }
 
-               s = MatchStructureDirect(typeExpr, module);
+               s = module.FindStructure(type);
                return s;
             }
             else

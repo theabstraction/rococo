@@ -587,6 +587,8 @@ namespace Rococo
 		}
 
 		void AssignEnumToVariable(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive, cstr targetVariable);
+		void AssignEnumConstantToVariable(CCompileEnvironment& ce, cr_sex enumConstant, const IStructure& targetType, cr_sex directive, cstr targetVariable);
+		bool IsEnumConstantSyntax(cr_sex s);
 		bool TryCompileEnumLiteralToRegister(CCompileEnvironment& ce, cr_sex value, const IStructure& type, VM::DINDEX targetReg);
 
 		void CompileAssignmentDirectiveFromAtomic(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
@@ -799,17 +801,16 @@ namespace Rococo
 						ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetVariable);
 
 					}
-					else if (sourceText[0] == '.')
+					else if (IsEnumConstantSyntax(sourceValue))
 					{
-						// Potential enum, such as .Monday
-						cstr enumKey = sourceText + 1;
+						// Potential enum, such as .Monday or Day@Monday
 						MemberDef targetDef;
 						if (!ce.Builder.TryGetVariableByName(OUT targetDef, targetVariable))
 						{
 							Throw(directive, "Cannot identify target definition");
 						}
 
-						AssignEnumToVariable(ce, enumKey, *targetDef.ResolvedType, directive, targetVariable);
+						AssignEnumConstantToVariable(ce, sourceValue, *targetDef.ResolvedType, directive, targetVariable);
 					}
 					else
 					{
@@ -830,7 +831,7 @@ namespace Rococo
 			TokenBuffer symbol;
 			StringPrint(symbol, ("%s=(...)"), targetVariable);
 
-			// A one-element compound holding a leading-dot enum constant, e.g. (Day d = (.Friday)), or the
+			// A one-element compound holding an enum constant, e.g. (Day d = (.Friday)) or (Day d = (Day@Friday)), or the
 			// output of a macro that emits .Friday via AddAtomic, is unwrapped and resolved against the target type.
 			if (sourceValue.NumberOfElements() == 1 && TryCompileEnumLiteralToRegister(ce, sourceValue[0], varStruct, VM::REGISTER_D7))
 			{
@@ -985,12 +986,12 @@ namespace Rococo
 				}
 				else if (sourceType == SexyVarType_Bad)
 				{
-					if (*sourceText == '.')
+					if (IsEnumConstantSyntax(src))
 					{
 						MemberDef def;
 						GetVariableByName(ce.Builder, OUT def, targetVariable, src);
 						// Possible enumeration assignment
-						AssignEnumToVariable(ce, sourceText + 1, *def.ResolvedType, src, targetVariable);
+						AssignEnumConstantToVariable(ce, src, *def.ResolvedType, src, targetVariable);
 						return;
 					}
 					else
@@ -1082,9 +1083,9 @@ namespace Rococo
 				{
 					CompileAssignAtomicValueToMember(ce, member, src, variableName);
 				}
-				else if (src.NumberOfElements() == 1 && IsAtomic(src[0]) && *src[0].c_str() == '.')
+				else if (src.NumberOfElements() == 1 && IsEnumConstantSyntax(src[0]))
 				{
-					// One-element compound holding an enum constant, e.g. (Time t = (.Friday) 1)
+					// One-element compound holding an enum constant, e.g. (Time t = (.Friday) 1) or (Time t = (Day@Friday) 1)
 					MemberDef def;
 					GetVariableByName(ce.Builder, OUT def, variableName, src);
 					if (!TryCompileEnumLiteralToRegister(ce, src[0], *def.ResolvedType, VM::REGISTER_D7))
@@ -2426,6 +2427,12 @@ namespace Rococo
 
 			if (st == NULL)
 			{
+				if (IsAtomic(typeExpr) && FindChar(typeExpr.c_str(), '@') != nullptr)
+				{
+					// '@' only appears in qualified enum constants, e.g. Day@Friday
+					Throw(typeExpr, "%s is an enum constant, not a type. A compound expression headed by a type declares a variable", typeExpr.c_str());
+				}
+
 				OS::TripDebugger();
 				cstr enigma = typeExpr.c_str();
 				Throw(decl, "%s: Could not match [%s] as either a structure, function nor an interface in module %s\n"

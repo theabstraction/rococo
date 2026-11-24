@@ -512,13 +512,10 @@ namespace Rococo
 
       bool TryCompileAsCompareToEnum(CCompileEnvironment& ce, cr_sex parent, cr_sex leftExpr, cstr leftVarName, CONDITION op, cr_sex sRightExpr)
       {
-          if (!IsAtomic(sRightExpr))
-          {
-              return false;
-          }
-
-          cstr rightExpr = sRightExpr.c_str();
-          if (*rightExpr != '.')
+          // Either .Friday or Day@Friday
+          const IStructure* enumType;
+          cstr enumKey;
+          if (!TryParseEnumConstant(ce, sRightExpr, OUT enumType, OUT enumKey))
           {
               return false;
           }
@@ -531,7 +528,9 @@ namespace Rococo
 
           auto& type = *leftDef.ResolvedType;
 
-          int64 value = AssignEnumToD4(ce, rightExpr + 1, type, sRightExpr);
+          ValidateEnumConstantType(sRightExpr, enumType, type);
+
+          int64 value = AssignEnumToD4(ce, enumKey, type, sRightExpr);
           UNUSED(value);
           // Now we have (leftVarName op D4)
 

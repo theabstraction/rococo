@@ -632,6 +632,110 @@ namespace Rococo
 			}
 		}
 
+		// Enum constants come in two forms:
+		//   .Value                       unqualified. The enum type is inferred from the target, e.g. (Day d = .Friday)
+		//   EnumType@Value               qualified, e.g. (Day d = Day@Friday), or with a namespace, Sys.Type.Day@Friday
+		// '@' is used nowhere else in Sexy, so an atom containing it is always parsed as a qualified enum constant.
+		bool IsEnumConstantSyntax(cr_sex s)
+		{
+			if (!IsAtomic(s))
+			{
+				return false;
+			}
+
+			cstr text = s.c_str();
+			return *text == '.' || FindChar(text, '@') != nullptr;
+		}
+
+		// Parses enum constant text of either form, returning false if the text is neither. s is the expression used for error reports.
+		// On success valueName points to the value name inside the atom. For the qualified form enumType is the named type,
+		// and the value has been validated against it. For the unqualified form enumType is nullptr and the caller resolves
+		// the value against its target type. Throws if a qualified constant is malformed, names an unknown type, names
+		// a type that cannot carry enum values, or names a value the type does not define.
+		bool TryParseEnumConstantText(CCompileEnvironment& ce, cr_sex s, cstr text, OUT const IStructure*& enumType, OUT cstr& valueName)
+		{
+			enumType = nullptr;
+			valueName = nullptr;
+
+			if (*text == '.')
+			{
+				valueName = text + 1;
+				return true;
+			}
+
+			cstr at = FindChar(text, '@');
+			if (at == nullptr)
+			{
+				return false;
+			}
+
+			if (at == text || at[1] == 0 || FindChar(at + 1, '@') != nullptr)
+			{
+				Throw(s, "Bad enum constant %s. Expected <EnumType>@<Value>, e.g. Day@Friday or Sys.Type.Day@Friday", text);
+			}
+
+			char typeName[256];
+			size_t len = at - text;
+			if (len >= sizeof(typeName))
+			{
+				Throw(s, "Bad enum constant %s. The type name is too long", text);
+			}
+
+			memcpy(typeName, text, len);
+			typeName[len] = 0;
+
+			if (!IsCapital(typeName[0]))
+			{
+				Throw(s, "Bad enum constant %s. Expected <EnumType>@<Value>, but the type name %s does not begin with a capital letter", text, typeName);
+			}
+
+			const IStructure* type = MatchStructure(s, typeName, ce.Builder.Module());
+			if (type == nullptr)
+			{
+				Throw(s, "Unknown enum type %s in %s", typeName, text);
+			}
+
+			if (!type->IsStrongType())
+			{
+				Throw(s, "%s in %s is not an enum type. Only strong types, e.g. (strong Day (Int32)), carry enum values", GetFriendlyName(*type), text);
+			}
+
+			valueName = at + 1;
+
+			int64 value;
+			if (!type->TryGetEnumValue(valueName, OUT value))
+			{
+				Throw(s, "Unrecognized enum %s for %s", valueName, GetFriendlyName(*type));
+			}
+
+			enumType = type;
+			return true;
+		}
+
+		// As TryParseEnumConstantText, for the text of an atomic expression. Returns false if s is not atomic
+		bool TryParseEnumConstant(CCompileEnvironment& ce, cr_sex s, OUT const IStructure*& enumType, OUT cstr& valueName)
+		{
+			enumType = nullptr;
+			valueName = nullptr;
+
+			if (!IsAtomic(s))
+			{
+				return false;
+			}
+
+			return TryParseEnumConstantText(ce, s, s.c_str(), OUT enumType, OUT valueName);
+		}
+
+		// A qualified enum constant must name exactly the target type, since strong types convert neither to one another nor to their underlying primitive type.
+		// enumType is nullptr for the unqualified form, which always takes the target type.
+		void ValidateEnumConstantType(cr_sex s, const IStructure* enumType, const IStructure& targetType)
+		{
+			if (enumType != nullptr && *enumType != targetType)
+			{
+				Throw(s, "Type mismatch: %s is of type %s, but the target type is %s", s.c_str(), GetFriendlyName(*enumType), GetFriendlyName(targetType));
+			}
+		}
+
 		int64 AssignEnumToD4(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive)
 		{
 			int64 enumValue;
@@ -718,45 +822,57 @@ namespace Rococo
 			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4,targetVariable);
 		}
 
+		// Assigns an enum constant, either .Friday or Day@Friday, to a variable of type targetType. Throws if the constant is not of targetType
+		void AssignEnumConstantToVariable(CCompileEnvironment& ce, cr_sex enumConstant, const IStructure& targetType, cr_sex directive, cstr targetVariable)
+		{
+			const IStructure* enumType;
+			cstr enumKey;
+			if (!TryParseEnumConstant(ce, enumConstant, OUT enumType, OUT enumKey))
+			{
+				Throw(enumConstant, "Expected an enum constant, e.g. .Friday or Day@Friday");
+			}
+
+			ValidateEnumConstantType(enumConstant, enumType, targetType);
+			AssignEnumToVariable(ce, enumKey, targetType, directive, targetVariable);
+		}
+
 		bool TryCompilePushEnumLiteral(CCompileEnvironment& ce, cr_sex sInputExpression, const IStructure& inputStruct)
 		{
-			if (!IsAtomic(sInputExpression))
+			const IStructure* enumType;
+			cstr enumKey;
+			if (!TryParseEnumConstant(ce, sInputExpression, OUT enumType, OUT enumKey))
 			{
 				return false;
 			}
 
-			cstr inputExpr = sInputExpression.c_str();
+			ValidateEnumConstantType(sInputExpression, enumType, inputStruct);
 
-			if (*inputExpr != '.')
-			{
-				return false;
-			}
-
-			int64 enumValue = AssignEnumToD4(ce, inputExpr + 1, inputStruct, sInputExpression);
-			AddSymbol(ce.Builder, "D4 = %s (%lld / 0x%llX)", inputExpr + 1, enumValue, enumValue);
+			int64 enumValue = AssignEnumToD4(ce, enumKey, inputStruct, sInputExpression);
+			AddSymbol(ce.Builder, "D4 = %s (%lld / 0x%llX)", enumKey, enumValue, enumValue);
 			AddArgVariable("inputExpr", ce, inputStruct);
 			ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, GetBitCount(inputStruct.VarType()));
 			return true;
 		}
 
-		// Leading-dot enum constant, e.g. .Friday, resolved against 'type' and loaded into targetReg.
-		// Returns false when the token is not a leading-dot constant on a strong type, so callers can
-		// fall through to the existing literal/variable path. Throws if the name is not an enum of 'type'.
+		// Enum constant, either .Friday or Day@Friday, resolved against 'type' and loaded into targetReg.
+		// Returns false when the token is not an enum constant, or is a leading-dot constant and 'type' is not a strong type, so callers
+		// can fall through to the existing literal/variable path. Throws if the name is not an enum of 'type', or a qualified constant names another type.
 		// The value is written as 64 bits so Int64 constants above 2^32 are preserved.
 		bool TryCompileEnumLiteralToRegister(CCompileEnvironment& ce, cr_sex value, const IStructure& type, VM::DINDEX targetReg)
 		{
-			if (!IsAtomic(value))
+			const IStructure* enumType;
+			cstr enumKey;
+			if (!TryParseEnumConstant(ce, value, OUT enumType, OUT enumKey))
 			{
 				return false;
 			}
 
-			cstr valtext = value.c_str();
-			if (*valtext != '.' || !type.IsStrongType())
+			if (enumType == nullptr && !type.IsStrongType())
 			{
 				return false;
 			}
 
-			cstr enumKey = valtext + 1;
+			ValidateEnumConstantType(value, enumType, type);
 
 			VariantValue v;
 			if (!type.TryGetEnumValue(enumKey, OUT v.int64Value))

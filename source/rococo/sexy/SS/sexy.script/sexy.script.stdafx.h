@@ -462,6 +462,7 @@ namespace Rococo
         Compiler::IFunctionBuilder& MustMatchFunction(Compiler::IModuleBuilder& module, Sex::cr_sex s, cstr name);
         Compiler::IInterfaceBuilder* MatchInterface(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
         Compiler::IStructureBuilder* MatchStructure(Sex::cr_sex typeExpr, Compiler::IModuleBuilder& module);
+        Compiler::IStructureBuilder* MatchStructure(Sex::cr_sex typeExpr, cstr type, Compiler::IModuleBuilder& module);
         Compiler::IFunctionBuilder* MatchFunction(Sex::cr_sex nameExpr, Compiler::IModuleBuilder& module);
 
         bool TryCompileAssignArchetype(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& elementType, bool allowClosures);

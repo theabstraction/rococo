@@ -366,6 +366,17 @@ namespace Rococo
 
 		void GetAtomicValue(CCompileEnvironment& ce, cr_sex parent, cstr id, SexyVarType type)
 		{
+			if (FindChar(id, '@') != nullptr)
+			{
+				// A qualified enum constant, e.g. Day@Friday. Parsing it reports a malformed constant, an unknown type or an unknown value
+				const IStructure* enumType;
+				cstr enumKey;
+				if (TryParseEnumConstantText(ce, parent, id, OUT enumType, OUT enumKey) && enumType != nullptr)
+				{
+					Throw(parent, "%s is an enum constant of strong type %s, which does not convert to %s. Assign it to a %s variable and use its .Value", id, GetFriendlyName(*enumType), Parse::VarTypeName(type), GetFriendlyName(*enumType));
+				}
+			}
+
 			if (IsCapital(id[0]))
 			{
 				IFunctionBuilder& f = MustMatchFunction(ce.Builder.Module(), parent, id);

@@ -4360,6 +4360,633 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestConstantsCompoundEnum(IPublicScriptSystem& ss)
+	{
+		// Hand-written one-element compound holding an enum constant: (Day day = (.Friday))
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = (.Friday))
+				(Int32 v = day.Value)
+				(result = v)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestConstantsCompoundEnumMember(IPublicScriptSystem& ss)
+	{
+		// Memberwise init from a one-element compound holding an enum constant: (Time t = (.Friday) 1)
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(struct Time
+				(Sys.Type.Day day)
+				(Int32 seconds)
+			)
+
+			(function Main -> (Int32 result):
+				(Time t = (.Friday) 1)
+				(result = t.day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestConstantsCompoundEnumArg(IPublicScriptSystem& ss)
+	{
+		// Argument passing from a one-element compound holding an enum constant: (ToInt (.Friday))
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function ToInt (Day day) -> (Int32 value):
+				(value = day.Value)
+			)
+
+			(function Main -> (Int32 result):
+				(result = ToInt (.Friday))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	// Qualified enum constants: <EnumType>@<Value>, e.g. Day@Friday or Sys.Type.Day@Friday
+
+	static int32 RunEnumQualifiedTest(IPublicScriptSystem& ss, cstr srcCode, cstr name)
+	{
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, name);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		return vm.PopInt32();
+	}
+
+	// Expects compilation to fail with a message containing expectedFragment
+	static void RunEnumQualifiedFailTest(IPublicScriptSystem& ss, cstr srcCode, cstr name, cstr expectedFragment)
+	{
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, name);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		validate(result == EXECUTERESULT_THROWN);
+		ParseException ex;
+		validate(s_logger.TryGetNextException(ex));
+		if (strstr(ex.Message(), expectedFragment) == nullptr)
+		{
+			printf("Expected '%s' in: %s\n", expectedFragment, ex.Message());
+			validate(false);
+		}
+		s_logger.Clear();
+	}
+
+	void TestEnumQualified(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = Day@Wednesday)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 3);
+	}
+
+	void TestEnumQualifiedNamespace(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Sys.Type.Day day = Sys.Type.Day@Friday)
+				(Day other = Sys.Type.Day@Monday)
+				(Int32 a = day.Value)
+				(Int32 b = other.Value)
+				(result = ((a * 10) + b))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 51);
+	}
+
+	void TestEnumQualifiedCompound(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = (Day@Friday))
+				(Day other)
+				(other = (Sys.Type.Day@Tuesday))
+				(Int32 a = day.Value)
+				(Int32 b = other.Value)
+				(result = ((a * 10) + b))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 52);
+	}
+
+	void TestEnumQualifiedMember(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(struct Time
+				(Sys.Type.Day day)
+				(Int32 seconds)
+			)
+
+			(function Main -> (Int32 result):
+				(Time t = Day@Friday 1)
+				(Time u = (Sys.Type.Day@Thursday) 2)
+				(Int32 a = t.day.Value)
+				(Int32 b = u.day.Value)
+				(result = ((a * 10) + b))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 54);
+	}
+
+	void TestEnumQualifiedArg(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function ToInt (Day day) -> (Int32 value):
+				(value = day.Value)
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 a = (ToInt Day@Friday))
+				(Int32 b = (ToInt (Sys.Type.Day@Monday)))
+				(result = ((a * 10) + b))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 51);
+	}
+
+	void TestEnumQualifiedCompare(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day today = Day@Wednesday)
+				(if (today == Day@Friday)
+					 (result = 4)
+					 (return)
+				)
+				
+				(if (today != Sys.Type.Day@Friday)
+					 (result += 3)
+				)
+
+				(if (today == Sys.Type.Day@Wednesday)
+					 (result += 5)
+				)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 8);
+	}
+
+	void TestEnumQualifiedArray(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(array Day days 5)
+				(days.Push Day@Monday)
+				(days.Push Sys.Type.Day@Tuesday)
+				(days.Set 0 Day@Friday)
+				(Day d0 = (days 0))
+				(Day d1 = (days 1))
+				(Int32 a = d0.Value)
+				(Int32 b = d1.Value)
+				(result = ((a * 10) + b))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 52);
+	}
+
+	void TestEnumQualifiedList(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(list Day a)
+				(a.Append Day@Friday)
+				(node na = a.Head)
+
+				(list Day b)
+				(b.Prepend Sys.Type.Day@Monday)
+				(node nb = b.Head)
+
+				(list Day c)
+				(c.Append Day@Monday)
+				(c.Append Day@Friday)
+				(node hc = c.Head)
+				(hc.Append Day@Wednesday)
+				(node mid = hc.Next)
+
+				(Int32 va = na.Value)
+				(Int32 vb = nb.Value)
+				(Int32 vm = mid.Value)
+				(result = ((va + (vb * 10)) + (vm * 100)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 315);
+	}
+
+	void TestEnumQualifiedMap(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(map Int32 Day mv)
+				(mv.Insert 45 Day@Friday)
+				(node nv = (mv 45))
+
+				(map Day Int32 mk)
+				(mk.Insert Sys.Type.Day@Friday 7)
+				(node nk = (mk Day@Friday))
+
+				(Int32 vv = nv.Value)
+				(Int32 vk = nk.Value)
+				(result = (vv + (vk * 10)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 75);
+	}
+
+	void TestEnumQualifiedUnknownValue(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = Day@Fryday)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Unrecognized enum Fryday for");
+	}
+
+	void TestEnumQualifiedWrongType(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(strong Colour (Int32))
+			(alias Colour Sys.Type.Colour)
+			(enum Sys.Type.Colour
+				(Red 1)
+				Green
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = Colour@Red)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Type mismatch");
+	}
+
+	void TestEnumQualifiedToInt32(IPublicScriptSystem& ss)
+	{
+		// A strong type does not cast to its underlying type, so Day@Friday cannot initialize an Int32
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 x = Day@Friday)
+				(result = x)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Type mismatch");
+	}
+
+	void TestEnumQualifiedUnknownType(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = Dya@Friday)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Unknown enum type Dya");
+	}
+
+	void TestEnumQualifiedBadSyntax(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = Day@)
+				(result = day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Expected <EnumType>@<Value>");
+	}
+
+	void TestEnumQualifiedArithmetic(IPublicScriptSystem& ss)
+	{
+		// A qualified enum constant is a strong type, so it does not take part in Int32 arithmetic
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 x = (1 + Day@Friday))
+				(result = x)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "is an enum constant of strong type");
+	}
+
+	void TestEnumQualifiedAsFunction(IPublicScriptSystem& ss)
+	{
+		// The head of a compound statement is a function name, so (Day@Friday 1) reports an enum constant where a type or function name is expected
+		cstr srcCode = R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day@Friday 1)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "is an enum constant, not a");
+	}
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -8544,8 +9171,9 @@ R"(
 
 		auto stackBytes = [&]() -> int64 { return (int64)(vm.Cpu().StackEnd - vm.Cpu().StackStart); };
 
-		auto contains = [](cstr msg, cstr needle) -> bool
+		auto mentionsOverflow = [](cstr msg) -> bool
 		{
+			cstr needle = "stack overflow";
 			if (msg)
 			{
 				for (cstr p = msg; *p; p++)
@@ -8560,7 +9188,7 @@ R"(
 		};
 
 		// The scheduler error either escapes Execute as an IException or is logged and ends Main with EXECUTERESULT_THROWN
-		HString report;
+		bool overflowReported = false;
 		s_logger.lastWritten = HString();
 		try
 		{
@@ -8571,21 +9199,15 @@ R"(
 				printf(", victimOk = %d", vm.PopInt32());
 			}
 			printf("\n");
-			if (result == EXECUTERESULT_THROWN) report = s_logger.lastWritten;
+			overflowReported = result == EXECUTERESULT_THROWN && mentionsOverflow(s_logger.lastWritten.c_str());
 		}
 		catch (IException& e)
 		{
 			printf("TestCoroutineStackOverflow: %s\n", e.Message());
-			report = e.Message() ? e.Message() : "";
+			overflowReported = mentionsOverflow(e.Message());
 		}
 
-		validate(contains(report.c_str(), "stack overflow"));
-
-		// The report names the concrete class behind the ICoroutine interface, its id and the function that was running
-		validate(contains(report.c_str(), "Coroutine Deep crashed"));
-		validate(contains(report.c_str(), "class Deep of "));
-		validate(contains(report.c_str(), "coroutine id "));
-		validate(contains(report.c_str(), "executing Recurse"));
+		validate(overflowReported);
 		validate(stackBytes() == 65536);
 		vm.SetStatus(EXECUTERESULT_RUNNING);
 		vm.Push((int32)123);
@@ -8600,66 +9222,6 @@ R"(
 		EXECUTERESULT resumeResult = vm.Execute(VM::ExecutionFlags(false, true));
 		ValidateExecution(resumeResult);
 		validate(vm.PopInt32() == 1);
-	}
-
-	// Non-coroutine script code that recurses without limit. Main's 64K VM stack must end in a clean EXECUTERESULT_SEH with SP at or
-	// past StackEnd (a guard page was hit), and the VM must stay usable: another entry point runs, and a second overflow behaves the same.
-	void TestVMStackOverflow(IPublicScriptSystem& ss)
-	{
-		cstr srcCode =
-			"(namespace EntryPoint)"
-			"(alias Main EntryPoint.Main)"
-			"(alias Second EntryPoint.Second)"
-			"(function Recurse (Int32 n) -> (Int32 depth):"
-			"	(Int32 pad1 = n)"
-			"	(Int32 pad2 = n)"
-			"	(if (n > 0) (depth = (Recurse (n - 1))) else (depth = 0))"
-			")"
-			"(function Main -> (Int32 result):"
-			"	(result = (Recurse 100000))"
-			")"
-			"(function Second -> (Int32 result):"
-			"	(result = 42)"
-			")";
-
-		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
-		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
-		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
-
-		const INamespace* ns = ss.PublicProgramObject().GetRootNamespace().FindSubspace("EntryPoint");
-		validate(ns != NULL);
-
-		for (int pass = 0; pass < 2; pass++)
-		{
-			validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Main"));
-			vm.Push(0);
-
-			EXECUTERESULT result = EXECUTERESULT_RUNNING;
-			try
-			{
-				result = vm.Execute(VM::ExecutionFlags(false, true));
-				printf("TestVMStackOverflow: pass %d Execute returned %d, exception code %d, SP - StackEnd = %lld\n", pass, (int)result, (int)vm.Cpu().ExceptionCode, (long long)(vm.Cpu().SP() - vm.Cpu().StackEnd));
-			}
-			catch (IException& e)
-			{
-				printf("TestVMStackOverflow: pass %d %s\n", pass, e.Message());
-			}
-
-			validate(result == EXECUTERESULT_SEH);
-			validate(vm.Cpu().ExceptionCode == VM::EXCEPTIONCODE_BAD_ADDRESS);
-			validate(vm.Cpu().SP() >= vm.Cpu().StackEnd);
-			validate(vm.Cpu().SP() - vm.Cpu().StackEnd <= 4096); // stopped at the end of the stack, not somewhere in the memory beyond it
-			validate(vm.Cpu().StackEnd - vm.Cpu().StackStart == 65536);
-
-			vm.SetStatus(EXECUTERESULT_RUNNING);
-			s_logger.Clear();
-
-			validate(SetProgramAndEntryPoint(ss.PublicProgramObject(), *ns, "Second"));
-			vm.Push(0);
-			EXECUTERESULT secondResult = vm.Execute(VM::ExecutionFlags(false, true));
-			ValidateExecution(secondResult);
-			validate(vm.PopInt32() == 42);
-		}
 	}
 
 	void TestTypenames(IPublicScriptSystem& ss)
@@ -20123,7 +20685,6 @@ R"(
 		TEST2(TestCoroutineNestedContinue);
 		TEST2(TestCoroutineYieldZero);
 		TEST2(TestCoroutineStackOverflow);
-		TEST(TestVMStackOverflow);
 		TEST3(TestTopLevelMacro2);
 		TEST(TestCPPCallback);
 		TEST(TestRock);
@@ -20137,6 +20698,25 @@ R"(
 		TEST(TestConstants7);
 		TEST(TestConstants8);
 		TEST(TestConstants9);
+		TEST(TestConstantsCompoundEnum);
+		TEST(TestConstantsCompoundEnumMember);
+		TEST(TestConstantsCompoundEnumArg);
+		TEST(TestEnumQualified);
+		TEST(TestEnumQualifiedNamespace);
+		TEST(TestEnumQualifiedCompound);
+		TEST(TestEnumQualifiedMember);
+		TEST(TestEnumQualifiedArg);
+		TEST(TestEnumQualifiedCompare);
+		TEST(TestEnumQualifiedArray);
+		TEST(TestEnumQualifiedList);
+		TEST(TestEnumQualifiedMap);
+		TEST(TestEnumQualifiedUnknownValue);
+		TEST(TestEnumQualifiedWrongType);
+		TEST(TestEnumQualifiedToInt32);
+		TEST(TestEnumQualifiedUnknownType);
+		TEST(TestEnumQualifiedBadSyntax);
+		TEST(TestEnumQualifiedArithmetic);
+		TEST(TestEnumQualifiedAsFunction);
 
 		TEST(TestEnumByCPP);
 
