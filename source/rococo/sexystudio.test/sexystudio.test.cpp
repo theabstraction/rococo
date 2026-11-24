@@ -954,8 +954,12 @@ void pluginInit(HANDLE /* hModule */)
 class TestEditor : public AutoComplete::ISexyEditor, IAutoCompleteBuilder
 {
 public:
-	Substring doc;
-	int64 caretPos;
+	// Mutable so that ReplaceText can apply edits, see ReplaceText
+	mutable Substring doc;
+	mutable int64 caretPos;
+
+	// Holds the document text once ReplaceText has edited it. doc then points into it
+	mutable HString editedDoc;
 
 	// Everything the code-complete system emitted through this editor, see EmitLog
 	mutable EmitLog log;
@@ -989,6 +993,12 @@ public:
 	int64 GetCaretPos() const override
 	{
 		return caretPos;
+	}
+
+	// The current document text, null terminated
+	cstr DocText() const
+	{
+		return doc.start;
 	}
 
 	cstr LastDefinitionFile()
@@ -1122,6 +1132,13 @@ public:
 		HString replacement;
 		Format(replacement, "(%lld, %lld) %s", startPos, endPos, item);
 		log.Add("Replace: ", replacement.c_str());
+
+		// Apply the edit, as Scintilla would, so a follow-up UpdateAutoComplete sees the new text, with the caret after the insertion
+		HString edited;
+		Format(edited, "%.*s%s%s", (int)startPos, doc.start, item, doc.start + endPos);
+		editedDoc = edited;
+		doc = { editedDoc.c_str(), editedDoc.c_str() + editedDoc.length() };
+		caretPos = startPos + (int64)strlen(item);
 	}
 
 	IAutoCompleteBuilder& AutoCompleteBuilder() override
@@ -2944,6 +2961,309 @@ void TestShowCompletionsForEnum()
 	)EXPECT");
 }
 
+// Qualified enum constants, <EnumType>@<Value>, e.g. Day@Friday or Sys.Time.Day@Friday (see sexy.script.functions.inl IsEnumConstantSyntax).
+// The only enum in the content scripts is Sys.Time.Day, with the alias Day (content/scripts/test/enums_test.sxy).
+// There is no Sys.Type.Day, and no flags type in the content scripts. Sys.Type.ROID is a strong type with no enum values.
+// Typing '@' after an enum type lists the type's values. The items are the bare value names, inserted after the '@'
+void TestQualifiedEnumShortName()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Day day = Day@
+)<CODE>";
+
+	FileDesc desc(file, '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Sunday
+		Item: Monday
+		Item: Tuesday
+		Item: Wednesday
+		Item: Thursday
+		Item: Friday
+		Item: Saturday
+		Show
+	)EXPECT");
+}
+
+void TestQualifiedEnumFullyQualified()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Sys.Time.Day day = Sys.Time.Day@
+)<CODE>";
+
+	FileDesc desc(file, '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Sunday
+		Item: Monday
+		Item: Tuesday
+		Item: Wednesday
+		Item: Thursday
+		Item: Friday
+		Item: Saturday
+		Show
+	)EXPECT");
+}
+
+// A partial value narrows the list, case sensitive, as member completion does (qst.Move)
+void TestQualifiedEnumPrefix()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Day day = Day@T
+)<CODE>";
+
+	FileDesc desc(file, 'T');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Tuesday
+		Item: Thursday
+		Show
+	)EXPECT");
+}
+
+void TestQualifiedEnumFullyQualifiedPrefix()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Sys.Time.Day day = Sys.Time.Day@S
+)<CODE>";
+
+	FileDesc desc(file, 'S');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Sunday
+		Item: Saturday
+		Show
+	)EXPECT");
+}
+
+// No value starts with X: no list, and no fallback to type completion for X
+void TestQualifiedEnumPrefixNoMatch()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Day day = Day@X
+)<CODE>";
+
+	FileDesc desc(file, 'X');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
+}
+
+// A value typed in full is not listed again. ReplaceSelectedText re-runs UpdateAutoComplete after inserting, so this keeps the list from reopening
+void TestQualifiedEnumCompleteValue()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Day day = Day@Friday
+)<CODE>";
+
+	FileDesc desc(file, 'y');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
+}
+
+// Picking an item inserts the value name after the '@'
+void TestQualifiedEnumInsertsValueName()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Day day = Day@
+)<CODE>";
+
+	FileDesc desc(file, '@');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().ReplaceSelectedText(editor, "Monday");
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Sunday
+		Item: Monday
+		Item: Tuesday
+		Item: Wednesday
+		Item: Thursday
+		Item: Friday
+		Item: Saturday
+		Show
+		Replace: (37, 37) Monday
+	)EXPECT");
+
+	if (strstr(editor.DocText(), "\t(Day day = Day@Monday\n") == nullptr)
+	{
+		Throw(0, "%s: expecting Day@Monday in the document, got:\n%s", __ROCOCO_FUNCTION__, editor.DocText());
+	}
+}
+
+// Picking an item after a partial value replaces the partial value
+void TestQualifiedEnumInsertsValueNameAfterPrefix()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Day day = Day@T
+)<CODE>";
+
+	FileDesc desc(file, 'T');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+	sexyIDE->Gaffer().ReplaceSelectedText(editor, "Thursday");
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Tuesday
+		Item: Thursday
+		Show
+		Replace: (37, 38) Thursday
+	)EXPECT");
+
+	if (strstr(editor.DocText(), "\t(Day day = Day@Thursday\n") == nullptr)
+	{
+		Throw(0, "%s: expecting Day@Thursday in the document, got:\n%s", __ROCOCO_FUNCTION__, editor.DocText());
+	}
+}
+
+// Sys.Type.Day and Weekday do not exist: no list, no crash
+void TestQualifiedEnumUnknownType()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr files[] =
+	{
+		"\n(function Meow -> :\n\t(Sys.Type.Day day = Sys.Type.Day@\n)",
+		"\n(function Meow -> :\n\t(Weekday day = Weekday@\n)",
+		"\n(function Meow -> :\n\t(Weekday day = Weekday@M\n)",
+		"\n(function Meow -> :\n\t(Day day = Sys.Day@\n)"
+	};
+
+	for (cstr file : files)
+	{
+		FileDesc desc(file, '\n');
+		TestEditor editor(desc.Text(), desc.CaretPos() - 1);
+
+		sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+		ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
+	}
+}
+
+// Types that exist but carry no enum values: a strong type without an enum (Sys.Type.ROID), a struct (Vec3), and a strong type whose
+// values are macros rather than an enum (Rococo.Graphics.ESoftBoxVertexPurpose, see mplat_sxh.sxy)
+void TestQualifiedEnumNoValues()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr files[] =
+	{
+		"\n(function Meow -> :\n\t(ROID id = ROID@\n)",
+		"\n(function Meow -> :\n\t(Sys.Type.ROID id = Sys.Type.ROID@\n)",
+		"\n(function Meow -> :\n\t(Vec3 v = Vec3@\n)",
+		"\n(function Meow -> :\n\t(Rococo.Graphics.ESoftBoxVertexPurpose p = Rococo.Graphics.ESoftBoxVertexPurpose@\n)"
+	};
+
+	for (cstr file : files)
+	{
+		FileDesc desc(file, '\n');
+		TestEditor editor(desc.Text(), desc.CaretPos() - 1);
+
+		sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+		ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
+	}
+}
+
+// '@' in a comment or a string, such as an email address, and '@' after a variable name, list nothing and do not fall back to other completions
+void TestQualifiedEnumNotInCode()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr files[] =
+	{
+		"\n(function Meow -> :\n\t// Ask Day@\n)",
+		"\n(function Meow -> :\n\t// Mail mark@Sys\n)",
+		"\n(function Meow -> :\n\t(Day day = Day@Monday) // Day@\n)",
+		"\n(function Meow -> :\n\t(IString s = \"Day@\n)",
+		"\n(function Meow -> :\n\t(IString s = \"mark@Sys\n)",
+		"\n(function Meow -> :\n\t(Day day = day@\n)"
+	};
+
+	for (cstr file : files)
+	{
+		FileDesc desc(file, '\n');
+		TestEditor editor(desc.Text(), desc.CaretPos() - 1);
+
+		sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+		ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, "");
+	}
+}
+
+// A string that closes before the qualified constant does not hide it
+void TestQualifiedEnumAfterString()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	cstr file =
+		R"<CODE>(
+(function Meow -> :
+	(Meow "a@b&"c" Day@W
+)<CODE>";
+
+	FileDesc desc(file, 'W');
+	TestEditor editor(desc.Text(), desc.CaretPos());
+
+	sexyIDE->Gaffer().UpdateAutoComplete(editor);
+
+	ValidateEmitted(__ROCOCO_FUNCTION__, editor.log, R"EXPECT(
+		Item: Wednesday
+		Show
+	)EXPECT");
+}
+
 
 void TestShowCompletionsForeachReferenceVariable()
 {
@@ -3048,6 +3368,19 @@ void MainProtected2(HMODULE /* hLib */)
 	TestShowCompletionsForeachReferenceVariable();
 
 	TestShowCompletionsForEnum();
+
+	TestQualifiedEnumShortName();
+	TestQualifiedEnumFullyQualified();
+	TestQualifiedEnumPrefix();
+	TestQualifiedEnumFullyQualifiedPrefix();
+	TestQualifiedEnumPrefixNoMatch();
+	TestQualifiedEnumCompleteValue();
+	TestQualifiedEnumInsertsValueName();
+	TestQualifiedEnumInsertsValueNameAfterPrefix();
+	TestQualifiedEnumUnknownType();
+	TestQualifiedEnumNoValues();
+	TestQualifiedEnumNotInCode();
+	TestQualifiedEnumAfterString();
 }
 
 void MainProtected(HMODULE hLib)

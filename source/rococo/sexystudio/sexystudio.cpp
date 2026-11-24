@@ -2349,6 +2349,138 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 		return true;
 	}
 
+	// True if p, a pointer into the line, is inside a // comment or a string literal. Only the current line is examined, so a /* */ comment
+	// that opened on an earlier line is not seen. Sexy escapes characters in strings with '&', e.g. &" is a quote inside a string
+	static bool IsInCommentOrStringOnLine(cr_substring line, cstr p)
+	{
+		bool inString = false;
+
+		for (cstr s = line.start; s < p; s++)
+		{
+			if (inString)
+			{
+				if (*s == '&' && s + 1 < p)
+				{
+					s++;
+				}
+				else if (*s == '"')
+				{
+					inString = false;
+				}
+			}
+			else if (*s == '"')
+			{
+				inString = true;
+			}
+			else if (*s == '/' && s + 1 < p && s[1] == '/')
+			{
+				return true;
+			}
+		}
+
+		return inString;
+	}
+
+	// Explicitly qualified enum constants: <EnumType>@<Value>, e.g. Day@Friday or Sys.Time.Day@Friday (see IsEnumConstantSyntax in sexy.script.functions.inl).
+	// '@' appears nowhere else in Sexy code, so when the caret follows <EnumType>@<prefix>, where prefix may be empty, this owns the completion:
+	// it lists the type's values that start with the prefix, and returns true whether or not it listed anything, so that the caller does not
+	// fall back to type or variable completion of the prefix. The items are bare value names, and autoComplete_Replacement_StartPosition is set
+	// to just after the '@', so ReplaceSelectedText swaps the prefix for the chosen name. Returns false if the text before the caret is not of that form
+	bool TryAddQualifiedEnumsToAutocomplete(ISexyEditor& editor, cr_substring line, cstr activationPoint, const EditorCursor& cursor, cr_substring doc)
+	{
+		cstr valueStart = activationPoint + 1;
+		while (valueStart > line.start && IsAlphaNumeric(valueStart[-1]))
+		{
+			valueStart--;
+		}
+
+		cstr at = valueStart - 1;
+		if (at < line.start || *at != '@')
+		{
+			return false;
+		}
+
+		cstr typeStart = at;
+		while (typeStart > line.start && (IsAlphaNumeric(typeStart[-1]) || typeStart[-1] == '.'))
+		{
+			typeStart--;
+		}
+
+		if (typeStart == at || !isupper(*typeStart))
+		{
+			// Enum types begin with a capital letter, so this is not an enum constant. It may be a variable, or an email address in a comment
+			return true;
+		}
+
+		if (IsInCommentOrStringOnLine(line, typeStart))
+		{
+			return true;
+		}
+
+		char typeName[256];
+		if (!Substring{ typeStart, at }.TryCopyWithoutTruncate(typeName, sizeof typeName))
+		{
+			return true;
+		}
+
+		char prefix[256];
+		if (!Substring{ valueStart, activationPoint + 1 }.TryCopyWithoutTruncate(prefix, sizeof prefix))
+		{
+			return true;
+		}
+
+		PopulateImplicitNamespaces(doc);
+
+		auto* e = GetDatabase().FindEnum(typeName);
+		if (!e)
+		{
+			return true;
+		}
+
+		size_t nMatches = 0;
+		bool exactMatch = false;
+
+		for (size_t i = 0; i < e->NumberOfEntries(); i++)
+		{
+			cstr name;
+			int64 value;
+			e->GetEntry(i, OUT name, OUT value);
+
+			if (StartsWith(name, prefix))
+			{
+				nMatches++;
+				if (Eq(name, prefix))
+				{
+					exactMatch = true;
+				}
+			}
+		}
+
+		if (nMatches == 0 || (nMatches == 1 && exactMatch))
+		{
+			// Nothing to offer, or the value is already typed in full. The latter happens right after ReplaceSelectedText inserts a value, as it re-runs UpdateAutoComplete
+			return true;
+		}
+
+		for (size_t i = 0; i < e->NumberOfEntries(); i++)
+		{
+			cstr name;
+			int64 value;
+			e->GetEntry(i, OUT name, OUT value);
+
+			if (StartsWith(name, prefix))
+			{
+				editor.AutoCompleteBuilder().AddItem(name);
+			}
+		}
+
+		autoComplete_Replacement_StartPosition = LinePointerToDocPosition(cursor, line, valueStart);
+
+		editor.AutoCompleteBuilder().ShowAndClearItems();
+
+		return true;
+	}
+
 	bool TryAddTokenOptionsToAutocomplete(ISexyEditor& editor, cr_substring candidate, int64 displacementFromCaret, cr_substring doc)
 	{
 		using namespace Rococo;
@@ -2494,7 +2626,8 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 	void ReplaceSelectedText(Rococo::AutoComplete::ISexyEditor& editor, cstr item)
 	{
 		int64 caretPos = editor.GetCaretPos();
-		if (autoComplete_Replacement_StartPosition > 0 && autoComplete_Replacement_StartPosition < caretPos)
+		// The start may equal the caret when nothing has been typed after Day@, see TryAddQualifiedEnumsToAutocomplete. For other completions it is the token start, before the caret
+		if (autoComplete_Replacement_StartPosition > 0 && autoComplete_Replacement_StartPosition <= caretPos)
 		{
 			editor.ReplaceText(autoComplete_Replacement_StartPosition, caretPos, item);
 			UpdateAutoComplete(editor, nullptr);
@@ -3749,6 +3882,12 @@ struct SexyStudioIDE: ISexyStudioInstance1, IObserver, ICalltip, ISexyStudioGUI,
 
 		autoComplete_Replacement_StartPosition = LinePointerToDocPosition(cursor, substringLine, searchToken.start);
 
+		// Day@ or Sys.Time.Day@, optionally followed by part of a value name. This is the only place ' starts a completion
+		if (TryAddQualifiedEnumsToAutocomplete(editor, substringLine, activationPoint, cursor, doc))
+		{
+			return;
+		}
+
 		if (activationChar == '.' && activationPoint > substringLine.start + 1 && isblank(activationPoint[-1]))
 		{
 			int64 displacementFromCaret = activationPoint - searchToken.start + 1;
@@ -4022,4 +4161,4 @@ extern "C" _declspec(dllexport) int CreateSexyStudioFactory(void** ppInterface, 
 	}
 
 	return E_NOTIMPL;
-}
+}
