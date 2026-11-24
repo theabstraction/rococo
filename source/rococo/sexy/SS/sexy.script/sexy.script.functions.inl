@@ -1193,9 +1193,24 @@ namespace Rococo
 			return stackAllocByteCount;
 		}
 
-		void AppendCopyPointer(ICodeBuilder& builder, int srcSFoffset, const MemberDef& targetDef)
+		// Stores a derivative (interface or struct reference) output, found at srcSFoffset in our frame, into the target variable, which may be captured from the closure's parent.
+		// For an interface the replaced object is released, as (s = (GetName)) does, and the new one keeps the reference the callee added
+		void StoreDerivativeOutput(ICodeBuilder& builder, int srcSFoffset, const MemberDef& targetDef, bool isInterface)
 		{
-			builder.Assembler().Append_SetSFValueFromSFValue(targetDef.SFOffset, srcSFoffset, BITCOUNT_POINTER);
+			builder.Assembler().Append_GetStackFrameValue(srcSFoffset, VM::REGISTER_D5, BITCOUNT_POINTER); // D5 = the output, read before any switch to the parent frame
+
+			UseStackFrameFor(builder, targetDef);
+			if (isInterface)
+			{
+				builder.Assembler().Append_GetStackFrameValue(targetDef.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 = the object being replaced
+			}
+			builder.Assembler().Append_SetStackFrameValue(targetDef.SFOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+			RestoreStackFrameFor(builder, targetDef);
+
+			if (isInterface)
+			{
+				builder.Append_DecRef(); // Releases D4. Invoked with SF back on our own frame
+			}
 		}
 
 		void CompilePopOutputToVariable(const IStructure& requiredOutputStruct, ICodeBuilder& builder, int outputPos, int outputIndex, int sfOffset, cr_sex s)
@@ -1247,29 +1262,8 @@ namespace Rococo
 					Throw(outputExpr, ("The output variable was a reference to a derivative type, but not the first or only member"));
 				}
 
-				if (outputDef.IsParentValue)
-				{
-					// The target is in the closure parent's frame, so the output pointer is read from our frame, then stored with SF switched to the parent frame.
-					builder.Assembler().Append_GetStackFrameValue(sfOffset, VM::REGISTER_D5, BITCOUNT_POINTER); // D5 = output, with the reference the callee added
-
-					UseStackFrameFor(builder, outputDef);
-					if (requiredOutputStruct.InterfaceCount() > 0)
-					{
-						builder.Assembler().Append_GetStackFrameValue(outputDef.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 = the value being replaced
-					}
-					builder.Assembler().Append_SetStackFrameValue(outputDef.SFOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
-					RestoreStackFrameFor(builder, outputDef);
-
-					if (requiredOutputStruct.InterfaceCount() > 0)
-					{
-						// As (s = (GetName)) does, release the replaced object. The new one keeps the reference the callee added. Invoked outside the swap
-						builder.Append_DecRef();
-					}
-				}
-				else
-				{
-					AppendCopyPointer(builder, sfOffset, outputDef);
-				}
+				// One path for local and captured targets: UseStackFrameFor is a no-op for a local
+				StoreDerivativeOutput(builder, sfOffset, outputDef, requiredOutputStruct.InterfaceCount() > 0);
 			}
 			else
 			{
@@ -2412,10 +2406,16 @@ namespace Rococo
 						if (refDef.IsParentValue)
 						{
 							MemberDef localDef; // Local defs are copies of parent interface put onto the local stack by value
-							builder.TryGetVariableByName(OUT localDef, localName);
-							int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i);
-							UNUSED(instanceToInterfaceOffset);
-							builder.Assembler().Append_CallVirtualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset);
+							if (!builder.TryGetVariableByName(OUT localDef, localName))
+							{
+								Throw(s, "Internal compiler error: could not find the local copy %s of %s", localName, instanceName);
+							}
+
+							// The copy holds the pointer the parent received. For a captured 'this' that is the method's own interface, at the parent's this-offset from the instance,
+							// so step back to the instance and forward to interface i, as the parent does through this' MemberOffset (-thisOffset)
+							int receivedPointerToInstance = AreEqual(instanceName, "this") ? -builder.GetThisOffsetFor(refDef) : 0;
+							int instanceToInterfaceOffset = Compiler::GetInstanceToInterfaceOffset(i) + receivedPointerToInstance;
+							builder.Assembler().Append_CallVirtualFunctionViaRefOnStack(localDef.SFOffset, vTableByteOffset, instanceToInterfaceOffset);
 						}
 						else
 						{

@@ -26481,6 +26481,391 @@ R"(
 		TEST(TestClosureAuditThrowFromClosureCaughtInParent);
 	}
 
+	namespace ClosureLifetime
+	{
+		// Script classes call (Sys.ClosureAudit.NoteDestruct this.id) in their destructor, so a test can see which objects were released and how often
+		int32 destroyedMask = 0;
+		int32 destroyedCount = 0;
+
+		void NoteDestruct(NativeCallEnvironment& nce)
+		{
+			int32 id;
+			ReadInput(0, id, nce);
+			destroyedMask |= (1 << id);
+			destroyedCount++;
+		}
+
+		void DestroyedMask(NativeCallEnvironment& nce)
+		{
+			WriteOutput(0, destroyedMask, nce);
+		}
+
+		void Register(IPublicScriptSystem& ss)
+		{
+			destroyedMask = 0;
+			destroyedCount = 0;
+			const INamespace& ns = ss.AddNativeNamespace("Sys.ClosureAudit");
+			ss.AddNativeCall(ns, NoteDestruct, nullptr, "NoteDestruct (Int32 id)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, DestroyedMask, nullptr, "DestroyedMask -> (Int32 mask)", __FILE__, __LINE__, false, 0);
+		}
+
+		// A refcounted Dog whose destructor reports its id, and MakeDog, which returns a new Dog through an interface output
+		cstr DogPreamble = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(interface EntryPoint.IDog (Id -> (Int32 id)))
+			(class Dog (implements EntryPoint.IDog) (Int32 id))
+			(method Dog.Construct (Int32 id): (this.id = id))
+			(method Dog.Id -> (Int32 id): (id = this.id))
+			(method Dog.Destruct -> : (Sys.ClosureAudit.NoteDestruct this.id))
+			(factory EntryPoint.NewDog EntryPoint.IDog (Int32 id) : (construct Dog id))
+
+			(function MakeDog (Int32 id) -> (EntryPoint.IDog dog):
+				(EntryPoint.IDog newDog (EntryPoint.NewDog id))
+				(dog = newDog)
+			)
+
+			(archetype EntryPoint.VoidToVoid -> )
+		)";
+
+		ClosureAudit::Outcome RunWithDogs(IPublicScriptSystem& ss, cstr mainCode, cstr name)
+		{
+			Register(ss);
+
+			char srcCode[4096];
+			SafeFormat(srcCode, sizeof(srcCode), "%s%s", DogPreamble, mainCode);
+			auto outcome = ClosureAudit::Run(ss, srcCode, name);
+			printf("[closure-audit] %s: destroyed mask %d, destroyed count %d\n", name, destroyedMask, destroyedCount);
+			return outcome;
+		}
+	}
+
+	// Leak: (MakeDog 2 -> d) with a local interface d overwrote d without releasing the Dog it held, so Dog 1 was never destroyed.
+	// (d = (MakeDog 2)) releases the old object first. Dog 1 must be destroyed by the time Main reads the mask, and each Dog exactly once by exit
+	void TestClosureAuditLocalOutputReleasesReplacedObject(IPublicScriptSystem& ss)
+	{
+		cstr mainCode = R"(
+			(function Main -> (Int32 result):
+				(EntryPoint.IDog d (EntryPoint.NewDog 1))
+				(MakeDog 2 -> d)
+				(Int32 mask = (Sys.ClosureAudit.DestroyedMask))
+				(Int32 id = d.Id)
+				(result = ((mask * 100) + id))
+			)
+		)";
+
+		auto outcome = ClosureLifetime::RunWithDogs(ss, mainCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 202)); // Dog 1 released (mask 2) and d is Dog 2
+		validate(ClosureLifetime::destroyedMask == 6 && ClosureLifetime::destroyedCount == 2); // Both released, once each
+	}
+
+	// Guard for F5: the same output popped into a captured d releases the replaced Dog once, and the new Dog survives until the parent exits
+	void TestClosureAuditCapturedOutputReleasesReplacedObject(IPublicScriptSystem& ss)
+	{
+		cstr mainCode = R"(
+			(function Main -> (Int32 result):
+				(EntryPoint.IDog d (EntryPoint.NewDog 1))
+				(EntryPoint.VoidToVoid f = (closure -> : (MakeDog 2 -> d)))
+				(f)
+				(Int32 mask = (Sys.ClosureAudit.DestroyedMask))
+				(Int32 id = d.Id)
+				(result = ((mask * 100) + id))
+			)
+		)";
+
+		auto outcome = ClosureLifetime::RunWithDogs(ss, mainCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 202));
+		validate(ClosureLifetime::destroyedMask == 6 && ClosureLifetime::destroyedCount == 2);
+	}
+
+	// Guard: assigning a function result to a captured interface (d = (MakeDog 2)) inside a closure releases the replaced Dog once
+	void TestClosureAuditCapturedAssignmentReleasesReplacedObject(IPublicScriptSystem& ss)
+	{
+		cstr mainCode = R"(
+			(function Main -> (Int32 result):
+				(EntryPoint.IDog d (EntryPoint.NewDog 1))
+				(EntryPoint.VoidToVoid f = (closure -> : (d = (MakeDog 2))))
+				(f)
+				(Int32 mask = (Sys.ClosureAudit.DestroyedMask))
+				(Int32 id = d.Id)
+				(result = ((mask * 100) + id))
+			)
+		)";
+
+		auto outcome = ClosureLifetime::RunWithDogs(ss, mainCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 202));
+		validate(ClosureLifetime::destroyedMask == 6 && ClosureLifetime::destroyedCount == 2);
+	}
+
+	// A script exception thrown in a closure that holds its own interface local is caught in the parent. Unwinding releases the closure's Dog 2,
+	// leaves the parent's Dog 1 alive (its frame is intact), and each Dog is released exactly once by exit
+	void TestClosureAuditThrowReleasesClosureLocalsOnly(IPublicScriptSystem& ss)
+	{
+		cstr mainCode = R"(
+			(function Main -> (Int32 result):
+				(EntryPoint.IDog keeper (EntryPoint.NewDog 1))
+				(Int32 caught = 0)
+				(EntryPoint.VoidToVoid f =
+					(closure -> :
+						(EntryPoint.IDog temp (EntryPoint.NewDog 2))
+						(Sys.Throw 7 "boom")
+					)
+				)
+				(try
+					(
+						(f)
+					)
+				catch ex
+					(
+						(caught = 1)
+					)
+				)
+				(Int32 mask = (Sys.ClosureAudit.DestroyedMask))
+				(Int32 id = keeper.Id)
+				(result = ((mask * 1000) + (caught * 100) + id))
+			)
+		)";
+
+		auto outcome = ClosureLifetime::RunWithDogs(ss, mainCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 4101)); // Dog 2 released (mask 4), caught, keeper still Dog 1
+		validate(ClosureLifetime::destroyedMask == 6 && ClosureLifetime::destroyedCount == 2);
+	}
+
+	// Item 1: a closure inside a method of a class's second interface (IB) makes virtual calls on the captured 'this' to a method of each interface.
+	// AppendVirtualCallAssembly calls a captured instance through the interface pointer the method received, without selecting the target interface
+	void TestClosureAuditCapturedThisSecondInterfaceCalls(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(interface EntryPoint.IA (A -> (Int32 x)))
+			(interface EntryPoint.IB (B -> (Int32 x)) (B2 -> (Int32 x)))
+			(class Cat (implements EntryPoint.IA)(implements EntryPoint.IB) (Int32 id))
+			(method Cat.Construct (Int32 id): (this.id = id))
+			(method Cat.A -> (Int32 x): (x = (this.id * 10)))
+			(method Cat.B2 -> (Int32 x): (x = (this.id * 100)))
+
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(method Cat.B -> (Int32 x):
+				(Int32 directA = this.A)
+				(Int32 directB2 = this.B2)
+				(EntryPoint.VoidToInt f =
+					(closure -> (Int32 y):
+						(Int32 a = this.A)
+						(Int32 b2 = this.B2)
+						(y = (a + b2))
+					)
+				)
+				(Int32 viaClosure = (f))
+				(x = (((directA + directB2) * 1000) + viaClosure))
+			)
+
+			(factory EntryPoint.NewCat EntryPoint.IB (Int32 id) : (construct Cat id))
+
+			(function Main -> (Int32 result):
+				(EntryPoint.IB b (EntryPoint.NewCat 3))
+				(result = b.B)
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 330330));
+	}
+
+	// Item 1, conversion form: inside the same IB method's closure, the captured 'this' is converted to IA and to IB, and each is called
+	void TestClosureAuditCapturedThisSecondInterfaceConversions(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(interface EntryPoint.IA (A -> (Int32 x)))
+			(interface EntryPoint.IB (B -> (Int32 x)) (B2 -> (Int32 x)))
+			(class Cat (implements EntryPoint.IA)(implements EntryPoint.IB) (Int32 id))
+			(method Cat.Construct (Int32 id): (this.id = id))
+			(method Cat.A -> (Int32 x): (x = (this.id * 10)))
+			(method Cat.B2 -> (Int32 x): (x = (this.id * 100)))
+
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(method Cat.B -> (Int32 x):
+				(EntryPoint.IA directA = this)
+				(EntryPoint.IB directB = this)
+				(Int32 direct = (directA.A + directB.B2))
+				(EntryPoint.VoidToInt f =
+					(closure -> (Int32 y):
+						(EntryPoint.IA asA = this)
+						(EntryPoint.IB asB = this)
+						(Int32 a = asA.A)
+						(Int32 b2 = asB.B2)
+						(y = (a + b2))
+					)
+				)
+				(Int32 viaClosure = (f))
+				(x = ((direct * 1000) + viaClosure))
+			)
+
+			(factory EntryPoint.NewCat EntryPoint.IB (Int32 id) : (construct Cat id))
+
+			(function Main -> (Int32 result):
+				(EntryPoint.IB b (EntryPoint.NewCat 3))
+				(result = b.B)
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 330330));
+	}
+
+	// A closure calls itself through the parent's closure variable (via its captured parentSF) ten levels deep, each level updating a captured total
+	void TestClosureAuditClosureRecursesThroughOwnVariable(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.Visitor (Int32 depth) -> )
+
+			(function Main -> (Int32 result):
+				(Int32 sum = 0)
+				(EntryPoint.Visitor v =
+					(closure (Int32 depth) -> :
+						(sum = (sum + depth))
+						(if (depth > 1)
+							(v (depth - 1))
+						)
+					)
+				)
+				(v 10)
+				(result = sum)
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 55));
+	}
+
+	// Closures defined inside foreach and for bodies capture the loop variables (the foreach element is a reference variable) and are called each pass
+	void TestClosureAuditClosuresCaptureLoopVariables(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.VoidToVoid -> )
+
+			(function Main -> (Int32 result):
+				(array Int32 a 4)
+				(a.Push 1)
+				(a.Push 2)
+				(a.Push 3)
+				(a.Push 4)
+				(Int32 total = 0)
+				(foreach x # a
+					(EntryPoint.VoidToVoid f = (closure -> : (total = (total + (x * 10)))))
+					(f)
+				)
+				(for (Int32 i = 0)(i < 3)(i += 1)
+					(EntryPoint.VoidToVoid g = (closure -> : (total = (total + i))))
+					(g)
+				)
+				(result = total)
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 103));
+	}
+
+	// A closure that updates members of a captured struct is passed through two functions (each with its own locals) before it is called
+	void TestClosureAuditClosurePassedThroughTwoLevels(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
+			(struct Acc (Int32 total)(Int32 calls))
+
+			(function Level2 (Int32 n)(EntryPoint.IntToInt f) -> (Int32 r):
+				(Int32 pad2 = 77)
+				(r = (f n))
+			)
+
+			(function Level1 (Int32 n)(EntryPoint.IntToInt f) -> (Int32 r):
+				(Int32 pad1 = 99)
+				(r = (Level2 (n + 1) f))
+			)
+
+			(function Main -> (Int32 result):
+				(Acc acc = 0 0)
+				(EntryPoint.IntToInt f =
+					(closure (Int32 x) -> (Int32 y):
+						(acc.total = (acc.total + x))
+						(acc.calls = (acc.calls + 1))
+						(y = (x * 2))
+					)
+				)
+				(Int32 r = (Level1 5 f))
+				(result = ((r * 100) + (acc.total * 10) + acc.calls))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 1261));
+	}
+
+	// A call made inside a closure pops two outputs straight into captured parent variables
+	void TestClosureAuditTwoOutputsIntoCapturedVariables(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.VoidToVoid -> )
+
+			(function DivMod (Int32 a)(Int32 b) -> (Int32 q)(Int32 r):
+				(q = (a / b))
+				(r = (a - (q * b)))
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 q = 0)
+				(Int32 r = 0)
+				(EntryPoint.VoidToVoid f = (closure -> : (DivMod 47 5 -> q r)))
+				(f)
+				(result = ((q * 100) + r))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 902));
+	}
+
+	void RunClosureFollowupTests()
+	{
+		TEST(TestClosureAuditCapturedThisSecondInterfaceCalls);
+		TEST(TestClosureAuditCapturedThisSecondInterfaceConversions);
+		TEST(TestClosureAuditLocalOutputReleasesReplacedObject);
+		TEST(TestClosureAuditCapturedOutputReleasesReplacedObject);
+		TEST(TestClosureAuditCapturedAssignmentReleasesReplacedObject);
+		TEST(TestClosureAuditThrowReleasesClosureLocalsOnly);
+		TEST(TestClosureAuditClosureRecursesThroughOwnVariable);
+		TEST(TestClosureAuditClosuresCaptureLoopVariables);
+		TEST(TestClosureAuditClosurePassedThroughTwoLevels);
+		TEST(TestClosureAuditTwoOutputsIntoCapturedVariables);
+	}
+
 	void RunPositiveSuccesses()
 	{
 		validate(true);
@@ -27172,6 +27557,7 @@ R"(
 
 		RunFsbAuditTests(); // FastStringBuilder audit and fixes
 		RunClosureAuditTests(); // Closure / D6 / parentSF audit
+		RunClosureFollowupTests(); // Closure follow-up: 2nd interface this, releases, loops, recursion
 	}
 
 	void RunPositiveFailures()
