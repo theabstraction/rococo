@@ -1473,6 +1473,7 @@ namespace Rococo
         {
             StandardInit(conf, target, Configuration.OutputType.Dll);
             conf.AddPublicDependency<RococoSexInferenceProject>(target);
+            conf.AddPublicDependency<RococoSEXMLProject>(target);
             conf.AddPublicDependency<SexySParserProject>(target);
             conf.AddPublicDependency<SexyUtilProject>(target);
             conf.Options.Add(Sharpmake.Options.Vc.Linker.SubSystem.Windows);

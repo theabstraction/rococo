@@ -27,6 +27,8 @@ cstr ErrorCaption = "SexyStudio Standalone App - error!";
 #include <rococo.sexystudio.api.h>
 #include "..\sexystudio-lib\sexystudio.api.h"
 #include "..\sexystudio-lib\sexystudio.database.h"
+#include "..\sexystudio-lib\sexystudio.workspace.h"
+#include <rococo.sexml.h>
 
 #include <cstdio>
 #include <vector>
@@ -3499,7 +3501,10 @@ static void WriteBinaryFile(crwstr path, const char* data, size_t length)
 	}
 }
 
-static void MakePackageTestProject(WideFilePath& contentDir)
+// Besides the package, the project has one search path, !scripts/pkgtest/, holding one loose file, pkgtest_local.sxy, that declares Sys.SexyStudio.SearchPathTest.Probe.
+// So a project populated once has loaded exactly two files: the loose one and the packaged one.
+// [extraPackage], if not null, is also listed in the config's selected packages
+static void MakePackageTestProject(WideFilePath& contentDir, cstr extraPackage = nullptr)
 {
 	WideFilePath tempDir;
 	if (!GetTempPathW(tempDir.CAPACITY, tempDir.buf))
@@ -3514,21 +3519,48 @@ static void MakePackageTestProject(WideFilePath& contentDir)
 	Format(packagesDir, L"%lspackages\\", contentDir.buf);
 	CreateDirectoryW(packagesDir, NULL);
 
-	cstr config =
+	WideFilePath scriptsDir;
+	Format(scriptsDir, L"%lsscripts\\", contentDir.buf);
+	CreateDirectoryW(scriptsDir, NULL);
+
+	WideFilePath searchPathDir;
+	Format(searchPathDir, L"%lspkgtest\\", scriptsDir.buf);
+	CreateDirectoryW(searchPathDir, NULL);
+
+	char config[1024];
+	SafeFormat(config, sizeof config,
 		R"<CONFIG>((Directories
 	(content "$HERE$")
-	(project "--any--")
+	(project "--any--") :
+	(SearchPath
+		(path "!scripts/pkgtest/")
+		(isActive true)
+	)
 )
 (Packages
 	(#List selected-packages
-		"!packages/sexystudio_test_1000.sxyz"
+		"!packages/sexystudio_test_1000.sxyz"%s%s%s
 	)
 )
-)<CONFIG>";
+)<CONFIG>", extraPackage ? " \"" : "", extraPackage ? extraPackage : "", extraPackage ? "\"" : "");
 
 	WideFilePath configPath;
 	Format(configPath, L"%lssexystudio.config.sexml", contentDir.buf);
 	WriteBinaryFile(configPath, config, strlen(config));
+
+	cstr localSource =
+		R"<CODE>((namespace Sys.SexyStudio.SearchPathTest)
+
+(function Probe (Int32 x) -> (Int32 y):
+	(y = x)
+)
+
+(alias Probe Sys.SexyStudio.SearchPathTest.Probe)
+)<CODE>";
+
+	WideFilePath localPath;
+	Format(localPath, L"%lspkgtest_local.sxy", searchPathDir.buf);
+	WriteBinaryFile(localPath, localSource, strlen(localSource));
 
 	cstr packagedSource =
 		R"<CODE>((namespace Sys.SexyStudio.PackageTest)
@@ -3666,7 +3698,7 @@ void TestHeadlessDatabaseLoadsConfiguredPackages()
 
 	ValidatePackageContent(__ROCOCO_FUNCTION__, *database, true);
 
-	// Populating again without a Clear must not load the package a second time
+	// Populating again reloads from scratch, so the package is still there, once
 	database->PopulateViaSearchPaths();
 	ValidatePackageContent(__ROCOCO_FUNCTION__, *database, true);
 
@@ -3787,8 +3819,526 @@ void TestIDEPackageSelectionComesFromConfig()
 	}
 }
 
+// Workspace tests. The workspace (sexystudio-lib, no GUI) owns the projects, their configs and databases, the blank defaults and the user defaults file.
+// They use their own defaults section, so they never disturb the IDE's SexyStudio.Defaults
+static cstr WORKSPACE_TEST_DEFAULTS = "SexyStudio.Test.Defaults";
+static cstr CONTENT_PROJECT_DIR = R"(D:\work\rococo\content\)";
+
+static void DeleteWorkspaceTestDefaults()
+{
+	U8FilePath path;
+	Rococo::OS::GetUserSEXMLFullPath(path, nullptr, WORKSPACE_TEST_DEFAULTS);
+	DeleteFileA(path);
+}
+
+struct WorkspaceEventLog : IWorkspaceObserver
+{
+	struct Event
+	{
+		ISexyDatabase* database;
+		bool contentIsNew;
+	};
+
+	std::vector<Event> events;
+
+	void OnWorkspaceChanged(ISexyDatabase& current, bool contentIsNew) override
+	{
+		events.push_back({ &current, contentIsNew });
+	}
+};
+
+static void ValidateSearchPathContent(cstr testName, const ISexyDatabase& database, bool expectPresent)
+{
+	auto* f = database.FindFunction("Sys.SexyStudio.SearchPathTest.Probe");
+	if (expectPresent && (!f || !f->LocalFunction()))
+	{
+		Throw(0, "%s: expected Sys.SexyStudio.SearchPathTest.Probe from the search path !scripts/pkgtest/ to be in the database and resolved", testName);
+	}
+
+	if (!expectPresent && f)
+	{
+		Throw(0, "%s: did not expect Sys.SexyStudio.SearchPathTest.Probe in the database", testName);
+	}
+}
+
+static void ValidateContentProject(cstr testName, const ISexyDatabase& database)
+{
+	if (!database.FindEnum("Sys.Time.Day"))
+	{
+		Throw(0, "%s: expected Sys.Time.Day from the content project's search paths", testName);
+	}
+}
+
+static void ValidateLoadedFileCount(cstr testName, const ISexyDatabase& database, size_t expected, cstr when)
+{
+	if (database.LoadedFileCount() != expected)
+	{
+		Throw(0, "%s: %s, expected %llu files to have been loaded, but there were %llu", testName, when, (unsigned long long) expected, (unsigned long long) database.LoadedFileCount());
+	}
+}
+
+static void ValidateEventCount(cstr testName, const WorkspaceEventLog& log, size_t expected, cstr when)
+{
+	if (log.events.size() != expected)
+	{
+		Throw(0, "%s: %s, expected %llu workspace events, but there were %llu", testName, when, (unsigned long long) expected, (unsigned long long) log.events.size());
+	}
+}
+
+static void GetPackageTestProjectU8(U8FilePath& content, cstr extraPackage = nullptr)
+{
+	WideFilePath contentDir;
+	MakePackageTestProject(contentDir, extraPackage);
+	Assign(content, contentDir);
+}
+
+// A new workspace presents a blank database: no project, no config path, no search paths, no packages, nothing loaded
+void TestWorkspaceStartsBlank()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+
+	if (workspace->HasProject())
+	{
+		Throw(0, "%s: a new workspace should have no project", __ROCOCO_FUNCTION__);
+	}
+
+	auto& db = workspace->GetDatabase();
+	if (db.Config().ConfigPath() != nullptr)
+	{
+		Throw(0, "%s: the blank config should have no config path", __ROCOCO_FUNCTION__);
+	}
+
+	if (db.Config().GetSearchPath(0).pingPath != nullptr || db.Config().GetPackage(0) != nullptr)
+	{
+		Throw(0, "%s: the blank config should have no search paths and no packages", __ROCOCO_FUNCTION__);
+	}
+
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, db, 0, "with no project");
+
+	// An observer added to a blank workspace hears about the blank database at once
+	WorkspaceEventLog log;
+	workspace->AddObserver(log);
+	ValidateEventCount(__ROCOCO_FUNCTION__, log, 1, "after AddObserver");
+	if (log.events[0].database != &db || log.events[0].contentIsNew)
+	{
+		Throw(0, "%s: AddObserver should replay the blank database with contentIsNew false", __ROCOCO_FUNCTION__);
+	}
+	workspace->RemoveObserver(log);
+
+	// Repopulating without a project does nothing
+	workspace->Repopulate();
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, db, 0, "after Repopulate with no project");
+}
+
+// Selecting a project loads it and populates it once, with its search paths and packages. Selecting it again, or switching away and back, does not parse anything again
+void TestWorkspaceSelectsProjectsAndLoadsEachOnce()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+
+	WorkspaceEventLog log;
+	workspace->AddObserver(log);
+
+	workspace->SetDirectoryContainingConfigFile(content);
+
+	if (!workspace->HasProject())
+	{
+		Throw(0, "%s: expected a project after SetDirectoryContainingConfigFile", __ROCOCO_FUNCTION__);
+	}
+
+	ISexyDatabase* testDb = &workspace->GetDatabase();
+	ValidatePackageContent(__ROCOCO_FUNCTION__, *testDb, true);
+	ValidateSearchPathContent(__ROCOCO_FUNCTION__, *testDb, true);
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, *testDb, 2, "after selecting the test project");
+
+	ValidateEventCount(__ROCOCO_FUNCTION__, log, 2, "after selecting the test project");
+	if (log.events[1].database != testDb || !log.events[1].contentIsNew)
+	{
+		Throw(0, "%s: selecting a new project should notify with its database and contentIsNew true", __ROCOCO_FUNCTION__);
+	}
+
+	U8FilePath expectedConfig;
+	Format(expectedConfig, "%ssexystudio.config.sexml", content.buf);
+	U8FilePath actualConfig;
+	Assign(actualConfig, testDb->Config().ConfigPath());
+	if (!EqI(expectedConfig, actualConfig))
+	{
+		Throw(0, "%s: expected config path %s, found %s", __ROCOCO_FUNCTION__, expectedConfig.buf, actualConfig.buf);
+	}
+
+	// Selecting the current project again changes nothing
+	workspace->SetDirectoryContainingConfigFile(content);
+	ValidateEventCount(__ROCOCO_FUNCTION__, log, 2, "after selecting the test project a second time");
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, *testDb, 2, "after selecting the test project a second time");
+
+	workspace->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+	ISexyDatabase* contentDb = &workspace->GetDatabase();
+	if (contentDb == testDb)
+	{
+		Throw(0, "%s: the content project should have its own database", __ROCOCO_FUNCTION__);
+	}
+	ValidateContentProject(__ROCOCO_FUNCTION__, *contentDb);
+	ValidatePackageContent(__ROCOCO_FUNCTION__, *contentDb, false);
+	ValidateEventCount(__ROCOCO_FUNCTION__, log, 3, "after selecting the content project");
+
+	// Back to the test project: same database, not parsed again, and the observer is told the content is not new
+	workspace->SetDirectoryContainingConfigFile(content);
+	if (&workspace->GetDatabase() != testDb)
+	{
+		Throw(0, "%s: switching back should present the test project's database", __ROCOCO_FUNCTION__);
+	}
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, *testDb, 2, "after switching back to the test project");
+	ValidateEventCount(__ROCOCO_FUNCTION__, log, 4, "after switching back to the test project");
+	if (log.events[3].database != testDb || log.events[3].contentIsNew)
+	{
+		Throw(0, "%s: switching back to a loaded project should notify with contentIsNew false", __ROCOCO_FUNCTION__);
+	}
+
+	// An observer added now hears about the current project at once
+	WorkspaceEventLog lateLog;
+	workspace->AddObserver(lateLog);
+	ValidateEventCount(__ROCOCO_FUNCTION__, lateLog, 1, "after a late AddObserver");
+	if (lateLog.events[0].database != testDb || !lateLog.events[0].contentIsNew)
+	{
+		Throw(0, "%s: a late AddObserver should replay the current project with contentIsNew true", __ROCOCO_FUNCTION__);
+	}
+
+	workspace->RemoveObserver(lateLog);
+	workspace->RemoveObserver(log);
+
+	// Removed observers hear nothing more
+	workspace->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+	ValidateEventCount(__ROCOCO_FUNCTION__, log, 4, "after RemoveObserver");
+
+	// A directory without a sexystudio.config.sexml is an error
+	bool threw = false;
+	try
+	{
+		workspace->SetDirectoryContainingConfigFile(R"(D:\work\rococo\content\scripts\)");
+	}
+	catch (IException&)
+	{
+		threw = true;
+	}
+
+	if (!threw)
+	{
+		Throw(0, "%s: expected SetDirectoryContainingConfigFile to throw for a directory with no config", __ROCOCO_FUNCTION__);
+	}
+}
+
+// Repopulate and ReloadProjectByConfigDirectory clear the database before loading, so they reload rather than add, and the observers are told the content is new
+void TestWorkspaceRepopulateReloads()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+	workspace->SetDirectoryContainingConfigFile(content);
+
+	WorkspaceEventLog log;
+	workspace->AddObserver(log);
+
+	auto& db = workspace->GetDatabase();
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, db, 2, "after selecting the test project");
+
+	// Deactivating the search path in the config and repopulating removes the loose file's content: proof the database was cleared first
+	db.Config().SetSearchPathActivity(0, false);
+	workspace->Repopulate();
+	ValidateSearchPathContent(__ROCOCO_FUNCTION__, db, false);
+	ValidatePackageContent(__ROCOCO_FUNCTION__, db, true);
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, db, 3, "after Repopulate without the search path");
+	ValidateEventCount(__ROCOCO_FUNCTION__, log, 2, "after Repopulate");
+	if (log.events[1].database != &db || !log.events[1].contentIsNew)
+	{
+		Throw(0, "%s: Repopulate should notify with contentIsNew true", __ROCOCO_FUNCTION__);
+	}
+
+	db.Config().SetSearchPathActivity(0, true);
+	workspace->Repopulate();
+	ValidateSearchPathContent(__ROCOCO_FUNCTION__, db, true);
+	ValidatePackageContent(__ROCOCO_FUNCTION__, db, true);
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, db, 5, "after Repopulate with the search path");
+
+	// Populating the database directly twice gives the same content, as each populate starts from a clear database
+	db.PopulateViaSearchPaths();
+	db.PopulateViaSearchPaths();
+	ValidateSearchPathContent(__ROCOCO_FUNCTION__, db, true);
+	ValidatePackageContent(__ROCOCO_FUNCTION__, db, true);
+
+	// Reloading the current project by its directory repopulates it, as the user entering the path again expects changes on disk to be picked up
+	size_t before = db.LoadedFileCount();
+	workspace->ReloadProjectByConfigDirectory(content);
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, db, before + 2, "after ReloadProjectByConfigDirectory");
+
+	// Reloading a project that is not loaded yet loads it once
+	workspace->ReloadProjectByConfigDirectory(CONTENT_PROJECT_DIR);
+	size_t contentCount = workspace->GetDatabase().LoadedFileCount();
+	workspace->SetDirectoryContainingConfigFile(content);
+	workspace->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, workspace->GetDatabase(), contentCount, "after switching away from and back to the content project");
+
+	workspace->RemoveObserver(log);
+}
+
+// Rebase selects the project containing a .sxy file, and ignores other files
+void TestWorkspaceRebaseSelectsProjectByFile()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+
+	WideFilePath notSxy;
+	Format(notSxy, L"%hssexystudio.config.sexml", content.buf);
+	workspace->Rebase(notSxy);
+	if (workspace->HasProject())
+	{
+		Throw(0, "%s: Rebase to a file that is not .sxy should be ignored", __ROCOCO_FUNCTION__);
+	}
+
+	WideFilePath localFile;
+	Format(localFile, L"%hsscripts\\pkgtest\\pkgtest_local.sxy", content.buf);
+	workspace->Rebase(localFile);
+	if (!workspace->HasProject())
+	{
+		Throw(0, "%s: Rebase to a .sxy file in the test project should select it", __ROCOCO_FUNCTION__);
+	}
+	ValidatePackageContent(__ROCOCO_FUNCTION__, workspace->GetDatabase(), true);
+	ISexyDatabase* testDb = &workspace->GetDatabase();
+
+	workspace->Rebase(LR"(D:\work\rococo\content\scripts\test\enums_test.sxy)");
+	ValidateContentProject(__ROCOCO_FUNCTION__, workspace->GetDatabase());
+
+	workspace->Rebase(localFile);
+	if (&workspace->GetDatabase() != testDb)
+	{
+		Throw(0, "%s: Rebase back to the test project should present its database again", __ROCOCO_FUNCTION__);
+	}
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, *testDb, 2, "after rebasing back to the test project");
+}
+
+// A selected package that cannot be loaded is recorded in the database, and the others still load. Clear() forgets the errors
+void TestWorkspaceRecordsPackageErrors()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content, "!packages/sexystudio_missing_1000.sxyz");
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+	workspace->SetDirectoryContainingConfigFile(content);
+
+	auto& db = workspace->GetDatabase();
+	ValidatePackageContent(__ROCOCO_FUNCTION__, db, true);
+	ValidateSearchPathContent(__ROCOCO_FUNCTION__, db, true);
+
+	if (db.PopulateErrorCount() != 1)
+	{
+		Throw(0, "%s: expected 1 populate error for the missing package, found %llu", __ROCOCO_FUNCTION__, (unsigned long long) db.PopulateErrorCount());
+	}
+
+	cstr err = db.GetPopulateError(0);
+	if (!err || !strstr(err, "sexystudio_missing_1000.sxyz"))
+	{
+		Throw(0, "%s: expected the populate error to name the missing package, found: %s", __ROCOCO_FUNCTION__, err ? err : "<null>");
+	}
+
+	if (db.GetPopulateError(1) != nullptr)
+	{
+		Throw(0, "%s: GetPopulateError out of range should give nullptr", __ROCOCO_FUNCTION__);
+	}
+
+	// Repopulating records the error once, not twice
+	workspace->Repopulate();
+	if (db.PopulateErrorCount() != 1)
+	{
+		Throw(0, "%s: after Repopulate expected 1 populate error, found %llu", __ROCOCO_FUNCTION__, (unsigned long long) db.PopulateErrorCount());
+	}
+
+	db.Clear();
+	if (db.PopulateErrorCount() != 0)
+	{
+		Throw(0, "%s: Clear() should forget populate errors", __ROCOCO_FUNCTION__);
+	}
+
+	// Put the fixture back as the other tests expect it
+	GetPackageTestProjectU8(content);
+}
+
+// The defaults file records the current project, and a new workspace that loads the defaults selects it. A missing defaults file is not an error
+void TestWorkspaceDefaultsRoundTrip()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	DeleteWorkspaceTestDefaults();
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	{
+		AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+		workspace->LoadDefaults();
+		if (workspace->HasProject())
+		{
+			Throw(0, "%s: with no defaults file the workspace should have no project", __ROCOCO_FUNCTION__);
+		}
+
+		// Saving without a project writes nothing
+		workspace->SaveDefaults();
+		if (Rococo::OS::IsUserSEXMLExistant(nullptr, WORKSPACE_TEST_DEFAULTS))
+		{
+			Throw(0, "%s: SaveDefaults without a project should not create a defaults file", __ROCOCO_FUNCTION__);
+		}
+
+		workspace->SetDirectoryContainingConfigFile(content);
+		workspace->SaveDefaults();
+	}
+
+	bool exists = Rococo::OS::IsUserSEXMLExistant(nullptr, WORKSPACE_TEST_DEFAULTS);
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+	workspace->LoadDefaults();
+
+	DeleteWorkspaceTestDefaults();
+
+	if (!exists)
+	{
+		Throw(0, "%s: SaveDefaults with a project should create the defaults file", __ROCOCO_FUNCTION__);
+	}
+
+	if (!workspace->HasProject())
+	{
+		Throw(0, "%s: LoadDefaults should select the project the defaults name", __ROCOCO_FUNCTION__);
+	}
+
+	ValidatePackageContent(__ROCOCO_FUNCTION__, workspace->GetDatabase(), true);
+	ValidateLoadedFileCount(__ROCOCO_FUNCTION__, workspace->GetDatabase(), 2, "after LoadDefaults");
+}
+
+struct WorkspaceErrorCounter : IWorkspaceErrorHandler
+{
+	int count = 0;
+	void OnWorkspaceError(cstr context, IException& ex) override
+	{
+		UNUSED(context);
+		UNUSED(ex);
+		count++;
+	}
+};
+
+// SaveProjects writes the configs back, so a package deselected in one workspace stays deselected in the next
+void TestWorkspaceSavesProjectConfigs()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	WorkspaceErrorCounter errors;
+
+	{
+		AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+		workspace->SetDirectoryContainingConfigFile(content);
+		workspace->GetDatabase().Config().SetPackageSelected(PACKAGE_TEST_PING_PATH, false);
+		workspace->SaveProjects(&errors);
+	}
+
+	AutoFree<ISexyWorkspace> workspace = CreateSexyWorkspace(WORKSPACE_TEST_DEFAULTS);
+	workspace->SetDirectoryContainingConfigFile(content);
+
+	bool packageListed = workspace->GetDatabase().Config().GetPackage(0) != nullptr;
+	bool searchPathKept = workspace->GetDatabase().Config().GetSearchPath(0).pingPath != nullptr;
+	bool packageLoaded = workspace->GetDatabase().FindEnum("Sys.SexyStudio.PackageTest.Shade") != nullptr;
+
+	// Put the fixture back as the other tests expect it
+	GetPackageTestProjectU8(content);
+
+	if (errors.count != 0)
+	{
+		Throw(0, "%s: SaveProjects reported %d errors", __ROCOCO_FUNCTION__, errors.count);
+	}
+
+	if (packageListed || packageLoaded)
+	{
+		Throw(0, "%s: the package deselected and saved in one workspace was selected in the next", __ROCOCO_FUNCTION__);
+	}
+
+	if (!searchPathKept)
+	{
+		Throw(0, "%s: the saved config lost its search path", __ROCOCO_FUNCTION__);
+	}
+}
+
+void MainProtected0()
+{
+	TestWorkspaceStartsBlank();
+	TestWorkspaceSelectsProjectsAndLoadsEachOnce();
+	TestWorkspaceRepopulateReloads();
+	TestWorkspaceRebaseSelectsProjectByFile();
+	TestWorkspaceRecordsPackageErrors();
+	TestWorkspaceDefaultsRoundTrip();
+	TestWorkspaceSavesProjectConfigs();
+}
+
+// The IDE populates a project once when it is selected. It used to parse it twice: once when the project was created and again when the property sheets synced
+void TestIDEParsesEachFileOnce()
+{
+	Intro(__ROCOCO_FUNCTION__);
+
+	if (!factory)
+	{
+		Throw(0, "%s: no factory. pluginInit must run first", __ROCOCO_FUNCTION__);
+	}
+
+	U8FilePath content;
+	GetPackageTestProjectU8(content);
+
+	PackageTestEventHandler eventHandler;
+	AutoFree<ISexyStudioInstance1> instance = factory->CreateSexyIDE(Rococo::Windows::NoParent(), eventHandler);
+	instance->SetDirectoryContainingConfigFile(content);
+
+	auto& db = instance->GetDatabase();
+	size_t loaded = db.LoadedFileCount();
+	bool searchPathOk = db.FindFunction("Sys.SexyStudio.SearchPathTest.Probe") != nullptr;
+	bool packageOk = db.FindEnum("Sys.SexyStudio.PackageTest.Shade") != nullptr;
+
+	// Switching to the content project and back does not parse the test project again
+	instance->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+	instance->SetDirectoryContainingConfigFile(content);
+	size_t loadedAfterSwitch = instance->GetDatabase().LoadedFileCount();
+
+	instance->SetDirectoryContainingConfigFile(CONTENT_PROJECT_DIR);
+
+	if (!searchPathOk || !packageOk)
+	{
+		Throw(0, "%s: expected the IDE to load the test project's search path and package", __ROCOCO_FUNCTION__);
+	}
+
+	if (loaded != 2)
+	{
+		Throw(0, "%s: expected the IDE to load 2 files for the test project, but it loaded %llu", __ROCOCO_FUNCTION__, (unsigned long long) loaded);
+	}
+
+	if (loadedAfterSwitch != 2)
+	{
+		Throw(0, "%s: expected switching projects not to reload the test project, but the count went to %llu", __ROCOCO_FUNCTION__, (unsigned long long) loadedAfterSwitch);
+	}
+}
+
 void MainProtected4()
 {
+	TestIDEParsesEachFileOnce();
 	TestHeadlessDatabaseLoadsConfiguredPackages();
 	TestIDELoadsConfiguredPackages();
 	TestIDEPackageSelectionComesFromConfig();
@@ -3820,6 +4370,7 @@ int main()
 
 	try
 	{
+		MainProtected0();
 		MainProtected(hLib);
 		MainProtected2(hLib);
 		MainProtected3(hLib);

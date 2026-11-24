@@ -3,9 +3,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\rococo\sexystudio-lib\sexystudio.database.cpp" />
     <ClCompile Include="..\..\source\rococo\sexystudio-lib\sexystudio.projects.cpp" />
+    <ClCompile Include="..\..\source\rococo\sexystudio-lib\sexystudio.workspace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\rococo\sexystudio-lib\sexystudio.api.h" />
     <ClInclude Include="..\..\source\rococo\sexystudio-lib\sexystudio.database.h" />
+    <ClInclude Include="..\..\source\rococo\sexystudio-lib\sexystudio.workspace.h" />
   </ItemGroup>
 </Project>

@@ -2109,6 +2109,12 @@ namespace ANON
 
 		std::vector<AutoFree<SXYEnum>> enums;
 
+		// Errors recorded by the last PopulateViaSearchPaths, cleared by Clear()
+		std::vector<HString> populateErrors;
+
+		// Source files loaded since construction, never reset. See LoadedFileCount()
+		size_t loadedFileCount = 0;
+
 		SexyDatabase(IFactoryConfig& _config): 
 			config(_config),
 			sparser(Rococo::Sex::CreateSexParser_2_0(Rococo::Memory::CheckedAllocator())),
@@ -2148,8 +2154,27 @@ namespace ANON
 			return solutionFile;
 		}
 
+		size_t PopulateErrorCount() const override
+		{
+			return populateErrors.size();
+		}
+
+		cstr GetPopulateError(size_t index) const override
+		{
+			return index < populateErrors.size() ? populateErrors[index].c_str() : nullptr;
+		}
+
+		size_t LoadedFileCount() const override
+		{
+			return loadedFileCount;
+		}
+
 		void PopulateViaSearchPaths() override
 		{
+			// Populating implies a clear database, so that populating again reloads from disk rather than adding to what is there,
+			// and so that packages marked as loaded by MarkResource are loaded again
+			Clear();
+
 			DatabaseViewBuilder databaseViewBuilder(*this);
 
 			for (size_t i = 0;; i++)
@@ -2177,8 +2202,24 @@ namespace ANON
 			}
 
 			// Load the packages the config selects, as the IDE used to do from its package ticks. A package that fails to load is skipped,
-			// as a missing search path directory is above
-			PopulateWithConfiguredPackages(*this, nullptr);
+			// as a missing search path directory is above, but recorded, so that whoever populated the database can report it (see GetPopulateError)
+			struct ErrorRecorder : IPackageErrorHandler
+			{
+				std::vector<HString>& errors;
+
+				ErrorRecorder(std::vector<HString>& _errors) : errors(_errors)
+				{
+				}
+
+				void OnPackageError(cstr pingPath, IException& ex) override
+				{
+					char message[1024];
+					SafeFormat(message, sizeof message, "Package %s could not be loaded: %s", pingPath, ex.Message());
+					errors.push_back(message);
+				}
+			} recorder(populateErrors);
+
+			PopulateWithConfiguredPackages(*this, &recorder);
 
 			// Resolve public types and functions to their local definitions now, rather than waiting for the IDE to call Sort.
 			// When SexyStudio.Defaults selected the project during IDE construction, the property sheets never ran SyncContent,
@@ -2353,6 +2394,8 @@ namespace ANON
 				i = filenameToFile.insert(std::make_pair(filename, new File_SXY(filename))).first;
 				auto& file = *i->second;
 
+				loadedFileCount++;
+
 				U8FilePath name;
 				SafeFormat(name.buf, "[package]:%hs", path);
 
@@ -2395,6 +2438,8 @@ namespace ANON
 			{
 				i = filenameToFile.insert(std::make_pair(filename, new File_SXY(filename))).first;
 				auto& file = *i->second;
+
+				loadedFileCount++;
 
 				uint64 len = IO::GetFileLength(fullpathToSxy);
 
@@ -2456,6 +2501,7 @@ namespace ANON
 			rootNS.functions.clear();
 			rootNS.structures.clear();
 			rootNS.interfaces.clear();
+			populateErrors.clear();
 		}
 
 		void Free() override

@@ -125,9 +125,10 @@ namespace Rococo::SexyStudio
 
 		if (!database.HasResource(sysPackagePath))
 		{
-			database.MarkResource(sysPackagePath);
-
 			AutoFree<IPackageSupervisor> package = OpenZipPackage(widePath, packageShortName);
+
+			// Mark the package only once it has opened, so a package that failed to open is tried again on the next populate, without needing a Clear()
+			database.MarkResource(sysPackagePath);
 
 			PopulateDatabaseWithPackagesRecursive(*package, database, "");
 		}

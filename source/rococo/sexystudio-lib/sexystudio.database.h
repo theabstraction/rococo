@@ -245,8 +245,20 @@ namespace Rococo::SexyStudio
 		virtual void Sort() = 0;
 		virtual void UpdateFile_SXY(cstr fullpathToSxy) = 0;
 		virtual void UpdateFile_SXY_PackedItem(cstr data, int32 length, cstr path) = 0;
+		// Clears the database, then loads every file under the active search paths and every package the config selects, then sorts. Calling it again reloads
+		// the lot from disk rather than adding to what is there. A package that cannot be loaded is skipped and recorded, see GetPopulateError
 		virtual void PopulateViaSearchPaths() = 0;
 		virtual ISolution& Solution() = 0;
+
+		// The number of errors the last PopulateViaSearchPaths recorded, such as a selected package that is missing or corrupt. Clear() resets it to zero
+		[[nodiscard]] virtual size_t PopulateErrorCount() const = 0;
+
+		// Returns the [index]th error recorded by the last PopulateViaSearchPaths, or nullptr if the index is out of range
+		[[nodiscard]] virtual cstr GetPopulateError(size_t index) const = 0;
+
+		// The number of source files, loose or packaged, this database has loaded since it was created. Clear() does not reset it.
+		// It is a diagnostic, so tests can show that a file is parsed once and not again
+		[[nodiscard]] virtual size_t LoadedFileCount() const = 0;
 	};
 
 	void BuildDatabaseFromProject(ISexyDatabase& database, Sex::cr_sex sProjectRoot, cstr projectPath, bool addDeclarations);
@@ -260,7 +272,7 @@ namespace Rococo::SexyStudio
 
 	// Loads every package that database.Config() selects (IFactoryConfig::GetPackage) into the database. A package already loaded since the last Clear() is
 	// not loaded again. A package that cannot be loaded is skipped, and onError, if not null, is told why. Call Sort() afterwards to resolve what was loaded.
-	// ISexyDatabase::PopulateViaSearchPaths calls this, so a database populated without the IDE has the same packages the IDE would load
+	// ISexyDatabase::PopulateViaSearchPaths calls this, recording the errors in the database, so a database populated without the IDE has the same packages the IDE would load
 	SEXYSTUDIO_API void PopulateWithConfiguredPackages(ISexyDatabase& database, IPackageErrorHandler* onError);
 
 	ROCOCO_INTERFACE ISexyDatabaseSupervisor : ISexyDatabase
