@@ -25910,6 +25910,577 @@ R"(
 		TEST(TestFsbAuditExpansionFailureLeavesBuilderIntact);
 	}
 
+	// Closure audit (D6 and parentSF). Each test notes the finding it demonstrates, or that it pins behaviour found sound.
+	namespace ClosureAudit
+	{
+		struct Outcome
+		{
+			bool rejected = false; // The compiler or the VM reported an exception (a compile error, or a script exception)
+			EXECUTERESULT execResult = EXECUTERESULT_TERMINATED;
+			int32 result = -1000;
+			HString message;
+		};
+
+		// Runs (function Main -> (Int32 result): ...) and reports the outcome rather than validating it, so a test can accept a compile error as a valid outcome
+		Outcome Run(IPublicScriptSystem& ss, cstr srcCode, cstr name)
+		{
+			Outcome outcome;
+
+			Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, name);
+			Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+			try
+			{
+				VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+				vm.Push(-1000); // Allocate stack space for the int32 result
+				outcome.execResult = vm.Execute(VM::ExecutionFlags(false, true));
+				outcome.result = vm.PopInt32();
+			}
+			catch (ParseException& ex)
+			{
+				outcome.rejected = true;
+				outcome.execResult = EXECUTERESULT_THROWN;
+				outcome.message = ex.Message();
+			}
+			catch (IException& ex)
+			{
+				outcome.rejected = true;
+				outcome.execResult = EXECUTERESULT_THROWN;
+				outcome.message = ex.Message();
+			}
+
+			ParseException logged;
+			while (s_logger.TryGetNextException(logged))
+			{
+				outcome.rejected = true;
+				if (outcome.message.length() == 0)
+				{
+					outcome.message = logged.Message();
+				}
+			}
+
+			printf("[closure-audit] %s: execResult %d, result %d, rejected %s %s\n", name, (int)outcome.execResult, outcome.result, outcome.rejected ? "yes" : "no", outcome.message.c_str());
+			return outcome;
+		}
+
+		bool IsRejectedAtCompileTime(const Outcome& outcome)
+		{
+			return outcome.rejected && outcome.execResult == EXECUTERESULT_THROWN;
+		}
+
+		bool IsCorrectValue(const Outcome& outcome, int32 expected)
+		{
+			return !outcome.rejected && outcome.execResult == EXECUTERESULT_TERMINATED && outcome.result == expected;
+		}
+	}
+
+	// Finding 1: CodeBuilder::TryGetVariableByName sets codeReferencesParentsSF only for a plain parent name. A dotted name (m.a, this.id, f.parentSF) found in the
+	// parent sets IsParentValue but not codeReferencesParentsSF, so End() does not raise "required access to the parent's stackframe" and the closure can be
+	// returned through an output. The caller then runs it against MakeClosure's dead stack frame. TestReturnClosureWithVariableFail shows the plain-name case is rejected.
+	void TestClosureAuditReturnedClosureCapturesStructMember(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(struct Magic (Int32 a)(Int32 b))
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(function MakeClosure -> (VoidToInt result):
+				(Magic m = 4 5)
+				(result = (closure -> (Int32 y): (y = (m.a * 7))))
+			)
+
+			(function Overwrite (Int32 a)(Int32 b) -> (Int32 sum):
+				(Int32 x = 1000)
+				(Int32 z = 2000)
+				(sum = (x + z))
+			)
+
+			(function Main -> (Int32 result):
+				(VoidToInt f = (MakeClosure))
+				(Int32 junk = (Overwrite 1 2))
+				(result = (f))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsRejectedAtCompileTime(outcome));
+	}
+
+	// Finding 2: the dotted branch of CodeBuilder::TryGetVariableByName asks the parent's builder with the MemberDef overload, which itself recurses to the grandparent.
+	// So m.a in g, a closure inside closure f, resolves to Main's m, but g only has f's stack frame in D6. g reads f's frame at Main's offset for m (f's local 'pad').
+	// A plain name (see TestClosureAuditNestedClosureGrandparentPlainName) only looks one level up and is rejected. Either outcome is acceptable here, the wrong value is not.
+	void TestClosureAuditNestedClosureGrandparentMember(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(struct Magic (Int32 a)(Int32 b))
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(function Main -> (Int32 result):
+				(Magic m = 5 6)
+				(VoidToInt f =
+					(closure -> (Int32 y):
+						(Int32 pad = 1000)
+						(Int32 pad2 = 2000)
+						(VoidToInt g = (closure -> (Int32 z): (z = m.a)))
+						(y = (g))
+					)
+				)
+				(result = (f))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		// Chosen fix: a dotted name whose head belongs to a function more than one level up is a compile error with a clear message
+		validate(ClosureAudit::IsRejectedAtCompileTime(outcome) && strstr(outcome.message.c_str(), "more than one level up") != nullptr);
+	}
+
+	// Sound (pins current behaviour): a plain grandparent name is not found, since the plain-name branch only searches the immediate parent's own variables.
+	// A fix that makes nested lookups work (by chaining parentSF) must give 5.
+	void TestClosureAuditNestedClosureGrandparentPlainName(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(function Main -> (Int32 result):
+				(Int32 a = 5)
+				(VoidToInt f =
+					(closure -> (Int32 y):
+						(Int32 pad = 1000)
+						(VoidToInt g = (closure -> (Int32 z): (z = a)))
+						(y = (g))
+					)
+				)
+				(result = (f))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsRejectedAtCompileTime(outcome) || ClosureAudit::IsCorrectValue(outcome, 5));
+	}
+
+	// Finding 3: (append sb e) loads the enum value with AssignVariableToRegister(name, D6). For a captured e, UseStackFrameFor swaps SF and D6, the load overwrites D6
+	// (which holds the closure's own SF during the swap), and RestoreStackFrameFor then swaps the enum value into SF. Every later access in the closure uses a bad SF.
+	void TestClosureAuditAppendCapturedEnum(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Day (Int32))
+			(alias Day Sys.Type.Day)
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+			)
+
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(function Main -> (Int32 result):
+				(Day d = .Wednesday)
+				(VoidToInt f =
+					(closure -> (Int32 y):
+						(Sys.Type.IStringBuilder sb = (Sys.Type.NewStringBuilder 64))
+						(append sb d)
+						(y = sb.Length)
+					)
+				)
+				(result = (f))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 9)); // "Wednesday"
+	}
+
+	// Finding 4: CompileAsInlinedItemDirectAndReturnValue wraps AssignVariableToRegister in its own UseStackFrameFor/RestoreStackFrameFor for an IString member of a
+	// struct. For a captured struct the inner UseStackFrameFor reloads D6 while SF already points at the parent frame, so it reads a wrong 'parentSF' and swaps it in.
+	// The outer restore then leaves SF wrong for the rest of the closure.
+	void TestClosureAuditInlinedLengthOfCapturedStringMember(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(struct GameObject (IString name))
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(function Main -> (Int32 result):
+				(GameObject obj = "hello")
+				(VoidToInt f =
+					(closure -> (Int32 y):
+						(Int32 local = 40)
+						(y = obj.name.Length)
+						(y = (y + local))
+					)
+				)
+				(result = (f))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 45));
+	}
+
+	// Finding 5: CompilePopOutputToVariable copies an interface (derivative) output with AppendCopyPointer, which writes SF[target offset] without UseStackFrameFor.
+	// For a captured target, (GetName -> s) writes into the closure's own frame at the parent's offset for s, and the parent's s is left unchanged.
+	void TestClosureAuditCapturedInterfaceAsCallOutput(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(function GetName -> (IString name):
+				(name = "Geoff")
+			)
+
+			(function Main -> (Int32 result):
+				(IString s = "ab")
+				(VoidToInt f =
+					(closure -> (Int32 y):
+						(GetName -> s)
+						(y = 0)
+					)
+				)
+				(f)
+				(result = s.Length)
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 5));
+	}
+
+	// Finding 6: the plain-name branch of CodeBuilder::TryGetVariableByName zeroes offsetCorrection after the parent lookup, so a captured plain 'this' loses the
+	// method's -thisOffset correction (the method receives an interface pointer, not the instance). Converting it to an interface inside the closure also uses the
+	// closure's GetThisOffset(), which is 0. The direct method shows the same statement is fine outside a closure. The dotted form (this.id) is unaffected.
+	void TestClosureAuditCapturedPlainThis(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(class Dog (defines Sys.IDog)
+				(Int32 id)
+			)
+
+			(archetype Sys.VoidToVoid -> )
+
+			(method Dog.Construct : (this.id = 4))
+
+			(method Dog.Id -> (Int32 id):
+				(id = this.id)
+			)
+
+			(method Dog.BarkDirect -> (Int32 result):
+				(Sys.IDog dog = this)
+				(result = dog.Id)
+			)
+
+			(method Dog.Bark -> (Int32 result):
+				(Sys.VoidToVoid f =
+					(closure -> :
+						(Sys.IDog dog = this)
+						(result = dog.Id)
+					)
+				)
+				(f)
+			)
+
+			(factory Sys.NewDog Sys.IDog : (construct Dog))
+
+			(function Main -> (Int32 result):
+				(Sys.IDog rover (Sys.NewDog))
+				(Int32 direct = rover.BarkDirect)
+				(Int32 viaClosure = rover.Bark)
+				(result = ((direct * 100) + viaClosure))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 404));
+	}
+
+	// Finding 6 (argument form): passing a captured plain 'this' to a function that takes the interface uses CodeBuilder::PushVariableRef, which subtracts
+	// GetThisOffset() of the current builder. Inside a closure that is 0 rather than the method's offset, so the callee receives a misaligned interface pointer.
+	void TestClosureAuditCapturedThisAsArgument(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(class Dog (defines Sys.IDog)
+				(Int32 id)
+			)
+
+			(archetype Sys.VoidToVoid -> )
+
+			(method Dog.Construct : (this.id = 7))
+
+			(method Dog.Id -> (Int32 id):
+				(id = this.id)
+			)
+
+			(function GetIdOf (Sys.IDog dog) -> (Int32 id):
+				(id = dog.Id)
+			)
+
+			(method Dog.Bark -> (Int32 result):
+				(Sys.VoidToVoid f =
+					(closure -> :
+						(result = (GetIdOf this))
+					)
+				)
+				(f)
+			)
+
+			(factory Sys.NewDog Sys.IDog : (construct Dog))
+
+			(function Main -> (Int32 result):
+				(Sys.IDog rover (Sys.NewDog))
+				(Int32 direct = (GetIdOf rover))
+				(Int32 viaClosure = rover.Bark)
+				(result = ((direct * 100) + viaClosure))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 707));
+	}
+
+	namespace ClosureAuditNatives
+	{
+		char lastDispatchError[512] = { 0 }; // The message of the C++ exception DispatchTwoInputs saw, as the VM converts it to a script exception
+
+		// (Sys.ClosureAudit.DispatchNoInputs (Sys.Type.VoidToVoid f)->) calls f back from native code through IPublicScriptSystem::DispatchToSexyClosure
+		void DispatchNoInputs(NativeCallEnvironment& nce)
+		{
+			ArchetypeCallback callback;
+			ReadInput(0, callback, nce);
+			nce.ss.DispatchToSexyClosure(nullptr, callback);
+		}
+
+		// (Sys.ClosureAudit.DispatchTwoInputs (Sys.Type.Strings.ForEachSubstring f)->) passes a 16-byte buffer for a two-input archetype, a shape DispatchToSexyClosure cannot lay out
+		void DispatchTwoInputs(NativeCallEnvironment& nce)
+		{
+			ArchetypeCallback callback;
+			ReadInput(0, callback, nce);
+
+			struct
+			{
+				void* sb;
+				int64 index;
+			} args { nullptr, 3 };
+
+			try
+			{
+				nce.ss.DispatchToSexyClosure(&args, callback);
+			}
+			catch (IException& ex)
+			{
+				SafeFormat(lastDispatchError, sizeof(lastDispatchError), "%s", ex.Message());
+				throw;
+			}
+		}
+
+		void Register(IPublicScriptSystem& ss)
+		{
+			const INamespace& ns = ss.AddNativeNamespace("Sys.ClosureAudit");
+			ss.AddNativeCall(ns, DispatchNoInputs, nullptr, "DispatchNoInputs (Sys.Type.VoidToVoid f)->", __FILE__, __LINE__, false, 0);
+			ss.AddNativeCall(ns, DispatchTwoInputs, nullptr, "DispatchTwoInputs (Sys.Type.Strings.ForEachSubstring f)->", __FILE__, __LINE__, false, 0);
+		}
+	}
+
+	// Sound (pins current behaviour): a no-input closure dispatched from native code finds its parentSF and writes the captured variable
+	void TestClosureAuditNativeDispatchNoInputs(IPublicScriptSystem& ss)
+	{
+		ClosureAuditNatives::Register(ss);
+
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(function Main -> (Int32 result):
+				(Int32 x = 1)
+				(Sys.ClosureAudit.DispatchNoInputs (closure -> : (x = 42)))
+				(result = x)
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 42));
+	}
+
+	// Minor item: DispatchToSexyClosure pushes {id, parentSF} and one argument pointer, which matches the closure's frame layout only for 0 inputs, or 1 pointer-sized
+	// input, and no outputs. Any other archetype reads parentSF and its inputs from the wrong slots. It must be refused with a clear error rather than run.
+	void TestClosureAuditNativeDispatchUnsupportedShape(IPublicScriptSystem& ss)
+	{
+		ClosureAuditNatives::Register(ss);
+		ClosureAuditNatives::lastDispatchError[0] = 0;
+
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+			(using Sys.Type)
+
+			(function Main -> (Int32 result):
+				(Int32 x = 1)
+				(Sys.Type.Strings.ForEachSubstring f = (closure (IStringBuilder sb)(Int32 index) -> : (x = index)))
+				(Sys.ClosureAudit.DispatchTwoInputs f)
+				(result = x)
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		printf("[closure-audit] dispatch error: %s\n", ClosureAuditNatives::lastDispatchError);
+		validate(outcome.execResult == EXECUTERESULT_THROWN);
+		validate(strstr(ClosureAuditNatives::lastDispatchError, "DispatchToSexyClosure") != nullptr);
+	}
+
+	// Sound (pins current behaviour): a closure parameter called from an inner closure, which then reads its own parent's local. Calling f loads D6 with Main's frame,
+	// so reading k afterwards depends on UseStackFrameFor reloading D6 from the hidden parentSF slot, which it does on every access.
+	void TestClosureAuditClosureParamCalledFromInnerClosure(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.VoidToInt -> (Int32 y))
+
+			(function Eval (closure VoidToInt f) -> (Int32 value):
+				(Int32 k = 300)
+				(VoidToInt g =
+					(closure -> (Int32 y):
+						(Int32 v = (f))
+						(y = (v + k))
+						(y = (y + (f)))
+						(y = (y + k))
+					)
+				)
+				(value = (g))
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 i = 20)
+				(VoidToInt f = (closure -> (Int32 y): (y = i)))
+				(result = (Eval f))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 640));
+	}
+
+	// Sound (pins current behaviour): AssignClosureParentSFtoD6 finds the hidden parentSF just past the deepest argument. Two outputs and mixed 4 and 8 byte inputs.
+	void TestClosureAuditMultiArgOffsets(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+
+			(archetype EntryPoint.Mix (Int32 a)(Int64 b)(Float64 c) -> (Int32 p)(Int64 q))
+
+			(function Main -> (Int32 result):
+				(Int32 base = 1000)
+				(Int64 big = 7)
+				(Mix f =
+					(closure (Int32 a)(Int64 b)(Float64 c) -> (Int32 p)(Int64 q):
+						(p = (a + base))
+						(q = (b + big))
+					)
+				)
+				(Int32 p)
+				(Int64 q)
+				(f 5 30 2.5 -> p q)
+				(Int64 q2 = (q * 10000))
+				(Int32 qi = 0)
+				(if (q2 == 370000) (qi = 1))
+				(result = (p + qi))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 1006));
+	}
+
+	// Sound (pins current behaviour): a script exception thrown inside a closure is caught in the parent. CatchException walks the frame chain from the closure's SF,
+	// so the parent's SF is restored, and calling the closure again still finds the parent's frame.
+	void TestClosureAuditThrowFromClosureCaughtInParent(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(namespace EntryPoint)
+			(alias Main EntryPoint.Main)
+			(using EntryPoint)
+			(using Sys.Type)
+
+			(archetype EntryPoint.IntToInt (Int32 x) -> (Int32 y))
+
+			(function Main -> (Int32 result):
+				(Int32 base = 100)
+				(IntToInt f =
+					(closure (Int32 x) -> (Int32 y):
+						(if (x == 0) (Sys.Throw 0 "zero"))
+						(y = (base + x))
+					)
+				)
+				(result = 0)
+				(try
+					(
+						(result = (f 0))
+					)
+				catch e
+					(
+						(result = 7)
+					)
+				)
+				(result = (result + (f 5)))
+				(result = (result + base))
+			)
+		)";
+
+		auto outcome = ClosureAudit::Run(ss, srcCode, __ROCOCO_FUNCTION__);
+		validate(ClosureAudit::IsCorrectValue(outcome, 212));
+	}
+
+	void RunClosureAuditTests()
+	{
+		TEST(TestClosureAuditReturnedClosureCapturesStructMember);
+		TEST(TestClosureAuditNestedClosureGrandparentMember);
+		TEST(TestClosureAuditNestedClosureGrandparentPlainName);
+		TEST(TestClosureAuditAppendCapturedEnum);
+		TEST(TestClosureAuditInlinedLengthOfCapturedStringMember);
+		TEST(TestClosureAuditCapturedInterfaceAsCallOutput);
+		TEST(TestClosureAuditCapturedPlainThis);
+		TEST(TestClosureAuditCapturedThisAsArgument);
+		TEST(TestClosureAuditNativeDispatchNoInputs);
+		TEST(TestClosureAuditNativeDispatchUnsupportedShape);
+		TEST(TestClosureAuditClosureParamCalledFromInnerClosure);
+		TEST(TestClosureAuditMultiArgOffsets);
+		TEST(TestClosureAuditThrowFromClosureCaughtInParent);
+	}
+
 	void RunPositiveSuccesses()
 	{
 		validate(true);
@@ -26600,6 +27171,7 @@ R"(
 		TEST(TestStructureAssignToSingleArgumentCompoundCallReturn2);
 
 		RunFsbAuditTests(); // FastStringBuilder audit and fixes
+		RunClosureAuditTests(); // Closure / D6 / parentSF audit
 	}
 
 	void RunPositiveFailures()

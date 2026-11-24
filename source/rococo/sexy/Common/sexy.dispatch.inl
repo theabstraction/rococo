@@ -2,41 +2,11 @@ namespace Rococo
 {
 	namespace Script
 	{
+		// Pushes &args as the closure's only input. This shares IPublicScriptSystem::DispatchToSexyClosure, which refuses archetypes whose frame layout
+		// does not match that (any outputs, more than one input, or an input that is not pointer-sized), and throws if the callback does not terminate normally
 		template<typename DISPATCH_ARGS> void DispatchToSexyClosure(NativeCallEnvironment& nce, DISPATCH_ARGS& args, const ArchetypeCallback& target)
 		{
-		   auto& ss = nce.ss;
-		   VM::IVirtualMachine& vm(ss.PublicProgramObject().VirtualMachine());
-		   VM::CPU& cpu(vm.Cpu());
-		   VM::IProgramMemory& program(ss.PublicProgramObject().ProgramMemory());
-
-		   const uint8* context = cpu.SF();
-		   const uint8 *returnAddress = cpu.PC();
-		   const uint8* sp = cpu.SP();
-
-		   cpu.Push(target);
-		   cpu.Push(&args);
-
-		   cpu.SetPC(cpu.ProgramStart);
-
-		   auto targetOffset = program.GetFunctionAddress(target.byteCodeId);
-		   auto targetAddress = program.StartOfMemory() + targetOffset;
-
-		   cpu.D[5].uint8PtrValue = targetAddress;
-
-		   VM::ExecutionFlags currentFlags;
-		   vm.GetLastFlags(currentFlags);
-
-		   VM::ExecutionFlags flags{ currentFlags.ThrowToQuit, true, true };
-		   EXECUTERESULT er = vm.Execute(flags, nullptr);
-
-		   if (er == EXECUTERESULT_TERMINATED)
-		   {
-			   vm.SetStatus(EXECUTERESULT_RUNNING);
-
-			   cpu.SetPC(returnAddress);
-			   cpu.SetSF(context);
-			   cpu.D[VM::REGISTER_SP].uint8PtrValue = (uint8*)sp;
-		   }
+		   nce.ss.DispatchToSexyClosure(&args, target);
 		}
 	} // Script
 } // Rococo

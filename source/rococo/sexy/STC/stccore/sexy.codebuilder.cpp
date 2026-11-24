@@ -57,7 +57,9 @@ namespace Rococo
 		{
 			if (def.IsParentValue) 
 			{
+				// Reload D6 from the closure's hidden parentSF slot while SF is still the closure's own frame. The reload must precede EnterParentStackFrame
 				builder.AssignClosureParentSFtoD6();
+				builder.EnterParentStackFrame();
 				builder.Assembler().Append_SwapRegister(VM::REGISTER_SF, VM::REGISTER_D6);
 			}
 		}
@@ -66,7 +68,20 @@ namespace Rococo
 		{
 			// The current function, if a closure, will put the parent's stack frame in register D6
 			// If the variable specified by <def> is from the parent's stack, then swap back D6 from SF
-			if (def.IsParentValue) { builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF); }
+			if (def.IsParentValue) 
+			{
+				builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
+				builder.LeaveParentStackFrame();
+			}
+		}
+
+		// While SF is swapped to the parent frame D6 holds the closure's own SF, so a captured variable must never be loaded into or stored from D6 or SF
+		static void ValidateRegisterForVariable(const MemberDef& def, int registerIndex, cstr variableName, cstr function)
+		{
+			if (def.IsParentValue && (registerIndex == VM::REGISTER_D6 || registerIndex == VM::REGISTER_SF))
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, function, "Internal compiler error: the captured variable %s cannot be transferred via register D%d, which holds a stack frame during the access", variableName, registerIndex);
+			}
 		}
 	}
 }
@@ -209,6 +224,7 @@ namespace Anon
 	{
 	private:
 		mutable bool codeReferencesParentsSF;
+		int parentStackFrameDepth = 0; // 1 between UseStackFrameFor and RestoreStackFrameFor for a captured variable, else 0
 		size_t functionStartPosition;
 		size_t functionEndPosition;
 		ID_BYTECODE byteCodeId;
@@ -353,6 +369,9 @@ namespace Anon
 		virtual int GetOffset(size_t argIndex) const override;
 
 		virtual int GetThisOffset() const override;
+		virtual int GetThisOffsetFor(const MemberDef& def) const override;
+		virtual void EnterParentStackFrame() override;
+		virtual void LeaveParentStackFrame() override;
 		virtual void SetThisOffset(int offset) override;
 
 		virtual void ArchiveRegister(int saveRegister, int restoreRegister, BITCOUNT bits, void* userData) override;
@@ -523,6 +542,40 @@ namespace Anon
 	int CodeBuilder::GetThisOffset() const
 	{
 		return thisOffset;
+	}
+
+	int CodeBuilder::GetThisOffsetFor(const MemberDef& def) const
+	{
+		if (def.IsParentValue)
+		{
+			IFunctionBuilder* parent = f.Parent();
+			if (parent != nullptr)
+			{
+				return parent->Builder().GetThisOffset();
+			}
+		}
+
+		return thisOffset;
+	}
+
+	void CodeBuilder::EnterParentStackFrame()
+	{
+		if (parentStackFrameDepth != 0)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Internal compiler error: nested switch to the closure parent's stack frame in %s", f.Name());
+		}
+
+		parentStackFrameDepth++;
+	}
+
+	void CodeBuilder::LeaveParentStackFrame()
+	{
+		if (parentStackFrameDepth != 1)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Internal compiler error: unmatched restore of the closure's own stack frame in %s", f.Name());
+		}
+
+		parentStackFrameDepth--;
 	}
 
 	void CodeBuilder::PushVariable(const MemberDef& def)
@@ -1136,6 +1189,8 @@ namespace Anon
 					v = parentBuilder.TryGetVariableByName(name, OUT offsetCorrection);
 					if (v != NULL)
 					{
+						// A captured plain 'this' keeps MemberOffset 0, so it denotes the interface pointer the method received (virtual calls on it copy that pointer).
+						// Code that converts it to the instance or another interface applies the method's correction via GetThisOffsetFor(def), as the method itself does
 						offsetCorrection = 0; 
 						codeReferencesParentsSF = true;
 						def.CapturesLocalVariables = v->CanCaptureClosures();
@@ -1182,16 +1237,38 @@ namespace Anon
 			if (parent != NULL)
 			{
 				CodeBuilder& parentBuilder = (CodeBuilder&) parent->Builder();
-				bool success = parentBuilder.TryGetVariableByName(def, name);
-				if (success)
+
+				// Only the immediate parent's own variables are reachable: D6 holds the parent's SF and nothing links to frames further up
+				const Variable* pv = parentBuilder.TryGetVariableByName(head, OUT offsetCorrection);
+				if (pv == NULL)
 				{
-					def.IsParentValue = true;
-					return true;
+					MemberDef ancestorDef;
+					if (parentBuilder.f.Parent() != NULL && parentBuilder.TryGetVariableByName(OUT ancestorDef, name))
+					{
+						Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "%s: %s belongs to a function more than one level up. A closure can only use the variables of its immediate parent", name, head);
+					}
+
+					def.ResolvedType = NULL;
+					return false;
 				}
-				else
+
+				def.CapturesLocalVariables = pv->CanCaptureClosures();
+				def.Usage = pv->Usage();
+				def.SFOffset = pv->Offset();
+				def.MemberOffset = offsetCorrection;
+				def.Userdata = pv->Userdata();
+				def.AllocSize = pv->AllocSize();
+				def.location = pv->Location();
+				def.IsContained = true;
+
+				if (!GetMemberVariable(def, *pv, pv->ResolvedType(), body))
 				{
 					return false;
 				}
+
+				def.IsParentValue = true;
+				codeReferencesParentsSF = true; // So End() rejects the closure where it may outlive the parent, as it does for a plain parent name
+				return true;
 			}
 		}
 
@@ -1378,6 +1455,11 @@ namespace Anon
 	{
 		if (f.Parent() != NULL)
 		{
+			if (parentStackFrameDepth != 0)
+			{
+				Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Internal compiler error: reload of the closure's parentSF while SF is the parent's stack frame in %s", f.Name());
+			}
+
 			int ptrSize = sizeof(void*);
 			int sfSize = sizeof(void*);
 			// This is a closure, which means the 64-bit parents SF was pushed on the stack just before the first output value
@@ -1417,6 +1499,7 @@ namespace Anon
 		sectionIndex = 1;
 		functionStartPosition = Assembler().WritePosition();
 
+		parentStackFrameDepth = 0;
 		AssignClosureParentSFtoD6();
 	}
 
@@ -1583,6 +1666,11 @@ namespace Anon
 
 	void CodeBuilder::End()
 	{
+		if (parentStackFrameDepth != 0)
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Internal compiler error: %s ended while SF was the closure parent's stack frame", f.Name());
+		}
+
 		sectionIndex--;
 		if (sectionIndex > 0)
 		{
@@ -2106,7 +2194,13 @@ namespace Anon
 			Throw(0, "The class %s does not implement interface %s", srcType->Name(), interf0.Name());
 		}
 
-		int offset = GetThisOffset();
+		MemberDef sourceDef;
+		if (!TryGetVariableByName(OUT sourceDef, source))
+		{
+			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unknown source variable: %s", source);
+		}
+
+		int offset = GetThisOffsetFor(sourceDef);
 		int targetOffset = ObjectStub::BYTECOUNT_INSTANCE_TO_INTERFACE0 + index * sizeof(size_t);
 		int delta = (targetOffset - offset);
 
@@ -2348,6 +2442,8 @@ namespace Anon
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Cannot find variable %s", target);
 		}
 
+		ValidateRegisterForVariable(def, registerIndex, target, __SEXFUNCTION__);
+
 		BITCOUNT bitCount = GetBitCountFromStruct(def);
 
 		UseStackFrameFor(*this, def);
@@ -2570,6 +2666,8 @@ namespace Anon
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, "Unknown source variable: %s", source);
 		}
 
+		ValidateRegisterForVariable(def, registerIndex, source, __SEXFUNCTION__);
+
 		const IStructure* srcType = def.ResolvedType;
 
 		char symbol[256];
@@ -2641,6 +2739,8 @@ namespace Anon
 		{
 			Throw(ERRORCODE_COMPILE_ERRORS, __SEXFUNCTION__, ("Unknown source variable: %s"), source);
 		}
+
+		ValidateRegisterForVariable(def, registerIndex, source, __SEXFUNCTION__);
 
 		UseStackFrameFor(*this, def);
 
@@ -2723,7 +2823,7 @@ namespace Anon
 
 				offset += interfaceIndex * sizeof(void*);
 
-				offset -= GetThisOffset();
+				offset -= GetThisOffsetFor(def);
 				
 				Assembler().Append_PushStackFrameMemberPtr(def.SFOffset, offset);
 			}

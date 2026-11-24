@@ -1247,7 +1247,29 @@ namespace Rococo
 					Throw(outputExpr, ("The output variable was a reference to a derivative type, but not the first or only member"));
 				}
 
-				AppendCopyPointer(builder, sfOffset, outputDef);
+				if (outputDef.IsParentValue)
+				{
+					// The target is in the closure parent's frame, so the output pointer is read from our frame, then stored with SF switched to the parent frame.
+					builder.Assembler().Append_GetStackFrameValue(sfOffset, VM::REGISTER_D5, BITCOUNT_POINTER); // D5 = output, with the reference the callee added
+
+					UseStackFrameFor(builder, outputDef);
+					if (requiredOutputStruct.InterfaceCount() > 0)
+					{
+						builder.Assembler().Append_GetStackFrameValue(outputDef.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER); // D4 = the value being replaced
+					}
+					builder.Assembler().Append_SetStackFrameValue(outputDef.SFOffset, VM::REGISTER_D5, BITCOUNT_POINTER);
+					RestoreStackFrameFor(builder, outputDef);
+
+					if (requiredOutputStruct.InterfaceCount() > 0)
+					{
+						// As (s = (GetName)) does, release the replaced object. The new one keeps the reference the callee added. Invoked outside the swap
+						builder.Append_DecRef();
+					}
+				}
+				else
+				{
+					AppendCopyPointer(builder, sfOffset, outputDef);
+				}
 			}
 			else
 			{
@@ -1719,9 +1741,8 @@ namespace Rococo
 
 				AddVariable(ce, NameString::From(tempString), ce.Object.Common().TypePointer());
 
-				UseStackFrameFor(ce.Builder, instanceDef);
+				// AssignVariableToRegister switches to the parent frame itself for a captured instance. Switching here too would nest the swap
 				ce.Builder.AssignVariableToRegister(instance, VM::REGISTER_D4); // This gives IString.VTable1 in D4
-				RestoreStackFrameFor(ce.Builder, instanceDef);
 
 				MemberDef tempDef;
 				ce.Builder.TryGetVariableByName(OUT tempDef, tempString);

@@ -46,16 +46,15 @@ namespace Rococo
 			MemberDef def;
 			ce.Builder.TryGetVariableByName(def, name);
 
-			if (def.IsParentValue)
+			if (def.IsParentValue && (registerIndex == VM::REGISTER_D6 || registerIndex == VM::REGISTER_SF))
 			{
-				ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
-				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
-				ce.Builder.Assembler().Append_SwapRegister(VM::REGISTER_D6, VM::REGISTER_SF);
+				Throw(0, "Internal compiler error: the captured variable %s cannot be assigned from register D%d", name, registerIndex);
 			}
-			else
-			{
-				ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
-			}
+
+			// UseStackFrameFor reloads D6 from the closure's parentSF slot before the swap, so a preceding call that changed D6 is harmless
+			UseStackFrameFor(ce.Builder, def);
+			ce.Builder.Assembler().Append_SetStackFrameValue(def.SFOffset, (VM::DINDEX) registerIndex, BITCOUNT_POINTER);
+			RestoreStackFrameFor(ce.Builder, def);
 		}
 
 		void AddInterfaceVariable(CCompileEnvironment& ce, const NameString& ns, const IStructure& ts)

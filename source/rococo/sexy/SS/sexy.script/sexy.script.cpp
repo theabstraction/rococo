@@ -1838,8 +1838,52 @@ namespace Rococo::Script
 			}
 		}
 
+		// The last bytecode id that ValidateNativeDispatchShape accepted, so repeated callbacks to one closure skip the function search
+		ID_BYTECODE lastValidNativeDispatchId = 0;
+		bool hasValidNativeDispatchId = false;
+
+		// DispatchToSexyClosure pushes {byteCodeId, parentSF} then pArgBuffer, and the callee finds parentSF just below its last argument (see CodeBuilder::AssignClosureParentSFtoD6).
+		// That layout is right only for no outputs and either no inputs or one pointer-sized input (an interface, a struct reference or a Pointer), so refuse anything else
+		void ValidateNativeDispatchShape(const ArchetypeCallback& target)
+		{
+			if (hasValidNativeDispatchId && lastValidNativeDispatchId == target.byteCodeId)
+			{
+				return;
+			}
+
+			const IFunction* f = GetFunctionFromBytecode(ProgramObject(), target.byteCodeId);
+			if (f == nullptr)
+			{
+				Throw(0, "DispatchToSexyClosure: no function or closure has bytecode id %lld", (int64) target.byteCodeId);
+			}
+
+			if (f->NumberOfOutputs() != 0)
+			{
+				Throw(0, "DispatchToSexyClosure: %s has %d output(s). Native dispatch supports only archetypes with no outputs", f->Name(), f->NumberOfOutputs());
+			}
+
+			if (f->NumberOfInputs() > 1)
+			{
+				Throw(0, "DispatchToSexyClosure: %s has %d inputs. Native dispatch supports at most one input, passed as the argument pointer", f->Name(), f->NumberOfInputs());
+			}
+
+			if (f->NumberOfInputs() == 1)
+			{
+				SexyVarType inputType = f->GetArgumentType(0).VarType();
+				if (inputType != SexyVarType_Derivative && inputType != SexyVarType_Pointer)
+				{
+					Throw(0, "DispatchToSexyClosure: the input of %s is a %s. Native dispatch supports only an interface, struct reference or Pointer input", f->Name(), GetFriendlyName(f->GetArgumentType(0)));
+				}
+			}
+
+			lastValidNativeDispatchId = target.byteCodeId;
+			hasValidNativeDispatchId = true;
+		}
+
 		void DispatchToSexyClosure(void* pArgBuffer, const ArchetypeCallback& target) override
 		{
+			ValidateNativeDispatchShape(target);
+
 			VM::IVirtualMachine& vm(ProgramObject().VirtualMachine());
 			VM::CPU& cpu(vm.Cpu());
 			VM::IProgramMemory& program(ProgramObject().ProgramMemory());

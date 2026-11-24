@@ -449,6 +449,14 @@ namespace Rococo::Compiler
 		virtual int GetThisOffset() const = 0;
 		virtual void SetThisOffset(int offset) = 0;
 
+		// The this-pointer correction to apply to def: the parent function's GetThisOffset() when def is a captured parent variable, else GetThisOffset()
+		virtual int GetThisOffsetFor(const MemberDef& def) const = 0;
+
+		// Called by UseStackFrameFor and RestoreStackFrameFor around code that runs with SF set to a closure's parent frame (and D6 holding the closure's own SF).
+		// A nested swap, or a reload of D6 inside a swap, would read the closure's hidden parentSF slot relative to the wrong frame, so both throw an internal compiler error
+		virtual void EnterParentStackFrame() = 0;
+		virtual void LeaveParentStackFrame() = 0;
+
 		// Hack: allow variables to be defined with zero size. To be used in conjunction with references that refer to variables created at compile time
 		// rather than at run-time. When the system sees a class instance named XXX and zero allocsize, it looks for _ref_XXX. The pseudo variable provides typeinfo.
 		virtual void AddInterfaceVariable(const NameString& ns, const IStructure& st, void* userData) = 0;

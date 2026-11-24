@@ -2717,8 +2717,9 @@ namespace Rococo
 
 			auto& assembler = ce.Builder.Assembler();
 
-			ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D6); // D6 = the enum value
+			// D6 is the closure stack frame swap register, so the value goes in D7. A captured enum would otherwise be swapped into SF
 			ce.Builder.AssignVariableToRegister(builderName, VM::REGISTER_D4); // D4 = the builder interface
+			ce.Builder.AssignVariableToRegister(name, VM::REGISTER_D7); // D7 = the enum value
 
 			VariantValue enumType;
 			enumType.vPtrValue = (void*)&type;
@@ -4084,8 +4085,12 @@ namespace Rococo
 					if (outputInterface == src.GetInterface(i))
 					{
 						int instanceToInterfaceOffset = sizeof(ObjectStub) + ((i - 1) * sizeof(void*));
+						UseStackFrameFor(ce.Builder, def);
 						ce.Builder.Assembler().Append_GetStackFrameMemberPtr(VM::REGISTER_D4, def.SFOffset, def.MemberOffset + instanceToInterfaceOffset);
+						RestoreStackFrameFor(ce.Builder, def);
+						UseStackFrameFor(ce.Builder, output);
 						ce.Builder.Assembler().Append_SetStackFrameValue(output.SFOffset, VM::REGISTER_D4, BITCOUNT_POINTER);
+						RestoreStackFrameFor(ce.Builder, output);
 						return;
 					}
 				}

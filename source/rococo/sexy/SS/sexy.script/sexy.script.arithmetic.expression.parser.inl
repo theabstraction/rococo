@@ -1254,7 +1254,7 @@ namespace Rococo
 			sb.buffer[sb.length] = 0;
 		}
 
-		// D4 = an IStringBuilder interface, D5 = the enum type (const IStructure*), D6 = the enum value. Appends the value's name or flag list, see AppendEnumName.
+		// D4 = an IStringBuilder interface, D5 = the enum type (const IStructure*), D7 = the enum value. Appends the value's name or flag list, see AppendEnumName.
 		// As other C++ code does, this writes straight into the builder's FastStringBuilder fields, so the builder must be a FastStringBuilder (not the null builder)
 		VM_CALLBACK(AppendEnum)
 		{
@@ -1271,7 +1271,7 @@ namespace Rococo
 				return;
 			}
 
-			AppendEnumName(ss, *(FastStringBuilder*)stub, *enumType, registers[6].int64Value);
+			AppendEnumName(ss, *(FastStringBuilder*)stub, *enumType, registers[7].int64Value);
 		}
 
 		void CompileStringIndexToChar(CCompileEnvironment& ce, cr_sex s)
