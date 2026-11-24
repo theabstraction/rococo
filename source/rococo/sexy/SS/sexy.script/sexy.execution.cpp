@@ -1397,6 +1397,17 @@ namespace Rococo
 		}
 	}
 
+	// The VM stack is bounded memory. On Windows, running off its end faults on a guard page (EXECUTERESULT_SEH), and a big frame
+	// reserved past the end stops the VM with EXECUTERESULT_ILLEGAL. Either way SP is left at or beyond StackEnd, so report that clearly.
+	static void ThrowIfStackOverflow(VM::IVirtualMachine& vm)
+	{
+		const auto& cpu = vm.Cpu();
+		if (cpu.SP() >= cpu.StackEnd)
+		{
+			Throw(0, "The script overflowed the stack. The VM stack is %llu bytes", (unsigned long long)(cpu.StackEnd - cpu.StackStart));
+		}
+	}
+
 	void Execute(VM::IVirtualMachine& vm, Rococo::Script::IPublicScriptSystem& ss, IDebuggerWindow& debugger, bool trace)
 	{
 		EXECUTERESULT result = EXECUTERESULT_YIELDED;
@@ -1427,6 +1438,7 @@ namespace Rococo
 			break;
 		case EXECUTERESULT_ILLEGAL:
 			UpdateDebugger(ss, debugger, 0, true);
+			ThrowIfStackOverflow(vm);
 			Throw(0, "Script did something bad.");
 			break;
 		case EXECUTERESULT_NO_ENTRY_POINT:
@@ -1440,6 +1452,7 @@ namespace Rococo
 			break;
 		case EXECUTERESULT_SEH:
 			UpdateDebugger(ss, debugger, 0, true);
+			ThrowIfStackOverflow(vm);
 			Throw(0, "The script triggered a structured exception handler");
 			break;
 		case EXECUTERESULT_THROWN:
@@ -1488,6 +1501,7 @@ namespace Rococo
 			break;
 		case EXECUTERESULT_ILLEGAL:
 			UpdateDebugger(ss, debugger, 0, true);
+			ThrowIfStackOverflow(vm);
 			Throw(0, "Script did something bad.");
 			break;
 		case EXECUTERESULT_NO_ENTRY_POINT:
@@ -1501,6 +1515,7 @@ namespace Rococo
 			break;
 		case EXECUTERESULT_SEH:
 			UpdateDebugger(ss, debugger, 0, true);
+			ThrowIfStackOverflow(vm);
 			Throw(0, "The script triggered a structured exception handler");
 			break;
 		case EXECUTERESULT_THROWN:

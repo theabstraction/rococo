@@ -866,7 +866,7 @@ namespace Anon
 		{ 
 			if (stack != NULL)
 			{
-				VM::OS::FreeAlignedMemory(stack);
+				Rococo::OS::FreeBoundedMemory(stack);
 				stack = NULL;
 			}
 			
@@ -874,7 +874,9 @@ namespace Anon
 
 			if (stack == NULL && stackSize > 0)
 			{
-				stack = (uint8*) VM::OS::AllocAlignedMemory(stackSize, 2048); 
+				// Bounded memory puts inaccessible pages either side of the stack (on Windows), so a runaway script faults on a guard page
+				// and the VM ends with EXECUTERESULT_SEH, rather than overwriting the heap beyond the stack. The block is at least page aligned.
+				stack = (uint8*) Rococo::OS::AllocBoundedMemory(stackSize);
 			}
 
 			// N.B in 64-mode we need to convert parentSF to and from 32-bit uint32. This can only work if the maximum stack value is less than 32-bits
@@ -882,7 +884,7 @@ namespace Anon
 			const uint8* maxPtr = (const uint8*) MAX_STACK_POINTER;
 			if constexpr (false && stack + nBytes > maxPtr)
 			{
-				VM::OS::FreeAlignedMemory(stack);
+				Rococo::OS::FreeBoundedMemory(stack);
 				stack = NULL;
 				Rococo::Throw(0, ("The SexyVM stack end %p exceeded the maximum pointer value of %p"), stack, maxPtr);
 			}

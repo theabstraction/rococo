@@ -568,6 +568,74 @@ struct Coroutines : public Sys::ICoroutineControl
 		}
 	}
 
+	// Finds the script function whose bytecode contains the given program offset (the same lookup as Rococo::Script::GetFunctionAtAddress)
+	const IFunction* FindFunctionAt(size_t pcOffset)
+	{
+		ID_BYTECODE id = object.ProgramMemory().GetFunctionContaingAddress(pcOffset);
+		if (id == 0)
+		{
+			return nullptr;
+		}
+
+		auto findIn = [id](const IModule& module) -> const IFunction*
+		{
+			for (int j = 0; j < module.FunctionCount(); ++j)
+			{
+				const IFunction& f = module.GetFunction(j);
+				CodeSection section;
+				f.Code().GetCodeSection(section);
+				if (section.Id == id)
+				{
+					return &f;
+				}
+			}
+			return nullptr;
+		};
+
+		for (int i = 0; i < object.ModuleCount(); ++i)
+		{
+			if (const IFunction* f = findIn(object.GetModule(i)))
+			{
+				return f;
+			}
+		}
+
+		return findIn(object.IntrinsicModule());
+	}
+
+	// Identifies a crashed coroutine. spec.stub is the object behind the ICoroutine interface pointer, found with InterfaceToInstance
+	// when the coroutine was added, so its descriptor gives the concrete class. We add the module and line that define the class,
+	// the coroutine id and the script function that was executing when the slice failed. Call before UnlinkAndDestroy.
+	void DescribeCoroutine(CoSpec& spec, char* buffer, size_t capacity)
+	{
+		cstr className = "<unknown class>";
+		cstr moduleName = "<unknown module>";
+		int line = -1;
+
+		const IStructure* type = (spec.stub && spec.stub->Desc) ? spec.stub->Desc->TypeInfo : nullptr;
+		if (type)
+		{
+			className = type->Name();
+			moduleName = type->Module().Name();
+			if (const ISExpression* def = type->Definition())
+			{
+				line = def->Start().y;
+			}
+		}
+
+		cstr functionName = "<unknown function>";
+		auto& cpu = vm.Cpu();
+		if (cpu.PC() >= cpu.ProgramStart && cpu.PC() < cpu.ProgramEnd)
+		{
+			if (const IFunction* f = FindFunctionAt(cpu.PC() - cpu.ProgramStart))
+			{
+				functionName = f->Name();
+			}
+		}
+
+		Strings::SafeFormat(buffer, capacity, "class %s of %s near line %d, coroutine id %lld, executing %s", className, moduleName, line, spec.id, functionName);
+	}
+
 	void FailSlice(CoSpec& spec, cstr resultString)
 	{
 		char className[256];
@@ -578,6 +646,8 @@ struct Coroutines : public Sys::ICoroutineControl
 			while (cn[n] != 0 && n < 255) { className[n] = cn[n]; n++; }
 			className[n] = 0;
 		}
+		char description[512];
+		DescribeCoroutine(spec, description, sizeof description);
 		UnlinkAndDestroy(&spec);
 		vm.SetStatus(EXECUTERESULT_RUNNING);
 		if (sliceError[0] != 0)
@@ -589,7 +659,7 @@ struct Coroutines : public Sys::ICoroutineControl
 			sliceError[0] = 0;
 			Throw(0, "%s", msg);
 		}
-		Throw(0, "Coroutine %s crashed. %s", className, resultString);
+		Throw(0, "Coroutine %s crashed. %s (%s)", className, resultString, description);
 	}
 
 	int64 Continue(CoSpec& spec)
