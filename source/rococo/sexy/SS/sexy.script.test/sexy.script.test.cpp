@@ -7529,6 +7529,409 @@ R"((namespace EntryPoint)
 		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (IString <name> = tostring <enum-variable>)");
 	}
 
+	void TestEnumFromStringRoundTrip(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function RoundTrip (Day d) -> (Int32 n):
+				(IString s = tostring d)
+				(Bool ok = false)
+				(Day e = fromstring s -> ok)
+				(Int32 a = d.Value)
+				(Int32 b = e.Value)
+				(n = 0)
+				(if ok (if (a == b) (n = 1)))
+			)
+
+			(function Main -> (Int32 result):
+				(result = 0)
+				(result += (RoundTrip Day@Monday))
+				(result += (RoundTrip Day@Tuesday))
+				(result += (RoundTrip Day@Wednesday))
+				(result += (RoundTrip Day@Thursday))
+				(result += (RoundTrip Day@Friday))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 5);
+	}
+
+	void TestEnumFromStringLiteral(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(Bool ok = false)
+				(day = fromstring "Tuesday" -> ok)
+				(Int32 v = day.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 21);
+	}
+
+	void TestEnumFromStringVariable(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IString s = "Thursday")
+				(Bool ok = false)
+				(Day day = fromstring s -> ok)
+				(Int32 v = day.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 41);
+	}
+
+	void TestEnumFromStringBuilder(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IStringBuilder sb = (Sys.Type.NewStringBuilder 32))
+				(sb "Wednesday")
+				(Bool ok = false)
+				(Day day = .Monday)
+				(day = fromstring sb -> ok)
+				(Int32 v = day.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 31);
+	}
+
+	void TestEnumFromStringField(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(struct Meeting
+				(Int32 id)
+				(Day day)
+			)
+
+			(function Main -> (Int32 result):
+				(Meeting m = 7 Day@Monday)
+				(IString s = "Friday")
+				(Bool ok = false)
+				(m.day = fromstring s -> ok)
+				(Day d = m.day)
+				(Int32 v = d.Value)
+				(result = ((v * 10) + (m.id * 100)))
+				(if ok (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 751);
+	}
+
+	void TestEnumFromStringNoMatchUnchanged(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Wednesday)
+				(Bool ok = true)
+				(day = fromstring "Funday" -> ok)
+				(Int32 v = day.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 30);
+	}
+
+	void TestEnumFromStringDeclarationNoMatch(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(IString s = "Funday")
+				(Bool ok = true)
+				(Day day = fromstring s -> ok)
+				(Int32 v = day.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 0);
+	}
+
+	void TestEnumFromStringCaseSensitive(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(Bool ok = true)
+				(day = fromstring "tuesday" -> ok)
+				(Int32 v = day.Value)
+				(result = (v * 10))
+				(if ok (result += 1))
+				(IString s = "TUESDAY")
+				(Bool ok2 = true)
+				(day = fromstring s -> ok2)
+				(if ok2 (result += 100))
+				(IString t = "Tuesday ")
+				(day = fromstring t -> ok2)
+				(if ok2 (result += 1000))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 10);
+	}
+
+	void TestEnumFromStringEmptyAndNull(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Friday)
+				(IString e = "")
+				(IString n)
+				(Bool ok1 = true)
+				(Bool ok2 = true)
+				(Bool ok3 = true)
+				(day = fromstring e -> ok1)
+				(day = fromstring n -> ok2)
+				(day = fromstring "" -> ok3)
+				(Int32 v = day.Value)
+				(result = (v * 1000))
+				(if ok1 (result += 100))
+				(if ok2 (result += 10))
+				(if ok3 (result += 1))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 5000);
+	}
+
+	void TestEnumFromStringInt64(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(strong Big (Int64))
+			(alias Big Sys.Type.Big)
+			(enum Sys.Type.Big
+				(Zero 0)
+				(One 1)
+				(Huge 4294967296)
+				(Neg -4294967295)
+			)
+
+			(function Main -> (Int32 result):
+				(result = 0)
+				(Bool ok = false)
+				(Big b = fromstring "Huge" -> ok)
+				(Int64 v = b.Value)
+				(if (ok and (v == 4294967296)) (result += 1))
+
+				(IString s = "Neg")
+				(b = fromstring s -> ok)
+				(v = b.Value)
+				(if (ok and (v == -4294967295)) (result += 10))
+
+				(b = fromstring "Nope" -> ok)
+				(v = b.Value)
+				(if ((not ok) and (v == -4294967295)) (result += 100))
+			)
+		)";
+
+		validate(RunEnumPreambleTest(ss, body, __FUNCTION__) == 111);
+	}
+
+	void TestEnumFromStringIntTargetRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Int32 x = 0)
+				(Bool ok = false)
+				(x = fromstring "Monday" -> ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring requires an enum target, but x is of type Int32");
+	}
+
+	void TestEnumFromStringIntDeclarationRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool ok = false)
+				(Int32 x = fromstring "Monday" -> ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring requires an enum target, but x is of type Int32");
+	}
+
+	void TestEnumFromStringJoulesRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(strong Joules (Float64))
+			(function Main -> (Int32 result):
+				(Bool ok = false)
+				(Joules j = fromstring "Monday" -> ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring requires an enum type, but Joules has no enum values");
+	}
+
+	void TestEnumFromStringNonBoolRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(Int32 ok = 0)
+				(day = fromstring "Monday" -> ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring: ok must be a Bool, but is of type Int32");
+	}
+
+	void TestEnumFromStringUnknownBoolRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(day = fromstring "Monday" -> nosuchflag)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring: unknown Bool variable nosuchflag");
+	}
+
+	void TestEnumFromStringNonStringRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(Bool ok = false)
+				(Int32 i = 2)
+				(day = fromstring i -> ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring requires an IString or a string literal, but i is of type Int32");
+	}
+
+	void TestEnumFromStringUnknownStringRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(Bool ok = false)
+				(day = fromstring nosuchstring -> ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring: unknown string variable nosuchstring");
+	}
+
+	void TestEnumFromStringSubexpressionRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(Bool ok = false)
+				(day = (fromstring "Monday" -> ok))
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring is only valid as a directive");
+	}
+
+	void TestEnumFromStringArgumentRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Show (Day d) -> (Int32 n):
+				(n = d.Value)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool ok = false)
+				(result = (Show (fromstring "Monday" -> ok)))
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring is only valid as a directive");
+	}
+
+	void TestEnumFromStringStandaloneRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Bool ok = false)
+				(fromstring "Monday" -> ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "fromstring is only valid as a directive of the form (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+	}
+
+	void TestEnumFromStringMissingArrowRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(Bool ok = false)
+				(day = fromstring "Monday" ok)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+	}
+
+	void TestEnumFromStringMissingBoolRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(day = fromstring "Monday" ->)
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+	}
+
+	void TestEnumFromStringNoArrowNoBoolRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = .Monday)
+				(day = fromstring "Monday")
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+	}
+
+	void TestEnumFromStringDeclarationNoBoolRejected(IPublicScriptSystem& ss)
+	{
+		cstr body = R"(
+			(function Main -> (Int32 result):
+				(Day day = fromstring "Monday")
+				(result = 0)
+			)
+		)";
+
+		RunEnumPreambleFailTest(ss, body, __FUNCTION__, "Expecting (<enum-type> <name> = fromstring <string> -> <Bool-variable>)");
+	}
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -23685,6 +24088,30 @@ R"(
 		TEST(TestEnumToStringTargetRejected);
 		TEST(TestEnumToStringAssignTargetRejected);
 		TEST(TestEnumToStringMissingOperand);
+		TEST(TestEnumFromStringRoundTrip);
+		TEST(TestEnumFromStringLiteral);
+		TEST(TestEnumFromStringVariable);
+		TEST(TestEnumFromStringBuilder);
+		TEST(TestEnumFromStringField);
+		TEST(TestEnumFromStringNoMatchUnchanged);
+		TEST(TestEnumFromStringDeclarationNoMatch);
+		TEST(TestEnumFromStringCaseSensitive);
+		TEST(TestEnumFromStringEmptyAndNull);
+		TEST(TestEnumFromStringInt64);
+		TEST(TestEnumFromStringIntTargetRejected);
+		TEST(TestEnumFromStringIntDeclarationRejected);
+		TEST(TestEnumFromStringJoulesRejected);
+		TEST(TestEnumFromStringNonBoolRejected);
+		TEST(TestEnumFromStringUnknownBoolRejected);
+		TEST(TestEnumFromStringNonStringRejected);
+		TEST(TestEnumFromStringUnknownStringRejected);
+		TEST(TestEnumFromStringSubexpressionRejected);
+		TEST(TestEnumFromStringArgumentRejected);
+		TEST(TestEnumFromStringStandaloneRejected);
+		TEST(TestEnumFromStringMissingArrowRejected);
+		TEST(TestEnumFromStringMissingBoolRejected);
+		TEST(TestEnumFromStringNoArrowNoBoolRejected);
+		TEST(TestEnumFromStringDeclarationNoBoolRejected);
 
 		TEST(TestEnumByCPP);
 

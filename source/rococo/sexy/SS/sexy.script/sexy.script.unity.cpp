@@ -86,6 +86,7 @@ namespace Rococo::Script
 		callbacks.idIsSameObject = core.RegisterCallback(OnInvokeIsSameObject, &ss, "IsSameObject");
 		callbacks.idIsDifferentObject = core.RegisterCallback(OnInvokeIsDifferentObject, &ss, "IsDifferentObject");
 		callbacks.idStringIndexToChar = core.RegisterCallback(OnInvokeStringIndexToChar, &ss, "StringIndexToChar");
+		callbacks.idEnumFromString = core.RegisterCallback(OnInvokeEnumFromString, &ss, "EnumFromString");
 		callbacks.idTransformAt_D4D5retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformAt_D4D5retD7, &ss, "TransformAt");
 		callbacks.idTransformParent_D4retIExpressionBuilderD7 = core.RegisterCallback(OnInvokeTransformParent_D4retD7, &ss, "TransformParent");
 		callbacks.idJumpFromProxyToMethod = core.RegisterCallback(OnInvokeJumpFromProxyToMethod, &ss, "JumpFromProxyToMethod");

@@ -1006,6 +1006,37 @@ namespace Rococo
 			registers[7].int32Value = text[index];
 		}
 
+		// D4 = an IString interface, D5 = the enum type (const IStructure*). Returns the value of the enum whose name equals the string in D7 and 1 in D8, or 0 in both if no name matches.
+		// Like the other string callbacks, this reads the length and buffer in the common layout of the native string classes (InlineString)
+		VM_CALLBACK(EnumFromString)
+		{
+			UNUSED(context);
+
+			auto interf = (InterfacePointer)registers[4].vPtrValue;
+			auto* enumType = (const IStructure*)registers[5].vPtrValue;
+			auto* text = (const InlineString*)InterfaceToInstance(interf);
+
+			registers[7].int64Value = 0;
+			registers[8].int64Value = 0;
+
+			// Copy to a terminated buffer, so the compare covers exactly length chars. Enum names are identifiers, so a string that does not fit cannot match
+			char name[256];
+			if (text->buffer == nullptr || text->length <= 0 || text->length >= (int32)sizeof(name))
+			{
+				return;
+			}
+
+			memcpy(name, text->buffer, text->length);
+			name[text->length] = 0;
+
+			int64 value;
+			if (enumType->TryGetEnumValue(name, OUT value))
+			{
+				registers[7].int64Value = value;
+				registers[8].int32Value = 1;
+			}
+		}
+
 		void CompileStringIndexToChar(CCompileEnvironment& ce, cr_sex s)
 		{
 			// (<string_variable> <index>) returns an Int32 to D7
@@ -1100,6 +1131,11 @@ namespace Rococo
 
 		bool TryCompileCompoundArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, SexyVarType type)
 		{
+			if (s.NumberOfElements() > 0 && IsAtomicMatch(s[0], "fromstring"))
+			{
+				Throw(s, "fromstring is only valid as a directive of the form (<enum-variable> = fromstring <string> -> <Bool-variable>), not as a subexpression");
+			}
+
 			if (s.NumberOfElements() == 3 && IsArithmeticOperator(s[1]))
 			{
 				// (x OP y) will never be a function call as OP is never a legal argument to a method

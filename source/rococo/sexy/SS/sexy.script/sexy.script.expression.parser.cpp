@@ -2260,6 +2260,196 @@ namespace Rococo
 			return true;
 		}
 
+		bool IsFromStringKeyword(cr_sex s)
+		{
+			return IsAtomic(s) && AreEqual(s.String(), "fromstring");
+		}
+
+		// True if the type is Sys.Type.IString, or an interface that extends it, such as Sys.Type.IStringBuilder
+		bool IsIStringInterface(CCompileEnvironment& ce, const IStructure& type)
+		{
+			if (!type.IsNullType() || type.InterfaceCount() == 0)
+			{
+				return false;
+			}
+
+			const IObjectInterface& istring = ce.Object.Common().SysTypeIString();
+			for (const IObjectInterface* i = &type.GetInterface(0); i != nullptr; i = i->Base())
+			{
+				if (i == &istring)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		void ThrowIfNotEnumTargetOfFromString(cr_sex s, cstr targetName, const IStructure& targetType)
+		{
+			if (!targetType.IsEnumType())
+			{
+				if (targetType.IsStrongType())
+				{
+					Throw(s, "fromstring requires an enum type, but %s has no enum values", GetFriendlyName(targetType));
+				}
+
+				Throw(s, "fromstring requires an enum target, but %s is of type %s", targetName, GetFriendlyName(targetType));
+			}
+
+			SexyVarType varType = targetType.VarType();
+			if (varType != SexyVarType_Int32 && varType != SexyVarType_Int64)
+			{
+				Throw(s, "fromstring requires an integer enum type, but %s is based on %s", GetFriendlyName(targetType), GetTypeName(varType));
+			}
+		}
+
+		// Sets the enum target to the value whose name equals the string exactly, and the Bool to true. If no name matches, the Bool is set false and the target is unchanged.
+		// A string literal is resolved at compile time. A string variable is resolved at run time by the EnumFromString callback, which looks the text up in the enum's own table.
+		void CompileEnumFromString(CCompileEnvironment& ce, cstr target, const IStructure& targetType, cr_sex sString, cr_sex sBool)
+		{
+			if (!IsAtomic(sBool))
+			{
+				Throw(sBool, "fromstring: expecting a Bool variable after ->");
+			}
+
+			cstr boolName = sBool.c_str();
+
+			MemberDef boolDef;
+			if (!ce.Builder.TryGetVariableByName(OUT boolDef, boolName))
+			{
+				Throw(sBool, "fromstring: unknown Bool variable %s", boolName);
+			}
+
+			if (boolDef.ResolvedType->VarType() != SexyVarType_Bool)
+			{
+				Throw(sBool, "fromstring: %s must be a Bool, but is of type %s", boolName, GetFriendlyName(*boolDef.ResolvedType));
+			}
+
+			auto& assembler = ce.Builder.Assembler();
+
+			if (IsStringLiteral(sString))
+			{
+				sexstring text = sString.String();
+
+				int64 value = 0;
+				bool isFound = text->Length > 0 && targetType.TryGetEnumValue(text->Buffer, OUT value);
+				if (isFound)
+				{
+					VariantValue v;
+					v.int64Value = value;
+					assembler.Append_SetRegisterImmediate(VM::REGISTER_D7, v, BITCOUNT_64);
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, target);
+				}
+
+				VariantValue b;
+				b.int64Value = 0;
+				b.int32Value = isFound ? 1 : 0;
+				assembler.Append_SetRegisterImmediate(VM::REGISTER_D8, b, BITCOUNT_32);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D8, boolName);
+				return;
+			}
+
+			if (!IsAtomic(sString))
+			{
+				Throw(sString, "fromstring requires an IString or a string literal, e.g. (day = fromstring s -> ok)");
+			}
+
+			cstr stringName = sString.c_str();
+
+			MemberDef stringDef;
+			if (!ce.Builder.TryGetVariableByName(OUT stringDef, stringName))
+			{
+				Throw(sString, "fromstring: unknown string variable %s", stringName);
+			}
+
+			if (!IsIStringInterface(ce, *stringDef.ResolvedType))
+			{
+				Throw(sString, "fromstring requires an IString or a string literal, but %s is of type %s", stringName, GetFriendlyName(*stringDef.ResolvedType));
+			}
+
+			ce.Builder.AssignVariableToRegister(stringName, VM::REGISTER_D4); // D4 = the string interface
+
+			VariantValue enumType;
+			enumType.vPtrValue = (void*)&targetType;
+			assembler.Append_SetRegisterImmediate(VM::REGISTER_D5, enumType, BITCOUNT_POINTER); // D5 = the enum type
+
+			assembler.Append_Invoke(ce.SS.GetScriptCallbacks().idEnumFromString); // D7 = the value, D8 = 1 if found, else 0
+
+			assembler.Append_Test(VM::REGISTER_D8, BITCOUNT_32);
+			size_t branchPos = assembler.WritePosition();
+			assembler.Append_BranchIf(CONDITION_IF_EQUAL, 0);
+
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, target);
+
+			size_t skipPos = assembler.WritePosition();
+			assembler.SetWriteModeToOverwrite(branchPos);
+			assembler.Append_BranchIf(CONDITION_IF_EQUAL, (int)(skipPos - branchPos));
+			assembler.SetWriteModeToAppend();
+
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D8, boolName);
+		}
+
+		// (<enum-type> <id> = fromstring <string> -> <Bool-variable>). On no match the target is 0
+		bool TryCompileAsFromStringDeclaration(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
+		{
+			if (decl.NumberOfElements() < 4 || !IsFromStringKeyword(decl[3]))
+			{
+				return false;
+			}
+
+			ThrowIfNotEnumTargetOfFromString(decl, id, type);
+
+			if (decl.NumberOfElements() != 7 || !IsAtomicMatch(decl[5], "->"))
+			{
+				Throw(decl, "Expecting (<enum-type> <name> = fromstring <string> -> <Bool-variable>)");
+			}
+
+			AddSymbol(ce.Builder, "%s %s = fromstring %s -> %s", GetFriendlyName(type), id, decl[4].c_str(), decl[6].c_str());
+			AddVariable(ce, NameString::From(id), type);
+
+			VariantValue zero;
+			zero.int64Value = 0;
+			ce.Builder.Assembler().Append_SetRegisterImmediate(VM::REGISTER_D7, zero, BITCOUNT_64);
+			ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, id);
+
+			CompileEnumFromString(ce, id, type, decl[4], decl[6]);
+			return true;
+		}
+
+		// (<enum-variable> = fromstring <string> -> <Bool-variable>). On no match the target is unchanged
+		bool TryCompileAsFromStringAssignment(CCompileEnvironment& ce, cr_sex s)
+		{
+			if (s.NumberOfElements() < 3 || !IsAtomicMatch(s[1], "=") || !IsFromStringKeyword(s[2]))
+			{
+				return false;
+			}
+
+			if (!IsAtomic(s[0]))
+			{
+				Throw(s, "Expecting (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+			}
+
+			cstr target = s[0].c_str();
+
+			MemberDef targetDef;
+			if (!ce.Builder.TryGetVariableByName(OUT targetDef, target))
+			{
+				Throw(s[0], "fromstring: unknown target variable %s", target);
+			}
+
+			ThrowIfNotEnumTargetOfFromString(s, target, *targetDef.ResolvedType);
+
+			if (s.NumberOfElements() != 6 || !IsAtomicMatch(s[4], "->"))
+			{
+				Throw(s, "Expecting (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+			}
+
+			AddSymbol(ce.Builder, "%s = fromstring %s -> %s", target, s[3].c_str(), s[5].c_str());
+			CompileEnumFromString(ce, target, *targetDef.ResolvedType, s[3], s[5]);
+			return true;
+		}
+
 		bool TryCompileAsStringConstantAssignment(CCompileEnvironment& ce, const IStructure& type, cstr id, cr_sex decl)
 		{
 			if (ce.Object.Common().SysTypeIString().NullObjectType() != type)  return false;
@@ -2484,6 +2674,11 @@ namespace Rococo
 			// (<type> <id> = <...>)
 
 			if (TryCompileAsToStringDeclaration(ce, type, id, decl))
+			{
+				return;
+			}
+
+			if (TryCompileAsFromStringDeclaration(ce, type, id, decl))
 			{
 				return;
 			}
@@ -4202,6 +4397,14 @@ namespace Rococo
 			{
 				if (TryCompileAsToStringAssignment(ce, s))
 					return;
+
+				if (TryCompileAsFromStringAssignment(ce, s))
+					return;
+
+				if (IsFromStringKeyword(s[0]))
+				{
+					Throw(s, "fromstring is only valid as a directive of the form (<enum-variable> = fromstring <string> -> <Bool-variable>)");
+				}
 
 				if (TryCompileAsTrivialAssignment(ce, s))
 					return;
