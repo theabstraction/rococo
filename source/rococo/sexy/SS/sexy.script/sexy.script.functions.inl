@@ -736,6 +736,49 @@ namespace Rococo
 			}
 		}
 
+		// A qualified enum constant, E@X, assigned to a plain integer, loads its value into targetReg and returns true. An Int32 enum widens to Int64 with its sign kept.
+		// An Int64 enum does not narrow to Int32, and enums do not convert to floats. Returns false if s is not a qualified enum constant
+		bool TryCompileEnumConstantAsInteger(CCompileEnvironment& ce, cr_sex s, SexyVarType targetType, VM::DINDEX targetReg)
+		{
+			if (!IsAtomic(s) || FindChar(s.c_str(), '@') == nullptr)
+			{
+				return false;
+			}
+
+			const IStructure* enumType;
+			cstr enumKey;
+			if (!TryParseEnumConstant(ce, s, OUT enumType, OUT enumKey) || enumType == nullptr)
+			{
+				return false;
+			}
+
+			SexyVarType enumVarType = enumType->VarType();
+			bool isIntegerEnum = enumVarType == SexyVarType_Int32 || enumVarType == SexyVarType_Int64;
+			bool isIntegerTarget = targetType == SexyVarType_Int32 || targetType == SexyVarType_Int64;
+			if (!isIntegerEnum || !isIntegerTarget || (enumVarType == SexyVarType_Int64 && targetType == SexyVarType_Int32))
+			{
+				Throw(s, "%s is an enum constant of type %s, based on %s, which does not convert to %s", s.c_str(), GetFriendlyName(*enumType), GetTypeName(enumVarType), GetTypeName(targetType));
+			}
+
+			VariantValue v;
+			if (!enumType->TryGetEnumValue(enumKey, OUT v.int64Value))
+			{
+				Throw(s, "Unexpected enum value not found: %s", enumKey);
+			}
+			ce.Builder.Assembler().Append_SetRegisterImmediate(targetReg, v, BITCOUNT_64);
+			AddSymbol(ce.Builder, "%s = %lld / 0x%llX", s.c_str(), v.int64Value, v.int64Value);
+			return true;
+		}
+
+		// .X has no enum type of its own, so a target that is not a strong type cannot resolve it
+		void ThrowIfUnqualifiedEnumForPlainType(cr_sex s, const IStructure* enumType, cstr enumKey, const IStructure& targetType)
+		{
+			if (enumType == nullptr && !targetType.IsStrongType())
+			{
+				Throw(s, "Cannot infer the enum type of %s. Qualify it, e.g. <EnumType>@%s", s.c_str(), enumKey);
+			}
+		}
+
 		int64 AssignEnumToD4(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive)
 		{
 			int64 enumValue;
@@ -832,6 +875,15 @@ namespace Rococo
 				Throw(enumConstant, "Expected an enum constant, e.g. .Friday or Day@Friday");
 			}
 
+			ThrowIfUnqualifiedEnumForPlainType(enumConstant, enumType, enumKey, targetType);
+
+			if (!targetType.IsStrongType() && TryCompileEnumConstantAsInteger(ce, enumConstant, targetType.VarType(), VM::REGISTER_D4))
+			{
+				// E@X into a plain integer, e.g. (Int32 x = Day@Friday)
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D4, targetVariable);
+				return;
+			}
+
 			ValidateEnumConstantType(enumConstant, enumType, targetType);
 			AssignEnumToVariable(ce, enumKey, targetType, directive, targetVariable);
 		}
@@ -843,6 +895,16 @@ namespace Rococo
 			if (!TryParseEnumConstant(ce, sInputExpression, OUT enumType, OUT enumKey))
 			{
 				return false;
+			}
+
+			ThrowIfUnqualifiedEnumForPlainType(sInputExpression, enumType, enumKey, inputStruct);
+
+			if (!inputStruct.IsStrongType() && TryCompileEnumConstantAsInteger(ce, sInputExpression, inputStruct.VarType(), VM::REGISTER_D4))
+			{
+				// E@X passed to a plain integer argument
+				AddArgVariable("inputExpr", ce, inputStruct);
+				ce.Builder.Assembler().Append_PushRegister(VM::REGISTER_D4, GetBitCount(inputStruct.VarType()));
+				return true;
 			}
 
 			ValidateEnumConstantType(sInputExpression, enumType, inputStruct);
@@ -870,6 +932,12 @@ namespace Rococo
 			if (enumType == nullptr && !type.IsStrongType())
 			{
 				return false;
+			}
+
+			if (!type.IsStrongType())
+			{
+				// E@X into a plain integer, e.g. (Int32 x = (Day@Friday))
+				return TryCompileEnumConstantAsInteger(ce, value, type.VarType(), targetReg);
 			}
 
 			ValidateEnumConstantType(value, enumType, type);

@@ -4861,7 +4861,7 @@ R"((namespace EntryPoint)
 
 	void TestEnumQualifiedToInt32(IPublicScriptSystem& ss)
 	{
-		// A strong type does not cast to its underlying type, so Day@Friday cannot initialize an Int32
+		// A qualified enum constant initializes its underlying integer type with its value
 		cstr srcCode = R"(
 			(strong Day (Int32))
 
@@ -4882,7 +4882,7 @@ R"((namespace EntryPoint)
 			(namespace EntryPoint)(alias Main EntryPoint.Main)
 		)";
 
-		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Type mismatch");
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 5);
 	}
 
 	void TestEnumQualifiedUnknownType(IPublicScriptSystem& ss)
@@ -6537,6 +6537,609 @@ R"((namespace EntryPoint)
 		)";
 
 		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Expecting an enum key on the right of &");
+	}
+
+	// Qualified enum constants into plain integers, and enums in the (?? cond a b) ternary
+
+	void TestEnumToIntInit(IPublicScriptSystem& ss)
+	{
+		// A qualified enum constant initializes a plain integer with its value
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 x = Access@Write)
+				(Int32 y = Sys.Type.Access@Exec)
+				(Int32 z = (Access@Read))
+				(result = ((x * 100) + ((y * 10) + z)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 241);
+	}
+
+	void TestEnumToIntAssign(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function GetWrite -> (Int32 value):
+				(value = Access@Write)
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 x = 0)
+				(x = Access@Exec)
+				(Int32 y = (GetWrite))
+				(result = ((x * 10) + y))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 42);
+	}
+
+	void TestEnumToIntMember(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(struct Pair
+				(Int32 a)
+				(Int64 b)
+			)
+
+			(function Main -> (Int32 result):
+				(Pair p = Access@Write Access@Exec)
+				(Int32 a = p.a)
+				(Int64 b = p.b)
+				(Int64 four = 4)
+				(if (b == four) (result = (a * 10)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 20);
+	}
+
+	void TestEnumToIntArg(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Twice32 (Int32 x) -> (Int32 value):
+				(value = (x * 2))
+			)
+
+			(function Twice64 (Int64 x) -> (Int64 value):
+				(value = (x * 2))
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 a = (Twice32 Access@Exec))
+				(Int64 b = (Twice64 Sys.Type.Access@Write))
+				(Int64 four = 4)
+				(if (b == four) (result = a))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 8);
+	}
+
+	void TestEnumToIntWiden(IPublicScriptSystem& ss)
+	{
+		// An Int32 enum widens to Int64 with its sign kept
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Int64 x = Access@Sign)
+				(Int64 expected = -2147483648)
+				(if (x == expected) (result = 1))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 1);
+	}
+
+	void TestEnumToInt64(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong BigAccess (Int64))
+
+			(alias BigAccess Sys.Type.BigAccess)
+
+			(enum Sys.Type.BigAccess
+				(Low 1)
+				(High 4294967296)
+			)
+
+			(function Main -> (Int32 result):
+				(Int64 x = BigAccess@High)
+				(Int64 expected = 4294967296)
+				(if (x == expected) (result = 1))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 1);
+	}
+
+	void TestEnumToIntNarrow(IPublicScriptSystem& ss)
+	{
+		// An Int64 enum does not narrow to Int32
+		cstr srcCode = R"(
+			(strong BigAccess (Int64))
+
+			(alias BigAccess Sys.Type.BigAccess)
+
+			(enum Sys.Type.BigAccess
+				(Low 1)
+				(High 4294967296)
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 x = BigAccess@High)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "BigAccess@High is an enum constant of type BigAccess, based on Int64, which does not convert to Int32");
+	}
+
+	void TestEnumToIntFloat(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Float32 x = Access@Read)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Access@Read is an enum constant of type Access, based on Int32, which does not convert to Float32");
+	}
+
+	void TestEnumToIntUnqualified(IPublicScriptSystem& ss)
+	{
+		// With a plain integer target the enum type of .Read cannot be inferred
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 x = .Read)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Cannot infer the enum type of .Read. Qualify it, e.g. <EnumType>@Read");
+	}
+
+	void TestEnumToIntArgUnqualified(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Twice32 (Int32 x) -> (Int32 value):
+				(value = (x * 2))
+			)
+
+			(function Main -> (Int32 result):
+				(Int32 a = (Twice32 .Read))
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Cannot infer the enum type of .Read. Qualify it, e.g. <EnumType>@Read");
+	}
+
+	void TestEnumToOtherEnum(IPublicScriptSystem& ss)
+	{
+		// An enum constant does not convert to another enum type
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(strong Colour (Int32))
+
+			(alias Colour Sys.Type.Colour)
+
+			(enum Sys.Type.Colour
+				(Red 1)
+				(Green 2)
+			)
+
+			(function Main -> (Int32 result):
+				(Colour c = Access@Read)
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Type mismatch: Access@Read is of type Access, but the target type is Colour");
+	}
+
+	void TestEnumTernaryDot(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Bool no = false)
+				(Access a = (?? yes .Read .Write))
+				(Access b = (?? no .Read .Write))
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(result = ((va * 10) + vb))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 12);
+	}
+
+	void TestEnumTernaryQualified(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Access a = (?? yes Access@Exec Sys.Type.Access@Read))
+				(Access b = (?? (not yes) Access@Exec Sys.Type.Access@Read))
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(result = ((va * 10) + vb))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 41);
+	}
+
+	void TestEnumTernaryVariables(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Access x = .Exec)
+				(Access y = .Write)
+				(Access a = (?? yes x y))
+				(Access b = (?? yes .Read y))
+				(Access c = (?? (not yes) x Access@Read))
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(Int32 vc = c.Value)
+				(result = ((va * 100) + ((vb * 10) + vc)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 411);
+	}
+
+	void TestEnumTernaryContexts(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(struct Perm
+				(Access access)
+				(Int32 n)
+			)
+
+			(function ToInt (Access a) -> (Int32 value):
+				(value = a.Value)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Access a = .Read)
+				(a = (?? yes .Exec a))
+				(Int32 va = a.Value)
+				(Int32 vb = (ToInt (?? yes .Write .Read)))
+				(Perm p = (?? yes Access@Exec .Read) 3)
+				(Int32 vp = p.access.Value)
+				(if (a == (?? yes .Exec .Read)) (result += 1000))
+				(result += ((va * 100) + ((vb * 10) + vp)))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 1424);
+	}
+
+	void TestEnumTernaryOr(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Access a = (?? yes (.Read | .Write) .Exec))
+				(Access b = (.Exec | (?? yes .Read .Write)))
+				(Int32 va = a.Value)
+				(Int32 vb = b.Value)
+				(result = ((va * 10) + vb))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 35);
+	}
+
+	void TestEnumTernaryToInt(IPublicScriptSystem& ss)
+	{
+		// Qualified constants in a ternary with a plain integer target convert as in an assignment
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Int32 x = (?? yes Access@Exec Access@Read))
+				(Int64 y = (?? (not yes) 7 Access@Write))
+				(Int64 two = 2)
+				(if (y == two) (result = x))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		validate(RunEnumQualifiedTest(ss, srcCode, __FUNCTION__) == 4);
+	}
+
+	void TestEnumTernaryOtherEnum(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(strong Colour (Int32))
+
+			(alias Colour Sys.Type.Colour)
+
+			(enum Sys.Type.Colour
+				(Red 1)
+				(Green 2)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Access a = (?? yes .Read Colour@Red))
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Type mismatch: Colour@Red is of type Colour, but the target type is Access");
+	}
+
+	void TestEnumTernaryLiteral(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Access a = (?? yes .Read 2))
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "2 is a literal, which does not convert to enum type Access");
+	}
+
+	void TestEnumTernaryIntVariable(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Int32 i = 2)
+				(Access a = (?? yes .Read i))
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "i is of type Int32, but the enum expression is of type Access");
+	}
+
+	void TestEnumTernaryUnqualifiedToInt(IPublicScriptSystem& ss)
+	{
+		cstr srcCode = R"(
+			(strong Access (Int32))
+
+			(alias Access Sys.Type.Access)
+
+			(enum Sys.Type.Access
+				(Read 1)
+				(Write 2)
+				(Exec 4)
+				(Sign -2147483648)
+			)
+
+			(function Main -> (Int32 result):
+				(Bool yes = true)
+				(Int32 x = (?? yes .Read .Write))
+				(result = 0)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		RunEnumQualifiedFailTest(ss, srcCode, __FUNCTION__, "Cannot infer the enum type of .Read");
 	}
 
 	static int64 TestNativeHandle_globalHandle = 0;
@@ -22653,6 +23256,27 @@ R"(
 		TEST(TestEnumFlagTestNonEnumStrong);
 		TEST(TestEnumFlagTestIntDot);
 		TEST(TestEnumFlagTestLiteral);
+		TEST(TestEnumToIntInit);
+		TEST(TestEnumToIntAssign);
+		TEST(TestEnumToIntMember);
+		TEST(TestEnumToIntArg);
+		TEST(TestEnumToIntWiden);
+		TEST(TestEnumToInt64);
+		TEST(TestEnumToIntNarrow);
+		TEST(TestEnumToIntFloat);
+		TEST(TestEnumToIntUnqualified);
+		TEST(TestEnumToIntArgUnqualified);
+		TEST(TestEnumToOtherEnum);
+		TEST(TestEnumTernaryDot);
+		TEST(TestEnumTernaryQualified);
+		TEST(TestEnumTernaryVariables);
+		TEST(TestEnumTernaryContexts);
+		TEST(TestEnumTernaryOr);
+		TEST(TestEnumTernaryToInt);
+		TEST(TestEnumTernaryOtherEnum);
+		TEST(TestEnumTernaryLiteral);
+		TEST(TestEnumTernaryIntVariable);
+		TEST(TestEnumTernaryUnqualifiedToInt);
 
 		TEST(TestEnumByCPP);
 

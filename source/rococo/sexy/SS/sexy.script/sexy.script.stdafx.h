@@ -469,6 +469,7 @@ namespace Rococo
         bool TryCompileArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, bool expected, SexyVarType type);
         bool TryCompileEnumArithmeticExpression(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& targetType);
         void CompileEnumOperand(CCompileEnvironment& ce, Sex::cr_sex s, const Compiler::IStructure& enumType);
+        bool TryCompileEnumConstantAsInteger(CCompileEnvironment& ce, Sex::cr_sex s, SexyVarType targetType, VM::DINDEX targetReg);
 
         void CompileFunctionCallAndReturnValue(CCompileEnvironment& ce, Sex::cr_sex s, Compiler::IFunction& callee, SexyVarType returnType, const Compiler::IArchetype* returnArchetype, const Compiler::IStructure* returnTypeStruct);
         Compiler::IProgramObject& GetProgramObject(CScript& script);

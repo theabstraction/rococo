@@ -368,6 +368,13 @@ namespace Rococo
 		// as enums do not restrict assignment. Operands are E variables and members, E@X constants, .X constants (which take the type E), and nested (a | b).
 		void CompileEnumBinaryExpression(CCompileEnvironment& ce, cr_sex s, const IStructure& enumType);
 
+		bool IsTernaryExpression(cr_sex s)
+		{
+			return IsCompound(s) && s.NumberOfElements() == 4 && IsAtomic(s[0]) && Eq(s[0].c_str(), "??");
+		}
+
+		void CompileTernaryExpression(CCompileEnvironment& ce, cr_sex s, SexyVarType type, const IStructure* enumType = nullptr);
+
 		void CompileEnumOperand(CCompileEnvironment& ce, cr_sex s, const IStructure& enumType)
 		{
 			if (IsAtomic(s))
@@ -411,6 +418,12 @@ namespace Rococo
 					CompileEnumBinaryExpression(ce, s, enumType);
 					return;
 				}
+
+				if (IsTernaryExpression(s))
+				{
+					CompileTernaryExpression(ce, s, enumType.VarType(), &enumType);
+					return;
+				}
 			}
 
 			Throw(s, "Expecting a constant or variable of enum type %s, or a nested (a | b) expression", GetFriendlyName(enumType));
@@ -441,10 +454,16 @@ namespace Rococo
 			AppendArithmeticOp(ce.Builder.Assembler(), s, op, type, VM::REGISTER_D7);
 		}
 
-		// If s is (a OP b) and the target is an enum type, compiles s as an enum expression to D7 and returns true. Only | is accepted for OP.
+		// If s is (a OP b) or (?? cond a b) and the target is an enum type, compiles s as an enum expression to D7 and returns true. Only | is accepted for OP.
 		// Strong types without enum values, e.g. (strong Joules (Float64)), return false, and follow the arithmetic of their underlying type
 		bool TryCompileEnumArithmeticExpression(CCompileEnvironment& ce, cr_sex s, const IStructure& targetType)
 		{
+			if (targetType.IsEnumType() && IsTernaryExpression(s))
+			{
+				CompileTernaryExpression(ce, s, targetType.VarType(), &targetType);
+				return true;
+			}
+
 			if (!targetType.IsEnumType() || !IsCompound(s) || s.NumberOfElements() != 3 || !IsArithmeticOperator(s[1]))
 			{
 				return false;
@@ -1028,7 +1047,20 @@ namespace Rococo
 			ce.Builder.Assembler().Append_Invoke(ce.SS.GetScriptCallbacks().idStringIndexToChar);
 		}
 
-		void CompileTernaryExpression(CCompileEnvironment& ce, cr_sex s, SexyVarType type)
+		// Compiles the value of sValue for a ternary branch to D7. With an enumType the branch is an enum expression, else a plain number, which may be a qualified enum constant
+		void CompileTernaryBranch(CCompileEnvironment& ce, cr_sex sValue, bool expected, SexyVarType type, const IStructure* enumType)
+		{
+			if (enumType != nullptr)
+			{
+				CompileEnumOperand(ce, sValue, *enumType);
+			}
+			else if (!TryCompileEnumConstantAsInteger(ce, sValue, type, VM::REGISTER_D7))
+			{
+				TryCompileArithmeticExpression(ce, sValue, expected, type);
+			}
+		}
+
+		void CompileTernaryExpression(CCompileEnvironment& ce, cr_sex s, SexyVarType type, const IStructure* enumType)
 		{
 			// s0  s1        s2                s3
 			// (?? <boolean> <truth-expression><false-expression>)
@@ -1045,7 +1077,7 @@ namespace Rococo
 			size_t postConditionPos = ce.Builder.Assembler().WritePosition();
 			ce.Builder.Assembler().Append_BranchIf(CONDITION_IF_NOT_EQUAL, 0);
 
-			TryCompileArithmeticExpression(ce, sForTrue, true, type);
+			CompileTernaryBranch(ce, sForTrue, true, type, enumType);
 			// boolean condition is now assembled to be a 32-bit value in D7
 
 			// If we have come here, it means we need to skip evaluating sForFalse
@@ -1054,7 +1086,7 @@ namespace Rococo
 
 			size_t falsePos = ce.Builder.Assembler().WritePosition();
 
-			TryCompileArithmeticExpression(ce, sForFalse, false, type);
+			CompileTernaryBranch(ce, sForFalse, false, type, enumType);
 			// boolean condition is now assembled to be a 32-bit value in D7
 
 			// Now we know the size of branches we can correct the branch statements
@@ -1211,6 +1243,11 @@ namespace Rococo
 		bool TryCompileAtomicArithmeticExpression(CCompileEnvironment& ce, cr_sex s, bool expected, SexyVarType type)
 		{
 			cstr token = s.c_str();
+
+			if (*token == '.' && IsCapital(token[1]))
+			{
+				Throw(s, "Cannot infer the enum type of %s here. Qualify it, e.g. <EnumType>@%s", token, token + 1);
+			}
 
 			VariantValue value;
 			if (Parse::TryParse(OUT value, IN type, IN token) == Parse::PARSERESULT_GOOD)
