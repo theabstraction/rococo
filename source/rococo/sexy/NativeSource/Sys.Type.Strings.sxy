@@ -350,6 +350,12 @@
 	(ValidateSubscriptRange in.ChildCount 3 1000000 "Usage: (#build <variable-name> <arg1> ... <argN>)")
 	(ConvertArgsToExpressionPairs in (in 1) out 2)
 )
+// TEST-ONLY scaffolding for TestConstantsMacroEnum (remove after the compiler fix).
+// FiveMacro checks that a Sys-native macro can emit a literal in assignment position.
+// FridayMacro emits a leading-dot enum constant (.Friday).
+(macro Sys.Type.FiveMacro in out (out.AddAtomic "5"))
+(macro Sys.Type.FridayMacro in out (out.AddAtomic ".Friday"))
+
 
 (using Sys)
 (using Sys.Reflection)

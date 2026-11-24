@@ -4358,6 +4358,123 @@ R"((namespace EntryPoint)
 		validate(x == 4);
 	}
 
+	void TestConstantsCompoundEnum(IPublicScriptSystem& ss)
+	{
+		// Hand-written one-element compound holding an enum constant: (Day day = (.Friday))
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function Main -> (Int32 result):
+				(Day day = (.Friday))
+				(Int32 v = day.Value)
+				(result = v)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestConstantsCompoundEnumMember(IPublicScriptSystem& ss)
+	{
+		// Memberwise init from a one-element compound holding an enum constant: (Time t = (.Friday) 1)
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(struct Time
+				(Sys.Type.Day day)
+				(Int32 seconds)
+			)
+
+			(function Main -> (Int32 result):
+				(Time t = (.Friday) 1)
+				(result = t.day.Value)
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
+	void TestConstantsCompoundEnumArg(IPublicScriptSystem& ss)
+	{
+		// Argument passing from a one-element compound holding an enum constant: (ToInt (.Friday))
+		cstr srcCode =
+			R"(
+			(strong Day (Int32))
+
+			(alias Day Sys.Type.Day)
+
+			(enum Sys.Type.Day
+				(Monday 1)
+				Tuesday
+				Wednesday
+				Thursday
+				Friday
+			)
+
+			(function ToInt (Day day) -> (Int32 value):
+				(value = day.Value)
+			)
+
+			(function Main -> (Int32 result):
+				(result = ToInt (.Friday))
+			)
+			(namespace EntryPoint)(alias Main EntryPoint.Main)
+		)";
+
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		int32 x = vm.PopInt32();
+		validate(x == 5);
+	}
+
 	static int64 TestNativeHandle_globalHandle = 0;
 
 	struct HandleImage
@@ -19955,6 +20072,9 @@ R"(
 		TEST(TestConstants7);
 		TEST(TestConstants8);
 		TEST(TestConstants9);
+		TEST(TestConstantsCompoundEnum);
+		TEST(TestConstantsCompoundEnumMember);
+		TEST(TestConstantsCompoundEnumArg);
 
 		TEST(TestEnumByCPP);
 

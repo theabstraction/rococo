@@ -977,7 +977,10 @@ namespace Rococo
 				{
 					return inputStruct.SizeOfStruct();
 				}
-				if (!TryCompileArithmeticExpression(ce, inputExpression, true, inputType))
+
+				// One-element compound holding an enum constant, e.g. (ToInt (.Friday)), loads D7, which is pushed below
+				bool isEnumCompound = IsCompound(inputExpression) && inputExpression.NumberOfElements() == 1 && TryCompileEnumLiteralToRegister(ce, inputExpression[0], inputStruct, VM::REGISTER_D7);
+				if (!isEnumCompound && !TryCompileArithmeticExpression(ce, inputExpression, true, inputType))
 				{
 					Throw(inputExpression, "Expected %s valued expression", GetTypeName(inputType));
 				}

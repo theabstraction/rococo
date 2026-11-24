@@ -587,6 +587,7 @@ namespace Rococo
 		}
 
 		void AssignEnumToVariable(CCompileEnvironment& ce, cstr enumKey, const IStructure& enumStruct, cr_sex directive, cstr targetVariable);
+		bool TryCompileEnumLiteralToRegister(CCompileEnvironment& ce, cr_sex value, const IStructure& type, VM::DINDEX targetReg);
 
 		void CompileAssignmentDirectiveFromAtomic(CCompileEnvironment& ce, cr_sex directive, const IStructure& varStruct, bool explicitKeyword)
 		{
@@ -828,6 +829,15 @@ namespace Rococo
 
 			TokenBuffer symbol;
 			StringPrint(symbol, ("%s=(...)"), targetVariable);
+
+			// A one-element compound holding a leading-dot enum constant, e.g. (Day d = (.Friday)), or the
+			// output of a macro that emits .Friday via AddAtomic, is unwrapped and resolved against the target type.
+			if (sourceValue.NumberOfElements() == 1 && TryCompileEnumLiteralToRegister(ce, sourceValue[0], varStruct, VM::REGISTER_D7))
+			{
+				ce.Builder.AddSymbol(symbol);
+				ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, targetVariable);
+				return;
+			}
 
 			bool negate = false;
 
@@ -1071,6 +1081,17 @@ namespace Rococo
 				if (IsAtomic(src))
 				{
 					CompileAssignAtomicValueToMember(ce, member, src, variableName);
+				}
+				else if (src.NumberOfElements() == 1 && IsAtomic(src[0]) && *src[0].c_str() == '.')
+				{
+					// One-element compound holding an enum constant, e.g. (Time t = (.Friday) 1)
+					MemberDef def;
+					GetVariableByName(ce.Builder, OUT def, variableName, src);
+					if (!TryCompileEnumLiteralToRegister(ce, src[0], *def.ResolvedType, VM::REGISTER_D7))
+					{
+						Throw(src, "Cannot assign %s to %s. The member is not a strong enum type", src[0].c_str(), variableName);
+					}
+					ce.Builder.AssignRegisterToVariable(VM::REGISTER_D7, variableName);
 				}
 				else
 				{
