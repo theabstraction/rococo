@@ -17328,7 +17328,7 @@ R"(
 		validate(ss.ValidateMemory());
 
 		int x = vm.PopInt32();
-		validate(x == 2);
+		validate(x == 0); // Popping each node in turn visits all three and empties the list
 	}
 
 	void TestLinkedListForeach5(IPublicScriptSystem& ss)
@@ -17492,6 +17492,271 @@ R"(
 
 		int x = vm.PopInt32();
 		validate(x == 17);
+	}
+
+	void TestLinkedListForeachPopAll(IPublicScriptSystem& ss)
+	{
+		// Popping the current node inside a foreach must not end the enumeration: every element is visited and the list ends up empty
+		cstr srcCode =
+R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(function Main -> (Int32 result):
+	(list Int32 a)
+	(a.Append 17)
+	(a.Append 34)
+	(a.Append 333)
+
+	(Int32 sum = 0)
+	(foreach n # a
+		(Int32 v = n.Value)
+		(sum += v)
+		(n.Pop)
+	)
+
+	(Int32 len = a.Length)
+	(result = (sum + (1000 * len)))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 384);
+	}
+
+	void TestLinkedListForeachIndexedPopAll(IPublicScriptSystem& ss)
+	{
+		// The indexed form (foreach i n # a ...) must also keep going after (n.Pop), with the index counting visits
+		cstr srcCode =
+R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(function Main -> (Int32 result):
+	(list Int32 a)
+	(a.Append 17)
+	(a.Append 34)
+	(a.Append 333)
+
+	(Int32 count = 0)
+	(Int32 indexSum = 0)
+	(foreach i n # a
+		(count += 1)
+		(indexSum += i)
+		(n.Pop)
+	)
+
+	(Int32 len = a.Length)
+	(result = ((10000 * count) + ((100 * indexSum) + len)))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 30300);
+	}
+
+	void TestLinkedListForeachPopInterfaces(IPublicScriptSystem& ss)
+	{
+		// Selectively popping interface elements during foreach visits every element, keeps the rest in order,
+		// and popping then breaking releases the popped node without leaking or double releasing
+		cstr srcCode =
+R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(class Cat (defines Sys.ICat) (Int32 id))
+(method Cat.Construct (Int32 id): (this.id = id))
+(method Cat.Id -> (Int32 id): (id = this.id))
+(factory Sys.NewCat Sys.ICat (Int32 id) : (construct Cat id))
+
+(function Main -> (Int32 result):
+	(list Sys.ICat cats)
+	(Sys.ICat c1 (Sys.NewCat 1))
+	(Sys.ICat c2 (Sys.NewCat 2))
+	(Sys.ICat c3 (Sys.NewCat 3))
+	(Sys.ICat c4 (Sys.NewCat 4))
+	(cats.Append c1)
+	(cats.Append c2)
+	(cats.Append c3)
+	(cats.Append c4)
+
+	(Int32 visited = 0)
+	(foreach c # cats
+		(Sys.ICat cat = c.Value)
+		(Int32 id = 0)
+		(cat.Id -> id)
+		(visited += id)
+		(if ((id == 2) or (id == 4))
+			(c.Pop)
+		)
+	)
+
+	(Int32 remaining = 0)
+	(foreach c # cats
+		(Sys.ICat cat = c.Value)
+		(Int32 id = 0)
+		(cat.Id -> id)
+		(remaining = ((10 * remaining) + id))
+	)
+
+	(foreach c # cats
+		(c.Pop)
+		(break)
+	)
+
+	(Int32 len = cats.Length)
+	(result = ((1000 * visited) + ((10 * remaining) + len)))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 10131); // visited 1+2+3+4, remaining 1 then 3 in order, one cat left
+	}
+
+	void TestLinkedListNodeAppendAfterPop(IPublicScriptSystem& ss)
+	{
+		// Appending to a node that has already been popped throws a catchable exception and leaves the list untouched
+		cstr srcCode =
+R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(function Main -> (Int32 result):
+	(list Int32 a)
+	(a.Append 17)
+	(a.Append 34)
+
+	(node n = a.Head)
+	(n.Pop)
+
+	(Int32 caught = 0)
+	(try
+		(
+			(n.Append 99)
+		)
+	catch ex
+		(
+			(caught = 1)
+		)
+	)
+
+	(Int32 len = a.Length)
+	(node head = a.Head)
+	(Int32 headValue = head.Value)
+	(result = (caught + ((10 * len) + (100 * headValue))))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 3411); // caught, one element left, and it is 34
+	}
+
+	void TestLinkedListNodePrependAfterPop(IPublicScriptSystem& ss)
+	{
+		// Prepending an interface to a node that has already been popped throws a catchable exception, leaves the list untouched and does not leak the interface
+		cstr srcCode =
+R"(
+(namespace EntryPoint)
+	(alias Main EntryPoint.Main)
+
+(using Sys.Type)
+
+(class Cat (defines Sys.ICat) (Int32 id))
+(method Cat.Construct (Int32 id): (this.id = id))
+(method Cat.Id -> (Int32 id): (id = this.id))
+(factory Sys.NewCat Sys.ICat (Int32 id) : (construct Cat id))
+
+(function Main -> (Int32 result):
+	(Sys.ICat c1 (Sys.NewCat 1))
+	(Sys.ICat c2 (Sys.NewCat 2))
+	(Sys.ICat c3 (Sys.NewCat 3))
+	(list Sys.ICat cats)
+	(cats.Append c1)
+	(cats.Append c2)
+
+	(node n = cats.Tail)
+	(n.Pop)
+
+	(Int32 caught = 0)
+	(try
+		(
+			(n.Prepend c3)
+		)
+	catch ex
+		(
+			(caught = 1)
+		)
+	)
+
+	(Int32 len = cats.Length)
+	(node head = cats.Head)
+	(Sys.ICat cat = head.Value)
+	(Int32 id = 0)
+	(cat.Id -> id)
+	(result = (caught + ((10 * len) + (100 * id))))
+)
+)";
+		Auto<ISourceCode> sc = ss.SParser().ProxySourceBuffer(srcCode, -1, Vec2i{ 0,0 }, __ROCOCO_FUNCTION__);
+		Auto<ISParserTree> tree(ss.SParser().CreateTree(sc()));
+
+		VM::IVirtualMachine& vm = StandardTestInit(ss, tree());
+
+		vm.Push(0); // Allocate stack space for the int32 result
+
+		EXECUTERESULT result = vm.Execute(VM::ExecutionFlags(false, true));
+		ValidateExecution(result);
+		validate(ss.ValidateMemory());
+
+		int x = vm.PopInt32();
+		validate(x == 111); // caught, one element left, and it is cat 1
 	}
 
 	void TestStaticCast(IPublicScriptSystem& ss)
@@ -24424,6 +24689,11 @@ R"(
 	   TEST(TestLinkedListForeach5);
 	   TEST(TestLinkedListForeach6);
 	   TEST(TestLinkedListForeach8);
+	   TEST(TestLinkedListForeachPopAll);
+	   TEST(TestLinkedListForeachIndexedPopAll);
+	   TEST(TestLinkedListForeachPopInterfaces);
+	   TEST(TestLinkedListNodeAppendAfterPop);
+	   TEST(TestLinkedListNodePrependAfterPop);
 	   
 	   TEST(TestLinkedListOfArchetypes);
 	   TEST(TestListStruct);

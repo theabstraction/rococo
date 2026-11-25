@@ -78,19 +78,36 @@ namespace Rococo::Script
 		return new ListLifetimeManager(ss);
 	}
 
+	// A node popped while someone else still referenced it (such as a foreach enumerator) is detached (Container == NULL)
+	// but keeps a counted reference to the node that followed it in Next, so that enumeration can resume from there.
+	// Only NodeEnumNext follows that link; NodeNext, NodeHasNext and NodeGoNext report a detached node as having no next.
 	int ReleaseNode(ListNode* n, IScriptSystem& ss)
 	{
 		n->RefCount--;
-		if (n->RefCount == 0)
-		{
-			DestroyObject(*n->ElementType, (uint8*)n->Element, ss);
-			ss.AlignedFree(n);
-			return 0;
-		}
-		else
+		if (n->RefCount != 0)
 		{
 			return n->RefCount;
 		}
+
+		// Free the node, then drop the reference it held on its successor, iteratively so long chains of popped nodes cannot overflow the stack
+		while (n != nullptr)
+		{
+			ListNode* retainedSuccessor = n->Container == nullptr ? n->Next : nullptr;
+			DestroyObject(*n->ElementType, (uint8*)n->Element, ss);
+			ss.AlignedFree(n);
+
+			n = retainedSuccessor;
+			if (n != nullptr)
+			{
+				n->RefCount--;
+				if (n->RefCount != 0)
+				{
+					break;
+				}
+			}
+		}
+
+		return 0;
 	}
 
 	void AddRef(ListNode* n)
@@ -160,12 +177,17 @@ namespace Rococo::Script
 		return (uint8*)newNode->Element;
 	}
 
-	ListNode* AppendToNode(ListNode* n, IScriptSystem& ss)
+	// Returns NULL, having thrown a script exception, if the node has been popped or the list cleared
+	[[nodiscard]] ListNode* AppendToNode(ListNode* n, IScriptSystem& ss)
 	{
 		ListImage* l = n->Container;
-		ListNode* newNode = CreateNewNode(l, ss);
+		if (l == NULL)
+		{
+			ss.ThrowFromNativeCodeF(-1, "Node.Append failed, as the node was not in a list");
+			return NULL;
+		}
 
-		// Asumme node is not null
+		ListNode* newNode = CreateNewNode(l, ss);
 
 		if (l->Tail == n)
 		{
@@ -210,9 +232,16 @@ namespace Rococo::Script
 		return newNode;
 	}
 
-	ListNode* PrependToNode(ListNode* n, IScriptSystem& ss)
+	// Returns NULL, having thrown a script exception, if the node has been popped or the list cleared
+	[[nodiscard]] ListNode* PrependToNode(ListNode* n, IScriptSystem& ss)
 	{
 		ListImage* l = n->Container;
+		if (l == NULL)
+		{
+			ss.ThrowFromNativeCodeF(-1, "Node.Prepend failed, as the node was not in a list");
+			return NULL;
+		}
+
 		ListNode* newNode = CreateNewNode(l, ss);
 
 		if (n == l->Head)
@@ -244,6 +273,7 @@ namespace Rococo::Script
 			n->Next = n->Previous = NULL;
 			if (n->RefCount > 1)
 			{
+				n->Container = nullptr; // Detached, so a later Pop through an outstanding reference throws rather than corrupting the list
 				ReleaseNode(n, ss);
 			}
 			else
@@ -362,7 +392,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		VariantValue boolResult;
-		boolResult.int32Value = n->Next == nullptr ? 0 : 1;
+		boolResult.int32Value = (n->Container == nullptr || n->Next == nullptr) ? 0 : 1;
 		registers[VM::REGISTER_D7] = boolResult;
 
 		if (boolResult.int32Value != 0)
@@ -381,6 +411,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = AppendToNode(n, ss);
+		if (newNode == NULL) return;
 		AlignedMemcpy(newNode->Element, src, n->Container->ElementSize);
 	}
 
@@ -409,6 +440,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = AppendToNode(n, ss);
+		if (newNode == NULL) return;
 		*((int32*)newNode->Element) = src;
 	}
 
@@ -458,6 +490,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = AppendToNode(n, ss);
+		if (newNode == NULL) return;
 
 		*(InterfacePointer*)newNode->Element = src;
 
@@ -471,6 +504,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = AppendToNode(n, ss);
+		if (newNode == NULL) return;
 		*((int64*)newNode->Element) = src;
 	}
 
@@ -499,6 +533,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = PrependToNode(n, ss);
+		if (newNode == NULL) return;
 		AlignedMemcpy(newNode->Element, src, (n->Container->ElementSize));
 	}
 
@@ -509,6 +544,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = PrependToNode(n, ss);
+		if (newNode == NULL) return;
 
 		*(InterfacePointer*)newNode->Element = src;
 
@@ -540,6 +576,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = PrependToNode(n, ss);
+		if (newNode == NULL) return;
 		*((int32*)newNode->Element) = src;
 	}
 
@@ -587,6 +624,7 @@ namespace Rococo::Script
 		IScriptSystem& ss = *(IScriptSystem*)context;
 
 		ListNode* newNode = PrependToNode(n, ss);
+		if (newNode == NULL) return;
 		*((int64*)newNode->Element) = src;
 	}
 
@@ -594,13 +632,14 @@ namespace Rococo::Script
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
-		ListImage* l = n->Container;
 
 		if (n == NULL)
 		{
 			ss.ThrowFromNativeCodeF(-1, ("Node.Pop failed, as the node was null"));
 			return;
 		}
+
+		ListImage* l = n->Container;
 
 		if (l == NULL)
 		{
@@ -623,12 +662,22 @@ namespace Rococo::Script
 			else						l->Tail = n->Previous;
 		}
 
+		ListNode* successor = n->Next;
+
 		n->Previous = NULL;
 		n->Next = NULL;
 		n->Container = NULL;
 
 		if (n->RefCount != 1)
 		{
+			// Something other than the list still references the node, typically the foreach enumerator. Keep a counted reference to the successor
+			// so that NodeEnumNext can carry on from where the node used to be. The reference is dropped when the node is freed (see ReleaseNode)
+			if (successor != NULL)
+			{
+				AddRef(successor);
+				n->Next = successor;
+			}
+
 			int refCount = ReleaseNode(n, ss);
 			UNUSED(refCount);
 		}
@@ -647,14 +696,17 @@ namespace Rococo::Script
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D12].vPtrValue;
+
+		// If the body popped n, n->Next is the successor it had when popped, which n keeps alive with a counted reference
 		ListNode* next = n->Next;
 
-		ReleaseNode(n, ss);
-
+		// Reference the successor before releasing n, since freeing a popped n drops the reference it held on its successor
 		if (next != NULL)
 		{
 			AddRef(next);
 		}
+
+		ReleaseNode(n, ss);
 
 		registers[VM::REGISTER_D12].vPtrValue = next;
 	}
@@ -663,7 +715,7 @@ namespace Rococo::Script
 	{
 		UNUSED(context);
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
-		registers[VM::REGISTER_D12].int32Value = (int32)(n->Next != NULL);
+		registers[VM::REGISTER_D12].int32Value = (int32)(n->Container != NULL && n->Next != NULL);
 	}
 
 	VM_CALLBACK(NodeHasPrevious)
@@ -773,7 +825,7 @@ namespace Rococo::Script
 	{
 		IScriptSystem& ss = *(IScriptSystem*)context;
 		ListNode* n = (ListNode*)registers[VM::REGISTER_D7].vPtrValue;
-		if (n->Next == NULL)
+		if (n->Container == NULL || n->Next == NULL)
 		{
 			ss.ThrowFromNativeCodeF(-1, ("The node had no successor"));
 			return;
