@@ -3928,6 +3928,62 @@ namespace Rococo::Windows
 
 namespace Rococo::Debugging
 {
+	namespace DbgHelpSession
+	{
+		// dbghelp is single-threaded: every Sym* and StackWalk call is made while holding this lock.
+		// Statically initialised, so it is usable before and during dynamic initialisation.
+		SRWLOCK s_lock = SRWLOCK_INIT;
+
+		struct Lock
+		{
+			Lock() { AcquireSRWLockExclusive(&s_lock); }
+			~Lock() { ReleaseSRWLockExclusive(&s_lock); }
+			Lock(const Lock&) = delete;
+			Lock& operator = (const Lock&) = delete;
+		};
+
+		struct Session
+		{
+			bool isInitialized = false;
+			DWORD initError = 0;
+
+			Session()
+			{
+				// Options must be set before SymInitialize, or the invasive module enumeration loads every module's symbols up front.
+				// With deferred loads, symbols for a module are loaded on the first lookup that needs them.
+				SymSetOptions(SymGetOptions() | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+				isInitialized = SymInitialize(GetCurrentProcess(), NULL, TRUE) ? true : false;
+				initError = isInitialized ? 0 : GetLastError();
+			}
+		};
+
+		// Call with the lock held. Initialises dbghelp once per process; the session lives until process exit (no SymCleanup:
+		// there is no shutdown hook that runs outside the loader lock, and the OS reclaims the session at exit).
+		// If SymInitialize fails (e.g. another component in the process already owns the session) we carry on without it:
+		// the dbghelp calls then either use that other session or fail, and frames are reported without names.
+		bool Ensure()
+		{
+			static Session session;
+			return session.isInitialized;
+		}
+
+		// Call with the lock held. Returns the base of the module containing the address. If dbghelp does not know the module,
+		// which happens for DLLs loaded after the session was created, the module list is refreshed once per stack walk and the lookup retried.
+		DWORD64 GetModuleBase(HANDLE hProcess, DWORD64 address, bool& hasRefreshed)
+		{
+			DWORD64 base = SymGetModuleBase64(hProcess, address);
+			if (base == 0 && !hasRefreshed)
+			{
+				hasRefreshed = true;
+				if (SymRefreshModuleList(hProcess))
+				{
+					base = SymGetModuleBase64(hProcess, address);
+				}
+			}
+			return base;
+		}
+	}
+
 	void FormatStackFrames_WithDepthTarget(IStackFrameFormatter& formatter, int depthTarget = -1)
 	{
 		CONTEXT context;
@@ -3936,8 +3992,13 @@ namespace Rococo::Debugging
 
 		HANDLE hProcess = GetCurrentProcess();
 
-		SymInitialize(hProcess, NULL, TRUE);
-		SymSetOptions(SYMOPT_LOAD_LINES);
+		bool hasRefreshed = false;
+
+		{
+			DbgHelpSession::Lock lock;
+			DbgHelpSession::Ensure();
+			DbgHelpSession::GetModuleBase(hProcess, context.Rip, hasRefreshed);
+		}
 
 		STACKFRAME64 frame = { 0 };
 		frame.AddrPC.Offset = context.Rip;
@@ -3951,69 +4012,81 @@ namespace Rococo::Debugging
 
 		int depth = 0;
 
-		while (StackWalk(
-			IMAGE_FILE_MACHINE_AMD64,
-			hProcess,
-			GetCurrentThread(),
-			&frame,
-			&context,
-			nullptr,
-			SymFunctionTableAccess64,
-			SymGetModuleBase,
-			nullptr
-		))
+		for (;;)
 		{
-			if (index++ < 1)
-			{
-				continue; // Ignore first two stack frames -> they are our stack analysis functions!
-			}
-
 			Rococo::Debugging::StackFrame sf;
-			sf.depth = depth++;
 
-			if (depthTarget > 0 && depth > depthTarget)
 			{
-				return;
-			}
+				// The lock is held per frame, not across formatter.Format, so a formatter may itself capture a stack (or throw) without deadlocking
+				DbgHelpSession::Lock lock;
 
-			if (depthTarget > 0 && depth != depthTarget)
-			{
-				continue;
-			}
+				if (!StackWalk(
+					IMAGE_FILE_MACHINE_AMD64,
+					hProcess,
+					GetCurrentThread(),
+					&frame,
+					&context,
+					nullptr,
+					SymFunctionTableAccess64,
+					SymGetModuleBase,
+					nullptr
+				))
+				{
+					return;
+				}
 
-			sf.address.segment = frame.AddrPC.Segment;
-			sf.address.offset = frame.AddrPC.Offset;
+				// Make sure the module of the caller frame is known before the next StackWalk needs its unwind data
+				DWORD64 moduleBase = DbgHelpSession::GetModuleBase(hProcess, frame.AddrPC.Offset, hasRefreshed);
 
-			char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
-			PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
-			symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
-			symbol->MaxNameLength = 254;
+				if (index++ < 1)
+				{
+					continue; // Ignore first two stack frames -> they are our stack analysis functions!
+				}
 
-			sf.moduleName[0] = 0;
-			sf.functionName[0] = 0;
-			sf.sourceFile[0] = 0;
-			sf.lineNumber = 0;
+				sf.depth = depth++;
 
-			DWORD64 moduleBase = SymGetModuleBase64(hProcess, frame.AddrPC.Offset);
+				if (depthTarget > 0 && depth > depthTarget)
+				{
+					return;
+				}
 
-			if (moduleBase)
-			{
-				GetModuleFileNameA((HINSTANCE)moduleBase, sf.moduleName, sizeof(sf.moduleName));
-			}
+				if (depthTarget > 0 && depth != depthTarget)
+				{
+					continue;
+				}
 
-			if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
-			{
-				strncpy_s(sf.functionName, symbol->Name, _TRUNCATE);
-			}
+				sf.address.segment = frame.AddrPC.Segment;
+				sf.address.offset = frame.AddrPC.Offset;
 
-			DWORD  offset = 0;
-			IMAGEHLP_LINE line;
-			line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+				char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+				PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+				symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+				symbol->MaxNameLength = 254;
 
-			if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
-			{
-				strncpy_s(sf.sourceFile, line.FileName, _TRUNCATE);
-				sf.lineNumber = line.LineNumber;
+				sf.moduleName[0] = 0;
+				sf.functionName[0] = 0;
+				sf.sourceFile[0] = 0;
+				sf.lineNumber = 0;
+
+				if (moduleBase)
+				{
+					GetModuleFileNameA((HINSTANCE)moduleBase, sf.moduleName, sizeof(sf.moduleName));
+				}
+
+				if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
+				{
+					strncpy_s(sf.functionName, symbol->Name, _TRUNCATE);
+				}
+
+				DWORD  offset = 0;
+				IMAGEHLP_LINE line;
+				line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+
+				if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
+				{
+					strncpy_s(sf.sourceFile, line.FileName, _TRUNCATE);
+					sf.lineNumber = line.LineNumber;
+				}
 			}
 
 			formatter.Format(sf);
@@ -4032,34 +4105,53 @@ namespace Rococo::Debugging
 
 		HANDLE hProcess = GetCurrentProcess();
 
-		SymInitialize(hProcess, NULL, TRUE);
-		SymSetOptions(SYMOPT_LOAD_LINES);
-
 		STACKFRAME64 frame = { 0 };
 		frame.AddrPC.Offset = address.offset;
 		frame.AddrPC.Segment = address.segment;
 		frame.AddrPC.Mode = AddrModeFlat;
 
-		char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
-		PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
-		symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
-		symbol->MaxNameLength = 254;
-
 		char functionName[256];
 		*functionName = 0;
 
-		if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
+		char sourceFile[256];
+		*sourceFile = 0;
+
+		int lineNumber = 0;
+		bool hasLine = false;
+
 		{
-			Strings::SafeFormat(functionName, symbol->Name, _TRUNCATE);
+			// Only dbghelp calls are made under the lock. line.FileName is owned by dbghelp, so it is copied before the lock is released
+			DbgHelpSession::Lock lock;
+			DbgHelpSession::Ensure();
+
+			bool hasRefreshed = false;
+			DbgHelpSession::GetModuleBase(hProcess, address.offset, hasRefreshed);
+
+			char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+			PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+			symbol->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 255;
+			symbol->MaxNameLength = 254;
+
+			if (SymGetSymFromAddr(hProcess, frame.AddrPC.Offset, NULL, symbol))
+			{
+				Strings::SafeFormat(functionName, symbol->Name, _TRUNCATE);
+			}
+
+			DWORD  offset = 0;
+			IMAGEHLP_LINE line;
+			line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+
+			if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
+			{
+				strncpy_s(sourceFile, line.FileName, _TRUNCATE);
+				lineNumber = line.LineNumber;
+				hasLine = true;
+			}
 		}
 
-		DWORD  offset = 0;
-		IMAGEHLP_LINE line;
-		line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
-
-		if (SymGetLineFromAddr(hProcess, frame.AddrPC.Offset, &offset, &line))
+		if (hasLine)
 		{
-			SafeFormat(buffer, capacity, "%s: %s #%d", functionName, line.FileName, line.LineNumber);
+			SafeFormat(buffer, capacity, "%s: %s #%d", functionName, sourceFile, lineNumber);
 		}
 	}
 
