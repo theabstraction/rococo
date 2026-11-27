@@ -68,7 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYIDE_API=;SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ROCOCO_API=__declspec(dllimport);ROCOCO_DOLLS_API=__declspec(dllimport);ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYIDE_API=;SEXYUTIL_API=__declspec(dllimport);WIN64;_DEBUG;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libtiff\libtiff;..\..\source\3rd-party\libvorbis\include;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -140,7 +140,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.audio.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.component.configuration.lib;rococo.component.skeleton.lib;rococo.dds.lib;rococo.ecs.lib;rococo.file.browser.lib;rococo.fonts.lib;rococo.graphics.lib;rococo.gui.retained.lib;rococo.maths.lib;rococo.mplat.lib;rococo.sexml.lib;rococo.sexy.ide.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.audio.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.component.configuration.lib;rococo.component.skeleton.lib;rococo.dds.lib;rococo.dolls.lib;rococo.ecs.lib;rococo.file.browser.lib;rococo.fonts.lib;rococo.graphics.lib;rococo.gui.retained.lib;rococo.maths.lib;rococo.mplat.lib;rococo.sexml.lib;rococo.sexy.ide.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -154,7 +154,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYIDE_API=;SEXYUTIL_API=__declspec(dllimport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ROCOCO_API=__declspec(dllimport);ROCOCO_DOLLS_API=__declspec(dllimport);ROCOCO_JPEG_API=__declspec(dllimport);ROCOCO_SEXML_API=__declspec(dllimport);ROCOCO_TIFF_API=__declspec(dllimport);ROCOCO_WIDECHAR_IS_WCHAR_T;SCRIPTEXPORT_API=__declspec(dllimport);SEXYIDE_API=;SEXYUTIL_API=__declspec(dllimport);WIN64;_ROCOCO_WIDECHAR_=wchar_t;_USRDLL;%(PreprocessorDefinitions);$(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\source\3rd-party\libjpg\jpeg-6b;..\..\source\3rd-party\libogg\include;..\..\source\3rd-party\libtiff\libtiff;..\..\source\3rd-party\libvorbis\include;..\..\source\3rd-party\zlib;..\..\source\rococo\include;..\..\source\rococo\sexy\common;..\..\source\rococo\sexy\stc\stccore</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -226,7 +226,7 @@
       <Profile>false</Profile>
       <CLRImageType>Default</CLRImageType>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.audio.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.component.configuration.lib;rococo.component.skeleton.lib;rococo.dds.lib;rococo.ecs.lib;rococo.file.browser.lib;rococo.fonts.lib;rococo.graphics.lib;rococo.gui.retained.lib;rococo.maths.lib;rococo.mplat.lib;rococo.sexml.lib;rococo.sexy.ide.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dx11.renderer.lib;lib-jpg.lib;lib-tiff.lib;lib-zip.lib;rococo.audio.lib;rococo.component.animation.lib;rococo.component.body.lib;rococo.component.configuration.lib;rococo.component.skeleton.lib;rococo.dds.lib;rococo.dolls.lib;rococo.ecs.lib;rococo.file.browser.lib;rococo.fonts.lib;rococo.graphics.lib;rococo.gui.retained.lib;rococo.maths.lib;rococo.mplat.lib;rococo.sexml.lib;rococo.sexy.ide.lib;rococo.util.lib;rococo.windows.lib;sexy.s-parser.lib;sexy.script.lib;sexy.util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries></IgnoreSpecificDefaultLibraries>
@@ -361,6 +361,11 @@
     </ProjectReference>
     <ProjectReference Include="rococo.component.body_vs2026_win64.vcxproj">
       <Project>{EE89CB38-7686-E1BE-5F57-243148588E76}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="rococo.dolls_vs2026_win64.vcxproj">
+      <Project>{F1B172CD-116B-E7EB-D067-9B27DDC3D514}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>

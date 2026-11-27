@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Functions and primitive types &middot; Sexy 1.7</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a class="brand" href="index.html">Sexy 1.7</a><ul><li><a href="index.html">Overview</a></li><li><a href="functions.html" class="current" aria-current="page">1. Functions and primitive types</a></li><li><a href="structs.html">2. Structs</a></li><li><a href="interfaces.html">3. Interfaces, classes and factories</a></li><li><a href="enums.html">4. Strong types and enums</a></li><li><a href="containers.html">5. Containers</a></li></ul></nav>
+<main>
+<h1>Functions and primitive types</h1>
+<p class="lede">A function has named inputs and named outputs. There is no return statement for values: you assign to the outputs, and they start at zero.</p>
+
+<h2>A first function</h2>
+<p>The signature lists inputs, then <code>-&gt;</code>, then outputs, then a colon and the body. A function with one output can be used as a value, as <code>(Square 7)</code> is here.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">namespace</span> EntryPoint)
+(<span class="k">alias</span> Main EntryPoint.Main)
+
+(<span class="k">function</span> Square (<span class="t">Int32</span> x) -&gt; (<span class="t">Int32</span> y):
+    (y = (x * x))
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (result = (Square <span class="n">7</span>))
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code><span class="k">def</span> square(x: int) -&gt; int:
+    <span class="k">return</span> x * x
+
+<span class="k">def</span> main() -&gt; int:
+    <span class="k">return</span> square(<span class="n">7</span>)
+
+<span class="k">assert</span> main() == <span class="n">49</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>49</code></p>
+
+<h2>Several outputs</h2>
+<p>Outputs are ordinary variables of the callee. The caller receives them after a second <code>-&gt;</code>, into variables it has already declared. Every input and output carries a type; there are no tuples to unpack.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> DivRem (<span class="t">Int32</span> a)(<span class="t">Int32</span> b)
+    -&gt; (<span class="t">Int32</span> quotient)(<span class="t">Int32</span> remainder):
+    (quotient = (a / b))
+    (remainder = (a - (quotient * b)))
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Int32</span> q)
+    (<span class="t">Int32</span> r)
+    (DivRem <span class="n">17</span> <span class="n">5</span> -&gt; q r)
+    (result = ((q * <span class="n">10</span>) + r))
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">struct</span> <span class="t">DivRemResult</span> { <span class="k">int</span> quotient; <span class="k">int</span> remainder; };
+
+<span class="t">DivRemResult</span> DivRem(<span class="k">int</span> a, <span class="k">int</span> b)
+{
+    <span class="k">int</span> q = a / b;
+    <span class="k">return</span> { q, a - q * b };
+}
+
+<span class="k">int</span> main()
+{
+    <span class="k">auto</span> [q, r] = DivRem(<span class="n">17</span>, <span class="n">5</span>);
+    assert(q * <span class="n">10</span> + r == <span class="n">32</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>32</code></p>
+
+<h2>Default arguments</h2>
+<p>A default is an attribute on the parameter. The caller must still write the argument position, using <code>.</code> to mean "the default", so a call always shows how many arguments the function takes.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Add (<span class="t">Int32</span> a)(<span class="t">Int32</span> b (<span class="k">attribute</span> <span class="k">default</span> <span class="n">7</span>))
+    -&gt; (<span class="t">Int32</span> sum):
+    (sum = a + b)
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (result = (Add <span class="n">4</span> .))
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">int</span> Add(<span class="k">int</span> a, <span class="k">int</span> b = <span class="n">7</span>) { <span class="k">return</span> a + b; }
+
+<span class="k">int</span> main()
+{
+    assert(Add(<span class="n">4</span>) == <span class="n">11</span>);   <span class="c">// Sexy needs (Add 4 .)</span>
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>11</code></p>
+
+<h2>Primitive types and literals</h2>
+<p>The built-in value types are <code>Int32</code>, <code>Int64</code>, <code>Float32</code>, <code>Float64</code> and <code>Bool</code>. A literal has no suffix; it takes the type of whatever it is assigned to, so <code>1</code> is a valid <code>Float64</code>. A declared variable without a value starts at zero.</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Int32</span> count = <span class="n">3</span>)
+    (<span class="t">Int64</span> big = <span class="n">0x100000000</span>)
+    (<span class="t">Float32</span> half = <span class="n">0.5</span>)
+    (<span class="t">Float64</span> ratio = <span class="n">1</span>)       <span class="c">// the literal 1 takes the type of the target</span>
+    (<span class="t">Bool</span> ready = <span class="k">true</span>)
+    (<span class="t">Int32</span> zero)              <span class="c">// locals start at zero</span>
+    (<span class="k">if</span> ready (result = count + zero))
+)</code></pre></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>3</code></p>
+
+<h2>No implicit conversion</h2>
+<p>Literals adapt, but variables do not. Assigning an <code>Int32</code> variable to a <code>Float32</code> is an error. Convert explicitly with the <code>Sys.Maths</code> functions, for example <code>Sys.Maths.F32.ToInt32</code>, which truncates.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Int32</span> count = <span class="n">3</span>)
+    (<span class="t">Float32</span> f = count)
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">int</span> main()
+{
+    <span class="k">int</span> count = <span class="n">3</span>;
+    <span class="k">float</span> f = count;        <span class="c">// compiles: implicit int -&gt; float (-Wconversion warns at best)</span>
+    <span class="k">double</span> ratio = <span class="n">1</span>;       <span class="c">// also fine</span>
+    assert(f == <span class="n">3.0f</span> &amp;&amp; ratio == <span class="n">1.0</span>);
+    <span class="k">int</span> truncated = <span class="k">static_cast</span>&lt;<span class="k">int</span>&gt;(<span class="n">3.75f</span>);   <span class="c">// explicit, as with Sys.Maths.F32.ToInt32</span>
+    assert(truncated == <span class="n">3</span>);
+}</code></pre></div></div>
+<p class="outcome err"><span class="tag">Error</span> <code>The type Float32 of f does not match the type Int32 of count</code></p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Float32</span> f = <span class="n">3.75</span>)
+    (result = (<span class="t">Sys.Maths.F32.ToInt32</span> f))
+)</code></pre></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>3</code></p>
+
+<h2>Bodies compile on first call</h2>
+<p>The host compiles every declaration before running anything, but a function body is compiled to bytecode the first time it is called. A type error in a body that never runs is never reported. In that respect Sexy behaves more like Python than C++, despite the static types.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> NeverCalled -&gt; (<span class="t">Int32</span> y):
+    (<span class="t">Int32</span> count = <span class="n">3</span>)
+    (<span class="t">Float32</span> f = count)    <span class="c">// type error, but this body is never compiled</span>
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (result = <span class="n">1</span>)
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code><span class="k">def</span> never_called() -&gt; int:
+    count = <span class="n">3</span>
+    <span class="k">return</span> count + <span class="s">&quot;three&quot;</span>   <span class="c"># TypeError, but only if this line ever runs</span>
+
+<span class="k">def</span> main() -&gt; int:
+    <span class="k">return</span> <span class="n">1</span>
+
+<span class="k">assert</span> main() == <span class="n">1</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>1</code></p>
+<div class="note warn"><p>Test every function you ship. A clean compile of the script only means the declarations are valid.</p></div>
+
+<h2>Loops</h2>
+<p><code>for</code> takes three compounds: the declaration, the condition and the step. <code>while</code> has <code>break</code> and <code>continue</code>. The compound assignments are <code>+=</code>, <code>-=</code>, <code>*=</code> and <code>/=</code>.</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Factorial (<span class="t">Int32</span> n) -&gt; (<span class="t">Int32</span> f):
+    (f = <span class="n">1</span>)
+    (<span class="k">for</span> (<span class="t">Int32</span> i = <span class="n">2</span>)(i &lt;= n)(i += <span class="n">1</span>)
+        (f *= i)
+    )
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (result = (Factorial <span class="n">5</span>))
+)</code></pre></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>120</code></p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Int32</span> i = <span class="n">0</span>)
+    (<span class="k">while</span> (i &lt; <span class="n">10</span>)
+        (i += <span class="n">1</span>)
+        (<span class="k">if</span> (i == <span class="n">5</span>) (<span class="k">continue</span>))
+        (<span class="k">if</span> (i &gt; <span class="n">7</span>) (<span class="k">break</span>))
+        (result += i)
+    )
+)</code></pre></div><div class="code"><div class="lang">Lua 5.4</div><pre><code><span class="k">local</span> result = <span class="n">0</span>
+<span class="k">local</span> i = <span class="n">0</span>
+<span class="k">while</span> i &lt; <span class="n">10</span> <span class="k">do</span>
+  i = i + <span class="n">1</span>
+  <span class="k">if</span> i == <span class="n">5</span> <span class="k">then</span> <span class="k">goto</span> continue <span class="k">end</span>   <span class="c">-- Lua has no continue statement</span>
+  <span class="k">if</span> i &gt; <span class="n">7</span> <span class="k">then</span> <span class="k">break</span> <span class="k">end</span>
+  result = result + i
+  ::continue::
+<span class="k">end</span>
+assert(result == <span class="n">23</span>)</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>23</code></p>
+
+<h2>Recursion</h2>
+<p>A function can call itself, and functions can be declared in any order.</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (result = (Fib <span class="n">10</span>))               <span class="c">// Fib is declared below</span>
+)
+
+(<span class="k">function</span> Fib (<span class="t">Int32</span> n) -&gt; (<span class="t">Int32</span> f):
+    (<span class="k">if</span> (n &lt; <span class="n">2</span>)
+        (f = n)
+    <span class="k">else</span>
+        (f = (Fib (n - <span class="n">1</span>)) + (Fib (n - <span class="n">2</span>)))
+    )
+)</code></pre></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>55</code></p>
+
+<h2>Operators have no precedence</h2>
+<p>A compound with more than one operator is grouped from the right: <code>(a op b op c)</code> means <code>(a op (b op c))</code>. Chains of <code>+</code> come out as you would expect, but mixed or non-associative chains do not. Parenthesise anything other than a plain sum.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (result = <span class="n">10</span> - <span class="n">3</span> - <span class="n">2</span>)    <span class="c">// parsed as 10 - (3 - 2)</span>
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code>result = <span class="n">10</span> - <span class="n">3</span> - <span class="n">2</span>      <span class="c"># left-associative: (10 - 3) - 2</span>
+<span class="k">assert</span> result == <span class="n">5</span>
+result = <span class="n">10</span> - (<span class="n">3</span> - <span class="n">2</span>)    <span class="c"># what Sexy computes for (10 - 3 - 2)</span>
+<span class="k">assert</span> result == <span class="n">9</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>9</code></p>
+<nav class="pager"><a class="prev" href="index.html">&larr; Overview</a><a class="next" href="structs.html">Structs &rarr;</a></nav>
+</main>
+<footer>Sexy 1.7 language notes. Every Sexy example on these pages was compiled and run against the 1.7-dev branch; the result shown under each is the verified one.</footer>
+</body>
+</html>

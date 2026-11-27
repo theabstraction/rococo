@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structs &middot; Sexy 1.7</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a class="brand" href="index.html">Sexy 1.7</a><ul><li><a href="index.html">Overview</a></li><li><a href="functions.html">1. Functions and primitive types</a></li><li><a href="structs.html" class="current" aria-current="page">2. Structs</a></li><li><a href="interfaces.html">3. Interfaces, classes and factories</a></li><li><a href="enums.html">4. Strong types and enums</a></li><li><a href="containers.html">5. Containers</a></li></ul></nav>
+<main>
+<h1>Structs</h1>
+<p class="lede">A struct is a value type with public members. Structs are copied on assignment but passed to functions by reference, and their operators are ordinary functions found by name.</p>
+
+<h2>Declaration and memberwise initialisation</h2>
+<p>Members of the same type can share one declaration, as <code>x</code> and <code>y</code> do. A struct variable is initialised by listing values in member order; nested structs take a parenthesised group each. Assignment copies.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+(<span class="k">struct</span> <span class="t">Recti</span> (<span class="t">Vec2i</span> topLeft)(<span class="t">Vec2i</span> bottomRight))
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> p = <span class="n">3</span> <span class="n">4</span>)
+    (<span class="t">Recti</span> r = (<span class="n">0</span> <span class="n">0</span>)(<span class="n">640</span> <span class="n">480</span>))
+    (<span class="t">Vec2i</span> q = p)                     <span class="c">// copy</span>
+    (q.x = <span class="n">100</span>)
+    (result = r.bottomRight.y + (q.x * <span class="n">6</span>) + p.x + p.y + (r.topLeft.x * <span class="n">7</span>))
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">struct</span> <span class="t">Vec2i</span> { <span class="k">int</span> x, y; };
+<span class="k">struct</span> <span class="t">Recti</span> { <span class="t">Vec2i</span> topLeft, bottomRight; };
+
+<span class="k">int</span> main()
+{
+    <span class="t">Vec2i</span> p = { <span class="n">3</span>, <span class="n">4</span> };
+    <span class="t">Recti</span> r = { { <span class="n">0</span>, <span class="n">0</span> }, { <span class="n">640</span>, <span class="n">480</span> } };
+    <span class="t">Vec2i</span> q = p;        <span class="c">// copy</span>
+    q.x = <span class="n">100</span>;
+    assert(p.x == <span class="n">3</span> &amp;&amp; q.x == <span class="n">100</span> &amp;&amp; r.bottomRight.y == <span class="n">480</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>1087</code></p>
+
+<h2>Structs are passed by reference</h2>
+<p>Primitives are passed by value, but a struct argument is always passed by reference, and nothing at the call site says so. A function that writes to a struct parameter changes the caller's variable.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> Twice (<span class="t">Vec2i</span> v) -&gt; :
+    (v.x = (v.x * <span class="n">2</span>))
+    (v.y = (v.y * <span class="n">2</span>))
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> p = <span class="n">3</span> <span class="n">4</span>)
+    (Twice p)                         <span class="c">// p is now 6 8</span>
+    (result = p.x + p.y)
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">struct</span> <span class="t">Vec2i</span> { <span class="k">int</span> x, y; };
+
+<span class="k">void</span> Twice(<span class="t">Vec2i</span>&amp; v)    <span class="c">// Sexy passes every struct like this, with no &#x27;&amp;&#x27; to see</span>
+{
+    v.x *= <span class="n">2</span>;
+    v.y *= <span class="n">2</span>;
+}
+
+<span class="k">int</span> main()
+{
+    <span class="t">Vec2i</span> p = { <span class="n">3</span>, <span class="n">4</span> };
+    Twice(p);
+    assert(p.x + p.y == <span class="n">14</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>14</code></p>
+
+<h2>Out parameters as return values</h2>
+<p>A struct cannot be an output. Outputs can be primitives, interfaces or containers; the compiler calls structs "derived types".</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> Make -&gt; (<span class="t">Vec2i</span> v):
+    (v.x = <span class="n">3</span>)
+    (v.y = <span class="n">4</span>)
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> p = Make)
+    (result = p.x + p.y)
+)</code></pre></div>
+<p class="outcome err"><span class="tag">Error</span> <code>Output arguments cannot be of derived type. Error with output &#x27;v&#x27; in &#x27;Make&#x27; of &#x27;s3b-noout&#x27;. </code></p>
+<p>The idiom instead is a trailing <code>out</code> struct parameter. When the last parameter is a struct, a declaration can call the function as if that parameter were its return value: <code>(Vec2i q = Doubled p)</code> passes <code>q</code> as <code>result</code>.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> Doubled (<span class="k">const</span> <span class="t">Vec2i</span> p)(<span class="k">out</span> <span class="t">Vec2i</span> result) -&gt; :
+    (result.x = (p.x * <span class="n">2</span>))
+    (result.y = (p.y * <span class="n">2</span>))
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> p = <span class="n">7</span> <span class="n">9</span>)
+    (<span class="t">Vec2i</span> q = Doubled p)             <span class="c">// trailing out parameter used as a return value</span>
+    (result = q.x + q.y)
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">struct</span> <span class="t">Vec2i</span> { <span class="k">int</span> x, y; };
+
+<span class="t">Vec2i</span> Doubled(<span class="k">const</span> <span class="t">Vec2i</span>&amp; p)
+{
+    <span class="k">return</span> { p.x * <span class="n">2</span>, p.y * <span class="n">2</span> };
+}
+
+<span class="k">int</span> main()
+{
+    <span class="t">Vec2i</span> q = Doubled({ <span class="n">7</span>, <span class="n">9</span> });
+    assert(q.x + q.y == <span class="n">32</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>32</code></p>
+<div class="note warn"><p><code>const</code> and <code>out</code> document intent but are not enforced on struct members in 1.7: a function can assign to a member of a <code>const</code> parameter, and the caller sees the change.</p></div>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> Reset (<span class="k">const</span> <span class="t">Vec2i</span> p) -&gt; :
+    (p.x = <span class="n">0</span>)
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> p = <span class="n">7</span> <span class="n">9</span>)
+    (Reset p)
+    (result = p.x)
+)</code></pre></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>0</code></p>
+
+<h2>Constructors</h2>
+<p>A struct may have a <code>Construct</code> method. When it does, the declaration passes the constructor arguments in parentheses instead of member values.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Kennel</span> (<span class="t">Int32</span> dogId)(<span class="t">Int32</span> capacity))
+
+(<span class="k">method</span> Kennel.Construct (<span class="t">Int32</span> id):
+    (this.dogId = id)
+    (this.capacity = <span class="n">4</span>)
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Kennel</span> k (<span class="n">1808</span>))
+    (result = k.dogId + k.capacity)
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">struct</span> <span class="t">Kennel</span>
+{
+    <span class="k">int</span> dogId;
+    <span class="k">int</span> capacity;
+    <span class="k">explicit</span> <span class="t">Kennel</span>(<span class="k">int</span> id): dogId(id), capacity(<span class="n">4</span>) {}
+};
+
+<span class="k">int</span> main()
+{
+    <span class="t">Kennel</span> k(<span class="n">1808</span>);
+    assert(k.dogId + k.capacity == <span class="n">1812</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>1812</code></p>
+
+<h2>Operators are functions with derived names</h2>
+<p>Sexy has no <code>operator</code> keyword. When it meets <code>(a == b)</code> on structs it calls a function whose name is built from the operation and the two type names: <code>IsEqVec2iVec2i</code>. <code>!=</code> looks for <code>IsNotEq…</code>, and <code>+</code> looks for <code>Add…</code>, which writes into a third struct parameter. If the function is missing, the comparison is an error rather than a member-by-member default.</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> IsEqVec2iVec2i (<span class="t">Vec2i</span> a)(<span class="t">Vec2i</span> b) -&gt; (<span class="t">Bool</span> equal):
+    (equal = ((a.x == b.x) <span class="k">and</span> (a.y == b.y)))
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> a = <span class="n">1</span> <span class="n">2</span>)
+    (<span class="t">Vec2i</span> b = <span class="n">1</span> <span class="n">2</span>)
+    (<span class="k">if</span> (a == b) (result = <span class="n">1</span>))
+)</code></pre></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>1</code></p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> IsEqVec2iVec2i (<span class="t">Vec2i</span> a)(<span class="t">Vec2i</span> b) -&gt; (<span class="t">Bool</span> equal):
+    (equal = ((a.x == b.x) <span class="k">and</span> (a.y == b.y)))
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> a = <span class="n">1</span> <span class="n">2</span>)
+    (<span class="t">Vec2i</span> c = <span class="n">2</span> <span class="n">1</span>)
+    (<span class="k">if</span> (a != c) (result = <span class="n">1</span>))
+)</code></pre></div>
+<p class="outcome err"><span class="tag">Error</span> <code>IsNotEqVec2iVec2i &#x27;function&#x27; not found in s6b-neq</code></p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> AddVec2iVec2i (<span class="t">Vec2i</span> a)(<span class="t">Vec2i</span> b)(<span class="t">Vec2i</span> sum) -&gt; :
+    (sum.x = (a.x + b.x))
+    (sum.y = (a.y + b.y))
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Vec2i</span> a = <span class="n">1</span> <span class="n">2</span>)
+    (<span class="t">Vec2i</span> b = <span class="n">10</span> <span class="n">20</span>)
+    (<span class="t">Vec2i</span> c = a + b)
+    (result = c.x + c.y)
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="k">struct</span> <span class="t">Vec2i</span>
+{
+    <span class="k">int</span> x, y;
+    <span class="k">bool</span> <span class="k">operator</span>==(<span class="k">const</span> <span class="t">Vec2i</span>&amp;) <span class="k">const</span> = <span class="k">default</span>;   <span class="c">// C++20: also gives !=</span>
+};
+
+<span class="t">Vec2i</span> <span class="k">operator</span>+(<span class="k">const</span> <span class="t">Vec2i</span>&amp; a, <span class="k">const</span> <span class="t">Vec2i</span>&amp; b) { <span class="k">return</span> { a.x + b.x, a.y + b.y }; }
+
+<span class="k">int</span> main()
+{
+    <span class="t">Vec2i</span> a = { <span class="n">1</span>, <span class="n">2</span> }, b = { <span class="n">1</span>, <span class="n">2</span> }, c = { <span class="n">10</span>, <span class="n">20</span> };
+    assert(a == b);
+    assert(a != c);
+    <span class="t">Vec2i</span> d = a + c;
+    assert(d.x + d.y == <span class="n">33</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>33</code></p>
+<nav class="pager"><a class="prev" href="functions.html">&larr; Functions and primitive types</a><a class="next" href="interfaces.html">Interfaces, classes and factories &rarr;</a></nav>
+</main>
+<footer>Sexy 1.7 language notes. Every Sexy example on these pages was compiled and run against the 1.7-dev branch; the result shown under each is the verified one.</footer>
+</body>
+</html>

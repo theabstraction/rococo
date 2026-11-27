@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strong types and enums &middot; Sexy 1.7</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a class="brand" href="index.html">Sexy 1.7</a><ul><li><a href="index.html">Overview</a></li><li><a href="functions.html">1. Functions and primitive types</a></li><li><a href="structs.html">2. Structs</a></li><li><a href="interfaces.html">3. Interfaces, classes and factories</a></li><li><a href="enums.html" class="current" aria-current="page">4. Strong types and enums</a></li><li><a href="containers.html">5. Containers</a></li></ul></nav>
+<main>
+<h1>Strong types and enums</h1>
+<p class="lede">A strong type wraps a primitive so that values of different meaning cannot be mixed. Enums and flags are strong types with named values.</p>
+
+<h2>Strong types</h2>
+<p><code>(strong CustomerId (Int32))</code> declares a type with an <code>Int32</code> inside. A literal can initialise it; reading the number back needs <code>.Value</code>.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">strong</span> <span class="t">CustomerId</span> (<span class="t">Int32</span>))
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">CustomerId</span> id = <span class="n">72</span>)
+    (result = id.Value)
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+
+<span class="c">// The usual C++ stand-in for a strong type: a one-member struct with an explicit constructor</span>
+<span class="k">struct</span> <span class="t">CustomerId</span> { <span class="k">int</span> value; <span class="k">explicit</span> <span class="t">CustomerId</span>(<span class="k">int</span> v): value(v) {} };
+<span class="k">struct</span> <span class="t">OrderId</span> { <span class="k">int</span> value; <span class="k">explicit</span> <span class="t">OrderId</span>(<span class="k">int</span> v): value(v) {} };
+
+<span class="k">void</span> Cancel(<span class="t">OrderId</span>) {}
+
+<span class="k">int</span> main()
+{
+    <span class="t">CustomerId</span> id{ <span class="n">72</span> };
+    assert(id.value == <span class="n">72</span>);
+    <span class="c">// Cancel(id);           // error: no conversion from CustomerId to OrderId</span>
+    <span class="c">// int raw = id;         // error: no conversion to int</span>
+    Cancel(<span class="t">OrderId</span>{ <span class="n">7</span> });
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>72</code></p>
+<p>A strong type does not convert to its primitive, or to another strong type with the same primitive. Both of these fail:</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">strong</span> <span class="t">CustomerId</span> (<span class="t">Int32</span>))
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">CustomerId</span> id = <span class="n">72</span>)
+    (result = id)
+)</code></pre></div>
+<p class="outcome err"><span class="tag">Error</span> <code>Type mismatch trying to assign [CustomerId id] to [Int32 result]</code></p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">strong</span> <span class="t">CustomerId</span> (<span class="t">Int32</span>))
+(<span class="k">strong</span> <span class="t">OrderId</span> (<span class="t">Int32</span>))
+
+(<span class="k">function</span> Cancel (<span class="t">OrderId</span> order) -&gt; :
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">CustomerId</span> id = <span class="n">72</span>)
+    (Cancel id)
+)</code></pre></div>
+<p class="outcome err"><span class="tag">Error</span> <code>While compiling function Main: Pushing argument to a function rejected. (OrderId order) was strongly-typed but the supplied type was CustomerId,which is the correct underlying type but not directly convertible.</code></p>
+
+<h2>Enums</h2>
+<p>An enum adds named values to a strong type. Unvalued names count up from the previous one. There are two ways to write a constant:</p>
+<ul>
+	<li><code>.Wednesday</code> takes its type from the target, so it works wherever the target type is known: assignment, arguments, comparisons, struct fields and container calls.</li>
+	<li><code>Day@Friday</code> names the type explicitly. The type must be exactly the target type.</li>
+</ul>
+<p>The <code>alias</code> line publishes the type as <code>Sys.Type.Day</code>; the <code>enum</code> directive uses that public name.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">strong</span> <span class="t">Day</span> (<span class="t">Int32</span>))
+(<span class="k">alias</span> <span class="t">Day</span> Sys.Type.Day)
+
+(<span class="k">enum</span> Sys.Type.Day
+    (Monday <span class="n">1</span>)
+    Tuesday
+    Wednesday
+    Thursday
+    Friday
+)
+
+(<span class="k">function</span> DaysToWeekend (<span class="t">Day</span> d) -&gt; (<span class="t">Int32</span> n):
+    (<span class="t">Int32</span> v = d.Value)
+    (n = <span class="n">6</span> - v)
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Day</span> today = <span class="n">.Wednesday</span>)          <span class="c">// type comes from the target</span>
+    (<span class="t">Day</span> payday = <span class="n">Day@Friday</span>)         <span class="c">// or name the type explicitly</span>
+    (<span class="t">Int32</span> w = today.Value)
+    (<span class="t">Int32</span> p = payday.Value)
+    (<span class="t">Int32</span> n = (DaysToWeekend <span class="n">.Monday</span>))
+    (result = (w * <span class="n">100</span>) + (p * <span class="n">10</span>) + n)
+    (<span class="k">if</span> (today == <span class="n">.Wednesday</span>) (result -= <span class="n">4</span>))
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code><span class="k">from</span> enum <span class="k">import</span> IntEnum
+
+<span class="k">class</span> <span class="t">Day</span>(IntEnum):
+    MONDAY = <span class="n">1</span>
+    TUESDAY = <span class="n">2</span>
+    WEDNESDAY = <span class="n">3</span>
+    THURSDAY = <span class="n">4</span>
+    FRIDAY = <span class="n">5</span>
+
+<span class="k">def</span> days_to_weekend(d: <span class="t">Day</span>) -&gt; int:
+    <span class="k">return</span> <span class="n">6</span> - d          <span class="c"># IntEnum is an int, so this needs no .value</span>
+
+today = <span class="t">Day</span>.WEDNESDAY
+payday = <span class="t">Day</span>.FRIDAY
+result = today * <span class="n">100</span> + payday * <span class="n">10</span> + days_to_weekend(<span class="t">Day</span>.MONDAY)
+<span class="k">if</span> today == <span class="t">Day</span>.WEDNESDAY:
+    result -= <span class="n">4</span>
+<span class="k">assert</span> result == <span class="n">351</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>351</code></p>
+<div class="note"><p>Unlike Python's <code>IntEnum</code>, a Sexy enum is not a number. Arithmetic needs <code>.Value</code>, and the compiler does not yet accept <code>d.Value</code> directly inside an arithmetic expression, so bind it to a local first.</p></div>
+<p>A misspelt constant is reported when the function body is compiled, on its first call and before any of it runs. Python raises only when the line itself runs.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">strong</span> <span class="t">Day</span> (<span class="t">Int32</span>))
+(<span class="k">alias</span> <span class="t">Day</span> Sys.Type.Day)
+(<span class="k">enum</span> Sys.Type.Day (Monday <span class="n">1</span>) Tuesday Wednesday Thursday Friday)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Day</span> d = <span class="n">.Fryday</span>)
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code><span class="k">from</span> enum <span class="k">import</span> IntEnum
+
+<span class="k">class</span> <span class="t">Day</span>(IntEnum):
+    MONDAY = <span class="n">1</span>
+    FRIDAY = <span class="n">5</span>
+
+<span class="k">def</span> main():
+    <span class="k">return</span> <span class="t">Day</span>.FRYDAY     <span class="c"># AttributeError, raised only when main() runs</span>
+
+<span class="k">try</span>:
+    main()
+    <span class="k">raise</span> SystemExit(<span class="s">&quot;unreachable&quot;</span>)
+<span class="k">except</span> AttributeError:
+    <span class="k">pass</span></code></pre></div></div>
+<p class="outcome err"><span class="tag">Error</span> <code>Cannot identify &#x27;Fryday&#x27; as an enum</code></p>
+
+<h2>Flags</h2>
+<p><code>flags</code> declares values that must be bitwise distinct, so they can be combined with <code>|</code> and tested with <code>&amp;</code>. <code>append</code> writes the names of the set flags to a string builder.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">using</span> Sys.Type)
+
+(<span class="k">strong</span> <span class="t">Alignment</span> (<span class="t">Int32</span>))
+(<span class="k">alias</span> <span class="t">Alignment</span> Sys.Type.Alignment)
+
+(<span class="k">flags</span> Sys.Type.Alignment
+    (None <span class="n">0</span>)
+    (Top <span class="n">1</span>)
+    (Left <span class="n">2</span>)
+    (Bottom <span class="n">4</span>)
+    (Right <span class="n">8</span>)
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Alignment</span> a = (<span class="n">Alignment@Top</span> | <span class="n">Alignment@Right</span>))
+    (<span class="t">IStringBuilder</span> sb = (NewStringBuilder <span class="n">64</span>))
+    (<span class="k">append</span> sb a)                      <span class="c">// appends &quot;Top Right&quot;</span>
+    (Sys.Print sb)
+    (<span class="k">if</span> (a &amp; <span class="n">.Left</span>) (result = <span class="n">1000</span>))
+    (result += a.Value)
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code><span class="k">from</span> enum <span class="k">import</span> IntFlag
+
+<span class="k">class</span> <span class="t">Alignment</span>(IntFlag):
+    NONE = <span class="n">0</span>
+    TOP = <span class="n">1</span>
+    LEFT = <span class="n">2</span>
+    BOTTOM = <span class="n">4</span>
+    RIGHT = <span class="n">8</span>
+    TOP_LEFT = <span class="n">3</span>          <span class="c"># allowed in Python; Sexy&#x27;s (flags ...) rejects overlapping values</span>
+
+a = <span class="t">Alignment</span>.TOP | <span class="t">Alignment</span>.RIGHT
+names = [m.name <span class="k">for</span> m <span class="k">in</span> (<span class="t">Alignment</span>.TOP, <span class="t">Alignment</span>.LEFT, <span class="t">Alignment</span>.BOTTOM, <span class="t">Alignment</span>.RIGHT) <span class="k">if</span> m <span class="k">in</span> a]
+<span class="k">assert</span> <span class="s">&quot; &quot;</span>.join(names) == <span class="s">&quot;TOP RIGHT&quot;</span>
+result = <span class="n">1000</span> <span class="k">if</span> a &amp; <span class="t">Alignment</span>.LEFT <span class="k">else</span> <span class="n">0</span>
+result += a
+<span class="k">assert</span> result == <span class="n">9</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>9</code> &middot; prints <code>Top Right</code></p>
+<p>Combinations cannot be declared as flags. Python allows them; Sexy rejects them when the script compiles:</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">strong</span> <span class="t">Alignment</span> (<span class="t">Int32</span>))
+(<span class="k">alias</span> <span class="t">Alignment</span> Sys.Type.Alignment)
+
+(<span class="k">flags</span> Sys.Type.Alignment
+    (Top <span class="n">1</span>)
+    (Left <span class="n">2</span>)
+    (TopLeft <span class="n">3</span>)
+)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (result = <span class="n">1</span>)
+)</code></pre></div>
+<p class="outcome err"><span class="tag">Error</span> <code>flags Alignment: TopLeft (3 / 0x3) shares bits with Top (1 / 0x1). Every flag must be bitwise distinct, so combinations cannot be declared</code></p>
+
+<h2>Iterating over an enum</h2>
+<p><code>foreach-enum</code> visits each value in declaration order. <code>name</code> is an <code>IString</code> and <code>value</code> is an <code>Int64</code>. The loop is unrolled at compile time, one copy of the body per value; <code>break</code> and <code>continue</code> work as usual.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">using</span> Sys.Type)
+
+(<span class="k">strong</span> <span class="t">Day</span> (<span class="t">Int32</span>))
+(<span class="k">alias</span> <span class="t">Day</span> Sys.Type.Day)
+(<span class="k">enum</span> Sys.Type.Day (Monday <span class="n">1</span>) Tuesday Wednesday Thursday Friday)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">IStringBuilder</span> sb = (NewStringBuilder <span class="n">128</span>))
+    (<span class="t">Int64</span> total = <span class="n">0</span>)
+    (<span class="k">foreach-enum</span> name value <span class="k">in</span> <span class="t">Day</span>:
+        (sb name)
+        (sb <span class="s">&quot; &quot;</span>)
+        (total = (total + value))
+    )
+    (Sys.Print sb)                     <span class="c">// Monday Tuesday Wednesday Thursday Friday</span>
+    (result = (<span class="t">Sys.Maths.I64.ToInt32</span> total))
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code><span class="k">from</span> enum <span class="k">import</span> IntEnum
+
+<span class="k">class</span> <span class="t">Day</span>(IntEnum):
+    MONDAY = <span class="n">1</span>
+    TUESDAY = <span class="n">2</span>
+    WEDNESDAY = <span class="n">3</span>
+    THURSDAY = <span class="n">4</span>
+    FRIDAY = <span class="n">5</span>
+
+names = []
+total = <span class="n">0</span>
+<span class="k">for</span> d <span class="k">in</span> <span class="t">Day</span>:             <span class="c"># a runtime loop; Sexy unrolls foreach-enum at compile time</span>
+    names.append(d.name)
+    total += d
+<span class="k">assert</span> <span class="s">&quot; &quot;</span>.join(names) == <span class="s">&quot;MONDAY TUESDAY WEDNESDAY THURSDAY FRIDAY&quot;</span>
+<span class="k">assert</span> total == <span class="n">15</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>15</code> &middot; prints <code>Monday Tuesday Wednesday Thursday Friday</code></p>
+
+<h2>Parsing a name</h2>
+<p><code>fromstring</code> looks up a value by its exact, case-sensitive name and reports success in a <code>Bool</code>. The <code>-&gt; ok</code> part is mandatory, so a failed parse cannot go unnoticed.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">strong</span> <span class="t">Day</span> (<span class="t">Int32</span>))
+(<span class="k">alias</span> <span class="t">Day</span> Sys.Type.Day)
+(<span class="k">enum</span> Sys.Type.Day (Monday <span class="n">1</span>) Tuesday Wednesday Thursday Friday)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="t">Bool</span> ok)
+    (<span class="t">Day</span> d = <span class="k">fromstring</span> <span class="s">&quot;Friday&quot;</span> -&gt; ok)
+    (<span class="t">Int32</span> v = d.Value)
+    (<span class="k">if</span> ok (result = v * <span class="n">10</span>))
+    (<span class="t">Day</span> e = <span class="k">fromstring</span> <span class="s">&quot;friday&quot;</span> -&gt; ok)  <span class="c">// case-sensitive: no match</span>
+    (<span class="k">if</span> (<span class="k">not</span> ok) (result += <span class="n">1</span>))
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code><span class="k">from</span> enum <span class="k">import</span> IntEnum
+
+<span class="k">class</span> <span class="t">Day</span>(IntEnum):
+    MONDAY = <span class="n">1</span>
+    FRIDAY = <span class="n">5</span>
+
+result = <span class="n">0</span>
+d = <span class="t">Day</span>.__members__.get(<span class="s">&quot;FRIDAY&quot;</span>)       <span class="c"># Day[&quot;FRIDAY&quot;] would raise KeyError on a miss</span>
+<span class="k">if</span> d <span class="k">is</span> <span class="k">not</span> <span class="k">None</span>:
+    result = d * <span class="n">10</span>
+<span class="k">if</span> <span class="t">Day</span>.__members__.get(<span class="s">&quot;friday&quot;</span>) <span class="k">is</span> <span class="k">None</span>:  <span class="c"># case-sensitive, as in Sexy</span>
+    result += <span class="n">1</span>
+<span class="k">assert</span> result == <span class="n">51</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>51</code></p>
+<nav class="pager"><a class="prev" href="interfaces.html">&larr; Interfaces, classes and factories</a><a class="next" href="containers.html">Containers &rarr;</a></nav>
+</main>
+<footer>Sexy 1.7 language notes. Every Sexy example on these pages was compiled and run against the 1.7-dev branch; the result shown under each is the verified one.</footer>
+</body>
+</html>

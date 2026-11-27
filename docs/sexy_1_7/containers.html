@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Containers &middot; Sexy 1.7</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a class="brand" href="index.html">Sexy 1.7</a><ul><li><a href="index.html">Overview</a></li><li><a href="functions.html">1. Functions and primitive types</a></li><li><a href="structs.html">2. Structs</a></li><li><a href="interfaces.html">3. Interfaces, classes and factories</a></li><li><a href="enums.html">4. Strong types and enums</a></li><li><a href="containers.html" class="current" aria-current="page">5. Containers</a></li></ul></nav>
+<main>
+<h1>Containers</h1>
+<p class="lede">Sexy has three built-in containers: <code>array</code>, <code>list</code> and <code>map</code>. They are declared like variables, typed by element, and shared by reference when assigned or passed.</p>
+
+<h2>Arrays</h2>
+<p><code>(array Int32 a 4)</code> creates an empty array with room for four elements. <code>Push</code> appends, <code>(a i)</code> reads, <code>Set</code> writes and <code>Length</code> counts. Indices start at 0. <code>foreach x # a</code> visits the elements in order.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">array</span> <span class="t">Int32</span> a <span class="n">4</span>)                  <span class="c">// capacity 4, length 0</span>
+    (a.Push <span class="n">10</span>)
+    (a.Push <span class="n">20</span>)
+    (a.Push <span class="n">30</span>)
+    (<span class="t">Int32</span> first = (a <span class="n">0</span>))              <span class="c">// indices start at 0</span>
+    (a.Set <span class="n">1</span> <span class="n">25</span>)
+    (<span class="t">Int32</span> sum = <span class="n">0</span>)
+    (<span class="k">foreach</span> x # a
+        (sum += x)
+    )
+    (result = sum + first)
+)</code></pre></div><div class="code"><div class="lang">Lua 5.4</div><pre><code><span class="k">local</span> a = {}
+a[#a + <span class="n">1</span>] = <span class="n">10</span>
+a[#a + <span class="n">1</span>] = <span class="n">20</span>
+a[#a + <span class="n">1</span>] = <span class="n">30</span>
+<span class="k">local</span> first = a[<span class="n">1</span>]        <span class="c">-- Lua sequences start at 1</span>
+a[<span class="n">2</span>] = <span class="n">25</span>
+<span class="k">local</span> sum = <span class="n">0</span>
+<span class="k">for</span> _, x <span class="k">in</span> ipairs(a) <span class="k">do</span> sum = sum + x <span class="k">end</span>
+assert(sum + first == <span class="n">75</span>)
+assert(a[<span class="n">4</span>] == <span class="k">nil</span>)       <span class="c">-- reading past the end is not an error in Lua</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>75</code></p>
+<p>Reading past the length throws, where Lua gives <code>nil</code> and Python raises <code>IndexError</code>:</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">array</span> <span class="t">Int32</span> a <span class="n">4</span>)
+    (a.Push <span class="n">10</span>)
+    (result = (a <span class="n">3</span>))                   <span class="c">// length is 1: throws</span>
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code>a = [<span class="n">10</span>]
+<span class="k">try</span>:
+    a[<span class="n">3</span>]
+    <span class="k">raise</span> SystemExit(<span class="s">&quot;unreachable&quot;</span>)
+<span class="k">except</span> IndexError:
+    <span class="k">pass</span></code></pre></div></div>
+<p class="outcome err"><span class="tag">Error</span> <code>Array.Get failed: the index was out of range</code></p>
+
+<h2>Arrays of structs</h2>
+<p>Pushing a struct names the type and gives the member values in parentheses. Reading an element into a variable copies it.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">struct</span> <span class="t">Vec2i</span> (<span class="t">Int32</span> x y))
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">array</span> <span class="t">Vec2i</span> points <span class="n">8</span>)
+    (points.Push <span class="t">Vec2i</span> (<span class="n">1</span> <span class="n">2</span>))
+    (points.Push <span class="t">Vec2i</span> (<span class="n">30</span> <span class="n">4</span>))
+    (<span class="k">foreach</span> p # points
+        (result += p.x)
+    )
+    (<span class="t">Vec2i</span> last = (points <span class="n">1</span>))
+    (result += (last.y + <span class="n">2</span>))
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+<span class="k">#include &lt;vector&gt;</span>
+
+<span class="k">struct</span> <span class="t">Vec2i</span> { <span class="k">int</span> x, y; };
+
+<span class="k">int</span> main()
+{
+    <span class="k">std</span>::<span class="t">vector</span>&lt;<span class="t">Vec2i</span>&gt; points;
+    points.reserve(<span class="n">8</span>);
+    points.push_back({ <span class="n">1</span>, <span class="n">2</span> });
+    points.push_back({ <span class="n">30</span>, <span class="n">4</span> });
+    <span class="k">int</span> result = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">const</span> <span class="t">Vec2i</span>&amp; p : points) result += p.x;
+    <span class="t">Vec2i</span> last = points[<span class="n">1</span>];         <span class="c">// copy, as in Sexy</span>
+    result += last.y + <span class="n">2</span>;
+    assert(result == <span class="n">37</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>37</code></p>
+
+<h2>Lists</h2>
+<p>A list is doubly linked. <code>Append</code> and <code>Prepend</code> add at either end. <code>foreach</code> over a list binds a node, not the value: read the element with <code>n.Value</code>.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">list</span> <span class="t">Int32</span> l)
+    (l.Append <span class="n">2</span>)
+    (l.Append <span class="n">3</span>)
+    (l.Prepend <span class="n">1</span>)
+    (l.Append <span class="n">4</span>)
+    (<span class="k">foreach</span> n # l
+        (<span class="t">Int32</span> v = n.Value)
+        (result = (result * <span class="n">10</span>) + v)
+    )
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+<span class="k">#include &lt;list&gt;</span>
+
+<span class="k">int</span> main()
+{
+    <span class="k">std</span>::<span class="t">list</span>&lt;<span class="k">int</span>&gt; l;
+    l.push_back(<span class="n">2</span>);
+    l.push_back(<span class="n">3</span>);
+    l.push_front(<span class="n">1</span>);
+    l.push_back(<span class="n">4</span>);
+    <span class="k">int</span> result = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">int</span> v : l) result = result * <span class="n">10</span> + v;
+    assert(result == <span class="n">1234</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>1234</code></p>
+
+<h2>Removing elements during foreach</h2>
+<p>A node can remove itself with <code>n.Pop</code> while the list is being enumerated, and the loop carries on with the next element. Every element is visited once, so there is no erase-and-advance pattern to get wrong.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">list</span> <span class="t">Int32</span> l)
+    (l.Append <span class="n">1</span>)
+    (l.Append <span class="n">2</span>)
+    (l.Append <span class="n">3</span>)
+    (l.Append <span class="n">4</span>)
+    (<span class="t">Int32</span> visited = <span class="n">0</span>)
+    (<span class="k">foreach</span> n # l
+        (visited += <span class="n">1</span>)
+        (<span class="t">Int32</span> v = n.Value)
+        (<span class="k">if</span> (v == <span class="n">2</span>) (n.Pop))
+        (<span class="k">if</span> (v == <span class="n">3</span>) (n.Pop))
+    )
+    (<span class="t">Int32</span> len = l.Length)
+    (result = (visited * <span class="n">1000</span>) + len)
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+<span class="k">#include &lt;list&gt;</span>
+
+<span class="k">int</span> main()
+{
+    <span class="k">std</span>::<span class="t">list</span>&lt;<span class="k">int</span>&gt; l = { <span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span> };
+    <span class="k">int</span> visited = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">auto</span> it = l.begin(); it != l.end(); )   <span class="c">// a range-for would be invalidated by erase</span>
+    {
+        ++visited;
+        <span class="k">if</span> (*it == <span class="n">2</span> || *it == <span class="n">3</span>) it = l.erase(it);
+        <span class="k">else</span> ++it;
+    }
+    assert(visited * <span class="n">1000</span> + <span class="k">static_cast</span>&lt;<span class="k">int</span>&gt;(l.size()) == <span class="n">4002</span>);
+}</code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>4002</code></p>
+
+<h2>Maps</h2>
+<p><code>(map IString Int32 ages)</code> maps keys to values. Keys can be <code>IString</code>, <code>Int32</code>, <code>Float32</code> or <code>Float64</code>. <code>Insert</code> adds or overwrites. <code>(ages "Ada")</code> returns a node; <code>n.Exists</code> says whether the key was found.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">using</span> Sys.Type)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">map</span> <span class="t">IString</span> <span class="t">Int32</span> ages)
+    (ages.Insert <span class="s">&quot;Ada&quot;</span> <span class="n">36</span>)
+    (ages.Insert <span class="s">&quot;Alan&quot;</span> <span class="n">41</span>)
+    (ages.Insert <span class="s">&quot;Ada&quot;</span> <span class="n">37</span>)             <span class="c">// Insert overwrites</span>
+    (<span class="k">node</span> n = (ages <span class="s">&quot;Ada&quot;</span>))
+    (<span class="t">Int32</span> adaAge = n.Value)
+    (<span class="k">node</span> missing = (ages <span class="s">&quot;Grace&quot;</span>))
+    (<span class="k">if</span> (<span class="k">not</span> missing.Exists) (result = <span class="n">1000</span>))
+    (result += (adaAge - <span class="n">30</span>))
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code>ages: dict[str, int] = {}
+ages[<span class="s">&quot;Ada&quot;</span>] = <span class="n">36</span>
+ages[<span class="s">&quot;Alan&quot;</span>] = <span class="n">41</span>
+ages[<span class="s">&quot;Ada&quot;</span>] = <span class="n">37</span>                       <span class="c"># assignment overwrites</span>
+result = <span class="n">0</span>
+<span class="k">if</span> <span class="s">&quot;Grace&quot;</span> <span class="k">not</span> <span class="k">in</span> ages:
+    result = <span class="n">1000</span>
+result += ages[<span class="s">&quot;Ada&quot;</span>] - <span class="n">30</span>
+<span class="k">assert</span> result == <span class="n">1007</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>1007</code></p>
+<p>Reading <code>n.Value</code> for a missing key throws. C++'s <code>operator[]</code> would quietly insert a zero instead:</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">using</span> Sys.Type)
+
+(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">map</span> <span class="t">IString</span> <span class="t">Int32</span> ages)
+    (ages.Insert <span class="s">&quot;Ada&quot;</span> <span class="n">36</span>)
+    (<span class="k">node</span> n = (ages <span class="s">&quot;Grace&quot;</span>))
+    (result = n.Value)                 <span class="c">// no such key: throws</span>
+)</code></pre></div><div class="code"><div class="lang">C++20</div><pre><code><span class="k">#include &lt;cassert&gt;</span>
+<span class="k">#include &lt;map&gt;</span>
+<span class="k">#include &lt;stdexcept&gt;</span>
+<span class="k">#include &lt;string&gt;</span>
+
+<span class="k">int</span> main()
+{
+    <span class="k">std</span>::<span class="t">map</span>&lt;<span class="k">std</span>::<span class="t">string</span>, <span class="k">int</span>&gt; ages = { { <span class="s">&quot;Ada&quot;</span>, <span class="n">36</span> } };
+    <span class="k">int</span> silent = ages[<span class="s">&quot;Grace&quot;</span>];            <span class="c">// operator[] inserts a zero entry instead of failing</span>
+    assert(silent == <span class="n">0</span> &amp;&amp; ages.size() == <span class="n">2</span>);
+    <span class="k">try</span>
+    {
+        (<span class="k">void</span>) ages.at(<span class="s">&quot;Alan&quot;</span>);            <span class="c">// at() throws, like Sexy&#x27;s n.Value</span>
+        <span class="k">return</span> <span class="n">1</span>;
+    }
+    <span class="k">catch</span> (<span class="k">const</span> <span class="k">std</span>::<span class="t">out_of_range</span>&amp;) {}
+}</code></pre></div></div>
+<p class="outcome err"><span class="tag">Error</span> <code>MapNodeGet32 failed. The node did not represent an entry in the map</code></p>
+
+<h2>Iterating over a map</h2>
+<p><code>foreach</code> over a map binds a node with <code>Key</code> and <code>Value</code>. The examples only rely on visiting each entry once, not on the order.</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">map</span> <span class="t">Int32</span> <span class="t">Int32</span> squares)
+    (squares.Insert <span class="n">2</span> <span class="n">4</span>)
+    (squares.Insert <span class="n">3</span> <span class="n">9</span>)
+    (squares.Insert <span class="n">8</span> <span class="n">64</span>)
+    (<span class="k">foreach</span> n # squares
+        (<span class="t">Int32</span> k = n.Key)
+        (<span class="t">Int32</span> v = n.Value)
+        (result += v)
+        (result -= k)
+    )
+    (<span class="t">Int32</span> len = squares.Length)
+    (result += (len + <span class="n">10</span>))
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code>squares = {<span class="n">2</span>: <span class="n">4</span>, <span class="n">3</span>: <span class="n">9</span>, <span class="n">8</span>: <span class="n">64</span>}
+result = <span class="n">0</span>
+<span class="k">for</span> k, v <span class="k">in</span> squares.items():
+    result += v
+    result -= k
+result += len(squares) + <span class="n">10</span>
+<span class="k">assert</span> result == <span class="n">77</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>77</code></p>
+<p>As with lists, an entry can be popped during the loop. Python refuses to let a dict change size while it is being iterated:</p>
+<div class="pair"><div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">function</span> Main -&gt; (<span class="t">Int32</span> result):
+    (<span class="k">map</span> <span class="t">Int32</span> <span class="t">Int32</span> m)
+    (m.Insert <span class="n">1</span> <span class="n">10</span>)
+    (m.Insert <span class="n">2</span> <span class="n">20</span>)
+    (m.Insert <span class="n">3</span> <span class="n">30</span>)
+    (<span class="k">foreach</span> n # m
+        (<span class="t">Int32</span> k = n.Key)
+        (<span class="k">if</span> (k == <span class="n">2</span>) (n.Pop))
+    )
+    (result = m.Length)
+)</code></pre></div><div class="code"><div class="lang">Python 3</div><pre><code>m = {<span class="n">1</span>: <span class="n">10</span>, <span class="n">2</span>: <span class="n">20</span>, <span class="n">3</span>: <span class="n">30</span>}
+<span class="k">try</span>:
+    <span class="k">for</span> k <span class="k">in</span> m:
+        <span class="k">if</span> k == <span class="n">2</span>:
+            <span class="k">del</span> m[k]                     <span class="c"># RuntimeError: dictionary changed size during iteration</span>
+    <span class="k">raise</span> SystemExit(<span class="s">&quot;unreachable&quot;</span>)
+<span class="k">except</span> RuntimeError:
+    <span class="k">pass</span>
+m = {<span class="n">1</span>: <span class="n">10</span>, <span class="n">2</span>: <span class="n">20</span>, <span class="n">3</span>: <span class="n">30</span>}
+<span class="k">for</span> k <span class="k">in</span> list(m):                        <span class="c"># the usual workaround: iterate over a copy of the keys</span>
+    <span class="k">if</span> k == <span class="n">2</span>:
+        <span class="k">del</span> m[k]
+<span class="k">assert</span> len(m) == <span class="n">2</span></code></pre></div></div>
+<p class="outcome ok"><span class="tag">Result</span> Main returns <code>2</code></p>
+<nav class="pager"><a class="prev" href="enums.html">&larr; Strong types and enums</a></nav>
+</main>
+<footer>Sexy 1.7 language notes. Every Sexy example on these pages was compiled and run against the 1.7-dev branch; the result shown under each is the verified one.</footer>
+</body>
+</html>

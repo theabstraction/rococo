@@ -5,4 +5,4 @@
 (require-hash-of !scripts/native/Sys.Type.Strings.sxy = cb876a2074eec2deb323fa5604b03d701a552799c47bb8757b0456b1e55f7c9b)
 (require-hash-of !scripts/native/Sys.IO.sxy 		  = fd048dfa57636bcaa0a4ad389b0746f5ee20f54cfabf76006dc7cbd0228567d0)
 (require-hash-of !scripts/native/Sys.Reflection.sxy   = 78b613566255066d77fd5657d2d809b07b9d0a5ba875de019c365c3dc0d9aa6a)
-(require-hash-of mhost                                = 925525dfb2bf603a8159d96b561e83b850b2f2cf138333d8b9d7ce015fcd40da)
+(require-hash-of mhost                                = a26ed89706f7ac45486649438a767fb3c441dbac85ec70b9d6b5511e09723bbf)

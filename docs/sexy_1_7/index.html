@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overview &middot; Sexy 1.7</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="top"><a class="brand" href="index.html">Sexy 1.7</a><ul><li><a href="index.html" class="current" aria-current="page">Overview</a></li><li><a href="functions.html">1. Functions and primitive types</a></li><li><a href="structs.html">2. Structs</a></li><li><a href="interfaces.html">3. Interfaces, classes and factories</a></li><li><a href="enums.html">4. Strong types and enums</a></li><li><a href="containers.html">5. Containers</a></li></ul></nav>
+<main>
+<h1>Sexy 1.7</h1>
+<p class="lede">Sexy is the scripting language of the Rococo engine. It is statically typed, written as s-expressions, compiled to bytecode for the Sexy virtual machine, and embedded in a C++ host.</p>
+
+<p>These pages describe the language as it is on the 1.7 development branch. They are written for people who already know C++ and want to know how Sexy differs. Every Sexy example was compiled and run through the test harness, and the result or error message shown under it is the real one. The comparison code next to it is in whichever of Python, Lua or C++ makes the difference clearest. It was run too.</p>
+
+<table class="facts">
+	<tr><th>Syntax</th><td>Everything is an s-expression: <code>(function Square (Int32 x) -&gt; (Int32 y): (y = (x * x)))</code>. Operators are infix inside a compound, with no precedence.</td></tr>
+	<tr><th>Types</th><td>Static and strict. <code>Int32</code>, <code>Int64</code>, <code>Float32</code>, <code>Float64</code>, <code>Bool</code>, structs (values), interfaces (references), strong types and enums. Variables never convert implicitly; literals take the type of their target.</td></tr>
+	<tr><th>Compilation</th><td>The host compiles declarations up front. Function bodies are compiled to bytecode the first time they are called, so an error inside a body appears when the script runs.</td></tr>
+	<tr><th>Objects</th><td>Classes are used through interfaces and created by factories. Objects are reference counted, so a destructor runs as soon as the last reference goes, not at some later collection.</td></tr>
+	<tr><th>Host</th><td>The C++ program creates a script system, adds native functions and sources, compiles, and runs <code>EntryPoint.Main</code> on the VM.</td></tr>
+</table>
+
+<h2>Pages</h2>
+<ol class="toc">
+	<li><a href="functions.html">Functions and primitive types</a> <span>&middot; signatures with named outputs, default arguments, literals, no implicit conversion, loops, operator grouping</span></li>
+	<li><a href="structs.html">Structs</a> <span>&middot; memberwise initialisation, pass by reference, out parameters, constructors, operators as functions</span></li>
+	<li><a href="interfaces.html">Interfaces, classes and factories</a> <span>&middot; implements and defines, null objects, deterministic destruction, casts</span></li>
+	<li><a href="enums.html">Strong types and enums</a> <span>&middot; strong types, <code>.Value</code>, <code>Type@Value</code>, flags, <code>foreach-enum</code>, <code>fromstring</code></span></li>
+	<li><a href="containers.html">Containers</a> <span>&middot; array, list and map, foreach, popping inside foreach</span></li>
+</ol>
+
+<h2>Planned</h2>
+<p>Not written yet:</p>
+<ul class="planned">
+	<li>Control flow in depth: <code>do</code>, <code>goto</code>, loop <code>finally</code></li>
+	<li>Strings and string builders</li>
+	<li>Exceptions: <code>try</code>, <code>catch</code>, <code>finally</code>, <code>throw</code></li>
+	<li>Closures and archetypes</li>
+	<li>Namespaces, <code>alias</code> and <code>using</code></li>
+	<li>Globals</li>
+	<li>Coroutines</li>
+	<li>Macros and reflection</li>
+	<li>Embedding: native functions and the C++ API</li>
+</ul>
+
+<h2>About the examples</h2>
+<p>Each Sexy example is a complete program whose <code>Main</code> returns an <code>Int32</code> to the host. The host looks for <code>EntryPoint.Main</code>, so every program also contains these two lines, which the pages omit after the first example:</p>
+<div class="code"><div class="lang">Sexy</div><pre><code>(<span class="k">namespace</span> EntryPoint)
+(<span class="k">alias</span> <span class="t">Main</span> EntryPoint.Main)</code></pre></div>
+<nav class="pager"><span></span><a class="next" href="functions.html">Functions and primitive types &rarr;</a></nav>
+</main>
+<footer>Sexy 1.7 language notes. Every Sexy example on these pages was compiled and run against the 1.7-dev branch; the result shown under each is the verified one.</footer>
+</body>
+</html>

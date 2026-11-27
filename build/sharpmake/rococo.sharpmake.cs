@@ -818,6 +818,25 @@ namespace Rococo
         }
     }
 
+
+    [Sharpmake.Generate]
+    public class RococoDollsProject : RococoProject
+    {
+        public RococoDollsProject() : base("rococo.dolls")
+        {
+            SetSourcePath(Name);
+        }
+
+        [Configure()]
+        public void ConfigureAll(Configuration conf, Target target)
+        {
+            StandardInit(conf, target, Configuration.OutputType.Dll);
+            conf.AddPublicDependency<RococoUtilsProject>(target);
+            conf.AddPublicDependency<SexySParserProject>(target);
+            conf.Defines.Add("ROCOCO_DOLLS_API=__declspec(dllexport)");
+        }
+    }
+
     [Sharpmake.Generate]
     public class RococoSexInferenceProject : RococoProject
     {
@@ -1373,7 +1392,9 @@ namespace Rococo
             conf.AddPrivateDependency<RococoSEXMLProject>(target);
             conf.AddPrivateDependency<RococoAudioProject>(target);
             conf.AddPublicDependency<RococoMPlatProject>(target);
+            conf.AddPublicDependency<RococoDollsProject>(target);
             conf.AddPublicDependency<RococoDX11RendererProject>(target);
+            conf.Defines.Add("ROCOCO_DOLLS_API=__declspec(dllimport)");
             conf.Defines.Add("SCRIPTEXPORT_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_JPEG_API=__declspec(dllimport)");
             conf.Defines.Add("ROCOCO_TIFF_API=__declspec(dllimport)");
@@ -1774,6 +1795,7 @@ namespace Rococo
             conf.Output = Configuration.OutputType.None; // Required to create dependencies in a compiled/not-generated object
 
             conf.AddPrivateDependency<RococoPackagerProject>(target, DependencySetting.OnlyBuildOrder);
+            conf.AddPrivateDependency<RococoDollsProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoAudioProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoMPlatProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoMHostProject>(target, DependencySetting.OnlyBuildOrder);
@@ -1812,6 +1834,7 @@ namespace Rococo
 
             conf.Output = Configuration.OutputType.None; // Required to create dependencies in a compiled/not-generated object
 
+            conf.AddPrivateDependency<RococoDollsProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoPackagerProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoAudioProject>(target, DependencySetting.OnlyBuildOrder);
             conf.AddPrivateDependency<RococoMPlatProject>(target, DependencySetting.OnlyBuildOrder);
@@ -2224,6 +2247,7 @@ namespace Rococo
             conf.AddProject<RococoComponentsSkeletonProject>(target);
             conf.AddProject<RococoSEXMLProject>(target);
             conf.AddProject<RococoMathsProject>(target);
+            conf.AddProject<RococoDollsProject>(target);
             conf.AddProject<RococoPackagerProject>(target);
             conf.AddProject<RococoWindowsProject>(target);
             conf.AddProject<RococoSexyIDEProject>(target);
@@ -2459,6 +2483,7 @@ namespace Rococo
 
             arguments.Generate<RococoMathsProject>();
             arguments.Generate<RococoMathsTestProject>();
+            arguments.Generate<RococoDollsProject>();
             arguments.Generate<RococoPackagerProject>();
             arguments.Generate<RococoWindowsProject>();
             arguments.Generate<RococoSexyIDEProject>();

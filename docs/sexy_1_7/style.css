@@ -1,0 +1,239 @@
+/* Sexy 1.7 language notes. Shared by every page; no external fonts or scripts, so the pages work from the file system. */
+
+:root {
+	--ink: #1d232a;
+	--muted: #5a6470;
+	--paper: #fbfbf9;
+	--rule: #d9dcd6;
+	--accent: #1f5f8b;
+	--code-bg: #f2f3ef;
+	--code-ink: #1d232a;
+	--kw: #7a2e8e;
+	--type: #1f5f8b;
+	--str: #2f6b1f;
+	--num: #a0451c;
+	--com: #6b7280;
+	--ok: #2f6b1f;
+	--err: #a12622;
+	--mono: ui-monospace, "Cascadia Mono", Consolas, "DejaVu Sans Mono", Menlo, monospace;
+	--sans: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 16px; }
+
+body {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: var(--sans);
+	line-height: 1.55;
+}
+
+/* ---- navigation ---- */
+
+nav.top {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 1.25rem;
+	padding: 0.6rem 1.5rem;
+	background: #23303b;
+	color: #fff;
+}
+
+nav.top .brand {
+	color: #fff;
+	font-weight: 700;
+	text-decoration: none;
+	letter-spacing: 0.02em;
+}
+
+nav.top ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.15rem 1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: 0.92rem;
+}
+
+nav.top a { color: #d6e4ee; text-decoration: none; }
+nav.top a:hover, nav.top a:focus { color: #fff; text-decoration: underline; }
+nav.top a.current { color: #fff; border-bottom: 2px solid #8cc3e6; }
+
+/* ---- page body ---- */
+
+main {
+	max-width: 76rem;
+	margin: 0 auto;
+	padding: 1.5rem 1.5rem 2rem;
+}
+
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 0.6rem 0 0.4rem; }
+h2 { font-size: 1.3rem; margin: 2.2rem 0 0.5rem; padding-top: 0.6rem; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 0.4rem; }
+
+p, ul, ol { max-width: 48rem; }
+p.lede { font-size: 1.08rem; color: var(--muted); }
+
+a { color: var(--accent); }
+
+code {
+	font-family: var(--mono);
+	font-size: 0.9em;
+	background: var(--code-bg);
+	padding: 0.05em 0.3em;
+	border-radius: 3px;
+}
+
+/* ---- code blocks: Sexy on the left, the comparison on the right ---- */
+
+.pair {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.9rem;
+	margin: 0.8rem 0 0.3rem;
+}
+
+.code {
+	min-width: 0;
+	border: 1px solid var(--rule);
+	border-radius: 6px;
+	background: var(--code-bg);
+	overflow: hidden;
+}
+
+main > .code { margin: 0.8rem 0 0.3rem; }
+
+.code .lang {
+	padding: 0.2rem 0.7rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--muted);
+	border-bottom: 1px solid var(--rule);
+	background: #e8eae4;
+}
+
+pre {
+	margin: 0;
+	padding: 0.7rem 0.9rem;
+	overflow-x: auto;
+	font-family: var(--mono);
+	font-size: 0.84rem;
+	line-height: 1.45;
+	color: var(--code-ink);
+	tab-size: 4;
+}
+
+pre code { background: none; padding: 0; font-size: inherit; }
+
+.k { color: var(--kw); font-weight: 600; }
+.t { color: var(--type); }
+.s { color: var(--str); }
+.n { color: var(--num); }
+.c { color: var(--com); font-style: italic; }
+
+/* ---- verified outcome under each Sexy example ---- */
+
+.outcome {
+	margin: 0.3rem 0 1rem;
+	font-size: 0.9rem;
+	max-width: none;
+}
+
+.outcome .tag {
+	display: inline-block;
+	min-width: 4.2em;
+	padding: 0 0.4em;
+	margin-right: 0.3em;
+	border-radius: 3px;
+	color: #fff;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.outcome.ok .tag { background: var(--ok); }
+.outcome.err .tag { background: var(--err); }
+
+/* ---- notes on semantic differences ---- */
+
+.note {
+	max-width: 48rem;
+	margin: 0.4rem 0 1rem;
+	padding: 0.55rem 0.9rem;
+	border-left: 4px solid var(--accent);
+	background: #eef3f6;
+}
+
+.note.warn { border-left-color: var(--num); background: #f8efe9; }
+.note p { margin: 0.2rem 0; }
+
+/* ---- index page ---- */
+
+ol.toc { padding-left: 1.4rem; }
+ol.toc li { margin: 0.35rem 0; }
+ol.toc li span { color: var(--muted); }
+
+ul.planned { columns: 2 18rem; color: var(--muted); }
+ul.planned li { break-inside: avoid; }
+
+table.facts { border-collapse: collapse; margin: 0.8rem 0; font-size: 0.92rem; }
+table.facts th, table.facts td { text-align: left; vertical-align: top; padding: 0.35rem 0.8rem 0.35rem 0; border-bottom: 1px solid var(--rule); }
+table.facts th { white-space: nowrap; }
+
+/* ---- previous / next and footer ---- */
+
+nav.pager {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-top: 2.5rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--rule);
+}
+
+nav.pager a { text-decoration: none; font-weight: 600; }
+nav.pager a:hover { text-decoration: underline; }
+
+footer {
+	max-width: 76rem;
+	margin: 0 auto;
+	padding: 0 1.5rem 2rem;
+	font-size: 0.82rem;
+	color: var(--muted);
+}
+
+/* ---- narrow screens: stack the pair ---- */
+
+@media (max-width: 60rem) {
+	.pair { grid-template-columns: 1fr; }
+	main { padding: 1rem; }
+	nav.top { position: static; padding: 0.6rem 1rem; }
+}
+
+/* ---- print ---- */
+
+@media print {
+	:root { --code-bg: #fff; }
+	body { background: #fff; color: #000; font-size: 10.5pt; }
+	nav.top, nav.pager { display: none; }
+	main { max-width: none; padding: 0; }
+	h2 { break-after: avoid; }
+	.pair { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+	.code, .outcome, .note { break-inside: avoid; }
+	.code .lang { background: #fff; }
+	pre { white-space: pre-wrap; font-size: 8.5pt; }
+	a { color: #000; text-decoration: none; }
+	.note { background: #fff; }
+}
